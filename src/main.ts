@@ -4,9 +4,9 @@ import { useState } from "preact/hooks";
 import fiMiniCaseLib from "../models/fi-mini-case/lib/fi-mini-case-lib.scad?raw";
 import fiMiniCaseAssembled from "../models/fi-mini-case/previews/assembled.scad?raw";
 import fiMiniCaseCap from "../models/fi-mini-case/previews/cap.scad?raw";
-import { parseParams } from "@owg/lib/scad-parser";
-import { createOpenSCADApi, injectParameters } from "@owg/lib/openscad-api";
-import type { ScadParam, ScadValue } from "@owg/types";
+import { parseParams } from "./lib/scad-parser";
+import { createOpenSCADApi, injectParameters } from "./lib/openscad-api";
+import type { ScadParam, ScadValue } from "./lib/types";
 
 interface LegendEntry {
   color: string;

@@ -20,12 +20,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Checkout openscad-web-generator (sibling dependency)
-        uses: actions/checkout@v4
-        with:
-          repository: mmmaxwwwell/openscad-web-generator
-          path: ../openscad-web-generator
-
       - name: Install OpenSCAD
         run: |
           sudo apt-get update
