@@ -34,6 +34,7 @@ jobs:
 
       - name: Fetch OpenSCAD WASM files
         run: |
+          rm -rf public/wasm
           mkdir -p public/wasm
           BASE="https://raw.githubusercontent.com/mmmaxwwwell/openscad-web-generator/main/public/wasm"
           for f in openscad.js openscad.wasm openscad.wasm.js openscad.fonts.js openscad.mcad.js openscad.bosl2.js openscad.qr.js; do

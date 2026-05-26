@@ -16,7 +16,7 @@ include <qr.scad>
 // Keep it short — more text means smaller QR modules,
 // which may exceed your printer's resolution.
 // Leave empty for no QR code.
-qr_code_text = "google.com";
+qr_code_text = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 // END_PARAMS
 
 // BEGIN_SLICER_SETTINGS

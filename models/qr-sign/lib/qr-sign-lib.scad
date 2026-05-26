@@ -17,7 +17,7 @@ include <qr.scad>
 // Short URLs produce larger, more reliable modules.
 // Long URLs work, but the modules get smaller and may exceed
 // your printer's resolution.
-qr_url_text = "https://example.com";
+qr_url_text = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 
 // Outer width of the sign plate, in mm.
 sign_size = 235;

@@ -51,7 +51,7 @@ Consumers use `include <../lib/qr-sign-lib.scad>;` — the lib needs its top-lev
 - **Don't redefine lib parameters in `previews/assembled.scad`.** Customizer values live in the lib's `BEGIN_PARAMS` block.
 - **Don't `translate()` in the preview.** The two modules are already aligned in Z — the QR sits inside the plate pocket and protrudes above the surface.
 - **Keep `section_h = 4 × layer_h`.** The 4-layer rule keeps color swaps on clean layer boundaries.
-- **The default URL is `https://example.com`.** Don't ship a customer-specific URL as the default.
+- **Don't change the default URL.** Don't ship a customer-specific URL as the default.
 
 ## Build / render
 

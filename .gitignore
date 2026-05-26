@@ -6,3 +6,6 @@ dist/
 # Built model artifacts — produced by scripts/build-models.mjs
 public/models/
 models/*/build/
+
+# WASM files — fetched in CI, symlinked locally
+public/wasm
