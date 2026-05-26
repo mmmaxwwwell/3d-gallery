@@ -60,11 +60,7 @@ let cachedModules: {
 async function loadModules() {
   if (cachedModules) return cachedModules;
 
-  const baseUrl = import.meta.env.BASE_URL || '/';
-  const appRoot = baseUrl.startsWith('/')
-    ? new URL(baseUrl, self.location.origin).href
-    : new URL('../' + baseUrl, self.location.href).href;
-  const base = appRoot.replace(/\/$/, '');
+  const base = 'https://mmmaxwwwell.github.io/openscad-web-generator';
   // @ts-ignore — runtime-resolved public assets
   const openscadModule = await import(/* @vite-ignore */ `${base}/wasm/openscad.js`);
   // @ts-ignore
