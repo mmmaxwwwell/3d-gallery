@@ -585,16 +585,20 @@ async function loadPart(model: Model, part: Part, opts: LoadPartOptions = {}) {
     pushRoute(model.slug, part.module, opts.initialValues);
   }
 
+  const ext = part.file.split(".").pop();
+  const baseName = part.file.replace(/\.\w+$/, "");
+  const downloadName = `${model.slug}-${baseName}.${ext}`;
+
   if (model.customizable) {
     showCustomizer(model, part, opts.initialValues);
     if (!opts.promptOnly) {
-      setDownloadUrl(url, part.file);
+      setDownloadUrl(url, downloadName);
     } else {
       downloadLink.hidden = true;
     }
   } else {
     hideCustomizer();
-    setDownloadUrl(url, part.file);
+    setDownloadUrl(url, downloadName);
   }
 
   if (opts.promptOnly) {
