@@ -1,6 +1,6 @@
 # fan-mount
 
-A 120mm-class fan mount assembly: a base plate that captures the fan into a counterbored seat, a TPU base gasket, a TPU fan-body ring gasket, and a two-piece conical clamp that grips the fan's tapered upper body.
+A 100mm-class fan mount assembly: a base plate that captures the fan into a counterbored seat, a TPU base gasket, a TPU fan-body ring gasket, and a two-piece conical clamp that grips the fan's tapered upper body.
 
 ## File layout
 

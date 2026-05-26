@@ -2,8 +2,8 @@
   "models": [
     {
       "slug": "fan-mount",
-      "title": "120mm Fan Mount",
-      "description": "Modular 120mm-class fan mount with TPU gaskets and a two-piece conical clamp that grips the fan's tapered upper body.",
+      "title": "100mm Fan Mount",
+      "description": "Modular 100mm-class fan mount with TPU gaskets and a two-piece conical clamp that grips the fan's tapered upper body.",
       "previews": [
         { "file": "assembled.3mf", "format": "3mf", "label": "Assembly preview", "default": true,
           "legend": [

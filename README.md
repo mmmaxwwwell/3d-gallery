@@ -8,7 +8,7 @@ Models live under [`models/`](models/). Each model is an OpenSCAD project; STL a
 
 ## Models
 
-- [`fan-mount`](models/fan-mount/) — 120mm fan mount with conical clamp and TPU gaskets.
+- [`fan-mount`](models/fan-mount/) — 100mm fan mount with conical clamp and TPU gaskets.
 - [`fi-mini-case`](models/fi-mini-case/) — Protective case for the Fi Mini GPS tracker with optional QR code.
 - [`qr-sign`](models/qr-sign/) — Two-color QR sign that encodes any URL onto a 235mm rounded plate.
 - [`air-purifier-shelf`](models/air-purifier-shelf/) — Wall-mounted round shelf for the Levoit Core 200S air purifier.
