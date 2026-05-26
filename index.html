@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D Gallery</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div id="mobile-bar">
+        <button id="sidebar-toggle" type="button" aria-label="Toggle menu">☰</button>
+        <select id="mobile-part-select" hidden></select>
+      </div>
+      <aside id="sidebar">
+        <h1>3D Gallery</h1>
+        <nav id="model-list">Loading…</nav>
+      </aside>
+      <main id="viewer-pane">
+        <header id="viewer-header">
+          <div id="header-left">
+            <h2 id="model-title">Select a model</h2>
+            <select id="part-select" hidden></select>
+          </div>
+          <a id="download-link" href="#" download hidden>Download</a>
+        </header>
+        <p id="model-description" hidden></p>
+        <div id="viewer-container">
+          <div id="viewer-legend" hidden></div>
+          <div id="customized-badge" hidden>Customized</div>
+          <div id="viewer-loading" hidden>
+            <div class="loading-status"></div>
+            <div class="loading-bar-track"><div class="loading-bar-fill"></div></div>
+            <div class="loading-note">This may take a while — OpenSCAD is rendering in your browser</div>
+          </div>
+          <div id="viewer-prompt" hidden>
+            <div class="prompt-message">Press <strong>Generate</strong> below to render your custom 3D model</div>
+          </div>
+        </div>
+        <div id="viewer-error" hidden></div>
+        <section id="customizer" hidden></section>
+        <section id="hardware-list" hidden></section>
+      </main>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

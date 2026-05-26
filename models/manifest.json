@@ -1,0 +1,73 @@
+{
+  "models": [
+    {
+      "slug": "fan-mount",
+      "title": "120mm Fan Mount",
+      "description": "Modular 120mm-class fan mount with TPU gaskets and a two-piece conical clamp that grips the fan's tapered upper body.",
+      "previews": [
+        { "file": "assembled.3mf", "format": "3mf", "label": "Assembly preview", "default": true,
+          "legend": [
+            { "color": "#3a7ad9", "label": "Base plate" },
+            { "color": "#888888", "label": "Base gasket (TPU, under base)" },
+            { "color": "#666666", "label": "Fan-body gasket (TPU)" },
+            { "color": "#5fb3d6", "label": "Clamp half (cyan)" },
+            { "color": "#d65f9a", "label": "Clamp half (pink)" }
+          ]
+        }
+      ],
+      "parts": [
+        { "file": "fan-mount.stl",   "format": "stl", "label": "Base plate" },
+        { "file": "base-gasket.stl", "format": "stl", "label": "Base gasket (TPU)" },
+        { "file": "fan-gasket.stl",  "format": "stl", "label": "Fan-body gasket (TPU)" },
+        { "file": "fan-clamp.stl",   "format": "stl", "label": "Clamp half (print x2)" }
+      ],
+      "hardware": [
+        {
+          "qty": 10,
+          "label": "M5x10 button-head cap screw",
+          "source": { "url": "https://www.amazon.com/dp/B0CT9Y1G1T", "vendor": "Amazon" }
+        },
+        {
+          "qty": 1,
+          "label": "VIVOSUN 4 Inch 130 CFM Inline Duct Fan",
+          "source": { "url": "https://www.amazon.com/dp/B0DNSXKN4G", "vendor": "Amazon" }
+        }
+      ]
+    },
+    {
+      "slug": "fi-mini-case",
+      "title": "Fi Mini GPS Case",
+      "description": "Protective case for the Fi Mini GPS tracker. Supports an optional QR code — enter your phone number or address so anyone who finds your dog can reach you.",
+      "customizable": true,
+      "previews": [
+        { "file": "assembled.3mf", "format": "3mf", "label": "Assembly preview", "default": true, "module": "assembled",
+          "legend": [
+            { "color": "#000000", "label": "Cap body (black)" },
+            { "color": "#ffffff", "label": "QR code (white)" },
+            { "color": "#555555", "label": "Base (dark gray)" }
+          ]
+        }
+      ],
+      "parts": [
+        { "file": "cap.3mf", "format": "3mf", "label": "Cap (top half)", "module": "cap",
+          "legend": [
+            { "color": "#000000", "label": "Body (black)" },
+            { "color": "#ffffff", "label": "QR code (white)" }
+          ]
+        },
+        { "file": "base.stl", "format": "stl", "label": "Base (bottom half)", "module": "base" }
+      ],
+      "hardware": [
+        {
+          "qty": 1,
+          "label": "Fi Mini Smart Tag",
+          "source": { "url": "https://www.wagtopia.com/smarttag", "vendor": "Wagtopia" }
+        },
+        {
+          "qty": 6,
+          "label": "M3x6 socket head cap screw"
+        }
+      ]
+    }
+  ]
+}

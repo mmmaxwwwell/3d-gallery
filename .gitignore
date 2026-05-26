@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+
+# Built model artifacts — produced by scripts/build-models.mjs
+public/models/
+models/*/build/
