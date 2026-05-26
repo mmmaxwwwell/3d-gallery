@@ -4,6 +4,8 @@ import { useState } from "preact/hooks";
 import fiMiniCaseLib from "../models/fi-mini-case/lib/fi-mini-case-lib.scad?raw";
 import fiMiniCaseAssembled from "../models/fi-mini-case/previews/assembled.scad?raw";
 import fiMiniCaseCap from "../models/fi-mini-case/previews/cap.scad?raw";
+import qrSignLib from "../models/qr-sign/lib/qr-sign-lib.scad?raw";
+import qrSignAssembled from "../models/qr-sign/previews/assembled.scad?raw";
 import { parseParams } from "./lib/scad-parser";
 import { createOpenSCADApi, injectParameters } from "./lib/openscad-api";
 import type { ScadParam, ScadValue } from "./lib/types";
@@ -62,6 +64,12 @@ const CUSTOMIZABLE_SOURCES: Record<string, { lib: string; previews: Record<strin
     previews: {
       assembled: stripIncludes(fiMiniCaseAssembled),
       cap: stripIncludes(fiMiniCaseCap),
+    },
+  },
+  "qr-sign": {
+    lib: qrSignLib,
+    previews: {
+      assembled: stripIncludes(qrSignAssembled),
     },
   },
 };

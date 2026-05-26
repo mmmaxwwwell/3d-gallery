@@ -87,7 +87,6 @@
       "slug": "air-purifier-shelf",
       "title": "Air Purifier Wall Shelf",
       "description": "Wall-mounted round shelf for the Levoit Core 200S air purifier. 230mm plate with diagonal truss struts; four screws into the wall.",
-      "customizable": true,
       "previews": [
         { "file": "assembled.3mf", "format": "3mf", "label": "Assembly preview", "default": true,
           "legend": [
