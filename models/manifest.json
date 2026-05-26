@@ -68,6 +68,47 @@
           "label": "M3x6 socket head cap screw"
         }
       ]
+    },
+    {
+      "slug": "qr-sign",
+      "title": "QR Sign",
+      "description": "Two-color QR sign — encode any URL on a 235mm rounded plate. Prints as a single multi-material job with the QR modules embossed in a contrasting filament.",
+      "customizable": true,
+      "previews": [
+        { "file": "assembled.3mf", "format": "3mf", "label": "Assembly preview", "default": true,
+          "legend": [
+            { "color": "#ffffff", "label": "Plate (light filament)" },
+            { "color": "#000000", "label": "QR modules (dark filament)" }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "air-purifier-shelf",
+      "title": "Air Purifier Wall Shelf",
+      "description": "Wall-mounted round shelf for the Levoit Core 200S air purifier. 230mm plate with diagonal truss struts; four screws into the wall.",
+      "customizable": true,
+      "previews": [
+        { "file": "assembled.3mf", "format": "3mf", "label": "Assembly preview", "default": true,
+          "legend": [
+            { "color": "#3a7ad9", "label": "Shelf" }
+          ]
+        }
+      ],
+      "parts": [
+        { "file": "shelf.stl", "format": "stl", "label": "Shelf (print x1)" }
+      ],
+      "hardware": [
+        {
+          "qty": 4,
+          "label": "#6 pan-head wood screw or M3.5 wall anchor"
+        },
+        {
+          "qty": 1,
+          "label": "Levoit Core 200S air purifier",
+          "source": { "url": "https://www.amazon.com/dp/B08FJ678YK", "vendor": "Amazon" }
+        }
+      ]
     }
   ]
 }
