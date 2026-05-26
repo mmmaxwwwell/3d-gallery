@@ -17,10 +17,13 @@
 // openscad-web-generator/src/lib/merge-3mf.ts.
 
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from "node:fs";
-import { execFileSync } from "node:child_process";
+import { execFile } from "node:child_process";
 import { join, dirname, basename } from "node:path";
 import { tmpdir } from "node:os";
+import { promisify } from "node:util";
 import { zipSync } from "fflate";
+
+const execFileAsync = promisify(execFile);
 
 // ---------- color parsing ----------
 
@@ -92,21 +95,9 @@ function extractColors(scadSource) {
 
 // ---------- per-color render ----------
 
-function renderColorPass({ scadPath, selectedKey, outStl }) {
-  // We wrap the user's scad in a small prelude that redefines `color()` to
-  // conditionally render its children. OpenSCAD's CLI doesn't let us pass
-  // strings via -D in a clean way (string escaping is brittle), so we write
-  // a temp wrapper .scad that:
-  //   1. Defines `_selected_color_key = "..."`
-  //   2. Defines a `color(c)` *module override* that checks whether `c`'s
-  //      canonical key equals the selected key, and renders children() only
-  //      then.
-  //   3. `include <user.scad>` to pull in the original geometry.
-  //
-  // The override module in step 2 needs to canonicalize `c` the same way
-  // parseColorLiteral does. OpenSCAD lets us inspect c's type with is_string()
-  // and is_list(), so we build a key string the same way.
+let _passCounter = 0;
 
+async function renderColorPass({ scadPath, selectedKey, outStl }) {
   const wrapperSource = `
 _selected_color_key = "${selectedKey}";
 
@@ -136,18 +127,12 @@ module color(c, alpha = 1) {
 
 include <${basename(scadPath)}>;
 `;
-  const tmpDir = mkdtempSync(join(tmpdir(), "3dgallery-"));
-  const wrapperPath = join(tmpDir, "_pass.scad");
-  writeFileSync(wrapperPath, wrapperSource);
-  // OpenSCAD needs the include to resolve relative to the wrapper; copy logic:
-  // we put the wrapper next to the user file by writing it into the same dir.
-  // Simpler: write wrapper into the same directory as the user .scad.
-  const sideBySide = join(dirname(scadPath), `_pass_${Date.now()}.scad`);
+  const passId = `_pass_${process.pid}_${++_passCounter}`;
+  const sideBySide = join(dirname(scadPath), `${passId}.scad`);
   writeFileSync(sideBySide, wrapperSource);
-  rmSync(tmpDir, { recursive: true, force: true });
 
   try {
-    execFileSync("openscad", ["-o", outStl, sideBySide], { stdio: "inherit" });
+    await execFileAsync("openscad", ["-o", outStl, sideBySide]);
   } finally {
     rmSync(sideBySide, { force: true });
   }
@@ -306,7 +291,7 @@ function build3mf(perColorMeshes) {
 
 // ---------- entry point ----------
 
-export function buildMulticolor3mf({ scadPath, outPath }) {
+export async function buildMulticolor3mf({ scadPath, outPath }) {
   const source = readFileSync(scadPath, "utf8");
   const colors = extractColors(source);
   if (colors.length === 0) {
@@ -315,14 +300,14 @@ export function buildMulticolor3mf({ scadPath, outPath }) {
 
   const tmpDir = mkdtempSync(join(tmpdir(), "3dgallery-passes-"));
   try {
-    const perColorMeshes = [];
-    for (const { key, rgba } of colors) {
+    // Render all color passes in parallel
+    const jobs = colors.map(({ key, rgba }) => {
       const safeName = key.replace(/[^a-z0-9]/gi, "_");
       const outStl = join(tmpDir, `${safeName}.stl`);
-      renderColorPass({ scadPath, selectedKey: key, outStl });
-      const mesh = parseStl(outStl);
-      perColorMeshes.push({ key, rgba, mesh });
-    }
+      return renderColorPass({ scadPath, selectedKey: key, outStl })
+        .then(() => ({ key, rgba, mesh: parseStl(outStl) }));
+    });
+    const perColorMeshes = await Promise.all(jobs);
     const zipped = build3mf(perColorMeshes);
     writeFileSync(outPath, zipped);
   } finally {

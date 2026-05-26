@@ -13,12 +13,15 @@
 // After building, we copy each model's build/ into public/models/<slug>/ so
 // Vite serves them at /3d-gallery/models/<slug>/<file>.
 
-import { readFileSync, readdirSync, statSync, mkdirSync, cpSync, rmSync, existsSync } from "node:fs";
-import { execFileSync } from "node:child_process";
+import { readFileSync, readdirSync, mkdirSync, cpSync, rmSync, existsSync } from "node:fs";
+import { execFile } from "node:child_process";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
 
 import { buildMulticolor3mf } from "./build-multicolor-3mf.mjs";
+
+const execFileAsync = promisify(execFile);
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = dirname(HERE);
@@ -39,7 +42,26 @@ function findScadSource(modelDir, baseName) {
   return null;
 }
 
-function buildModel(model) {
+async function buildPart({ slug, dir, buildDir, part }) {
+  const format = part.format;
+  const baseName = part.file.replace(/\.\w+$/, "");
+  const scadPath = findScadSource(dir, baseName);
+  if (!scadPath) {
+    console.warn(`  [skip] ${slug}/${part.file} — no .scad source found for "${baseName}"`);
+    return;
+  }
+
+  const out = join(buildDir, part.file);
+  if (format === "3mf") {
+    console.log(`  [3mf ] ${scadPath} → build/${part.file}`);
+    await buildMulticolor3mf({ scadPath, outPath: out });
+  } else {
+    console.log(`  [stl ] ${scadPath} → build/${part.file}`);
+    await execFileAsync("openscad", ["-o", out, scadPath]);
+  }
+}
+
+async function buildModel(model) {
   const slug = model.slug;
   const dir = join(MODELS_DIR, slug);
   const buildDir = join(dir, "build");
@@ -50,25 +72,8 @@ function buildModel(model) {
     ...(model.parts ?? []),
   ];
 
-  for (const part of allParts) {
-    const format = part.format;
-    // Derive base name from the output filename (e.g. "cap.3mf" → "cap")
-    const baseName = part.file.replace(/\.\w+$/, "");
-    const scadPath = findScadSource(dir, baseName);
-    if (!scadPath) {
-      console.warn(`  [skip] ${slug}/${part.file} — no .scad source found for "${baseName}"`);
-      continue;
-    }
-
-    const out = join(buildDir, part.file);
-    if (format === "3mf") {
-      console.log(`  [3mf ] ${scadPath} → build/${part.file}`);
-      buildMulticolor3mf({ scadPath, outPath: out });
-    } else {
-      console.log(`  [stl ] ${scadPath} → build/${part.file}`);
-      execFileSync("openscad", ["-o", out, scadPath], { stdio: "inherit" });
-    }
-  }
+  // Build all parts in parallel
+  await Promise.all(allParts.map(part => buildPart({ slug, dir, buildDir, part })));
 
   // Mirror into public/ for Vite to serve.
   const publicDir = join(PUBLIC_MODELS_DIR, slug);
@@ -81,7 +86,7 @@ function buildModel(model) {
   }
 }
 
-function main() {
+async function main() {
   const manifest = loadManifest();
   if (!manifest.models || manifest.models.length === 0) {
     console.log("No models found in manifest.");
@@ -91,10 +96,11 @@ function main() {
   mkdirSync(PUBLIC_MODELS_DIR, { recursive: true });
   cpSync(join(MODELS_DIR, "manifest.json"), join(PUBLIC_MODELS_DIR, "manifest.json"));
 
-  for (const model of manifest.models) {
+  // Build all models in parallel
+  await Promise.all(manifest.models.map(model => {
     console.log(`Building ${model.slug}…`);
-    buildModel(model);
-  }
+    return buildModel(model);
+  }));
   console.log("Done.");
 }
 
