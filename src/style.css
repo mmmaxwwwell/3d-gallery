@@ -70,6 +70,7 @@ html, body {
   overflow-y: auto;
   border-bottom: 1px solid #2d3340;
   display: none;
+  flex-shrink: 0;
 }
 
 #sidebar.open {
@@ -82,13 +83,14 @@ html, body {
 
 .model-item {
   display: block;
-  padding: 10px 14px;
+  padding: 12px 14px;
   font-size: 14px;
   font-weight: 500;
   color: #b0b8c6;
   cursor: pointer;
   user-select: none;
   border-left: 3px solid transparent;
+  min-height: 44px;
 }
 
 .model-item:hover {
