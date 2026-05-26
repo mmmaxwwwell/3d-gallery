@@ -25,6 +25,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y openscad
 
+      - name: Install OpenSCAD libraries (BOSL2, scadqr)
+        run: |
+          LIBDIR="$HOME/.local/share/OpenSCAD/libraries"
+          mkdir -p "$LIBDIR"
+          git clone --depth 1 https://github.com/BelfrySCAD/BOSL2.git "$LIBDIR/BOSL2"
+          curl -fsSL https://raw.githubusercontent.com/xypwn/scadqr/main/qr.scad -o "$LIBDIR/qr.scad"
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
