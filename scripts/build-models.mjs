@@ -20,8 +20,12 @@ import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
 import { buildMulticolor3mf } from "./build-multicolor-3mf.mjs";
+import { OPENSCAD_ARGS } from "./openscad-args.mjs";
+import { lookupCache, storeCache } from "./cache.mjs";
 
 const execFileAsync = promisify(execFile);
+
+const CACHE_ENABLED = process.env.OPENSCAD_CACHE !== "0";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = dirname(HERE);
@@ -52,13 +56,25 @@ async function buildPart({ slug, dir, buildDir, part }) {
   }
 
   const out = join(buildDir, part.file);
+
+  if (CACHE_ENABLED) {
+    const hit = lookupCache({ scadPath, format, args: OPENSCAD_ARGS });
+    if (hit) {
+      console.log(`  [cache] ${scadPath} → build/${part.file}`);
+      cpSync(hit, out);
+      return;
+    }
+  }
+
   if (format === "3mf") {
     console.log(`  [3mf ] ${scadPath} → build/${part.file}`);
     await buildMulticolor3mf({ scadPath, outPath: out });
   } else {
     console.log(`  [stl ] ${scadPath} → build/${part.file}`);
-    await execFileAsync("openscad", ["-o", out, scadPath]);
+    await execFileAsync("openscad", [...OPENSCAD_ARGS, "-o", out, scadPath]);
   }
+
+  if (CACHE_ENABLED) storeCache({ scadPath, format, args: OPENSCAD_ARGS, outPath: out });
 }
 
 async function buildModel(model) {

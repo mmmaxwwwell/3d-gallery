@@ -19,3 +19,9 @@ test-results/
 playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# openscad build cache — content-addressed by scripts/cache.mjs
+.cache/
+
+# Build cache — content-hashed openscad artifacts (safe to delete anytime)
+.cache/

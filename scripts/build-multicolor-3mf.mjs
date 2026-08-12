@@ -23,6 +23,8 @@ import { tmpdir } from "node:os";
 import { promisify } from "node:util";
 import { zipSync } from "fflate";
 
+import { OPENSCAD_ARGS } from "./openscad-args.mjs";
+
 const execFileAsync = promisify(execFile);
 
 // ---------- color parsing ----------
@@ -79,8 +81,13 @@ function parseColorLiteral(raw) {
 }
 
 function extractColors(scadSource) {
-  // Scan for `color(<literal>)` calls. We only care about uniqueness, not order.
-  // The argument can be a name string, hex string, or array literal.
+  // Source-side extractor. Kept for the "does this source have any
+  // color() calls?" precheck. Not used to key the CSG-side filter —
+  // that job now belongs to extractColorsFromCsg() below, because
+  // openscad's CSG output canonicalizes every color literal to
+  // `color([r, g, b, a])` with 6-significant-digit floats, and the
+  // key we compare against inside the SCAD wrapper has to match that
+  // exact string form.
   const re = /\bcolor\s*\(\s*("[^"]*"|\[[^\]]*\])\s*[,)\s]/g;
   const seen = new Map(); // key → rgba
   let m;
@@ -93,12 +100,34 @@ function extractColors(scadSource) {
   return [...seen.entries()].map(([key, rgba]) => ({ key, rgba }));
 }
 
+/**
+ * Extract every `color([r, g, b, a])` call from a CSG file. Keys the
+ * result on the RAW rgba string as it appears in the CSG so the SCAD
+ * wrapper's `str("rgba:", c[0], ",", ...)` produces the same string
+ * at render time (openscad's str() matches its own CSG printer).
+ */
+function extractColorsFromCsg(csgSource) {
+  const re = /\bcolor\s*\(\s*\[\s*([\d.eE+\-]+)\s*,\s*([\d.eE+\-]+)\s*,\s*([\d.eE+\-]+)(?:\s*,\s*([\d.eE+\-]+))?\s*\]/g;
+  const seen = new Map(); // key → rgba tuple
+  let m;
+  while ((m = re.exec(csgSource)) !== null) {
+    const rTxt = m[1], gTxt = m[2], bTxt = m[3];
+    const aTxt = m[4] !== undefined ? m[4] : "1";
+    const key = `rgba:${rTxt},${gTxt},${bTxt},${aTxt}`;
+    if (seen.has(key)) continue;
+    seen.set(key, [parseFloat(rTxt), parseFloat(gTxt), parseFloat(bTxt), parseFloat(aTxt)]);
+  }
+  return [...seen.entries()].map(([key, rgba]) => ({ key, rgba }));
+}
+
 // ---------- per-color render ----------
 
-let _passCounter = 0;
-
-async function renderColorPass({ scadPath, selectedKey, outStl }) {
-  const wrapperSource = `
+// The SCAD filter that overrides the built-in color() module: only
+// emit geometry for the currently-selected color key. Same shape as
+// the wrapper the WASM worker uses, and works against both source
+// (with named / hex color literals) and flat CSG (arrays only).
+function colorFilterSource(selectedKey) {
+  return `
 _selected_color_key = "${selectedKey}";
 
 // Build a canonical key string from a color argument the same way the JS
@@ -124,17 +153,30 @@ function _lowercase(s) = chr([for (i = [0:len(s)-1])
 module color(c, alpha = 1) {
     if (_color_key(c) == _selected_color_key) children();
 }
-
-include <${basename(scadPath)}>;
 `;
-  const passId = `_pass_${process.pid}_${++_passCounter}`;
-  const sideBySide = join(dirname(scadPath), `${passId}.scad`);
-  writeFileSync(sideBySide, wrapperSource);
+}
 
+/**
+ * Render one color pass against the pre-flattened CSG.
+ *
+ * The CSG has BOSL2 (and every other include) already resolved, and
+ * has every color(...) call rewritten in canonical array form (e.g.
+ * `color([1, 0, 0, 1])`). So openscad here only has to re-evaluate
+ * booleans through the filter — no library parsing, no bezier eval,
+ * no textmetrics. Typically 5-10x faster than rendering the original
+ * source once per color.
+ */
+async function renderColorPassFromCsg({ flatCsgPath, tmpDir, selectedKey, outStl }) {
+  const safeName = selectedKey.replace(/[^a-z0-9]/gi, "_");
+  const wrapperPath = join(tmpDir, `_pass_${safeName}.scad`);
+  const wrapper = `${colorFilterSource(selectedKey)}
+include <${basename(flatCsgPath)}>;
+`;
+  writeFileSync(wrapperPath, wrapper);
   try {
-    await execFileAsync("openscad", ["-o", outStl, sideBySide]);
+    await execFileAsync("openscad", [...OPENSCAD_ARGS, "-o", outStl, wrapperPath]);
   } finally {
-    rmSync(sideBySide, { force: true });
+    rmSync(wrapperPath, { force: true });
   }
 }
 
@@ -328,18 +370,34 @@ function escXml(s) {
 
 export async function buildMulticolor3mf({ scadPath, outPath }) {
   const source = readFileSync(scadPath, "utf8");
-  const colors = extractColors(source);
-  if (colors.length === 0) {
+  if (extractColors(source).length === 0) {
     throw new Error(`No top-level color() calls in ${scadPath}; cannot build multi-color 3MF.`);
   }
 
   const tmpDir = mkdtempSync(join(tmpdir(), "3dgallery-passes-"));
   try {
-    // Render all color passes in parallel
+    // 1. Flatten the source once — resolve every include (BOSL2, qr.scad),
+    //    evaluate every module/bezier/function, and canonicalize color()
+    //    literals to RGBA arrays. This is the expensive step.
+    const flatCsgPath = join(tmpDir, "flat.csg");
+    await execFileAsync("openscad", [...OPENSCAD_ARGS, "-o", flatCsgPath, scadPath]);
+
+    // 2. Discover colors from the CSG (not the source) so keys match
+    //    the exact string form the SCAD wrapper's str() will produce
+    //    at render time.
+    const csgText = readFileSync(flatCsgPath, "utf8");
+    const colors = extractColorsFromCsg(csgText);
+    if (colors.length === 0) {
+      throw new Error(`No color() calls found in CSG for ${scadPath}`);
+    }
+
+    // 3. Fan out N cheap per-color renders against the flat CSG. No
+    //    library re-parsing, no re-tessellation — just booleans through
+    //    the color filter. Parallelized like before.
     const jobs = colors.map(({ key, rgba }) => {
       const safeName = key.replace(/[^a-z0-9]/gi, "_");
       const outStl = join(tmpDir, `${safeName}.stl`);
-      return renderColorPass({ scadPath, selectedKey: key, outStl })
+      return renderColorPassFromCsg({ flatCsgPath, tmpDir, selectedKey: key, outStl })
         .then(() => ({ key, rgba, mesh: parseStl(outStl) }));
     });
     const perColorMeshes = await Promise.all(jobs);

@@ -1,5 +1,7 @@
 import { test } from "@playwright/test";
-import { loadModel, fillParams, clickGenerate, assertGenerateSucceeds } from "./helpers";
+import { loadModel, fillParams, clickGenerate, assertGenerateSucceeds, assertUrlParamsOnly } from "./helpers";
+
+const FI_MINI_PARAMS = ["qr_code_text"];
 
 // fi-mini-case customizable parts. `base` is single-material STL and
 // still runs the customizer path (the qr_code_text param is unused
@@ -39,6 +41,17 @@ test.describe("fi-mini-case / customizer", () => {
       });
       await clickGenerate(page);
       await assertGenerateSucceeds(page);
+    });
+
+    test(`${part.label}: URL purity — stale qr_url_text is dropped`, async ({ page }) => {
+      await loadModel(page, "fi-mini-case", {
+        part: part.module,
+        initial: { qr_url_text: "https://from-qr-sign.example.com", tag_text: "leaked" },
+      });
+      await fillParams(page, { qr_code_text: "555-1234" });
+      await clickGenerate(page);
+      await assertGenerateSucceeds(page);
+      assertUrlParamsOnly(page, FI_MINI_PARAMS);
     });
   }
 });

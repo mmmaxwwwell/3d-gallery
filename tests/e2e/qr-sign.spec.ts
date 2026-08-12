@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
-import { loadModel, fillParams, clickGenerate, assertGenerateSucceeds } from "./helpers";
+import { loadModel, fillParams, clickGenerate, assertGenerateSucceeds, assertUrlParamsOnly } from "./helpers";
+
+const QR_SIGN_PARAMS = ["qr_url_text"];
 
 // qr-sign exposes exactly one customizer param: qr_url_text. Plate
 // size, corner radius, and layer height are fixed model constants
@@ -41,6 +43,35 @@ test.describe("qr-sign / customizer", () => {
     await fillParams(page, { qr_url_text: "Hello world" });
     await clickGenerate(page);
     await assertGenerateSucceeds(page);
+  });
+
+  test("URL purity: editing qr_url_text does not add foreign params", async ({ page }) => {
+    await loadModel(page, "qr-sign", { part: "assembled" });
+    await fillParams(page, { qr_url_text: "https://ok.example.com" });
+    await clickGenerate(page);
+    await assertGenerateSucceeds(page);
+    assertUrlParamsOnly(page, QR_SIGN_PARAMS);
+  });
+
+  test("URL purity: stale foreign param (tag_text) from URL is dropped", async ({ page }) => {
+    await loadModel(page, "qr-sign", {
+      part: "assembled",
+      initial: { tag_text: "leaked-from-collar-tag" },
+    });
+    await fillParams(page, { qr_url_text: "https://ok.example.com" });
+    await clickGenerate(page);
+    await assertGenerateSucceeds(page);
+    assertUrlParamsOnly(page, QR_SIGN_PARAMS);
+  });
+
+  test("URL purity: switching from collar-tag to qr-sign drops tag_text", async ({ page }) => {
+    await loadModel(page, "collar-tag", { part: "multicolor" });
+    await fillParams(page, { tag_text: "jelly" });
+    await page.locator(`.model-item[data-slug="qr-sign"]`).click();
+    await fillParams(page, { qr_url_text: "https://after-switch.example.com" });
+    await clickGenerate(page);
+    await assertGenerateSucceeds(page);
+    assertUrlParamsOnly(page, QR_SIGN_PARAMS);
   });
 
   // @matrix — a handful of URL shapes to exercise the QR encoder

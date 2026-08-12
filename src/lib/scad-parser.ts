@@ -8,6 +8,42 @@ function extractSection(source: string, beginMarker: string, endMarker: string):
   return source.slice(beginIdx + beginMarker.length, endIdx);
 }
 
+/**
+ * Coerce a raw string (typically arriving via URL query params, where
+ * every value is a string) into the ScadValue type declared by the
+ * matching param. Falls back to the fallback default when parsing
+ * fails so callers can supply a safe value.
+ */
+export function coerceToParamType(
+  raw: string,
+  type: ScadParamType,
+  fallback: ScadValue,
+): ScadValue {
+  switch (type) {
+    case 'number': {
+      const n = Number(raw);
+      return Number.isFinite(n) ? n : fallback;
+    }
+    case 'boolean':
+      if (raw === 'true') return true;
+      if (raw === 'false') return false;
+      return fallback;
+    case 'vector': {
+      const trimmed = raw.trim();
+      const body = trimmed.startsWith('[') && trimmed.endsWith(']')
+        ? trimmed.slice(1, -1)
+        : trimmed;
+      const parts = body.split(',').map((s) => Number(s.trim()));
+      return parts.every(Number.isFinite) ? parts : fallback;
+    }
+    case 'string':
+    case 'text':
+    case 'enum':
+    default:
+      return raw;
+  }
+}
+
 export function parseValue(raw: string): { value: ScadValue; type: ScadParamType } {
   const trimmed = raw.trim();
   if (trimmed === 'true') return { value: true, type: 'boolean' };

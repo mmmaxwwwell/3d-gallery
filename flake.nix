@@ -11,7 +11,10 @@
       let pkgs = import nixpkgs { inherit system; };
       in {
         devShells.default = pkgs.mkShell {
-          packages = with pkgs; [ openscad nodejs_22 playwright-driver.browsers ];
+          # openscad-unstable ships the manifold engine (`--enable=manifold`),
+          # which is 3-10x faster than CGAL on the boolean-heavy operations
+          # this repo runs. Stable openscad (2021.01) doesn't have it.
+          packages = with pkgs; [ openscad-unstable nodejs_22 playwright-driver.browsers ];
 
           # Playwright ships its own chromium binary but its ELF interpreter
           # and shared libs can't be resolved on NixOS. Point Playwright at

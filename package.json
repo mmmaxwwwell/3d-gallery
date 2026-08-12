@@ -12,7 +12,9 @@
     "preview": "vite preview",
     "test:e2e": "playwright test --grep-invert @matrix",
     "test:e2e:full": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "test:build": "node --test tests/build/build.test.mjs",
+    "test:build:baseline": "TEST_UPDATE_BASELINE=1 node --test tests/build/build.test.mjs"
   },
   "dependencies": {
     "fflate": "^0.8.2",

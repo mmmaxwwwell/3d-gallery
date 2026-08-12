@@ -110,6 +110,24 @@ export async function assertStaticPartRenders(page: Page) {
   expect(href).toMatch(/\/models\/.+\.(stl|3mf)$/);
 }
 
+/**
+ * Assert the current URL's query string contains only `model`, `part`,
+ * and the given `allowedParams` — nothing else. Useful for catching
+ * stale params from another model leaking into the URL after edits.
+ */
+export function assertUrlParamsOnly(page: Page, allowedParams: string[]) {
+  const url = new URL(page.url());
+  const allowed = new Set(["model", "part", ...allowedParams]);
+  const extras: string[] = [];
+  for (const key of url.searchParams.keys()) {
+    if (!allowed.has(key)) extras.push(key);
+  }
+  expect(
+    extras,
+    `URL contains params not declared by this model: ${extras.join(", ")}\nfull URL: ${url.search}`,
+  ).toEqual([]);
+}
+
 /** Capture browser console + page errors to fail with useful context. */
 export function watchForBrowserErrors(page: Page): { flush: () => string[] } {
   const errors: string[] = [];

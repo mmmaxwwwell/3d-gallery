@@ -8,11 +8,7 @@ import fiMiniCaseAssembled from "../models/fi-mini-case/previews/assembled.scad?
 import fiMiniCaseCap from "../models/fi-mini-case/previews/cap.scad?raw";
 import qrSignLib from "../models/qr-sign/lib/qr-sign-lib.scad?raw";
 import qrSignAssembled from "../models/qr-sign/previews/assembled.scad?raw";
-import ryobiLib from "../models/ryobi-drill-holder/lib/ryobi-drill-holder-lib.scad?raw";
-import ryobiChained from "../models/ryobi-drill-holder/previews/chained.scad?raw";
-import ryobiThreeRow from "../models/ryobi-drill-holder/previews/three-row.scad?raw";
-import ryobiSingle from "../models/ryobi-drill-holder/previews/single.scad?raw";
-import { parseParams } from "./lib/scad-parser";
+import { parseParams, coerceToParamType } from "./lib/scad-parser";
 import { createOpenSCADApi, injectParameters } from "./lib/openscad-api";
 import type { ScadParam, ScadValue } from "./lib/types";
 
@@ -95,14 +91,6 @@ const CUSTOMIZABLE_SOURCES: Record<string, { lib: string; previews: Record<strin
     lib: qrSignLib,
     previews: {
       assembled: stripIncludes(qrSignAssembled),
-    },
-  },
-  "ryobi-drill-holder": {
-    lib: ryobiLib,
-    previews: {
-      chained: stripIncludes(ryobiChained),
-      three_row: stripIncludes(ryobiThreeRow),
-      single: stripIncludes(ryobiSingle),
     },
   },
 };
@@ -449,8 +437,23 @@ interface CustomizerProps {
 function Customizer({ libSource, previewSource, params, slug, part, initialValues, onValuesChange, onStart, onProgress, onFinish, onGenerated, onError }: CustomizerProps) {
   const [values, setValues] = useState<Record<string, ScadValue>>(() => {
     const defaults: Record<string, ScadValue> = {};
+    const known = new Map(params.map((p) => [p.name, p]));
     for (const p of params) defaults[p.name] = p.default;
-    if (initialValues) Object.assign(defaults, initialValues);
+    // URL-provided values arrive as strings (query params). Coerce
+    // each one to the target param's type before merging so numeric
+    // params don't get injected into SCAD as quoted strings (which
+    // then blow up on arithmetic). Ignore names this model doesn't
+    // know about — stale params from another model shouldn't ride
+    // along in URL updates.
+    if (initialValues) {
+      for (const [k, v] of Object.entries(initialValues)) {
+        const param = known.get(k);
+        if (!param) continue;
+        defaults[k] = typeof v === "string"
+          ? coerceToParamType(v, param.type, param.default)
+          : v;
+      }
+    }
     return defaults;
   });
   const [generating, setGenerating] = useState(false);
@@ -583,6 +586,11 @@ function showCustomizer(model: Model, part: Part, initialValues?: Record<string,
   customizerEl.hidden = false;
   render(
     h(Customizer, {
+      // Force a fresh Customizer instance whenever the model or part
+      // changes. Without this Preact reuses the previous instance's
+      // useState, so values from a prior model leak into the URL of
+      // whatever model you navigate to next.
+      key: `${model.slug}:${part.module ?? ""}`,
       libSource: sources.lib,
       previewSource,
       params,

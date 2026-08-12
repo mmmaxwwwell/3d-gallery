@@ -1,0 +1,87 @@
+name: E2E tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      matrix:
+        description: 'Run full @matrix parameter sweep (slower — dozens more scenarios)'
+        type: boolean
+        default: false
+
+concurrency:
+  # Cancel superseded runs on the same PR / branch.
+  group: e2e-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    # Smoke suite runs ~13 min locally with 3 workers; CI has 2 workers
+    # and slower hardware, so budget conservatively. Full @matrix (opt-in
+    # via workflow_dispatch) can be substantially longer.
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      # Same Nix devshell as deploy.yml — openscad-unstable + Node 22
+      # + playwright-driver.browsers all pinned by flake.lock. Any dev
+      # who runs `nix develop` locally gets the exact CI environment.
+      - uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+
+      # Reuse the same artifact cache the deploy workflow populates.
+      # First e2e run on a fresh runner may cold-build; subsequent runs
+      # short-circuit unchanged parts.
+      - name: Cache openscad build artifacts
+        uses: actions/cache@v4
+        with:
+          path: .cache/models
+          key: openscad-cache-${{ hashFiles('models/**/*.scad', 'flake.lock', 'scripts/build-*.mjs', 'scripts/openscad-args.mjs') }}
+          restore-keys: |
+            openscad-cache-
+
+      - name: Install node dependencies
+        run: nix develop --command npm ci
+
+      - name: Build models (needed by static-model e2e specs)
+        run: nix develop --command npm run build:models
+
+      - name: Verify build fingerprints
+        run: nix develop --command npm run test:build
+
+      - name: Run e2e smoke suite
+        if: ${{ github.event.inputs.matrix != 'true' }}
+        run: nix develop --command npm run test:e2e
+        env:
+          CI: 'true'
+
+      - name: Run full @matrix parameter sweep
+        if: ${{ github.event.inputs.matrix == 'true' }}
+        run: nix develop --command npm run test:e2e:full
+        env:
+          CI: 'true'
+
+      # On failure, upload the HTML report + traces so failing runs are
+      # debuggable without re-running locally. Retained for 14 days.
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload Playwright test artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: test-results/
+          retention-days: 14

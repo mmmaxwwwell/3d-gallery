@@ -1,5 +1,11 @@
 import { test } from "@playwright/test";
-import { loadModel, fillParams, clickGenerate, assertGenerateSucceeds, watchForBrowserErrors, attachConsoleDiagnostics } from "./helpers";
+import { loadModel, fillParams, clickGenerate, assertGenerateSucceeds, assertUrlParamsOnly, watchForBrowserErrors, attachConsoleDiagnostics } from "./helpers";
+
+const COLLAR_TAG_PARAMS = [
+  "shape", "tag_text", "font_style", "text_style",
+  "text_size_mm", "text_offset_x", "text_offset_y",
+  "size_mult", "thickness", "emboss_height", "ring_od", "ring_id",
+];
 
 test.beforeEach(({ page }) => {
   attachConsoleDiagnostics(page);
@@ -93,6 +99,47 @@ test.describe("collar-tag / customizer", () => {
       await assertGenerateSucceeds(page);
     });
   }
+});
+
+// ── URL purity: only collar-tag's own params should surface in the URL ──
+test.describe("collar-tag / URL purity", () => {
+  for (const part of PARTS) {
+    test(`${part.label}: editing tag_text does not add foreign params`, async ({ page }) => {
+      await loadModel(page, "collar-tag", { part: part.module });
+      await fillParams(page, { tag_text: "jelly" });
+      await clickGenerate(page);
+      await assertGenerateSucceeds(page);
+      assertUrlParamsOnly(page, COLLAR_TAG_PARAMS);
+    });
+
+    test(`${part.label}: stale param from URL is stripped, not re-emitted`, async ({ page }) => {
+      // Simulate arriving via a bookmark that carries qr_url_text (a param
+      // that belongs to qr-sign, not collar-tag). The customizer should
+      // ignore it, and the first edit must not carry it back into the URL.
+      await loadModel(page, "collar-tag", {
+        part: part.module,
+        initial: { qr_url_text: "https://leaked.example.com" },
+      });
+      await fillParams(page, { tag_text: "REX" });
+      await clickGenerate(page);
+      await assertGenerateSucceeds(page);
+      assertUrlParamsOnly(page, COLLAR_TAG_PARAMS);
+    });
+
+  }
+
+  // Sidebar-switch flow tested once against the default part (multicolor).
+  // Exercises the real user path: land on qr-sign, edit qr_url_text, then
+  // click collar-tag in the sidebar. The stale qr_url_text must not leak.
+  test("switching from qr-sign via sidebar drops qr_url_text", async ({ page }) => {
+    await loadModel(page, "qr-sign", { part: "assembled" });
+    await fillParams(page, { qr_url_text: "https://from-qr-sign.example.com" });
+    await page.locator(`.model-item[data-slug="collar-tag"]`).click();
+    await fillParams(page, { tag_text: "jelly" });
+    await clickGenerate(page);
+    await assertGenerateSucceeds(page);
+    assertUrlParamsOnly(page, COLLAR_TAG_PARAMS);
+  });
 });
 
 // ── @matrix: full shape × font sweep on both parts (36 combos × 2 parts) ──

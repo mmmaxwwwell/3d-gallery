@@ -1,0 +1,405 @@
+{
+  "air-purifier-shelf/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#83B8EEFF"
+    ],
+    "triangleCount": 2346,
+    "bbox": [
+      [
+        -115,
+        -115,
+        -215
+      ],
+      [
+        125,
+        115,
+        135
+      ]
+    ]
+  },
+  "air-purifier-shelf/shelf.stl": {
+    "format": "stl",
+    "triangleCount": 2342,
+    "bbox": [
+      [
+        -115,
+        -115,
+        -215
+      ],
+      [
+        125,
+        115,
+        135
+      ]
+    ]
+  },
+  "collar-tag/multicolor.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#D29D38FF",
+      "#FFD200FF"
+    ],
+    "triangleCount": 4288,
+    "bbox": [
+      [
+        -22,
+        -12.5,
+        0
+      ],
+      [
+        22,
+        12.5,
+        3.1
+      ]
+    ]
+  },
+  "collar-tag/single.stl": {
+    "format": "stl",
+    "triangleCount": 4302,
+    "bbox": [
+      [
+        -22,
+        -12.5,
+        0
+      ],
+      [
+        22,
+        12.5,
+        3.1
+      ]
+    ]
+  },
+  "fan-mount/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#83B8EEFF",
+      "#A4DAECFF",
+      "#AAAAAAFF",
+      "#C1C1C1FF",
+      "#ECA4CCFF"
+    ],
+    "triangleCount": 54124,
+    "bbox": [
+      [
+        -75,
+        -75,
+        -5
+      ],
+      [
+        75,
+        75,
+        39.196
+      ]
+    ]
+  },
+  "fan-mount/base-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 2592,
+    "bbox": [
+      [
+        -75,
+        -75,
+        -0.5
+      ],
+      [
+        75,
+        75,
+        0.5
+      ]
+    ]
+  },
+  "fan-mount/fan-clamp.stl": {
+    "format": "stl",
+    "triangleCount": 19622,
+    "bbox": [
+      [
+        -67.473,
+        0,
+        0
+      ],
+      [
+        67.473,
+        67.473,
+        36.196
+      ]
+    ]
+  },
+  "fan-mount/fan-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 512,
+    "bbox": [
+      [
+        -49.275,
+        -49.275,
+        -1
+      ],
+      [
+        49.275,
+        49.275,
+        1
+      ]
+    ]
+  },
+  "fan-mount/fan-mount.stl": {
+    "format": "stl",
+    "triangleCount": 11776,
+    "bbox": [
+      [
+        -75,
+        -75,
+        -4
+      ],
+      [
+        75,
+        75,
+        4
+      ]
+    ]
+  },
+  "fi-mini-case/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#000000FF",
+      "#9C9C9CFF",
+      "#FFFFFFFF"
+    ],
+    "triangleCount": 8602,
+    "bbox": [
+      [
+        -23.475,
+        -21.6,
+        0
+      ],
+      [
+        23.475,
+        69.85,
+        14.51
+      ]
+    ]
+  },
+  "fi-mini-case/base.stl": {
+    "format": "stl",
+    "triangleCount": 2416,
+    "bbox": [
+      [
+        -23.475,
+        -21.6,
+        0
+      ],
+      [
+        23.475,
+        21.6,
+        3.975
+      ]
+    ]
+  },
+  "fi-mini-case/cap.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#000000FF",
+      "#FFFFFFFF"
+    ],
+    "triangleCount": 6188,
+    "bbox": [
+      [
+        -23.475,
+        -21.6,
+        0
+      ],
+      [
+        23.475,
+        21.6,
+        14.51
+      ]
+    ]
+  },
+  "hex-bit-holder/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#83B8EEFF"
+    ],
+    "triangleCount": 129344,
+    "bbox": [
+      [
+        -74.999,
+        -7.499,
+        -5.999
+      ],
+      [
+        74.999,
+        147.499,
+        5.999
+      ]
+    ]
+  },
+  "hex-bit-holder/hex-bit-holder-10.stl": {
+    "format": "stl",
+    "triangleCount": 19276,
+    "bbox": [
+      [
+        -74.999,
+        -7.499,
+        -5.999
+      ],
+      [
+        74.999,
+        7.499,
+        5.999
+      ]
+    ]
+  },
+  "hex-bit-holder/hex-bit-holder-3.stl": {
+    "format": "stl",
+    "triangleCount": 13060,
+    "bbox": [
+      [
+        -22.499,
+        -7.499,
+        -5.999
+      ],
+      [
+        22.499,
+        7.499,
+        5.999
+      ]
+    ]
+  },
+  "hex-bit-holder/hex-bit-holder-4.stl": {
+    "format": "stl",
+    "triangleCount": 13948,
+    "bbox": [
+      [
+        -29.999,
+        -7.499,
+        -5.999
+      ],
+      [
+        29.999,
+        7.499,
+        5.999
+      ]
+    ]
+  },
+  "hex-bit-holder/hex-bit-holder-5.stl": {
+    "format": "stl",
+    "triangleCount": 14836,
+    "bbox": [
+      [
+        -37.499,
+        -7.499,
+        -5.999
+      ],
+      [
+        37.499,
+        7.499,
+        5.999
+      ]
+    ]
+  },
+  "hex-bit-holder/hex-bit-holder-6.stl": {
+    "format": "stl",
+    "triangleCount": 15724,
+    "bbox": [
+      [
+        -44.999,
+        -7.499,
+        -5.999
+      ],
+      [
+        44.999,
+        7.499,
+        5.999
+      ]
+    ]
+  },
+  "hex-bit-holder/hex-bit-holder-7.stl": {
+    "format": "stl",
+    "triangleCount": 16612,
+    "bbox": [
+      [
+        -52.499,
+        -7.499,
+        -5.999
+      ],
+      [
+        52.499,
+        7.499,
+        5.999
+      ]
+    ]
+  },
+  "hex-bit-holder/hex-bit-holder-8.stl": {
+    "format": "stl",
+    "triangleCount": 17500,
+    "bbox": [
+      [
+        -59.999,
+        -7.499,
+        -5.999
+      ],
+      [
+        59.999,
+        7.499,
+        5.999
+      ]
+    ]
+  },
+  "hex-bit-holder/hex-bit-holder-9.stl": {
+    "format": "stl",
+    "triangleCount": 18388,
+    "bbox": [
+      [
+        -67.499,
+        -7.499,
+        -5.999
+      ],
+      [
+        67.499,
+        7.499,
+        5.999
+      ]
+    ]
+  },
+  "property-sign/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#000000FF",
+      "#FF0000FF",
+      "#FFFFFFFF"
+    ],
+    "triangleCount": 114800,
+    "bbox": [
+      [
+        -121.099,
+        -84.2,
+        -8
+      ],
+      [
+        121.099,
+        84.2,
+        1.6
+      ]
+    ]
+  },
+  "qr-sign/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#000000FF",
+      "#FFFFFFFF"
+    ],
+    "triangleCount": 12782,
+    "bbox": [
+      [
+        -117.5,
+        -117.5,
+        0
+      ],
+      [
+        117.5,
+        117.5,
+        3.36
+      ]
+    ]
+  }
+}
