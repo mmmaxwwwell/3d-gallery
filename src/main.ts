@@ -1,11 +1,17 @@
 import { createViewer, type ModelFormat } from "./viewer";
 import { render, h } from "preact";
 import { useState } from "preact/hooks";
+import collarTagLib from "../models/collar-tag/lib/collar-tag-lib.scad?raw";
+import collarTagMulticolor from "../models/collar-tag/previews/multicolor.scad?raw";
 import fiMiniCaseLib from "../models/fi-mini-case/lib/fi-mini-case-lib.scad?raw";
 import fiMiniCaseAssembled from "../models/fi-mini-case/previews/assembled.scad?raw";
 import fiMiniCaseCap from "../models/fi-mini-case/previews/cap.scad?raw";
 import qrSignLib from "../models/qr-sign/lib/qr-sign-lib.scad?raw";
 import qrSignAssembled from "../models/qr-sign/previews/assembled.scad?raw";
+import ryobiLib from "../models/ryobi-drill-holder/lib/ryobi-drill-holder-lib.scad?raw";
+import ryobiChained from "../models/ryobi-drill-holder/previews/chained.scad?raw";
+import ryobiThreeRow from "../models/ryobi-drill-holder/previews/three-row.scad?raw";
+import ryobiSingle from "../models/ryobi-drill-holder/previews/single.scad?raw";
 import { parseParams } from "./lib/scad-parser";
 import { createOpenSCADApi, injectParameters } from "./lib/openscad-api";
 import type { ScadParam, ScadValue } from "./lib/types";
@@ -15,6 +21,11 @@ interface LegendEntry {
   label: string;
 }
 
+interface ComponentRef {
+  part: string;
+  qty: number;
+}
+
 interface Part {
   file: string;
   format: ModelFormat;
@@ -22,6 +33,7 @@ interface Part {
   default?: boolean;
   legend?: LegendEntry[];
   module?: string;
+  components?: ComponentRef[];
 }
 
 interface HardwareSource {
@@ -35,14 +47,21 @@ interface HardwareItem {
   source?: HardwareSource;
 }
 
+interface FilamentEntry {
+  material: string;
+  color?: string;
+  note?: string;
+}
+
 interface Model {
   slug: string;
   title: string;
   description?: string;
   customizable?: boolean;
   previews?: Part[];
-  parts: Part[];
+  parts?: Part[];
   hardware?: HardwareItem[];
+  filament?: FilamentEntry[];
 }
 
 interface Manifest {
@@ -59,6 +78,12 @@ function stripIncludes(source: string): string {
 
 // Customizable model sources keyed by slug
 const CUSTOMIZABLE_SOURCES: Record<string, { lib: string; previews: Record<string, string> }> = {
+  "collar-tag": {
+    lib: collarTagLib,
+    previews: {
+      multicolor: stripIncludes(collarTagMulticolor),
+    },
+  },
   "fi-mini-case": {
     lib: fiMiniCaseLib,
     previews: {
@@ -70,6 +95,14 @@ const CUSTOMIZABLE_SOURCES: Record<string, { lib: string; previews: Record<strin
     lib: qrSignLib,
     previews: {
       assembled: stripIncludes(qrSignAssembled),
+    },
+  },
+  "ryobi-drill-holder": {
+    lib: ryobiLib,
+    previews: {
+      chained: stripIncludes(ryobiChained),
+      three_row: stripIncludes(ryobiThreeRow),
+      single: stripIncludes(ryobiSingle),
     },
   },
 };
@@ -86,6 +119,8 @@ const mobilePartSelect = document.getElementById("mobile-part-select") as HTMLSe
 const viewerContainer = document.getElementById("viewer-container")!;
 const downloadLink = document.getElementById("download-link") as HTMLAnchorElement;
 const errorEl = document.getElementById("viewer-error")!;
+const partsListEl = document.getElementById("parts-list")!;
+const filamentListEl = document.getElementById("filament-list")!;
 const hardwareEl = document.getElementById("hardware-list")!;
 const legendEl = document.getElementById("viewer-legend")!;
 const customizerEl = document.getElementById("customizer")!;
@@ -324,6 +359,76 @@ function renderHardware(model: Model) {
   hardwareEl.hidden = false;
 }
 
+// ── Parts list (assembly components) ─────────────────────
+
+function renderPartsList(model: Model, part: Part) {
+  partsListEl.innerHTML = "";
+  if (!part.components || part.components.length === 0) {
+    partsListEl.hidden = true;
+    return;
+  }
+
+  const heading = document.createElement("h3");
+  heading.textContent = "Parts in this assembly";
+  partsListEl.appendChild(heading);
+
+  const ul = document.createElement("ul");
+  ul.className = "parts-component-list";
+  for (const comp of part.components) {
+    const matchingPart = (model.parts ?? []).find((p) => p.file === comp.part);
+    const li = document.createElement("li");
+    const qty = document.createElement("span");
+    qty.className = "hardware-qty";
+    qty.textContent = `${comp.qty}×`;
+    li.appendChild(qty);
+
+    if (matchingPart) {
+      const link = document.createElement("a");
+      link.className = "part-link";
+      link.href = "#";
+      link.textContent = ` ${matchingPart.label}`;
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        handlePartChange(matchingPart.file);
+      });
+      li.appendChild(link);
+    } else {
+      const label = document.createElement("span");
+      label.textContent = ` ${comp.part}`;
+      li.appendChild(label);
+    }
+    ul.appendChild(li);
+  }
+  partsListEl.appendChild(ul);
+  partsListEl.hidden = false;
+}
+
+// ── Filament recommendations ─────────────────────────────
+
+function renderFilament(model: Model) {
+  filamentListEl.innerHTML = "";
+  if (!model.filament || model.filament.length === 0) {
+    filamentListEl.hidden = true;
+    return;
+  }
+
+  const heading = document.createElement("h3");
+  heading.textContent = "Recommended filament";
+  filamentListEl.appendChild(heading);
+
+  const ul = document.createElement("ul");
+  for (const entry of model.filament) {
+    const li = document.createElement("li");
+    let text = entry.material;
+    if (entry.color) text += ` (${entry.color})`;
+    if (entry.note) text += ` — ${entry.note}`;
+    li.textContent = text;
+    ul.appendChild(li);
+  }
+  filamentListEl.appendChild(ul);
+  filamentListEl.hidden = false;
+}
+
 // ── Customizer (Preact) ──────────────────────────────────
 
 interface CustomizerProps {
@@ -522,7 +627,7 @@ function hideCustomizer() {
 function allItemsFor(model: Model): { part: Part; group: string }[] {
   return [
     ...(model.previews ?? []).map((p) => ({ part: p, group: "Previews" })),
-    ...model.parts.map((p) => ({ part: p, group: "Parts" })),
+    ...(model.parts ?? []).map((p) => ({ part: p, group: "Parts" })),
   ];
 }
 
@@ -580,6 +685,7 @@ async function loadPart(model: Model, part: Part, opts: LoadPartOptions = {}) {
   setCustomizedBadge(false);
   hideViewerPrompt();
   renderLegend(part);
+  renderPartsList(model, part);
 
   if (!opts.skipPush) {
     pushRoute(model.slug, part.module, opts.initialValues);
@@ -638,8 +744,9 @@ function selectModel(model: Model, partOverride?: Part, opts: LoadPartOptions = 
     modelDescEl.hidden = true;
   }
 
-  // Hardware (show once per model, not per part)
+  // Hardware & filament (show once per model, not per part)
   renderHardware(model);
+  renderFilament(model);
 
   // Determine which part to load
   const targetPart = partOverride ?? defaultItemFor(model)?.part;

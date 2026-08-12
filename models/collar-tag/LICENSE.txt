@@ -1,0 +1,29 @@
+bean.svg and the equivalent bean_bezpath in lib/collar-tag-lib.scad
+====================================================================
+
+The kidney-bean outline used by this model — both `bean.svg` in this
+directory and the equivalent `bean_bezpath` in `lib/collar-tag-lib.scad`
+— is dedicated to the public domain under CC0 1.0 by the 3d-gallery
+contributors, 2026.
+
+CC0 1.0 Universal (Public Domain Dedication)
+--------------------------------------------
+
+To the extent possible under law, the authors have waived all copyright
+and related or neighboring rights to this bean outline. You may copy,
+modify, distribute, and use the outline, even for commercial purposes,
+all without asking permission.
+
+Full text: https://creativecommons.org/publicdomain/zero/1.0/
+
+Notes
+-----
+
+The outline was authored in-repo (not sourced from any third-party SVG
+library) because none of the public bean silhouettes we surveyed had a
+clean single-color outline path: Openclipart's kidney beans are 3D-
+shaded gradient renders, and SVG Repo's coffee-bean icons were rate-
+limited on download. Rather than distort the source's intent, we drew
+our own outline via bezier control points, checked it in as `bean.svg`
+alongside `bean_bezpath` in the .scad lib, and CC0-dedicated it here so
+downstream users have the same freedom to remix.

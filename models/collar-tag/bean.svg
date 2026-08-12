@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  Kidney bean silhouette.
+  Author: 3d-gallery contributors (2026).
+  License: CC0 1.0 Universal (Public Domain Dedication).
+  See LICENSE.txt in this directory.
+
+  Kept in lockstep with `bean_bezpath` in lib/collar-tag-lib.scad. If
+  you change the SCAD bezpath, regenerate this SVG by re-running the
+  Python snippet stored in the git history for this file.
+-->
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 48.000 28.500"
+     width="192" height="114">
+  <path d="M 2.000 14.000 C 2.000 21.750 8.000 26.500 16.000 26.500 C 22.000 26.500 26.000 26.500 32.000 26.500 C 40.000 26.500 46.000 21.750 46.000 14.000 C 46.000 6.560 39.000 2.000 31.000 2.000 C 27.000 2.000 27.000 8.000 25.000 8.500 C 23.000 8.500 20.000 3.000 16.000 2.000 C 8.000 2.000 2.000 6.560 2.000 14.000 Z" fill="#e8a33d" stroke="#a5560a" stroke-width="0.6"/>
+</svg>

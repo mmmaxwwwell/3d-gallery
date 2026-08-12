@@ -92,12 +92,35 @@ async function main() {
     console.log("No models found in manifest.");
     return;
   }
-  // Copy manifest.json into public/models/ so the viewer can fetch it.
+  // Copy manifest.json into public/models/ so the viewer can fetch it. (Always
+  // refreshed even for a single-model build, since it's the viewer's index.)
   mkdirSync(PUBLIC_MODELS_DIR, { recursive: true });
   cpSync(join(MODELS_DIR, "manifest.json"), join(PUBLIC_MODELS_DIR, "manifest.json"));
 
-  // Build all models in parallel
-  await Promise.all(manifest.models.map(model => {
+  // Optional slug filter: any CLI args (or the MODEL env var) restrict the
+  // build to just those models, so working on one project doesn't rebuild the
+  // whole app. `node build-models.mjs ryobi-drill-holder` builds only that one.
+  const requested = [
+    ...process.argv.slice(2),
+    ...(process.env.MODEL ? [process.env.MODEL] : []),
+  ];
+  let models = manifest.models;
+  if (requested.length > 0) {
+    const known = new Set(manifest.models.map(m => m.slug));
+    const unknown = requested.filter(s => !known.has(s));
+    if (unknown.length > 0) {
+      console.error(`Unknown model slug(s): ${unknown.join(", ")}`);
+      console.error(`Available: ${manifest.models.map(m => m.slug).join(", ")}`);
+      process.exitCode = 1;
+      return;
+    }
+    const wanted = new Set(requested);
+    models = manifest.models.filter(m => wanted.has(m.slug));
+    console.log(`Building ${models.length} model(s): ${requested.join(", ")}`);
+  }
+
+  // Build the selected models in parallel
+  await Promise.all(models.map(model => {
     console.log(`Building ${model.slug}…`);
     return buildModel(model);
   }));

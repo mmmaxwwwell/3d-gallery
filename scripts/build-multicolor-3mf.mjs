@@ -225,9 +225,13 @@ function build3mf(perColorMeshes) {
   for (const entry of perColorMeshes) {
     if (entry.mesh.triangles.length === 0) continue;
     const cgId = nextId++;
-    colorGroups.push({ id: cgId, hex: rgbaToHex(entry.rgba), label: entry.key });
+    const hex = rgbaToHex(entry.rgba);
+    colorGroups.push({ id: cgId, hex, label: entry.key });
     const objId = nextId++;
-    objects.push({ id: objId, pid: cgId, mesh: entry.mesh });
+    // Label the object by its color name (e.g. "name:red" → "red") so the
+    // slicer shows readable part names; fall back to the hex.
+    const label = entry.key.startsWith("name:") ? entry.key.slice(5) : hex;
+    objects.push({ id: objId, pid: cgId, mesh: entry.mesh, label });
   }
   if (objects.length === 0) throw new Error("No geometry produced for any color");
 
@@ -267,11 +271,34 @@ function build3mf(perColorMeshes) {
   lines.push('</model>');
   const modelXml = lines.join("\n");
 
+  // Slicer metadata — assigns a distinct extruder/filament per object.
+  // The <colorgroup>/pid color above is only a display tint; Bambu Studio,
+  // OrcaSlicer, and PrusaSlicer assign filaments from this config, not from
+  // colorgroups. Without it every part imports as the same filament.
+  const metaLines = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<config>',
+  ];
+  objects.forEach((obj, i) => {
+    const extruder = i + 1;
+    metaLines.push(`  <object id="${obj.id}">`);
+    metaLines.push(`    <metadata key="name" value="${escXml(obj.label)}" />`);
+    metaLines.push(`    <metadata key="extruder" value="${extruder}" />`);
+    metaLines.push(`    <part id="0" subtype="normal_part">`);
+    metaLines.push(`      <metadata key="name" value="${escXml(obj.label)}" />`);
+    metaLines.push(`      <metadata key="extruder" value="${extruder}" />`);
+    metaLines.push('    </part>');
+    metaLines.push('  </object>');
+  });
+  metaLines.push('</config>');
+  const modelSettings = metaLines.join("\n");
+
   const contentTypes = [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">',
     '  <Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml" />',
     '  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />',
+    '  <Default Extension="config" ContentType="application/vnd.openxmlformats-package.relationships+xml" />',
     '</Types>',
   ].join("\n");
   const rels = [
@@ -286,7 +313,15 @@ function build3mf(perColorMeshes) {
     "[Content_Types].xml": enc.encode(contentTypes),
     "_rels": { ".rels": enc.encode(rels) },
     "3D": { "3dmodel.model": enc.encode(modelXml) },
+    "Metadata": { "model_settings.config": enc.encode(modelSettings) },
   });
+}
+
+// Minimal XML attribute escaper for the slicer metadata.
+function escXml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 // ---------- entry point ----------

@@ -35,6 +35,22 @@
       ]
     },
     {
+      "slug": "collar-tag",
+      "title": "Pet Collar Tag",
+      "description": "A two-color pet collar tag with your choice of body shape (circle, hexagon, or bean), an embossed name, and a raised border edge. Attaches to the collar with a standard split ring through the integrated loop.",
+      "customizable": true,
+      "previews": [
+        { "file": "multicolor.3mf", "format": "3mf", "label": "Multicolor (2 filaments)", "default": true, "module": "multicolor",
+          "legend": [
+            { "color": "#ffa500", "label": "Tag body (primary filament)" },
+            { "color": "#a5560a", "label": "Name + edge (accent filament)" }
+          ]
+        },
+        { "file": "single.stl", "format": "stl", "label": "Single color (1 filament)", "module": "single" }
+      ],
+      "parts": []
+    },
+    {
       "slug": "fi-mini-case",
       "title": "Fi Mini GPS Case",
       "description": "Protective case for the Fi Mini GPS tracker. Supports an optional QR code — enter your phone number or address so anyone who finds your dog can reach you.",
@@ -75,10 +91,24 @@
       "description": "Two-color QR sign — encode any URL on a 235mm rounded plate. Prints as a single multi-material job with the QR modules embossed in a contrasting filament.",
       "customizable": true,
       "previews": [
-        { "file": "assembled.3mf", "format": "3mf", "label": "Assembly preview", "default": true,
+        { "file": "assembled.3mf", "format": "3mf", "label": "Assembly preview", "default": true, "module": "assembled",
           "legend": [
             { "color": "#ffffff", "label": "Plate (light filament)" },
             { "color": "#000000", "label": "QR modules (dark filament)" }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "property-sign",
+      "title": "Private Property Sign",
+      "description": "Three-color property warning sign — white plate with the text recessed and inlaid flush (no relief): \"Private Property\" and \"No Trespassing\" in red, the rest in black. The plate auto-sizes to fit the text. Prints as a single multi-material job.",
+      "previews": [
+        { "file": "assembled.3mf", "format": "3mf", "label": "Assembly preview", "default": true,
+          "legend": [
+            { "color": "#ffffff", "label": "Plate (white)" },
+            { "color": "#ff0000", "label": "Headline text (red)" },
+            { "color": "#000000", "label": "Body text (black)" }
           ]
         }
       ]
@@ -106,6 +136,90 @@
           "qty": 1,
           "label": "Levoit Core 200S air purifier",
           "source": { "url": "https://www.amazon.com/dp/B08FJ678YK", "vendor": "Amazon" }
+        }
+      ]
+    },
+    {
+      "slug": "hex-bit-holder",
+      "title": "1/4\" Hex Bit Holder",
+      "description": "A rounded-edge block with blind hexagonal holes (closed bottom, 1mm base) that grip 1/4\" hex-shank driver bits by friction. 12mm tall with graduated internal grip bumps on all six flats. Sized for 0.25mm fit clearance in 64D TPU. Available in 3–10 hole sizes on 15mm spacing.",
+      "filament": [
+        { "material": "TPU 64D", "color": "any", "note": "Flex is required for friction grip" }
+      ],
+      "previews": [
+        { "file": "assembled.3mf", "format": "3mf", "label": "All sizes (3–10)", "default": true,
+          "legend": [
+            { "color": "#3a7ad9", "label": "Holder (64D TPU)" }
+          ],
+          "components": [
+            { "part": "hex-bit-holder-3.stl", "qty": 1 },
+            { "part": "hex-bit-holder-4.stl", "qty": 1 },
+            { "part": "hex-bit-holder-5.stl", "qty": 1 },
+            { "part": "hex-bit-holder-6.stl", "qty": 1 },
+            { "part": "hex-bit-holder-7.stl", "qty": 1 },
+            { "part": "hex-bit-holder-8.stl", "qty": 1 },
+            { "part": "hex-bit-holder-9.stl", "qty": 1 },
+            { "part": "hex-bit-holder-10.stl", "qty": 1 }
+          ]
+        }
+      ],
+      "parts": [
+        { "file": "hex-bit-holder-3.stl", "format": "stl", "label": "3-bit holder" },
+        { "file": "hex-bit-holder-4.stl", "format": "stl", "label": "4-bit holder" },
+        { "file": "hex-bit-holder-5.stl", "format": "stl", "label": "5-bit holder" },
+        { "file": "hex-bit-holder-6.stl", "format": "stl", "label": "6-bit holder" },
+        { "file": "hex-bit-holder-7.stl", "format": "stl", "label": "7-bit holder" },
+        { "file": "hex-bit-holder-8.stl", "format": "stl", "label": "8-bit holder" },
+        { "file": "hex-bit-holder-9.stl", "format": "stl", "label": "9-bit holder" },
+        { "file": "hex-bit-holder-10.stl", "format": "stl", "label": "10-bit holder" }
+      ],
+      "hardware": [
+        {
+          "qty": 6,
+          "label": "1/4\" hex-shank driver bit"
+        }
+      ]
+    },
+    {
+      "slug": "ryobi-drill-holder",
+      "title": "Ryobi Drill / Tool Holder",
+      "description": "A parametric, fully-modular Ryobi ONE+ tool holder. Every base plate is identical: a 90×135mm section with a Ryobi mounting post (cylinder + sphere, 27mm × 30mm), a recessed battery landing offset toward the top edge, and two bowtie dovetail sockets on each side edge. Plates chain in any direction by dropping separate bowtie keys up through the underside — each key straddles the seam between two plates and is tapered 30° so it wedges and can't pull out the top; the whole holder then bolts down through the M5 holes, trapping the keys. The weight-bearing post is split vertically into two D-halves that print on their flat face (layer lines along the load) and lock into the plate through a gear-splined flared collar. Four M5 self-tapping mounting holes per plate (no head recess). 0.25mm fit on all mating parts. Print as many plates, posts, and keys as you need and build your own layout.",
+      "customizable": true,
+      "previews": [
+        { "file": "chained.3mf", "format": "3mf", "label": "Chained 3× (bowtie keys)", "default": true, "module": "chained",
+          "legend": [
+            { "color": "#3a7ad9", "label": "Plate 1" },
+            { "color": "#5fb3d6", "label": "Plate 2" },
+            { "color": "#d65f9a", "label": "Plate 3" },
+            { "color": "#cfcfcf", "label": "Ryobi posts" },
+            { "color": "#e8a33d", "label": "Bowtie keys" }
+          ]
+        },
+        { "file": "single.3mf", "format": "3mf", "label": "Single plate + keys", "module": "single",
+          "legend": [
+            { "color": "#3a7ad9", "label": "Base plate" },
+            { "color": "#5fb3d6", "label": "Post half (cyan)" },
+            { "color": "#d65f9a", "label": "Post half (pink)" },
+            { "color": "#e8a33d", "label": "Bowtie keys (4)" }
+          ]
+        },
+        { "file": "three-row.3mf", "format": "3mf", "label": "Solid 3-post bar (non-extendable)", "module": "three_row",
+          "legend": [
+            { "color": "#3a7ad9", "label": "Base plate" },
+            { "color": "#5fb3d6", "label": "Post half (cyan)" },
+            { "color": "#d65f9a", "label": "Post half (pink)" }
+          ]
+        }
+      ],
+      "parts": [
+        { "file": "plate.stl", "format": "stl", "label": "Base plate (print x1 per slot)", "module": "plate" },
+        { "file": "post-half.stl", "format": "stl", "label": "Post half (print x2 per post)", "module": "post_half_part" },
+        { "file": "bowtie-key.stl", "format": "stl", "label": "Bowtie key (print x2 per seam + ends)", "module": "bowtie_key" }
+      ],
+      "hardware": [
+        {
+          "qty": 4,
+          "label": "M5 button-head cap screw, per plate (self-taps into the plate; length to suit your mounting surface)"
         }
       ]
     }

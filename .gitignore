@@ -7,5 +7,15 @@ dist/
 public/models/
 models/*/build/
 
+# Temp per-color wrapper files from build-multicolor-3mf.mjs (normally
+# auto-deleted; ignored so a crashed/interrupted build can't leak them in)
+models/*/previews/_pass_*.scad
+
 # WASM files — fetched in CI, symlinked locally
 public/wasm
+
+# Playwright e2e artifacts
+test-results/
+playwright-report/
+/blob-report/
+/playwright/.cache/

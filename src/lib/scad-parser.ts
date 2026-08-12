@@ -40,7 +40,7 @@ export function parseParams(source: string): ScadParam[] {
   const section = extractSection(source, '// BEGIN_PARAMS', '// END_PARAMS');
   if (!section) return [];
 
-  const blocks = section.split(/\n(?:\s*\n){2,}/);
+  const blocks = section.split(/\n(?:\s*\n)+/);
   const params: ScadParam[] = [];
 
   for (const block of blocks) {

@@ -18,6 +18,12 @@ include <qr.scad>
 // Long URLs work, but the modules get smaller and may exceed
 // your printer's resolution.
 qr_url_text = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+// END_PARAMS
+
+// ── Fixed sign geometry (not customizable) ────────────────────────
+// Kept as top-level constants (not customizer params) so the plate
+// dimensions and slicer color-swap layer boundary are held constant
+// across everyone's prints. Change them here to alter the model itself.
 
 // Outer width of the sign plate, in mm.
 sign_size = 235;
@@ -25,10 +31,9 @@ sign_size = 235;
 // Corner rounding radius on the plate, in mm.
 corner_r = 10;
 
-// Print layer height, in mm. The QR section height is computed as
-// 4 × layer_h so the two-color split lands on a clean layer boundary.
+// Print layer height, in mm. The QR section height is 4 × layer_h so
+// the two-color swap lands on a clean layer boundary.
 layer_h = 0.28;
-// END_PARAMS
 
 section_h = 4 * layer_h;
 
