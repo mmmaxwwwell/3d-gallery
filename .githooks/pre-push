@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Pre-push gate for main: only allow push if `npm run preflight` has
+# passed for the exact commit being pushed. Preflight mirrors CI
+# (build:models, test:build, vite build, test:e2e) under `nix develop`.
+#
+# The state token .git/preflight-ok is written by preflight on success
+# and holds the SHA it verified. If that SHA matches the SHA being
+# pushed, the hook allows the push without re-running the checks.
+#
+# Bypass in an emergency with `git push --no-verify`.
+
+set -euo pipefail
+
+Z40="0000000000000000000000000000000000000000"
+
+git_dir=$(git rev-parse --git-dir)
+token="$git_dir/preflight-ok"
+
+needs_check=0
+push_sha=""
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  # Skip branch deletions.
+  if [ "$local_sha" = "$Z40" ]; then
+    continue
+  fi
+  if [ "$remote_ref" = "refs/heads/main" ]; then
+    push_sha="$local_sha"
+    needs_check=1
+  fi
+done
+
+if [ "$needs_check" -eq 0 ]; then
+  exit 0
+fi
+
+if [ -f "$token" ] && [ "$(cat "$token")" = "$push_sha" ]; then
+  echo "pre-push: preflight already passed for $push_sha, skipping."
+  exit 0
+fi
+
+echo "pre-push: pushing to main — running preflight for $push_sha…"
+echo "pre-push: (bypass with \`git push --no-verify\`.)"
+if npm run --silent preflight; then
+  exit 0
+else
+  echo ""
+  echo "pre-push: preflight failed. Fix the issues above and retry, or bypass with --no-verify."
+  exit 1
+fi
