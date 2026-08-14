@@ -401,5 +401,21 @@
         3.36
       ]
     ]
+  },
+  "vrig-camera-mount-retention-guard/guard.stl": {
+    "format": "stl",
+    "triangleCount": 462,
+    "bbox": [
+      [
+        -24,
+        -10.45,
+        -5.25
+      ],
+      [
+        24,
+        10.45,
+        5.25
+      ]
+    ]
   }
 }
