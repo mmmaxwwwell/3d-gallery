@@ -179,6 +179,24 @@
           "label": "1/4\" hex-shank driver bit"
         }
       ]
+    },
+    {
+      "slug": "vrig-camera-mount-retention-guard",
+      "title": "VRIG Camera Mount Retention Guard",
+      "description": "Rectangular 64D TPU sleeve that slides over the VRIG AC-91 magnetic quick-release adapter at the camera-to-mount interface. Open top and bottom; the four walls physically constrain the joint so a side impact can't shear the magnetic connection.",
+      "filament": [
+        { "material": "TPU 64D", "color": "any", "note": "Flex is required so the sleeve stretches over the joint and grips by friction" }
+      ],
+      "parts": [
+        { "file": "guard.stl", "format": "stl", "label": "Retention guard sleeve" }
+      ],
+      "hardware": [
+        {
+          "qty": 1,
+          "label": "VRIG Magnetic Quick Release Adapter (AC-91)",
+          "source": { "url": "https://www.amazon.com/dp/B0FL2GD2MN", "vendor": "Amazon" }
+        }
+      ]
     }
   ]
 }
