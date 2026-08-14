@@ -1,4 +1,5 @@
 import { defineConfig, type Plugin } from 'vite';
+import { VitePWA } from 'vite-plugin-pwa';
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve, sep } from 'node:path';
 import { buildModel, loadManifest } from './scripts/build-models.mjs';
@@ -91,7 +92,42 @@ function scadWatcherPlugin(): Plugin {
 
 export default defineConfig({
   base: '/3d-gallery/',
-  plugins: [liveManifestPlugin(), scadWatcherPlugin()],
+  plugins: [
+    liveManifestPlugin(),
+    scadWatcherPlugin(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      injectRegister: false, // main.ts registers via virtual:pwa-register
+      // Precache the built vite bundle + everything Vite copies from
+      // public/ (models, wasm, icons). Ranges: keep the model assets
+      // small enough that offline install is meaningful without
+      // bloating first-load — cap per-file at 10 MB.
+      workbox: {
+        globPatterns: ['**/*.{html,js,css,svg,png,ico,webmanifest,wasm,json,stl,3mf}'],
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
+        navigateFallback: '/3d-gallery/index.html',
+        cleanupOutdatedCaches: true,
+      },
+      manifest: {
+        id: '/3d-gallery/',
+        name: "mmmaxwwwell's 3d-gallery",
+        short_name: '3d-gallery',
+        description: 'Gallery of 3D-printable OpenSCAD models with an in-browser Three.js viewer.',
+        start_url: '/3d-gallery/',
+        scope: '/3d-gallery/',
+        display: 'standalone',
+        background_color: '#0f172a',
+        theme_color: '#0f172a',
+        orientation: 'any',
+        icons: [
+          { src: 'icons/icon.svg',                sizes: 'any',     type: 'image/svg+xml', purpose: 'any'      },
+          { src: 'icons/icon-192.png',            sizes: '192x192', type: 'image/png',     purpose: 'any'      },
+          { src: 'icons/icon-512.png',            sizes: '512x512', type: 'image/png',     purpose: 'any'      },
+          { src: 'icons/icon-maskable-512.png',   sizes: '512x512', type: 'image/png',     purpose: 'maskable' },
+        ],
+      },
+    }),
+  ],
   build: {
     outDir: 'dist',
     emptyOutDir: true,

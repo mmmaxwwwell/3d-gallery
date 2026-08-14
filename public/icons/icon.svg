@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0f172a"/>
+  <g stroke="#83b8ee" stroke-width="14" stroke-linejoin="round" stroke-linecap="round" fill="none">
+    <path d="M144 176 L256 128 L368 176 L368 336 L256 384 L144 336 Z"/>
+    <path d="M144 176 L256 224 L368 176"/>
+    <path d="M256 224 L256 384"/>
+  </g>
+  <text x="256" y="472" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-weight="800" font-size="72" fill="#e2e8f0">3D</text>
+</svg>

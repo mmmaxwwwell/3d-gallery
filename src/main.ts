@@ -1,6 +1,20 @@
 import { createViewer, type ModelFormat } from "./viewer";
+import { registerSW } from "virtual:pwa-register";
 import { render, h } from "preact";
 import { useState } from "preact/hooks";
+
+// PWA: check for a new SW every time the app opens; if one is
+// waiting, activate it and reload so the user always sees the latest
+// deploy. Between opens the cached shell keeps working offline.
+const updateSW = registerSW({
+  immediate: true,
+  onRegisteredSW(_swUrl, registration) {
+    if (registration) registration.update().catch(() => {});
+  },
+  onNeedRefresh() {
+    void updateSW(true);
+  },
+});
 import collarTagLib from "../models/collar-tag/lib/collar-tag-lib.scad?raw";
 import collarTagMulticolor from "../models/collar-tag/previews/multicolor.scad?raw";
 import fiMiniCaseLib from "../models/fi-mini-case/lib/fi-mini-case-lib.scad?raw";
