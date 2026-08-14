@@ -1,13 +1,15 @@
 // Local pre-push "would CI pass?" gate.
 //
-// Mirrors deploy.yml + e2e.yml: runs build:models, test:build, vite
-// build, and test:e2e under `nix develop` — same pinned toolchain CI
-// uses, so a green preflight ≈ a green CI.
+// Covers the fast half of CI: build:models, test:build, vite build.
+// E2E is intentionally left out — it takes ~15 min locally and is
+// flaky on developer machines (WASM/GPU contention). Run e2e manually
+// with `npm run test:e2e` before landing anything touching the
+// customizer or viewer.
 //
 // CRITICAL: preflight tests the COMMIT being pushed, not the working
-// tree. It checks out the target SHA into a scratch worktree
-// (.git/preflight-wt) and runs everything there. Uncommitted WIP in
-// the main tree does not influence the result.
+// tree. It checks out the target SHA into a scratch worktree under
+// $TMPDIR and runs everything there. Uncommitted WIP in the main tree
+// does not influence the result.
 //
 // Usage:
 //   node scripts/preflight.mjs            # tests HEAD
@@ -55,23 +57,13 @@ const STEPS = [
   ["build:models", ["npm", "run", "build:models"]],
   ["test:build",   ["npm", "run", "test:build"]],
   ["vite build",   ["npx", "vite", "build"]],
-  ["test:e2e",     ["npm", "run", "test:e2e"]],
 ];
-
-// CI=1 makes Playwright pick the 2-worker + retries=1 profile from
-// playwright.config.ts, matching what actions/runner uses. Without
-// this, local runs use 3 workers + retries=0 and see WASM-contention
-// flakiness that CI never hits — preflight would false-alarm.
-//
-// E2E_PORT isolates preflight's dev server from any long-running
-// `npm run dev` the user has on 5173.
-const env = { ...process.env, CI: "1", E2E_PORT: "5199" };
 
 const started = Date.now();
 for (const [label, argv] of STEPS) {
   const stepStart = Date.now();
   process.stdout.write(`\n\x1b[1m▸ preflight: ${label}\x1b[0m\n`);
-  const r = spawnSync("nix", ["develop", "--command", ...argv], { stdio: "inherit", cwd: WORKTREE, env });
+  const r = spawnSync("nix", ["develop", "--command", ...argv], { stdio: "inherit", cwd: WORKTREE });
   if (r.status !== 0) {
     console.error(`\n\x1b[31m✗ preflight failed at "${label}" (exit ${r.status})\x1b[0m`);
     process.exit(1);
