@@ -54,11 +54,17 @@ const STEPS = [
   ["test:e2e",     ["npm", "run", "test:e2e"]],
 ];
 
+// CI=1 makes Playwright pick the 2-worker + retries=1 profile from
+// playwright.config.ts, matching what actions/runner uses. Without
+// this, local runs use 3 workers + retries=0 and see WASM-contention
+// flakiness that CI never hits — preflight would false-alarm.
+const env = { ...process.env, CI: "1" };
+
 const started = Date.now();
 for (const [label, argv] of STEPS) {
   const stepStart = Date.now();
   process.stdout.write(`\n\x1b[1m▸ preflight: ${label}\x1b[0m\n`);
-  const r = spawnSync("nix", ["develop", "--command", ...argv], { stdio: "inherit", cwd: WORKTREE });
+  const r = spawnSync("nix", ["develop", "--command", ...argv], { stdio: "inherit", cwd: WORKTREE, env });
   if (r.status !== 0) {
     console.error(`\n\x1b[31m✗ preflight failed at "${label}" (exit ${r.status})\x1b[0m`);
     process.exit(1);
