@@ -58,7 +58,10 @@ const STEPS = [
 // playwright.config.ts, matching what actions/runner uses. Without
 // this, local runs use 3 workers + retries=0 and see WASM-contention
 // flakiness that CI never hits — preflight would false-alarm.
-const env = { ...process.env, CI: "1" };
+//
+// E2E_PORT isolates preflight's dev server from any long-running
+// `npm run dev` the user has on 5173.
+const env = { ...process.env, CI: "1", E2E_PORT: "5199" };
 
 const started = Date.now();
 for (const [label, argv] of STEPS) {
