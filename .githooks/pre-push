@@ -41,7 +41,7 @@ fi
 
 echo "pre-push: pushing to main — running preflight for $push_sha…"
 echo "pre-push: (bypass with \`git push --no-verify\`.)"
-if npm run --silent preflight; then
+if npm run --silent preflight -- "$push_sha"; then
   exit 0
 else
   echo ""
