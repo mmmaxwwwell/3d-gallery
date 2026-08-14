@@ -674,6 +674,7 @@ function populatePartSelect(model: Model, activePart: Part) {
 
 // Current model state
 let currentModel: Model | null = null;
+let currentPart: Part | null = null;
 let currentItems: { part: Part; group: string }[] = [];
 
 interface LoadPartOptions {
@@ -690,6 +691,7 @@ async function loadPart(model: Model, part: Part, opts: LoadPartOptions = {}) {
     return;
   }
 
+  currentPart = part;
   setCustomizedBadge(false);
   hideViewerPrompt();
   renderLegend(part);
@@ -853,3 +855,28 @@ async function init() {
 }
 
 init();
+
+// Dev-server HMR: when scripts/build-models.mjs rebuilds a model, the
+// vite plugin sends a `scad-rebuilt` event. Re-fetch the current part
+// (cache-busted) and reload the viewer while preserving camera state.
+// Skipped when the model is customizable and the user is actively
+// customizing — WASM output takes precedence over the file version.
+if (import.meta.hot) {
+  import.meta.hot.on("scad-rebuilt", async (data: { slug: string }) => {
+    if (!currentModel || !currentPart) return;
+    if (currentModel.slug !== data.slug) return;
+    if (currentModel.customizable && !customizedBadge.hidden) return;
+    const url = `${import.meta.env.BASE_URL}models/${currentModel.slug}/${currentPart.file}`;
+    const format = formatOf(currentPart.file);
+    if (!format) return;
+    try {
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const buf = await res.arrayBuffer();
+      viewer.load(buf, format, { preserveView: true });
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  });
+}

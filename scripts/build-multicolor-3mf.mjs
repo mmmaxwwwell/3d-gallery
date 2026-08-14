@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // Build a multi-color 3MF from an OpenSCAD file that uses top-level color()
 // calls. The approach:
 //

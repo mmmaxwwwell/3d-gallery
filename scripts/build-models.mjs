@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // Build STL + 3MF artifacts for every model under models/<slug>/.
 //
 // The manifest (models/manifest.json) is the source of truth. Each part/preview
@@ -32,7 +31,7 @@ const ROOT = dirname(HERE);
 const MODELS_DIR = join(ROOT, "models");
 const PUBLIC_MODELS_DIR = join(ROOT, "public", "models");
 
-function loadManifest() {
+export function loadManifest() {
   const raw = readFileSync(join(MODELS_DIR, "manifest.json"), "utf8");
   return JSON.parse(raw);
 }
@@ -77,7 +76,7 @@ async function buildPart({ slug, dir, buildDir, part }) {
   if (CACHE_ENABLED) storeCache({ scadPath, format, args: OPENSCAD_ARGS, outPath: out });
 }
 
-async function buildModel(model) {
+export async function buildModel(model) {
   const slug = model.slug;
   const dir = join(MODELS_DIR, slug);
   const buildDir = join(dir, "build");
@@ -143,4 +142,8 @@ async function main() {
   console.log("Done.");
 }
 
-main();
+// Only run main() when invoked as a script (not when imported by the
+// vite dev-server watcher plugin).
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main();
+}

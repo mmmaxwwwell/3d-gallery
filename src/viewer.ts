@@ -5,8 +5,14 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 export type ModelFormat = "stl" | "3mf";
 
+export interface LoadOptions {
+  /** Keep the current camera position + orbit target. Near/far are still
+   *  updated so the new geometry doesn't clip. Used for HMR reloads. */
+  preserveView?: boolean;
+}
+
 export interface Viewer {
-  load(data: ArrayBuffer, format: ModelFormat): void;
+  load(data: ArrayBuffer, format: ModelFormat, opts?: LoadOptions): void;
   clear(): void;
   dispose(): void;
 }
@@ -90,7 +96,7 @@ export function createViewer(container: HTMLElement): Viewer {
     }
   }
 
-  function load(data: ArrayBuffer, format: ModelFormat) {
+  function load(data: ArrayBuffer, format: ModelFormat, opts: LoadOptions = {}) {
     clear();
     let group: THREE.Group;
     if (format === "stl") {
@@ -133,12 +139,14 @@ export function createViewer(container: HTMLElement): Viewer {
     currentGroup = group;
     scene.add(group);
 
-    const fitDistance = maxDim / (2 * Math.tan((Math.PI * camera.fov) / 360));
-    camera.position.set(fitDistance * 1.2, fitDistance * 0.8, fitDistance * 1.2);
     camera.near = maxDim * 0.001;
     camera.far = maxDim * 100;
+    if (!opts.preserveView) {
+      const fitDistance = maxDim / (2 * Math.tan((Math.PI * camera.fov) / 360));
+      camera.position.set(fitDistance * 1.2, fitDistance * 0.8, fitDistance * 1.2);
+      controls.target.set(0, 0, 0);
+    }
     camera.updateProjectionMatrix();
-    controls.target.set(0, 0, 0);
     controls.update();
   }
 

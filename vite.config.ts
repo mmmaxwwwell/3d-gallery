@@ -1,6 +1,7 @@
 import { defineConfig, type Plugin } from 'vite';
 import { readFileSync, existsSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { resolve, sep } from 'node:path';
+import { buildModel, loadManifest } from './scripts/build-models.mjs';
 
 // Serve the source `models/manifest.json` in dev so edits show up on
 // refresh without needing `npm run build:models`. In production the
@@ -27,9 +28,70 @@ function liveManifestPlugin(): Plugin {
   };
 }
 
+// In dev, watch models/**/*.scad and rebuild the affected model (STL/3MF +
+// mirror into public/models/<slug>/) on save, then trigger a full page
+// reload so the viewer re-fetches the artifact. Debounced per-slug so a
+// burst of saves collapses into one build.
+function scadWatcherPlugin(): Plugin {
+  const modelsDir = resolve(__dirname, 'models');
+  const pending = new Set<string>();
+  const inflight = new Map<string, Promise<void>>();
+  let timer: NodeJS.Timeout | null = null;
+
+  return {
+    name: 'scad-watcher',
+    apply: 'serve',
+    configureServer(server) {
+      server.watcher.add(resolve(modelsDir, '**/*.scad'));
+
+      async function rebuild(slug: string) {
+        const existing = inflight.get(slug);
+        if (existing) return existing;
+        const p = (async () => {
+          const manifest = loadManifest();
+          const model = manifest.models.find((m: { slug: string }) => m.slug === slug);
+          if (!model) {
+            server.config.logger.warn(`[scad-watcher] ${slug} not in manifest — skipping`);
+            return;
+          }
+          const t0 = Date.now();
+          server.config.logger.info(`[scad-watcher] rebuilding ${slug}...`);
+          await buildModel(model);
+          server.config.logger.info(`[scad-watcher] ${slug} rebuilt in ${Date.now() - t0}ms`);
+        })().finally(() => inflight.delete(slug));
+        inflight.set(slug, p);
+        return p;
+      }
+
+      server.watcher.on('change', (path: string) => {
+        if (!path.endsWith('.scad')) return;
+        if (!path.startsWith(modelsDir + sep)) return;
+        const rel = path.substring(modelsDir.length + 1);
+        const slug = rel.split(sep)[0];
+        if (!slug) return;
+        pending.add(slug);
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(async () => {
+          const slugs = [...pending];
+          pending.clear();
+          timer = null;
+          try {
+            await Promise.all(slugs.map(rebuild));
+            for (const slug of slugs) {
+              server.ws.send({ type: 'custom', event: 'scad-rebuilt', data: { slug } });
+            }
+          } catch (err) {
+            server.config.logger.error(`[scad-watcher] rebuild failed: ${(err as Error).message}`);
+          }
+        }, 200);
+      });
+    },
+  };
+}
+
 export default defineConfig({
   base: '/3d-gallery/',
-  plugins: [liveManifestPlugin()],
+  plugins: [liveManifestPlugin(), scadWatcherPlugin()],
   build: {
     outDir: 'dist',
     emptyOutDir: true,
