@@ -361,6 +361,22 @@
       ]
     ]
   },
+  "osmo-remote-belt-mount/belt-mount.stl": {
+    "format": "stl",
+    "triangleCount": 2220,
+    "bbox": [
+      [
+        -3.495,
+        -10.745,
+        -20.495
+      ],
+      [
+        7.25,
+        10.745,
+        20.495
+      ]
+    ]
+  },
   "property-sign/assembled.3mf": {
     "format": "3mf",
     "colors": [
