@@ -20,12 +20,16 @@
 import { spawnSync, execFileSync } from "node:child_process";
 import { writeFileSync, existsSync, symlinkSync, rmSync } from "node:fs";
 import { resolve } from "node:path";
+import { tmpdir } from "node:os";
 
 const REPO_ROOT = execFileSync("git", ["rev-parse", "--show-toplevel"], { encoding: "utf8" }).trim();
 const GIT_DIR = resolve(REPO_ROOT, execFileSync("git", ["rev-parse", "--git-dir"], { encoding: "utf8" }).trim());
 const TARGET_SHA = (process.argv[2] || execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim()).trim();
 
-const WORKTREE = resolve(GIT_DIR, "preflight-wt");
+// Live outside .git/ and outside the main repo: vite's fs.allow list
+// rejects anything under .git/, and putting it inside the repo root
+// would confuse the scad watcher.
+const WORKTREE = resolve(tmpdir(), `3d-gallery-preflight-${TARGET_SHA.slice(0, 12)}`);
 
 function removeWorktree() {
   try { execFileSync("git", ["worktree", "remove", "-f", WORKTREE], { stdio: "pipe" }); } catch {}
