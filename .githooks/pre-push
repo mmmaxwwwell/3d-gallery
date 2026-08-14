@@ -41,7 +41,10 @@ fi
 
 echo "pre-push: pushing to main — running preflight for $push_sha…"
 echo "pre-push: (bypass with \`git push --no-verify\`.)"
-if npm run --silent preflight -- "$push_sha"; then
+# Go through `nix develop` so the hook works whether or not `git push`
+# was invoked from an already-active nix shell — npm/node/openscad
+# only exist inside the devshell.
+if nix develop --command npm run --silent preflight -- "$push_sha"; then
   exit 0
 else
   echo ""
