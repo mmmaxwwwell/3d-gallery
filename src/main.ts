@@ -15,6 +15,40 @@ const updateSW = registerSW({
     void updateSW(true);
   },
 });
+
+// Install button: hidden until Chromium fires beforeinstallprompt
+// (i.e. install is actually available on this browser + state). Once
+// installed or dismissed, hide it again so it doesn't linger.
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+const installBtn = document.getElementById("install-app") as HTMLButtonElement | null;
+if (installBtn) {
+  const alreadyInstalled = window.matchMedia("(display-mode: standalone)").matches
+    || (navigator as unknown as { standalone?: boolean }).standalone === true;
+  if (!alreadyInstalled) {
+    let deferred: BeforeInstallPromptEvent | null = null;
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferred = e as BeforeInstallPromptEvent;
+      installBtn.hidden = false;
+    });
+    installBtn.addEventListener("click", async () => {
+      if (!deferred) return;
+      installBtn.disabled = true;
+      await deferred.prompt();
+      await deferred.userChoice;
+      deferred = null;
+      installBtn.hidden = true;
+      installBtn.disabled = false;
+    });
+    window.addEventListener("appinstalled", () => {
+      deferred = null;
+      installBtn.hidden = true;
+    });
+  }
+}
 import collarTagLib from "../models/collar-tag/lib/collar-tag-lib.scad?raw";
 import collarTagMulticolor from "../models/collar-tag/previews/multicolor.scad?raw";
 import fiMiniCaseLib from "../models/fi-mini-case/lib/fi-mini-case-lib.scad?raw";
