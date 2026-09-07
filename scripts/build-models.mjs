@@ -21,6 +21,13 @@ import { promisify } from "node:util";
 import { buildMulticolor3mf } from "./build-multicolor-3mf.mjs";
 import { OPENSCAD_ARGS } from "./openscad-args.mjs";
 import { lookupCache, storeCache } from "./cache.mjs";
+import { embedUrlInFile } from "./embed-source-url.mjs";
+
+// Canonical deployed origin — GitHub Pages URL for this repo.
+// The gallery frontend uses the same buildUrl() shape (?model=<slug>&part=<module>),
+// so scanning a printed part's embedded URL takes you straight back to
+// its page with the right model + part pre-selected.
+const SITE_URL = "https://mmmaxwwwell.github.io/3d-gallery/";
 
 const execFileAsync = promisify(execFile);
 
@@ -55,25 +62,40 @@ async function buildPart({ slug, dir, buildDir, part }) {
   }
 
   const out = join(buildDir, part.file);
+  let fromCache = false;
 
   if (CACHE_ENABLED) {
     const hit = lookupCache({ scadPath, format, args: OPENSCAD_ARGS });
     if (hit) {
       console.log(`  [cache] ${scadPath} → build/${part.file}`);
       cpSync(hit, out);
-      return;
+      fromCache = true;
     }
   }
 
-  if (format === "3mf") {
-    console.log(`  [3mf ] ${scadPath} → build/${part.file}`);
-    await buildMulticolor3mf({ scadPath, outPath: out });
-  } else {
-    console.log(`  [stl ] ${scadPath} → build/${part.file}`);
-    await execFileAsync("openscad", [...OPENSCAD_ARGS, "-o", out, scadPath]);
+  if (!fromCache) {
+    if (format === "3mf") {
+      console.log(`  [3mf ] ${scadPath} → build/${part.file}`);
+      await buildMulticolor3mf({ scadPath, outPath: out });
+    } else {
+      console.log(`  [stl ] ${scadPath} → build/${part.file}`);
+      await execFileAsync("openscad", [...OPENSCAD_ARGS, "-o", out, scadPath]);
+    }
+
+    // Cache the pre-injection artifact so the cache key stays purely a
+    // function of the .scad + openscad args, not of the site URL or
+    // the part's manifest module name (both of which can change
+    // without invalidating what OpenSCAD produced).
+    if (CACHE_ENABLED) storeCache({ scadPath, format, args: OPENSCAD_ARGS, outPath: out });
   }
 
-  if (CACHE_ENABLED) storeCache({ scadPath, format, args: OPENSCAD_ARGS, outPath: out });
+  // Embed a permalink back to this model's page on GitHub Pages.
+  // Runs on both fresh builds and cache hits — the injection is
+  // idempotent (replaces any existing SourceURL, doesn't append).
+  const url = new URL(SITE_URL);
+  url.searchParams.set("model", slug);
+  if (part.module) url.searchParams.set("part", part.module);
+  embedUrlInFile(out, format, url.toString());
 }
 
 export async function buildModel(model) {

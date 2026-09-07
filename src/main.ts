@@ -59,6 +59,7 @@ import qrSignAssembled from "../models/qr-sign/previews/assembled.scad?raw";
 import parametricShelfLib from "../models/parametric-shelf/lib/parametric-shelf-lib.scad?raw";
 import { parseParams, coerceToParamType } from "./lib/scad-parser";
 import { createOpenSCADApi, injectParameters } from "./lib/openscad-api";
+import { embedSourceUrl } from "./lib/embed-source-url";
 import type { ScadParam, ScadValue } from "./lib/types";
 
 interface LegendEntry {
@@ -556,10 +557,18 @@ function Customizer({ libSource, previewSource, params, slug, part, initialValue
         result = await api.render(source, outputFormat, (line) => onProgress(line));
       }
 
-      setCachedResult(slug, cacheHash, result);
+      // Embed a permalink back to this exact param set into the output
+      // file itself. Cache the tagged version so subsequent hits also
+      // include it — the URL is derived from the same params as the
+      // cache key, so they stay in sync.
+      const sourceUrl =
+        window.location.origin + buildUrl(slug, moduleName, values);
+      const tagged = embedSourceUrl(result, outputFormat, sourceUrl);
+
+      setCachedResult(slug, cacheHash, tagged);
 
       const filename = `${slug}-${moduleName}-custom.${outputFormat}`;
-      onGenerated(result, outputFormat, filename);
+      onGenerated(tagged, outputFormat, filename);
       onFinish();
       api.dispose();
     } catch (err) {
