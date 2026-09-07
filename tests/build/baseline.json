@@ -377,6 +377,22 @@
       ]
     ]
   },
+  "parametric-shelf/shelf.stl": {
+    "format": "stl",
+    "triangleCount": 1758,
+    "bbox": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        200,
+        100,
+        100
+      ]
+    ]
+  },
   "property-sign/assembled.3mf": {
     "format": "3mf",
     "colors": [

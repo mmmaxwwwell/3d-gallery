@@ -196,6 +196,15 @@
       ]
     },
     {
+      "slug": "parametric-shelf",
+      "title": "Parametric Shelf",
+      "description": "Open-frame shelf, printed as a single piece — two side walls with solid corner columns and a hex-lattice interior, capped by a solid top plate. Triangular gussets brace the four internal top corners. Adjust the width, depth, height, wall / top thickness, hex cell size, and gusset length to fit your space.",
+      "customizable": true,
+      "parts": [
+        { "file": "shelf.stl", "format": "stl", "label": "Parametric shelf", "default": true, "module": "shelf" }
+      ]
+    },
+    {
       "slug": "vrig-camera-mount-retention-guard",
       "title": "VRIG Camera Mount Retention Guard",
       "description": "Rectangular 64D TPU sleeve that slides over the VRIG AC-91 magnetic quick-release adapter at the camera-to-mount interface. Open top and bottom; the four walls physically constrain the joint so a side impact can't shear the magnetic connection.",

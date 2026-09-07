@@ -56,6 +56,7 @@ import fiMiniCaseAssembled from "../models/fi-mini-case/previews/assembled.scad?
 import fiMiniCaseCap from "../models/fi-mini-case/previews/cap.scad?raw";
 import qrSignLib from "../models/qr-sign/lib/qr-sign-lib.scad?raw";
 import qrSignAssembled from "../models/qr-sign/previews/assembled.scad?raw";
+import parametricShelfLib from "../models/parametric-shelf/lib/parametric-shelf-lib.scad?raw";
 import { parseParams, coerceToParamType } from "./lib/scad-parser";
 import { createOpenSCADApi, injectParameters } from "./lib/openscad-api";
 import type { ScadParam, ScadValue } from "./lib/types";
@@ -140,6 +141,10 @@ const CUSTOMIZABLE_SOURCES: Record<string, { lib: string; previews: Record<strin
     previews: {
       assembled: stripIncludes(qrSignAssembled),
     },
+  },
+  "parametric-shelf": {
+    lib: parametricShelfLib,
+    previews: {},
   },
 };
 
