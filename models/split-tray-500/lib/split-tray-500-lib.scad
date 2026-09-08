@@ -7,35 +7,30 @@ include <BOSL2/std.scad>
 // walls. Split into a 2 × 2 grid so each quadrant fits inside a
 // ~250 mm build volume (Qidi Q2 class).
 //
-// SHELL CONSTRUCTION — a rounded-corner base (hull of four corner
-// cylinders) plus four bullnose walls built from the _wall helper
-// (a stadium column with a rounded top). All four walls span their
-// full side (front/back to tray_x, left/right to tray_y) so each
-// pair of adjacent walls SHARES a corner post: their end-cap centers
-// coincide at (wall_thickness/2, wall_thickness/2) etc. Front is
-// 25 mm tall (short) between its corner posts; back / left / right
-// are 75 mm tall — so the front-corner posts take the tall wall
-// height where they overlap the left/right walls' caps.
-// Interior wall-to-floor fillets are added as concave quarter-
-// cylinder beads at each of the four wall-floor junctions.
-//
 // PUBLIC modules:
-//   * quadrant(xi, yi)  — one printable quadrant of the split tray
-//                         (joined via sliding dovetail + bowtie keys).
+//   * quadrant(xi, yi)  — one printable quadrant (base + wall dovetails
+//                         + bowtie-key slots opening upward through
+//                         the tray floor).
 //   * bowtie_key()      — one printable bowtie / dovetail key.
-//   * tray()            — the whole tray as one monolithic piece
-//                         (no quadrant split, no bowtie cavities);
-//                         reference geometry for preview / debug.
+//   * tray()            — the whole tray as one monolithic reference
+//                         piece (no split, no dovetails, no cavities).
 //
-// Joint systems (quadrant only):
-//   * Sliding dovetail lengthwise per seam, embedded at Z = 6-9 mm.
-//   * Bowtie / dovetail keys inserted from below, at Z = 0-5 mm.
+// Joint systems (per seam):
+//   1. BASE sliding dovetail at Z = 1-4 (runs the length of the seam,
+//      buried inside the 10 mm base).
+//   2. WALL sliding dovetail at Z = 20-23 wherever a wall crosses the
+//      seam — same cross-section and slide direction as the base
+//      dovetail. This stops the tall walls from hinging apart at the
+//      seam even though the base is already locked.
+//   3. TWO bowtie / dovetail keys per seam segment, dropped in from
+//      ABOVE through slots in the tray floor after the pair is slid
+//      together — locks the sliding axis.
 //
-// Assembly:
-//   1. Slide FR onto FL along −Y → front pair.
-//   2. Slide BR onto BL along −Y → back pair.
-//   3. Slide back pair in −X across the front pair.
-//   4. Flip upside down; push 12 bowtie keys into their bottom slots.
+// Assembly (no flip):
+//   1. Slide FR onto FL along −Y; drop 2 keys into the seam slots.
+//   2. Slide BR onto BL along −Y; drop 2 keys into the seam slots.
+//   3. Slide the back pair in −X across the front pair; drop 4 keys
+//      (2 per Y = qy seam segment).
 // ============================================================
 
 // ---------------- Outer geometry ----------------
@@ -56,21 +51,41 @@ short_total_h  = base_thickness + short_wall_h;  // 35
 // Interior fillet bead radius (wall-to-floor concave fillet)
 fillet_r       = edge_r;
 
-// ---------------- Sliding dovetail (lengthwise) ----------------
+// ---------------- Base sliding dovetail (lengthwise) ----------------
+// Moved to the BOTTOM of the base (Z = 1-4) so the bowtie slots can
+// open upward through the tray floor without colliding.
 dt_bot_w   = 8;
 dt_top_w   = 4;
-dt_z_bot   = 6;
-dt_z_top   = 9;
+dt_z_bot   = 1;
+dt_z_top   = 4;
 dt_clr     = 0.25;
 dt_end_clr = 30;
 
+// ---------------- Wall bowtie key (vertical) ----------------
+// Every wall-seam crossing carries a bowtie-shaped vertical channel
+// cut into the two mating wall halves. A taller bowtie key drops in
+// from the top of the wall and locks the halves against pulling
+// apart. Same polygon as the base bowtie (so wall keys are just a
+// taller extrusion of the same shape), placed with its waist on the
+// seam plane and its long axis perpendicular to the seam. One key
+// per wall-seam crossing (4 wall keys total per tray).
+wall_key_depth = 20;   // vertical extrusion — Z from wall top downward
+
 // ---------------- Bowtie / dovetail key ----------------
+// Slot opens at the top of the base (Z = 5-10) — key drops in from
+// above, flush with the tray floor when seated. No flip required.
 key_len    = 30;
 key_flare  = 14;
 key_waist  = 6;
 key_depth  = 5;
 key_clr    = 0.25;
-n_keys     = 3;
+n_keys     = 2;
+
+// ---------------- Corner bar cutouts ----------------
+// Full-height 20 × 20 mm vertical channels at the front-right and
+// rear-right corners so the tray drops down onto pre-existing
+// vertical bars. Cut all the way through base + wall.
+corner_cut = 20;
 
 // ============================================================
 // PUBLIC
@@ -83,6 +98,8 @@ module quadrant(xi, yi) {
         }
         _dovetail_grooves(xi, yi);
         _bowtie_slot_cavities(xi, yi);
+        _wall_bowtie_pockets(xi, yi);
+        _corner_bar_cutouts();
     }
 }
 
@@ -91,10 +108,30 @@ module bowtie_key() {
         _bowtie_polygon(key_len, key_flare, key_waist);
 }
 
+module wall_bowtie_key() {
+    linear_extrude(wall_key_depth)
+        _bowtie_polygon(key_len, key_flare, key_waist);
+}
+
 // Full tray as one monolithic piece — shell only, no quadrant
-// clipping, no dovetails, no bowtie slots.
+// clipping, no dovetails, no bowtie slots. Corner bar cutouts
+// still apply so the preview matches printed geometry.
 module tray() {
-    _full_shell();
+    difference() {
+        _full_shell();
+        _corner_bar_cutouts();
+    }
+}
+
+module _corner_bar_cutouts() {
+    z0 = -1;
+    zh = total_h + 2;
+    // Front-right corner
+    translate([tray_x - corner_cut, 0, z0])
+        cube([corner_cut, corner_cut, zh]);
+    // Rear-right corner
+    translate([tray_x - corner_cut, tray_y - corner_cut, z0])
+        cube([corner_cut, corner_cut, zh]);
 }
 
 module _bowtie_polygon(l, f, w) {
@@ -182,14 +219,6 @@ module _base() {
 }
 
 // -------- Interior wall-to-floor fillets --------
-// Each bead is a concave quarter-cylinder filler running along the
-// wall's length at the wall's inner face and the floor's top.
-//
-// The FRONT and BACK wall beads span the full X range including the
-// corner regions. In the corner regions those beads sit INSIDE the
-// left / right wall material, which is a harmless redundant union.
-
-// Front-wall inner corner (Y = wall_thickness, Z = base_thickness)
 module _fillet_front() {
     r = fillet_r;
     translate([0, wall_thickness, base_thickness])
@@ -201,7 +230,6 @@ module _fillet_front() {
         }
 }
 
-// Back-wall inner corner (Y = tray_y − wall_thickness − r, Z = base_thickness)
 module _fillet_back() {
     r = fillet_r;
     translate([0, tray_y - wall_thickness - r, base_thickness])
@@ -213,7 +241,6 @@ module _fillet_back() {
         }
 }
 
-// Left-wall inner corner (X = wall_thickness, Z = base_thickness)
 module _fillet_left() {
     r = fillet_r;
     translate([wall_thickness, 0, base_thickness])
@@ -225,7 +252,6 @@ module _fillet_left() {
         }
 }
 
-// Right-wall inner corner
 module _fillet_right() {
     r = fillet_r;
     translate([tray_x - wall_thickness - r, 0, base_thickness])
@@ -254,7 +280,7 @@ module _clipped_shell(xi, yi) {
 }
 
 // ============================================================
-// Sliding dovetail — unchanged from previous version
+// BASE sliding dovetail — trapezoid in XZ (or YZ) at Z = [1, 4]
 // ============================================================
 module _dovetail_tongues(xi, yi) {
     if (xi == 0 && yi == 0) {
@@ -333,7 +359,64 @@ module _groove_y_seam(gx_min, gx_max) {
 }
 
 // ============================================================
-// Bowtie slots — unchanged from previous version
+// WALL bowtie pockets — every wall-seam crossing gets a bowtie-shaped
+// vertical channel cut from the top of the wall down by wall_key_depth.
+// Half the bowtie sits in each mating quadrant's material; the halves
+// align into a full pocket when the pieces are slid together, and a
+// wall_bowtie_key() drops in from the top to lock the halves against
+// pulling apart. No sliding dovetail in the walls — the horizontal
+// base slide + a top-inserted bowtie is enough, and it doesn't require
+// any through-slot in the wall face.
+//
+// Placement (one pocket per wall-seam crossing, 4 total):
+//   Front wall  X=qx  → (qx, wall_thickness/2, [35-20, 35]), long axis X
+//   Back  wall  X=qx  → (qx, tray_y - wall_thickness/2, [85-20, 85])
+//   Left  wall  Y=qy  → (wall_thickness/2, qy, [85-20, 85]), long axis Y
+//   Right wall  Y=qy  → (tray_x - wall_thickness/2, qy, [85-20, 85])
+//
+// Every quadrant sees TWO of the four pockets subtracted from its
+// shell (one per shared seam), so the pocket cavity is identical on
+// both sides of the seam.
+// ============================================================
+module _wall_bowtie_pockets(xi, yi) {
+    // Front wall (X=qx crossing) — visible in FL (0,0) and FR (1,0)
+    if (yi == 0)
+        _wall_bowtie_pocket(qx, wall_thickness / 2,
+                            base_thickness + short_wall_h,
+                            0);
+    // Back wall (X=qx crossing) — visible in BL (0,1) and BR (1,1)
+    if (yi == 1)
+        _wall_bowtie_pocket(qx, tray_y - wall_thickness / 2,
+                            base_thickness + tall_wall_h,
+                            0);
+    // Left wall (Y=qy crossing) — visible in FL (0,0) and BL (0,1)
+    if (xi == 0)
+        _wall_bowtie_pocket(wall_thickness / 2, qy,
+                            base_thickness + tall_wall_h,
+                            90);
+    // Right wall (Y=qy crossing) — visible in FR (1,0) and BR (1,1)
+    if (xi == 1)
+        _wall_bowtie_pocket(tray_x - wall_thickness / 2, qy,
+                            base_thickness + tall_wall_h,
+                            90);
+}
+
+module _wall_bowtie_pocket(x_c, y_c, z_top, rot) {
+    // Extrudes from Z = (z_top - wall_key_depth) up to Z = z_top + 0.1
+    // so the pocket cleanly opens through the top of the wall.
+    translate([x_c, y_c, z_top - wall_key_depth])
+        rotate([0, 0, rot])
+            linear_extrude(wall_key_depth + 0.1)
+                _bowtie_polygon(
+                    key_len   + 2*key_clr,
+                    key_flare + 2*key_clr,
+                    key_waist + 2*key_clr
+                );
+}
+
+// ============================================================
+// Bowtie slots — open at TOP of base (Z = [5, 10]); key drops in
+// from above through the tray floor. Long axis perpendicular to seam.
 // ============================================================
 module _bowtie_slot_cavities(xi, yi) {
     if (yi == 0) _bowtie_slots_on_x_seam(0,  qy);
@@ -343,7 +426,7 @@ module _bowtie_slot_cavities(xi, yi) {
 }
 
 module _bowtie_slot(x_c, y_c, rot) {
-    translate([x_c, y_c, -0.1])
+    translate([x_c, y_c, base_thickness - key_depth])
         rotate([0, 0, rot])
             linear_extrude(key_depth + 0.1)
                 _bowtie_polygon(
