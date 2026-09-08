@@ -205,6 +205,63 @@
       ]
     },
     {
+      "slug": "ff5m-filament-sensor",
+      "title": "Flashforge Adventurer 5M Filament Sensor",
+      "description": "Ball-plunger filament runout sensor for the Flashforge Adventurer 5M. Two-piece 64D TPU: a body that slips over the 7 mm print-head boss (held by one M3 self-tapping screw), and a cap that mounts a D2F-01F pin-plunger microswitch with two M2 screws which also fasten the switch through its own mount holes. A ball bearing rides in a 40°-tilted pocket tangent to the 1.75 mm filament surface and drops 0.65 mm when filament runs out, releasing the switch. Top of the body accepts a 4 mm-OD PTFE tube (12 mm grip) with a 45° funnel down to the filament bore.",
+      "customizable": true,
+      "filament": [
+        { "material": "TPU 64D", "color": "any", "note": "Flex is required — body stretches over the printer boss, M3 and M2 threads self-tap into the walls, and the ball snaps into the cavity through the access channel before the cap is fitted" }
+      ],
+      "parts": [
+        { "file": "body.stl", "format": "stl", "label": "Sensor body", "default": true, "module": "body" },
+        { "file": "cap.stl",  "format": "stl", "label": "Microswitch cap", "module": "cap" }
+      ],
+      "hardware": [
+        { "qty": 1, "label": "Ball bearing, ~4 mm dia (e.g. from a 608 skateboard bearing — measure yours)" },
+        {
+          "qty": 1,
+          "label": "D2F-01F pin-plunger microswitch (Omron)",
+          "source": { "url": "https://www.digikey.com/en/products/detail/omron-electronics-inc-emc-div/D2F-01F/119082", "vendor": "Digi-Key" }
+        },
+        { "qty": 1, "label": "M3 x 8 self-tapping screw (body to printer boss)" },
+        { "qty": 2, "label": "M2 x 10 self-tapping screw (cap + switch to body)" },
+        { "qty": 1, "label": "PTFE tube, 4 mm OD × 2 mm ID (any length)" }
+      ]
+    },
+    {
+      "slug": "et300-knob-aide-knurled",
+      "title": "Educator ET-300 Knob Aide — Knurled",
+      "description": "Diamond-knurled cap for the Educator Mini ET-300 intensity knob — bigger, grippier turning surface with raised diamond bumps in a staggered lattice, like a traditional knurled knob. A circle-plus-cross keying cutout and a wider bottom pocket clear the knob shaft and body; a 1 mm solid top caps the whole thing. An optional Kanix logo is engraved into the top face — single-color print shows a shallow recess; multi-material print fills the recess with a contrasting color.",
+      "customizable": true,
+      "previews": [
+        { "file": "tactile-aide-multicolor.3mf", "format": "3mf", "label": "Knob aide (knurled, logo inlay — customize below)", "default": true, "assembly": true, "module": "assembled",
+          "legend": [
+            { "color": "#000000", "label": "Cap body" },
+            { "color": "#ffffff", "label": "Kanix logo inlay" }
+          ]
+        }
+      ],
+      "parts": [
+        { "file": "tactile-aide.stl", "format": "stl", "label": "Knob aide (parametric — customize below)", "module": "tactile_aide" },
+        { "file": "tactile-aide-engraved.stl", "format": "stl", "label": "Knob aide (engraved, logo recess)" },
+        { "file": "tactile-aide-kd2_0.stl", "format": "stl", "label": "Knob aide (knurl depth 2.0 mm)" },
+        { "file": "tactile-aide-kd2_5.stl", "format": "stl", "label": "Knob aide (knurl depth 2.5 mm)" },
+        { "file": "tactile-aide-kd3_0.stl", "format": "stl", "label": "Knob aide (knurl depth 3.0 mm)" },
+        { "file": "tactile-aide-kd3_5.stl", "format": "stl", "label": "Knob aide (knurl depth 3.5 mm)" },
+        { "file": "tactile-aide-kd4_0.stl", "format": "stl", "label": "Knob aide (knurl depth 4.0 mm)" },
+        { "file": "tactile-aide-kd4_5.stl", "format": "stl", "label": "Knob aide (knurl depth 4.5 mm)" },
+        { "file": "tactile-aide-kd5_0.stl", "format": "stl", "label": "Knob aide (knurl depth 5.0 mm)" },
+        { "file": "knurl-depth-grid.stl", "format": "stl", "label": "Knurl depth comparison plate (all 7 variants)" }
+      ],
+      "hardware": [
+        {
+          "qty": 1,
+          "label": "Educator Mini ET-300 remote trainer",
+          "source": { "url": "https://www.ecollar.com/collections/educator-e-collars/products/mini-educator-remote-dog-training-collar", "vendor": "E-Collar Technologies" }
+        }
+      ]
+    },
+    {
       "slug": "vrig-camera-mount-retention-guard",
       "title": "VRIG Camera Mount Retention Guard",
       "description": "Rectangular 64D TPU sleeve that slides over the VRIG AC-91 magnetic quick-release adapter at the camera-to-mount interface. Open top and bottom; the four walls physically constrain the joint so a side impact can't shear the magnetic connection.",
@@ -220,6 +277,18 @@
           "label": "VRIG Magnetic Quick Release Adapter (AC-91)",
           "source": { "url": "https://www.amazon.com/dp/B0FL2GD2MN", "vendor": "Amazon" }
         }
+      ]
+    },
+    {
+      "slug": "split-tray-500",
+      "title": "500mm Split Tray (Qidi Q2)",
+      "description": "500 × 500 mm parts tray with a 10 mm base and 25 mm thick walls rounded on every edge (12.5 mm radius = half the wall thickness). Back, left, and right walls are 75 mm tall; the entire front side (including the front corners) drops to 25 mm for reach-in, with rounded transitions on every visible edge. Splits into four 250 × 250 mm quadrants that fit on a ~250 mm bed (Qidi Q2 class). Held together by twelve bowtie / dovetail keys inserted from underneath after the quadrants are set flat on a bench — three per seam × four seams — for a strong mechanical lock along the whole length.",
+      "parts": [
+        { "file": "quadrant-fl.stl", "format": "stl", "label": "Front-left quadrant" },
+        { "file": "quadrant-fr.stl", "format": "stl", "label": "Front-right quadrant" },
+        { "file": "quadrant-bl.stl", "format": "stl", "label": "Back-left quadrant" },
+        { "file": "quadrant-br.stl", "format": "stl", "label": "Back-right quadrant", "default": true },
+        { "file": "bowtie-key.stl", "format": "stl", "label": "Bowtie key (print 12×)" }
       ]
     }
   ]

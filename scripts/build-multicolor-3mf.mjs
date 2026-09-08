@@ -17,7 +17,7 @@
 
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from "node:fs";
 import { execFile } from "node:child_process";
-import { join, dirname, basename } from "node:path";
+import { join, dirname, basename, isAbsolute, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { promisify } from "node:util";
 import { zipSync } from "fflate";
@@ -117,6 +117,25 @@ function extractColorsFromCsg(csgSource) {
     seen.set(key, [parseFloat(rTxt), parseFloat(gTxt), parseFloat(bTxt), parseFloat(aTxt)]);
   }
   return [...seen.entries()].map(([key, rgba]) => ({ key, rgba }));
+}
+
+// ---------- CSG import rewriting ----------
+
+// OpenSCAD serializes an `import()` call in CSG as
+// `import(file = "path", origin = [..], ..., timestamp = N)`. Relative
+// paths there are resolved against the CSG file's directory at render
+// time — but we render the CSG from a temp dir, so we rewrite each
+// relative path to be absolute anchored at the source .scad's dir.
+function absolutizeCsgImports(csgPath, sourceDir) {
+  const text = readFileSync(csgPath, "utf8");
+  const rewritten = text.replace(
+    /(import\s*\(\s*file\s*=\s*")([^"]+)(")/g,
+    (match, before, path, after) => {
+      if (isAbsolute(path)) return match;
+      return before + resolve(sourceDir, path) + after;
+    },
+  );
+  if (rewritten !== text) writeFileSync(csgPath, rewritten);
 }
 
 // ---------- per-color render ----------
@@ -258,8 +277,13 @@ function rgbaToHex(rgba) {
   return `#${c(rgba[0])}${c(rgba[1])}${c(rgba[2])}${c(rgba[3])}`;
 }
 
-function build3mf(perColorMeshes) {
+function build3mf(perColorMeshes, { asAssembly = false } = {}) {
   // perColorMeshes: [{ key, rgba, mesh:{vertices,triangles} }]
+  // asAssembly: when true, wrap all color-objects inside one component
+  // assembly and put ONLY the assembly in <build>. Bambu Studio / OrcaSlicer
+  // treat each top-level build item as an independently-arrangeable
+  // printable, so multi-material single parts must be assembled — otherwise
+  // the slicer moves the body and the color-overlay apart on the plate.
   let nextId = 1;
   const colorGroups = [];
   const objects = [];
@@ -275,6 +299,8 @@ function build3mf(perColorMeshes) {
     objects.push({ id: objId, pid: cgId, mesh: entry.mesh, label });
   }
   if (objects.length === 0) throw new Error("No geometry produced for any color");
+
+  const assemblyId = asAssembly ? nextId++ : null;
 
   const lines = [
     '<?xml version="1.0" encoding="UTF-8"?>',
@@ -303,10 +329,23 @@ function build3mf(perColorMeshes) {
     lines.push('      </mesh>');
     lines.push('    </object>');
   }
+  if (asAssembly) {
+    lines.push(`    <object id="${assemblyId}" type="model">`);
+    lines.push('      <components>');
+    for (const obj of objects) {
+      lines.push(`        <component objectid="${obj.id}" />`);
+    }
+    lines.push('      </components>');
+    lines.push('    </object>');
+  }
   lines.push('  </resources>');
   lines.push('  <build>');
-  for (const obj of objects) {
-    lines.push(`    <item objectid="${obj.id}" />`);
+  if (asAssembly) {
+    lines.push(`    <item objectid="${assemblyId}" />`);
+  } else {
+    for (const obj of objects) {
+      lines.push(`    <item objectid="${obj.id}" />`);
+    }
   }
   lines.push('  </build>');
   lines.push('</model>');
@@ -316,21 +355,38 @@ function build3mf(perColorMeshes) {
   // The <colorgroup>/pid color above is only a display tint; Bambu Studio,
   // OrcaSlicer, and PrusaSlicer assign filaments from this config, not from
   // colorgroups. Without it every part imports as the same filament.
+  //
+  // In assembly mode we describe the assembly object with each color-object
+  // listed as an inner <part> — that's what tells the slicer "these are
+  // pieces of one printable, each pinned to its own extruder."
   const metaLines = [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<config>',
   ];
-  objects.forEach((obj, i) => {
-    const extruder = i + 1;
-    metaLines.push(`  <object id="${obj.id}">`);
-    metaLines.push(`    <metadata key="name" value="${escXml(obj.label)}" />`);
-    metaLines.push(`    <metadata key="extruder" value="${extruder}" />`);
-    metaLines.push(`    <part id="0" subtype="normal_part">`);
-    metaLines.push(`      <metadata key="name" value="${escXml(obj.label)}" />`);
-    metaLines.push(`      <metadata key="extruder" value="${extruder}" />`);
-    metaLines.push('    </part>');
+  if (asAssembly) {
+    metaLines.push(`  <object id="${assemblyId}">`);
+    metaLines.push('    <metadata key="name" value="multicolor assembly" />');
+    objects.forEach((obj, i) => {
+      const extruder = i + 1;
+      metaLines.push(`    <part id="${obj.id}" subtype="normal_part">`);
+      metaLines.push(`      <metadata key="name" value="${escXml(obj.label)}" />`);
+      metaLines.push(`      <metadata key="extruder" value="${extruder}" />`);
+      metaLines.push('    </part>');
+    });
     metaLines.push('  </object>');
-  });
+  } else {
+    objects.forEach((obj, i) => {
+      const extruder = i + 1;
+      metaLines.push(`  <object id="${obj.id}">`);
+      metaLines.push(`    <metadata key="name" value="${escXml(obj.label)}" />`);
+      metaLines.push(`    <metadata key="extruder" value="${extruder}" />`);
+      metaLines.push(`    <part id="0" subtype="normal_part">`);
+      metaLines.push(`      <metadata key="name" value="${escXml(obj.label)}" />`);
+      metaLines.push(`      <metadata key="extruder" value="${extruder}" />`);
+      metaLines.push('    </part>');
+      metaLines.push('  </object>');
+    });
+  }
   metaLines.push('</config>');
   const modelSettings = metaLines.join("\n");
 
@@ -367,7 +423,7 @@ function escXml(s) {
 
 // ---------- entry point ----------
 
-export async function buildMulticolor3mf({ scadPath, outPath }) {
+export async function buildMulticolor3mf({ scadPath, outPath, asAssembly = false }) {
   const source = readFileSync(scadPath, "utf8");
   if (extractColors(source).length === 0) {
     throw new Error(`No top-level color() calls in ${scadPath}; cannot build multi-color 3MF.`);
@@ -381,7 +437,13 @@ export async function buildMulticolor3mf({ scadPath, outPath }) {
     const flatCsgPath = join(tmpDir, "flat.csg");
     await execFileAsync("openscad", [...OPENSCAD_ARGS, "-o", flatCsgPath, scadPath]);
 
-    // 2. Discover colors from the CSG (not the source) so keys match
+    // 2. Rewrite relative paths in `import(file = "...")` calls to absolute
+    //    paths anchored at the source directory. The CSG is about to be
+    //    included from tmpDir on every per-color pass; without this, any
+    //    SVG/DXF/STL import would resolve against tmpDir and fail.
+    absolutizeCsgImports(flatCsgPath, dirname(scadPath));
+
+    // 3. Discover colors from the CSG (not the source) so keys match
     //    the exact string form the SCAD wrapper's str() will produce
     //    at render time.
     const csgText = readFileSync(flatCsgPath, "utf8");
@@ -400,7 +462,7 @@ export async function buildMulticolor3mf({ scadPath, outPath }) {
         .then(() => ({ key, rgba, mesh: parseStl(outStl) }));
     });
     const perColorMeshes = await Promise.all(jobs);
-    const zipped = build3mf(perColorMeshes);
+    const zipped = build3mf(perColorMeshes, { asAssembly });
     writeFileSync(outPath, zipped);
   } finally {
     rmSync(tmpDir, { recursive: true, force: true });

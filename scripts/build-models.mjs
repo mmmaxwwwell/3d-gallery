@@ -76,7 +76,7 @@ async function buildPart({ slug, dir, buildDir, part }) {
   if (!fromCache) {
     if (format === "3mf") {
       console.log(`  [3mf ] ${scadPath} → build/${part.file}`);
-      await buildMulticolor3mf({ scadPath, outPath: out });
+      await buildMulticolor3mf({ scadPath, outPath: out, asAssembly: !!part.assembly });
     } else {
       console.log(`  [stl ] ${scadPath} → build/${part.file}`);
       await execFileAsync("openscad", [...OPENSCAD_ARGS, "-o", out, scadPath]);

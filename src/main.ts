@@ -57,6 +57,10 @@ import fiMiniCaseCap from "../models/fi-mini-case/previews/cap.scad?raw";
 import qrSignLib from "../models/qr-sign/lib/qr-sign-lib.scad?raw";
 import qrSignAssembled from "../models/qr-sign/previews/assembled.scad?raw";
 import parametricShelfLib from "../models/parametric-shelf/lib/parametric-shelf-lib.scad?raw";
+import ff5mFilamentSensorLib from "../models/ff5m-filament-sensor/lib/ff5m-filament-sensor-lib.scad?raw";
+import et300KnobAideKnurledLib from "../models/et300-knob-aide-knurled/lib/et300-knob-aide-knurled-lib.scad?raw";
+import et300KnobAideKnurledLogoPolygon from "../models/et300-knob-aide-knurled/lib/logo-polygon-data.scad?raw";
+import et300KnobAideKnurledMulticolor from "../models/et300-knob-aide-knurled/previews/tactile-aide-multicolor.scad?raw";
 import { parseParams, coerceToParamType } from "./lib/scad-parser";
 import { createOpenSCADApi, injectParameters } from "./lib/openscad-api";
 import { embedSourceUrl } from "./lib/embed-source-url";
@@ -146,6 +150,19 @@ const CUSTOMIZABLE_SOURCES: Record<string, { lib: string; previews: Record<strin
   "parametric-shelf": {
     lib: parametricShelfLib,
     previews: {},
+  },
+  "ff5m-filament-sensor": {
+    lib: ff5mFilamentSensorLib,
+    previews: {},
+  },
+  "et300-knob-aide-knurled": {
+    // Lib `include`s logo-polygon-data.scad — resolved by openscad CLI, but
+    // the WASM path has no filesystem. Prepend the polygon data and strip
+    // the include so the customizer sees a single self-contained source.
+    lib: et300KnobAideKnurledLogoPolygon + "\n" + stripIncludes(et300KnobAideKnurledLib),
+    previews: {
+      assembled: stripIncludes(et300KnobAideKnurledMulticolor),
+    },
   },
 };
 
@@ -281,11 +298,31 @@ async function computeCacheKey(scadSource: string, moduleName: string, values: R
   const sortedValues: Record<string, ScadValue> = {};
   for (const k of sortedKeys) sortedValues[k] = values[k];
   const payload = scadSource + "\0" + moduleName + "\0" + JSON.stringify(sortedValues);
-  const buf = new TextEncoder().encode(payload);
-  const hash = await crypto.subtle.digest("SHA-256", buf);
-  return Array.from(new Uint8Array(hash))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+  // crypto.subtle only exists in secure contexts (HTTPS or localhost). Fall
+  // back to a non-cryptographic hash for plain HTTP so the customizer still
+  // caches correctly when the dev server is reached over a LAN / tailscale IP.
+  if (typeof crypto !== "undefined" && crypto.subtle) {
+    const buf = new TextEncoder().encode(payload);
+    const hash = await crypto.subtle.digest("SHA-256", buf);
+    return Array.from(new Uint8Array(hash))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+  }
+  return fnv1aHex(payload);
+}
+
+// Two 32-bit FNV-1a-style hashes with different multipliers, concatenated
+// for a 64-bit-ish key. Not cryptographic — just for cache-key uniqueness
+// across the small set of param combinations one user will try.
+function fnv1aHex(text: string): string {
+  let h1 = 0x811c9dc5;
+  let h2 = 0x1000193;
+  for (let i = 0; i < text.length; i++) {
+    const c = text.charCodeAt(i);
+    h1 = Math.imul(h1 ^ c, 0x01000193);
+    h2 = Math.imul(h2 ^ c, 0x85ebca6b);
+  }
+  return (h1 >>> 0).toString(16).padStart(8, "0") + (h2 >>> 0).toString(16).padStart(8, "0");
 }
 
 function getCachedResult(slug: string, hash: string): ArrayBuffer | null {
