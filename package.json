@@ -4,6 +4,9 @@
   "version": "0.1.0",
   "license": "MIT",
   "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "build:models": "node scripts/build-models.mjs",
     "build:model": "node scripts/build-models.mjs",

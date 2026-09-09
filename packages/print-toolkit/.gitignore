@@ -1,0 +1,5 @@
+# WASM assets fetched by scripts/fetch-wasm.mjs at install-time / on demand.
+# Not source; not committed.
+assets/
+node_modules/
+coverage/

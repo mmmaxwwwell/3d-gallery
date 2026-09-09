@@ -1,0 +1,32 @@
+{
+  "name": "@3d-gallery/print-toolkit",
+  "private": true,
+  "version": "0.0.0",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "description": "Headless slicer (OrcaSlicer WASM + optional native JNI bridge), Moonraker HTTP client, and Orca config importer. Framework-agnostic.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./worker": "./src/slicer-worker.ts",
+    "./vite-plugin": "./src/vite-plugin.ts",
+    "./types": "./src/types.ts"
+  },
+  "files": [
+    "src",
+    "assets",
+    "README.md"
+  ],
+  "scripts": {
+    "fetch-wasm": "node scripts/fetch-wasm.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "fflate": "^0.8.2",
+    "idb": "^8.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}
