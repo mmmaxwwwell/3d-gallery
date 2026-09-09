@@ -1,25 +1,27 @@
 # 500 mm Split Tray (Qidi Q2)
 
-A 500 × 500 mm parts tray with a 10 mm base and 25 mm thick outer walls,
-rounded on every visible edge. Back, left, and right walls are 75 mm
-tall. The **whole front side (500 mm across) drops to 25 mm** for easy
-reach-in, corners short too, with rounded transitions everywhere.
+A 500 × 500 mm parts tray — **walls only, no base** — with 25 mm
+thick outer walls rounded on every visible edge. Back, left, and
+right walls are 75 mm tall. The **whole front side (500 mm across)
+drops to 25 mm** for easy reach-in, corners short too, with rounded
+transitions everywhere.
 
-Splits into four 250 × 250 mm quadrants that each fit inside a ~250 mm
-build volume (Qidi Q2 class). Each seam has three joints:
+Splits into four 250 × 250 mm quadrants that each fit inside a
+~250 mm build volume (Qidi Q2 class). Every wall-seam crossing is
+a **vertical sliding dovetail**:
 
-- A **base sliding dovetail** running most of the seam length at
-  Z = 1–4 mm (buried inside the 10 mm base) — the pieces engage as
-  they slide together.
-- **Two base bowtie keys per seam** dropped in from **above** through
-  slots in the tray floor — locks the sliding axis (8 keys total).
-- A **wall bowtie key per wall-seam crossing** — every wall carries a
-  bowtie-shaped vertical channel where a seam crosses it; the two
-  wall halves each hold half of the channel, and a taller bowtie key
-  dropped from the top of the wall locks the halves against pulling
-  apart (4 keys total).
+- One quadrant carries a trapezoidal tongue on the seam face — narrow
+  at the seam plane, wide at the tip.
+- The mating quadrant has a matching blind pocket (closed at the top,
+  open at the bottom of the wall).
+- The wide tip can't pass through the narrow opening → the joint has
+  **positive retention** against horizontal separation.
+- A small horizontal clearance gives **press-fit friction** on the
+  vertical slide axis.
 
-No flipping — do the whole thing right-side up.
+Every quadrant is **pressed straight DOWN** to seat and **pulled
+straight UP** to release. No horizontal sliding, no drop-in keys,
+no flipping.
 
 ## Parts
 
@@ -29,14 +31,11 @@ No flipping — do the whole thing right-side up.
 | `quadrant-fr.stl` | Front-right quadrant (×1) |
 | `quadrant-bl.stl` | Back-left quadrant (×1) |
 | `quadrant-br.stl` | Back-right quadrant (×1) |
-| `bowtie-key.stl` | Base bowtie key — **print 8** (5 mm tall) |
-| `wall-bowtie-key.stl` | Wall bowtie key — **print 4** (20 mm tall) |
 
-Quadrants print base-down, no supports. Both key types share the
-same bowtie footprint (30 × 14 mm); only the extruded height differs.
-Batch all 12 keys on one plate.
+Print flat side down (each quadrant's outer footprint is flat).
+No supports.
 
-## Assembly (no flipping)
+## Assembly
 
 ```
      top view
@@ -53,47 +52,55 @@ Batch all 12 keys on one plate.
              (whole front side, corners short too)
 ```
 
-Each pair-join is **slide, then tack** — done right-side up.
+Ownership (T = tongue owner, G = groove owner):
 
-1. **Front pair.** Set FL on the bench. Slide FR onto FL along −Y.
-   The base sliding dovetail engages. Drop **2 base bowties** into
-   the two floor slots along the FL–FR seam, and **1 wall bowtie**
-   into the pocket at the top of the front wall where the seam
-   crosses it.
-2. **Back pair.** Same idea: slide BR onto BL along −Y. Drop **2
-   base bowties** into the BL–BR floor slots, and **1 wall bowtie**
-   into the pocket at the top of the back wall.
-3. **Join the pairs.** Position the front pair on the bench. Bring
-   the back pair up with its front edge aligned on the front pair's
-   back edge, shifted +X off the right end. Slide the back pair in
-   −X across the front pair (both Y = qy base dovetails engage).
-   Drop **4 base bowties** into the four Y = qy floor slots and **2
-   wall bowties** into the pockets at the tops of the left and right
-   walls.
+| Seam / crossing | Tongue on | Groove on |
+| --- | --- | --- |
+| X=qx, front wall (short) | FL | FR |
+| X=qx, back  wall (tall)  | BL | BR |
+| Y=qy, left  wall (tall)  | FL | BL |
+| Y=qy, right wall (tall)  | FR | BR |
 
-The tray is now a rigid 500 × 500 mm assembly.
+FL carries two tongues. BR carries two grooves. FR and BL each
+carry one of each.
 
-To disassemble: lift each of the 12 keys out of its slot (fingernail
-or a probe), then slide the joints apart in reverse.
+Assembly order (all straight-down presses):
+
+1. Place **FL** on the bench.
+2. Lift **FR** above the front-wall tongue on FL, align its left
+   groove above FL's right tongue, press straight down until FR's
+   bottom sits on the bench.
+3. Lift **BL** above the left-wall tongue on FL, align its front
+   groove above FL's back tongue, press straight down.
+4. Lift **BR** and press it straight down onto both BL's right
+   tongue and FR's back tongue simultaneously.
+
+The tray is now a rigid 500 × 500 mm open frame.
+
+To disassemble: pull each quadrant straight up in reverse order.
+No horizontal wiggle needed (or possible).
 
 ## Print notes
 
-- Base-down, no supports.
-- Recommended for quadrants: 4 perimeters, 20 % infill, 0.2 mm layers.
-  Each quadrant is substantial — plan ~6–10 h and ~400–500 g of
-  filament per part.
-- Bowtie keys: 3 perimeters, 30 % infill.
-- If a sliding dovetail is tight, reduce `dt_clr` in the lib and
-  reprint. If a bowtie key is loose, reduce `key_clr`.
-- The wall bowtie pocket is visible as a small bowtie-shaped opening
-  at the top of each seam-crossing wall — the key drops in flush.
+- Flat side down, no supports.
+- Recommended: 4 perimeters, 20 % infill, 0.2 mm layers. Each
+  quadrant is substantial — plan ~6–10 h and ~400–500 g of filament
+  per part.
+- If the joint binds during assembly, raise `vdt_clr` in the lib
+  and reprint the mating pair.
+- If the joint rattles, lower `vdt_clr` and reprint.
+- The groove has a tent-shaped roof at its top so the pocket
+  ceiling is self-supporting — prints upright with no support.
+- The interior wall-to-ground fillet is a 12.5 mm concave bead
+  around the inside base of every wall (helps bed adhesion and
+  gives the tray a clean interior).
 
 ## Assembled dimensions
 
 - Footprint: 500 × 500 mm
-- Height: 85 mm on the back, left, and right; 35 mm across the front
-- Interior floor: ~425 × 425 mm of flat usable area
-- Base Z-zoning: 0–1 solid, 1–4 dovetail band, 4–5 solid bridge,
-  5–10 base-bowtie pocket (opens at the tray floor).
-- Wall bowtie pocket: 20 mm deep from the top of each seam-crossing
-  wall (Z = 15–35 in the front wall, Z = 65–85 in the tall walls).
+- Wall height: 75 mm on the back, left, and right; 25 mm across the front
+- No base — the tray is an open frame; it drops onto whatever
+  surface (or pre-existing corner bars on the +X side) is underneath.
+- Vertical dovetail: 15 mm tall on the short front wall, 55 mm on
+  the tall back / left / right walls, plus a 6 mm tent cap above
+  the groove for printability.

@@ -3,88 +3,86 @@ include <BOSL2/std.scad>
 // ============================================================
 // split-tray-500-lib.scad
 //
-// 500 × 500 mm parts tray with a 10 mm base and 25 mm thick outer
-// walls. Split into a 2 × 2 grid so each quadrant fits inside a
-// ~250 mm build volume (Qidi Q2 class).
+// 500 × 500 mm parts tray — walls only, no base. Rounded bullnose
+// walls forming an open frame that drops down over pre-existing
+// corner bars on the +X side. Split into a 2 × 2 grid so each
+// quadrant fits inside a ~250 mm build volume (Qidi Q2 class).
 //
 // PUBLIC modules:
-//   * quadrant(xi, yi)  — one printable quadrant (base + wall dovetails
-//                         + bowtie-key slots opening upward through
-//                         the tray floor).
-//   * bowtie_key()      — one printable bowtie / dovetail key.
+//   * quadrant(xi, yi)  — one printable quadrant with vertical
+//                         dovetail tongue and/or groove on its
+//                         seam faces.
 //   * tray()            — the whole tray as one monolithic reference
-//                         piece (no split, no dovetails, no cavities).
+//                         piece (no split, no joints).
 //
-// Joint systems (per seam):
-//   1. BASE sliding dovetail at Z = 1-4 (runs the length of the seam,
-//      buried inside the 10 mm base).
-//   2. WALL sliding dovetail at Z = 20-23 wherever a wall crosses the
-//      seam — same cross-section and slide direction as the base
-//      dovetail. This stops the tall walls from hinging apart at the
-//      seam even though the base is already locked.
-//   3. TWO bowtie / dovetail keys per seam segment, dropped in from
-//      ABOVE through slots in the tray floor after the pair is slid
-//      together — locks the sliding axis.
+// Joint (one per wall-seam crossing, 4 total):
+//   Vertical sliding dovetail. Trapezoidal tongue on the owner
+//   quadrant, matching groove (blind pocket, closed at top) on
+//   the mate. Narrow at the seam plane, wide at the tip →
+//   positive-retention capture against horizontal separation.
+//   Slight interference on the horizontal cross-section gives
+//   press-fit friction along the vertical slide axis.
 //
-// Assembly (no flip):
-//   1. Slide FR onto FL along −Y; drop 2 keys into the seam slots.
-//   2. Slide BR onto BL along −Y; drop 2 keys into the seam slots.
-//   3. Slide the back pair in −X across the front pair; drop 4 keys
-//      (2 per Y = qy seam segment).
+// Every quadrant is pressed straight DOWN to seat and pulled
+// straight UP to release. No horizontal sliding, no drop-in keys.
+//
+// Assembly order:
+//   1. Place FL.
+//   2. Press FR straight down onto FL (engages front-wall seam).
+//   3. Press BL straight down onto FL (engages left-wall seam).
+//   4. Press BR straight down onto both (engages back-wall and
+//      right-wall seams simultaneously).
 // ============================================================
 
 // ---------------- Outer geometry ----------------
 tray_x         = 500;
 tray_y         = 500;
-base_thickness = 10;
 wall_thickness = 25;
 tall_wall_h    = 75;
 short_wall_h   = 25;
-edge_r         = wall_thickness / 2;   // 12.5 mm — bullnose radius
+edge_r         = wall_thickness / 2;
 
 // Derived
 qx             = tray_x / 2;
 qy             = tray_y / 2;
-total_h        = base_thickness + tall_wall_h;   // 85
-short_total_h  = base_thickness + short_wall_h;  // 35
+total_h        = tall_wall_h;
 
-// Interior fillet bead radius (wall-to-floor concave fillet)
+// Concave interior wall-to-ground fillet bead (quarter-round). With
+// no base to sit on, this becomes a small toe of material at the
+// inside base of every wall — the wall's inner face curves smoothly
+// down to the ground plane.
 fillet_r       = edge_r;
 
-// ---------------- Base sliding dovetail (lengthwise) ----------------
-// Moved to the BOTTOM of the base (Z = 1-4) so the bowtie slots can
-// open upward through the tray floor without colliding.
-dt_bot_w   = 8;
-dt_top_w   = 4;
-dt_z_bot   = 1;
-dt_z_top   = 4;
-dt_clr     = 0.25;
-dt_end_clr = 30;
+// ---------------- Vertical sliding dovetail ----------------
+// Trapezoidal cross-section in the horizontal plane, extruded
+// vertically. The tongue's narrow edge sits on the seam plane;
+// the wide edge is embedded in the mating quadrant's material,
+// so pulling the two halves apart across the seam is blocked
+// (wide tip can't pass through the narrow opening).
+//
+// Assembly force is a small vertical press-fit — dial vdt_clr
+// up if it binds, down if it rattles.
+vdt_narrow       = 6;    // width perpendicular to seam at the base
+vdt_wide         = 10;   // width perpendicular to seam at the tip
+vdt_depth        = 8;    // extension across the seam plane
+vdt_height_short = 15;   // vertical extent on the 25 mm front wall
+vdt_height_tall  = 55;   // vertical extent on the 75 mm side / back walls
+vdt_clr          = 0.15; // clearance / press-fit gap
 
-// ---------------- Wall bowtie key (vertical) ----------------
-// Every wall-seam crossing carries a bowtie-shaped vertical channel
-// cut into the two mating wall halves. A taller bowtie key drops in
-// from the top of the wall and locks the halves against pulling
-// apart. Same polygon as the base bowtie (so wall keys are just a
-// taller extrusion of the same shape), placed with its waist on the
-// seam plane and its long axis perpendicular to the seam. One key
-// per wall-seam crossing (4 wall keys total per tray).
-wall_key_depth = 20;   // vertical extrusion — Z from wall top downward
-
-// ---------------- Bowtie / dovetail key ----------------
-// Slot opens at the top of the base (Z = 5-10) — key drops in from
-// above, flush with the tray floor when seated. No flip required.
-key_len    = 30;
-key_flare  = 14;
-key_waist  = 6;
-key_depth  = 5;
-key_clr    = 0.25;
-n_keys     = 2;
+// Groove roof — the groove is a blind pocket, so its ceiling would
+// be a horizontal overhang if left flat. Cap the pocket with a
+// tent-shaped roof that tapers to a ridge line so the ceiling is
+// self-supporting (~40° overhang from vertical at the widest edge
+// when cap_h = 6 and vdt_wide = 10). The tongue's tip is still
+// flat — the roof leaves headroom above it, which doesn't affect
+// the horizontal dovetail capture.
+vdt_cap_h        = 6;
 
 // ---------------- Corner bar cutouts ----------------
 // Full-height 20 × 20 mm vertical channels at the front-right and
-// rear-right corners so the tray drops down onto pre-existing
-// vertical bars. Cut all the way through base + wall.
+// rear-right corners so the tray drops onto pre-existing vertical
+// bars. Only the FR and BR quadrants carry material at those
+// corners.
 corner_cut = 20;
 
 // ============================================================
@@ -94,28 +92,13 @@ module quadrant(xi, yi) {
     difference() {
         union() {
             _clipped_shell(xi, yi);
-            _dovetail_tongues(xi, yi);
+            _vdt_tongues(xi, yi);
         }
-        _dovetail_grooves(xi, yi);
-        _bowtie_slot_cavities(xi, yi);
-        _wall_bowtie_pockets(xi, yi);
+        _vdt_grooves(xi, yi);
         _corner_bar_cutouts();
     }
 }
 
-module bowtie_key() {
-    linear_extrude(key_depth)
-        _bowtie_polygon(key_len, key_flare, key_waist);
-}
-
-module wall_bowtie_key() {
-    linear_extrude(wall_key_depth)
-        _bowtie_polygon(key_len, key_flare, key_waist);
-}
-
-// Full tray as one monolithic piece — shell only, no quadrant
-// clipping, no dovetails, no bowtie slots. Corner bar cutouts
-// still apply so the preview matches printed geometry.
 module tray() {
     difference() {
         _full_shell();
@@ -123,105 +106,35 @@ module tray() {
     }
 }
 
-module _corner_bar_cutouts() {
-    z0 = -1;
-    zh = total_h + 2;
-    // Front-right corner
-    translate([tray_x - corner_cut, 0, z0])
-        cube([corner_cut, corner_cut, zh]);
-    // Rear-right corner
-    translate([tray_x - corner_cut, tray_y - corner_cut, z0])
-        cube([corner_cut, corner_cut, zh]);
-}
-
-module _bowtie_polygon(l, f, w) {
-    polygon(points = [
-        [-l/2, -f/2],
-        [-l/2,  f/2],
-        [ 0,    w/2],
-        [ l/2,  f/2],
-        [ l/2, -f/2],
-        [ 0,   -w/2],
-    ]);
-}
-
 // ============================================================
-// Shell — union of bullnose walls + base + interior fillet beads
+// Shell — bullnose walls forming the open frame (no base)
 // ============================================================
 module _full_shell() {
-    _base();
-
-    // Front wall — 25 mm tall, spans full X (owns the front corners).
-    translate([tray_x/2, wall_thickness/2, base_thickness + short_wall_h/2])
+    // Front wall — short (25 mm), spans full X.
+    translate([tray_x/2, wall_thickness/2, short_wall_h/2])
         rotate([0, 0, 90])
             _wall(d = wall_thickness, l = tray_x, h = short_wall_h);
 
-    // Back wall — 75 mm tall, spans full X (owns the back corners).
-    translate([tray_x/2, tray_y - wall_thickness/2, base_thickness + tall_wall_h/2])
+    // Back wall — tall (75 mm), spans full X.
+    translate([tray_x/2, tray_y - wall_thickness/2, tall_wall_h/2])
         rotate([0, 0, 90])
             _wall(d = wall_thickness, l = tray_x, h = tall_wall_h);
 
-    // Left wall — 75 mm tall, spans full Y so its end-cap centers
-    // coincide with the front / back walls' left-cap centers at
-    // (wall_thickness/2, wall_thickness/2) and (wall_thickness/2,
-    // tray_y - wall_thickness/2).
-    translate([wall_thickness/2, tray_y/2, base_thickness + tall_wall_h/2])
+    // Left wall — tall, spans full Y.
+    translate([wall_thickness/2, tray_y/2, tall_wall_h/2])
         _wall(d = wall_thickness, l = tray_y, h = tall_wall_h);
 
-    // Right wall — 75 mm tall, spans full Y (same corner alignment).
-    translate([tray_x - wall_thickness/2, tray_y/2, base_thickness + tall_wall_h/2])
+    // Right wall — tall, spans full Y.
+    translate([tray_x - wall_thickness/2, tray_y/2, tall_wall_h/2])
         _wall(d = wall_thickness, l = tray_y, h = tall_wall_h);
 
     _interior_fillets();
 }
 
-module _wall(d,l,h){
-
-    hull(){
-        translate([0,-l/2 + d/2,0])
-        _wall_post(d,h);
-
-        translate([0,l/2 - d/2,0])
-        _wall_post(d,h);
-    }
-}
-
-module _wall_post(d, h) {
-    // Hull of a thin base disk and a top sphere → flat bottom,
-    // straight cylindrical body, hemispherical top. Using a thin
-    // disk (not a d-tall cylinder) keeps the top hemisphere from
-    // being swallowed when h == d, so short walls still get a
-    // proper bullnose dome instead of a flat top.
-    r = d / 2;
-    hull() {
-        translate([0, 0, -h/2])
-            cylinder(r = r, h = 0.001);
-        translate([0, 0, h/2 - r])
-            sphere(r = r);
-    }
-}
-
-
-module _base() {
-    // Rounded-corner slab: hull of four corner cylinders whose axes
-    // sit at the wall end-cap positions. Corner radius matches the
-    // wall bullnose radius so the base and walls share one clean
-    // rounded profile.
-    r = wall_thickness / 2;
-    hull() {
-        for (p = [[r,           r,           0],
-                  [tray_x - r,  r,           0],
-                  [r,           tray_y - r,  0],
-                  [tray_x - r,  tray_y - r,  0]])
-            translate(p)
-                cylinder(r = r, h = base_thickness);
-    }
-}
-
-// -------- Interior wall-to-floor fillets --------
+// -------- Interior wall-to-ground fillets --------
 module _fillet_front() {
     r = fillet_r;
-    translate([0, wall_thickness, base_thickness])
+    translate([0, wall_thickness, 0])
         difference() {
             cube([tray_x, r, r]);
             translate([-0.1, r, r])
@@ -232,7 +145,7 @@ module _fillet_front() {
 
 module _fillet_back() {
     r = fillet_r;
-    translate([0, tray_y - wall_thickness - r, base_thickness])
+    translate([0, tray_y - wall_thickness - r, 0])
         difference() {
             cube([tray_x, r, r]);
             translate([-0.1, 0, r])
@@ -243,7 +156,7 @@ module _fillet_back() {
 
 module _fillet_left() {
     r = fillet_r;
-    translate([wall_thickness, 0, base_thickness])
+    translate([wall_thickness, 0, 0])
         difference() {
             cube([r, tray_y, r]);
             translate([r, -0.1, r])
@@ -254,7 +167,7 @@ module _fillet_left() {
 
 module _fillet_right() {
     r = fillet_r;
-    translate([tray_x - wall_thickness - r, 0, base_thickness])
+    translate([tray_x - wall_thickness - r, 0, 0])
         difference() {
             cube([r, tray_y, r]);
             translate([0, -0.1, r])
@@ -270,6 +183,35 @@ module _interior_fillets() {
     _fillet_right();
 }
 
+module _wall(d, l, h) {
+    hull() {
+        translate([0, -l/2 + d/2, 0])
+            _wall_post(d, h);
+        translate([0,  l/2 - d/2, 0])
+            _wall_post(d, h);
+    }
+}
+
+module _wall_post(d, h) {
+    // Flat bottom, cylindrical body, hemispherical bullnose top.
+    r = d / 2;
+    hull() {
+        translate([0, 0, -h/2])
+            cylinder(r = r, h = 0.001);
+        translate([0, 0, h/2 - r])
+            sphere(r = r);
+    }
+}
+
+module _corner_bar_cutouts() {
+    z0 = -1;
+    zh = total_h + 2;
+    translate([tray_x - corner_cut, 0, z0])
+        cube([corner_cut, corner_cut, zh]);
+    translate([tray_x - corner_cut, tray_y - corner_cut, z0])
+        cube([corner_cut, corner_cut, zh]);
+}
+
 // Clip to one quadrant footprint
 module _clipped_shell(xi, yi) {
     intersection() {
@@ -280,174 +222,112 @@ module _clipped_shell(xi, yi) {
 }
 
 // ============================================================
-// BASE sliding dovetail — trapezoid in XZ (or YZ) at Z = [1, 4]
+// Vertical dovetail — tongue polygon (XY cross-section)
+//
+//     +Y
+//      ^
+//      |   [-narrow/2]  [+wide/2]
+//      |        +----------+
+//      |        |          |
+//      |        |          |
+//      |        +----------+
+//      |   [-narrow/2]  [-wide/2]
+//      +---------------------> +X
+//         X=0                 X=depth
+//
+// Base (narrow edge) sits at X=0, tip (wide edge) at X=depth.
+// Rotated as needed for Y-seam tongues.
 // ============================================================
-module _dovetail_tongues(xi, yi) {
+module _vdt_polygon(narrow, wide, depth) {
+    polygon(points = [
+        [0,     -narrow/2],
+        [0,      narrow/2],
+        [depth,  wide/2],
+        [depth, -wide/2],
+    ]);
+}
+
+// Ownership:
+//   X=qx front-wall crossing → tongue on FL, groove on FR
+//   X=qx back-wall crossing  → tongue on BL, groove on BR
+//   Y=qy left-wall crossing  → tongue on FL, groove on BL
+//   Y=qy right-wall crossing → tongue on FR, groove on BR
+module _vdt_tongues(xi, yi) {
     if (xi == 0 && yi == 0) {
-        _tongue_x_seam(dt_end_clr,           qy - dt_end_clr);
-        _tongue_y_seam(dt_end_clr,           qx - dt_end_clr);
+        _vdt_tongue_x_seam(wall_thickness/2,           vdt_height_short);
+        _vdt_tongue_y_seam(wall_thickness/2,           vdt_height_tall);
     } else if (xi == 1 && yi == 0) {
-        _tongue_y_seam(qx + dt_end_clr,      tray_x - dt_end_clr);
+        _vdt_tongue_y_seam(tray_x - wall_thickness/2,  vdt_height_tall);
     } else if (xi == 0 && yi == 1) {
-        _tongue_x_seam(qy + dt_end_clr,      tray_y - dt_end_clr);
+        _vdt_tongue_x_seam(tray_y - wall_thickness/2,  vdt_height_tall);
     }
 }
 
-module _dovetail_grooves(xi, yi) {
+module _vdt_grooves(xi, yi) {
     if (xi == 1 && yi == 0) {
-        _groove_x_seam(0, qy);
+        _vdt_groove_x_seam(wall_thickness/2,           vdt_height_short);
     } else if (xi == 0 && yi == 1) {
-        _groove_y_seam(0, qx);
+        _vdt_groove_y_seam(wall_thickness/2,           vdt_height_tall);
     } else if (xi == 1 && yi == 1) {
-        _groove_x_seam(qy, tray_y);
-        _groove_y_seam(qx, tray_x);
+        _vdt_groove_x_seam(tray_y - wall_thickness/2,  vdt_height_tall);
+        _vdt_groove_y_seam(tray_x - wall_thickness/2,  vdt_height_tall);
     }
 }
 
-module _tongue_x_seam(y_min, y_max) {
-    hull() {
-        translate([qx - dt_bot_w/2, y_min, dt_z_bot])
-            cube([dt_bot_w, y_max - y_min, 0.001]);
-        translate([qx - dt_top_w/2, y_min, dt_z_top - 0.001])
-            cube([dt_top_w, y_max - y_min, 0.001]);
-    }
+// Tongue on an X=qx seam — extrudes from the seam plane in +X
+// into the mating (right-hand) quadrant. Y is the wall centerline.
+module _vdt_tongue_x_seam(y_wall, h) {
+    translate([qx, y_wall, 0])
+        linear_extrude(h)
+            _vdt_polygon(vdt_narrow, vdt_wide, vdt_depth);
 }
 
-module _groove_x_seam(gy_min, gy_max) {
-    span = gy_max - gy_min;
-    hull() {
-        translate([qx - dt_bot_w/2 - dt_clr,
-                   gy_min - dt_clr,
-                   dt_z_bot - dt_clr])
-            cube([dt_bot_w + 2*dt_clr,
-                  span + 2*dt_clr,
-                  0.001]);
-        translate([qx - dt_top_w/2 - dt_clr,
-                   gy_min - dt_clr,
-                   dt_z_top + dt_clr - 0.001])
-            cube([dt_top_w + 2*dt_clr,
-                  span + 2*dt_clr,
-                  0.001]);
-    }
+// Tongue on a Y=qy seam — same shape rotated so the tip points +Y.
+module _vdt_tongue_y_seam(x_wall, h) {
+    translate([x_wall, qy, 0])
+        rotate([0, 0, 90])
+            linear_extrude(h)
+                _vdt_polygon(vdt_narrow, vdt_wide, vdt_depth);
 }
 
-module _tongue_y_seam(x_min, x_max) {
-    hull() {
-        translate([x_min, qy - dt_bot_w/2, dt_z_bot])
-            cube([x_max - x_min, dt_bot_w, 0.001]);
-        translate([x_min, qy - dt_top_w/2, dt_z_top - 0.001])
-            cube([x_max - x_min, dt_top_w, 0.001]);
-    }
+// Groove on an X=qx seam — matching cavity in the mate. Slightly
+// larger than the tongue on every side (vdt_clr), and extends a
+// hair past the seam plane in -X so the two halves don't butt into
+// a paper-thin sliver at the mouth. Capped with a tent-shaped roof
+// so the pocket ceiling is self-supporting (no flat overhang).
+module _vdt_groove_x_seam(y_wall, h) {
+    translate([qx - vdt_clr, y_wall, -1])
+        linear_extrude(h + 1 + vdt_clr)
+            _vdt_polygon(
+                vdt_narrow + 2*vdt_clr,
+                vdt_wide   + 2*vdt_clr,
+                vdt_depth  + vdt_clr
+            );
+    // Tent cap: tapers the trapezoid's Y width to a line at the top.
+    translate([qx - vdt_clr, y_wall, h + vdt_clr])
+        linear_extrude(vdt_cap_h, scale = [1, 0.001])
+            _vdt_polygon(
+                vdt_narrow + 2*vdt_clr,
+                vdt_wide   + 2*vdt_clr,
+                vdt_depth  + vdt_clr
+            );
 }
 
-module _groove_y_seam(gx_min, gx_max) {
-    span = gx_max - gx_min;
-    hull() {
-        translate([gx_min - dt_clr,
-                   qy - dt_bot_w/2 - dt_clr,
-                   dt_z_bot - dt_clr])
-            cube([span + 2*dt_clr,
-                  dt_bot_w + 2*dt_clr,
-                  0.001]);
-        translate([gx_min - dt_clr,
-                   qy - dt_top_w/2 - dt_clr,
-                   dt_z_top + dt_clr - 0.001])
-            cube([span + 2*dt_clr,
-                  dt_top_w + 2*dt_clr,
-                  0.001]);
-    }
-}
-
-// ============================================================
-// WALL bowtie pockets — every wall-seam crossing gets a bowtie-shaped
-// vertical channel cut from the top of the wall down by wall_key_depth.
-// Half the bowtie sits in each mating quadrant's material; the halves
-// align into a full pocket when the pieces are slid together, and a
-// wall_bowtie_key() drops in from the top to lock the halves against
-// pulling apart. No sliding dovetail in the walls — the horizontal
-// base slide + a top-inserted bowtie is enough, and it doesn't require
-// any through-slot in the wall face.
-//
-// Placement (one pocket per wall-seam crossing, 4 total):
-//   Front wall  X=qx  → (qx, wall_thickness/2, [35-20, 35]), long axis X
-//   Back  wall  X=qx  → (qx, tray_y - wall_thickness/2, [85-20, 85])
-//   Left  wall  Y=qy  → (wall_thickness/2, qy, [85-20, 85]), long axis Y
-//   Right wall  Y=qy  → (tray_x - wall_thickness/2, qy, [85-20, 85])
-//
-// Every quadrant sees TWO of the four pockets subtracted from its
-// shell (one per shared seam), so the pocket cavity is identical on
-// both sides of the seam.
-// ============================================================
-module _wall_bowtie_pockets(xi, yi) {
-    // Front wall (X=qx crossing) — visible in FL (0,0) and FR (1,0)
-    if (yi == 0)
-        _wall_bowtie_pocket(qx, wall_thickness / 2,
-                            base_thickness + short_wall_h,
-                            0);
-    // Back wall (X=qx crossing) — visible in BL (0,1) and BR (1,1)
-    if (yi == 1)
-        _wall_bowtie_pocket(qx, tray_y - wall_thickness / 2,
-                            base_thickness + tall_wall_h,
-                            0);
-    // Left wall (Y=qy crossing) — visible in FL (0,0) and BL (0,1)
-    if (xi == 0)
-        _wall_bowtie_pocket(wall_thickness / 2, qy,
-                            base_thickness + tall_wall_h,
-                            90);
-    // Right wall (Y=qy crossing) — visible in FR (1,0) and BR (1,1)
-    if (xi == 1)
-        _wall_bowtie_pocket(tray_x - wall_thickness / 2, qy,
-                            base_thickness + tall_wall_h,
-                            90);
-}
-
-module _wall_bowtie_pocket(x_c, y_c, z_top, rot) {
-    // Extrudes from Z = (z_top - wall_key_depth) up to Z = z_top + 0.1
-    // so the pocket cleanly opens through the top of the wall.
-    translate([x_c, y_c, z_top - wall_key_depth])
-        rotate([0, 0, rot])
-            linear_extrude(wall_key_depth + 0.1)
-                _bowtie_polygon(
-                    key_len   + 2*key_clr,
-                    key_flare + 2*key_clr,
-                    key_waist + 2*key_clr
+module _vdt_groove_y_seam(x_wall, h) {
+    translate([x_wall, qy - vdt_clr, -1])
+        rotate([0, 0, 90])
+            linear_extrude(h + 1 + vdt_clr)
+                _vdt_polygon(
+                    vdt_narrow + 2*vdt_clr,
+                    vdt_wide   + 2*vdt_clr,
+                    vdt_depth  + vdt_clr
                 );
-}
-
-// ============================================================
-// Bowtie slots — open at TOP of base (Z = [5, 10]); key drops in
-// from above through the tray floor. Long axis perpendicular to seam.
-// ============================================================
-module _bowtie_slot_cavities(xi, yi) {
-    if (yi == 0) _bowtie_slots_on_x_seam(0,  qy);
-    if (yi == 1) _bowtie_slots_on_x_seam(qy, tray_y);
-    if (xi == 0) _bowtie_slots_on_y_seam(0,  qx);
-    if (xi == 1) _bowtie_slots_on_y_seam(qx, tray_x);
-}
-
-module _bowtie_slot(x_c, y_c, rot) {
-    translate([x_c, y_c, base_thickness - key_depth])
-        rotate([0, 0, rot])
-            linear_extrude(key_depth + 0.1)
-                _bowtie_polygon(
-                    key_len   + 2*key_clr,
-                    key_flare + 2*key_clr,
-                    key_waist + 2*key_clr
+    translate([x_wall, qy - vdt_clr, h + vdt_clr])
+        rotate([0, 0, 90])
+            linear_extrude(vdt_cap_h, scale = [1, 0.001])
+                _vdt_polygon(
+                    vdt_narrow + 2*vdt_clr,
+                    vdt_wide   + 2*vdt_clr,
+                    vdt_depth  + vdt_clr
                 );
-}
-
-module _bowtie_slots_on_x_seam(y_min, y_max) {
-    span = y_max - y_min;
-    for (i = [1 : n_keys]) {
-        y_c = y_min + span * i / (n_keys + 1);
-        _bowtie_slot(qx, y_c, 0);
-    }
-}
-
-module _bowtie_slots_on_y_seam(x_min, x_max) {
-    span = x_max - x_min;
-    for (i = [1 : n_keys]) {
-        x_c = x_min + span * i / (n_keys + 1);
-        _bowtie_slot(x_c, qy, 90);
-    }
 }

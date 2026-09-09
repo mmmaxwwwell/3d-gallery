@@ -282,7 +282,7 @@
     {
       "slug": "split-tray-500",
       "title": "500mm Split Tray (Qidi Q2)",
-      "description": "500 × 500 mm parts tray with a 10 mm base and 25 mm thick walls rounded on every edge (12.5 mm radius = half the wall thickness). Back, left, and right walls are 75 mm tall; the entire front side (including the front corners) drops to 25 mm for reach-in, with rounded transitions on every visible edge. Splits into four 250 × 250 mm quadrants that fit on a ~250 mm bed (Qidi Q2 class). The base is held by a full-length sliding dovetail plus two floor bowties per seam (8 total). Every wall-seam crossing is a bowtie-shaped vertical channel — the two wall halves each carry half of it, and a tall bowtie key dropped from the top of the wall locks the walls against pulling apart (4 wall keys). Assembly is slide, then tack — no flipping.",
+      "description": "500 × 500 mm open-frame parts tray — walls only, no base — with 25 mm thick bullnose walls (12.5 mm radius on every visible edge). Back, left, and right walls are 75 mm tall; the whole front side (including the front corners) drops to 25 mm for reach-in. Splits into four 250 × 250 mm quadrants that fit on a ~250 mm bed (Qidi Q2 class). Each wall-seam crossing is a vertical sliding dovetail — trapezoidal tongue on one quadrant, matching blind pocket on the other. Every quadrant is pressed straight DOWN to seat and pulled straight UP to release; the dovetail's positive-retention geometry captures horizontal separation, and a slight press-fit gives friction on the vertical slide axis. No separate keys, no flipping.",
       "previews": [
         { "file": "assembled.3mf", "format": "3mf", "label": "Assembled tray (uncut)", "default": true,
           "legend": [
@@ -294,9 +294,7 @@
         { "file": "quadrant-fl.stl", "format": "stl", "label": "Front-left quadrant" },
         { "file": "quadrant-fr.stl", "format": "stl", "label": "Front-right quadrant" },
         { "file": "quadrant-bl.stl", "format": "stl", "label": "Back-left quadrant" },
-        { "file": "quadrant-br.stl", "format": "stl", "label": "Back-right quadrant" },
-        { "file": "bowtie-key.stl", "format": "stl", "label": "Base bowtie key (print 8×)" },
-        { "file": "wall-bowtie-key.stl", "format": "stl", "label": "Wall bowtie key (print 4×)" }
+        { "file": "quadrant-br.stl", "format": "stl", "label": "Back-right quadrant" }
       ]
     }
   ]

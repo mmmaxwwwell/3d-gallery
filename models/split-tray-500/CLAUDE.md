@@ -1,23 +1,24 @@
 # split-tray-500
 
-A 500 × 500 mm tray with a 10 mm base and 25 mm thick outer walls,
-rounded on every accessible edge, split into 2 × 2 quadrants so each
-part fits in a ~250 mm build volume (Qidi Q2 class). Not customizable.
+A 500 × 500 mm parts tray — **walls only, no base** — with 25 mm
+thick bullnose outer walls, rounded on every accessible edge, split
+into 2 × 2 quadrants so each part fits in a ~250 mm build volume
+(Qidi Q2 class). Not customizable.
 
-Renders as 4 quadrant STLs + 2 key STLs (short base key ×8, tall wall
-key ×4).
+Renders as 4 quadrant STLs. No separate keys.
 
-Three joints per seam:
-- **Base sliding dovetail** at Z = 1-4 running most of the seam length.
-- **Two base bowties per seam segment**, dropped in from ABOVE through
-  slots in the tray floor (Z = 5-10, opens at Z = 10 / tray floor).
-- **One wall bowtie key per wall-seam crossing** — the two mating
-  wall halves each carry half of a bowtie-shaped vertical channel;
-  the key drops in from the top of the wall (Z-down) and locks the
-  halves against pulling apart. No sliding-dovetail in the walls
-  (the earlier attempt required a visible through-slot in the wall
-  face — this pocket design is cleaner and only exposes a small
-  bowtie hole at the very top of each seam-crossing wall).
+## Joint
+
+**One joint type: a vertical sliding dovetail** at every wall-seam
+crossing (4 total — front short wall, back tall wall, left tall
+wall, right tall wall). Trapezoidal tongue on one quadrant, matching
+blind pocket on the other. Narrow at the seam plane, wide at the tip
+→ positive-retention capture against horizontal separation. Slight
+horizontal clearance (`vdt_clr`) gives press-fit friction on the
+vertical slide axis.
+
+**Every quadrant is pressed straight down to seat and pulled straight
+up to release.** No horizontal sliding, no drop-in keys.
 
 ## File layout
 
@@ -25,14 +26,12 @@ Three joints per seam:
 lib/
   split-tray-500-lib.scad     all params + geometry, no top-level render
 parts/
-  quadrant-fl.scad            quadrant(0, 0)     → quadrant-fl.stl
-  quadrant-fr.scad            quadrant(1, 0)     → quadrant-fr.stl
-  quadrant-bl.scad            quadrant(0, 1)     → quadrant-bl.stl
-  quadrant-br.scad            quadrant(1, 1)     → quadrant-br.stl
-  bowtie-key.scad             bowtie_key()       → bowtie-key.stl (print 8)
-  wall-bowtie-key.scad        wall_bowtie_key()  → wall-bowtie-key.stl (print 4)
+  quadrant-fl.scad            quadrant(0, 0)  → quadrant-fl.stl
+  quadrant-fr.scad            quadrant(1, 0)  → quadrant-fr.stl
+  quadrant-bl.scad            quadrant(0, 1)  → quadrant-bl.stl
+  quadrant-br.scad            quadrant(1, 1)  → quadrant-br.stl
 previews/
-  assembled.scad              tray()             → assembled.3mf (monolithic view)
+  assembled.scad              tray()          → assembled.3mf (monolithic view)
 ```
 
 ## Corner bar cutouts
@@ -46,112 +45,77 @@ subtracts them so the preview matches the assembled printed geometry.
 
 ## Public modules
 
-- **`quadrant(xi, yi)`** — one tray corner in world coords.
-- **`bowtie_key()`** — 5 mm-tall bowtie key for the base slots.
-- **`wall_bowtie_key()`** — 20 mm-tall bowtie key for the wall pockets.
+- **`quadrant(xi, yi)`** — one printable quadrant with vertical
+  dovetail tongue and/or groove on its interior-facing seams.
 - **`tray()`** — full monolithic reference shell (no split, no joints).
 
-Both keys use the same bowtie polygon (`key_len = 30`, `key_flare = 14`,
-`key_waist = 6`); only the extrusion height differs (`key_depth = 5` vs
-`wall_key_depth = 20`).
+## Vertical dovetail geometry
 
-## Joint A — base sliding dovetail (Z = 1-4)
+- Trapezoid in the XY plane, extruded in Z:
+  - narrow edge (`vdt_narrow = 6`) at the seam plane
+  - wide edge (`vdt_wide = 10`) at `vdt_depth = 8` mm past the seam
+  - extruded from Z = 0 up to Z = `vdt_height_short = 15` on the
+    25 mm front wall, and up to `vdt_height_tall = 55` on the 75 mm
+    back / left / right walls (more retention area on the tall walls)
+- Groove is the same shape, expanded by `vdt_clr = 0.15` on every
+  side. It extends from Z = −1 (cleanly punches through the wall
+  bottom) up to Z = `height + vdt_clr + vdt_cap_h` where the top
+  `vdt_cap_h = 6 mm` is a tent-shaped cap that tapers the pocket's
+  Y-width to a line at the peak. That makes the pocket ceiling
+  self-supporting (~40° overhang from vertical at the widest edge)
+  so it prints without support material.
+- Groove peak stays well below the wall top in every wall — the
+  pocket is a blind, self-closing cavity with no visible opening
+  from above.
 
-Trapezoidal tongue-and-groove in the XZ (or YZ) plane, wider at the
-bottom (`dt_bot_w = 8`) narrowing to the top (`dt_top_w = 4`). Runs
-along the seam for `qy - 2*dt_end_clr = 190 mm`, sliding in from the
-far end. Ownership unchanged from the original design:
+## Ownership
 
-| Piece | X = qx seam | Y = qy seam |
+| Seam / crossing | Tongue owner | Groove owner |
 | --- | --- | --- |
-| FL (0,0) | tongue right (front half) | tongue back (left half) |
-| FR (1,0) | groove left (front half)  | tongue back (right half) |
-| BL (0,1) | tongue right (back half)  | groove front (left half) |
-| BR (1,1) | groove left (back half)   | groove front (right half) |
+| X=qx front-wall (short, 25 mm) | FL | FR |
+| X=qx back-wall  (tall,  75 mm) | BL | BR |
+| Y=qy left-wall  (tall,  75 mm) | FL | BL |
+| Y=qy right-wall (tall,  75 mm) | FR | BR |
 
-Grooves extend the FULL Y (or X) range of the mating quadrant so
-sliding from either direction never collides.
+FL carries two tongues (front + left). BR carries two grooves
+(back + right). FR and BL each carry one of each.
 
-## Joint B — base bowties (Z = 5-10, open at top)
+## Assembly order (all straight-down presses, no flipping)
 
-`n_keys = 2` slots per 250 mm seam segment. Each slot is a bowtie-
-shaped cavity cut into the top of the base from Z = 5 up to Z = 10
-(tray floor). Key drops in from above and sits flush with the floor.
-Long axis of the polygon is PERPENDICULAR TO THE SEAM (waist crosses
-the seam, flare captured in adjacent quadrants). `rot = 0` for X = qx
-seams, `rot = 90` for Y = qy seams.
+1. Place FL on the bench.
+2. Press FR straight down onto FL's right (front-wall) tongue.
+3. Press BL straight down onto FL's back (left-wall) tongue.
+4. Press BR straight down — its two grooves engage FR's back
+   tongue and BL's right tongue simultaneously.
 
-## Joint C — wall bowtie pockets (top of every seam-crossing wall)
-
-At each of the 4 wall-seam crossings, a bowtie-shaped cavity is
-subtracted from the shell centered on the seam plane, spanning
-`wall_key_depth = 20 mm` downward from the top of that wall:
-
-| Wall (crosses seam) | (x_c, y_c) | z_top | rot |
-| --- | --- | --- | --- |
-| Front (X = qx, short) | (qx, wall_thickness/2) | 35 | 0 |
-| Back  (X = qx, tall)  | (qx, tray_y − wall_thickness/2) | 85 | 0 |
-| Left  (Y = qy, tall)  | (wall_thickness/2, qy) | 85 | 90 |
-| Right (Y = qy, tall)  | (tray_x − wall_thickness/2, qy) | 85 | 90 |
-
-Every quadrant subtracts the two pockets on its shared seams
-(`_wall_bowtie_pockets(xi, yi)` handles both). Both sides of the
-seam get the identical pocket cut, so the two halves align into a
-full pocket when the pieces are joined.
-
-The polygon is placed at `wall_thickness/2` in the direction across
-the wall thickness, and `key_flare = 14 mm` fits inside the 25 mm
-wall thickness (7 mm clearance to each face). Long axis is aligned
-with the wall's length (perpendicular to the seam) so the waist
-crosses the seam and the flares are captured in the two quadrants.
-
-## Z-zoning inside the base
-
-```
-Z = 0..1    solid bottom
-Z = 1..4    base dovetail band
-Z = 4..5    solid bridge
-Z = 5..10   base-bowtie pocket (open at the top / tray floor)
-```
-
-No overlap between the two base joint systems in Z. If you change
-`dt_z_bot`/`dt_z_top` or `key_depth`, keep the 1 mm bridges intact.
-
-## Assembly order (no flipping)
-
-1. FR slides onto FL along −Y. Drop 2 base bowties into the FL–FR
-   floor slots and 1 wall bowtie into the front-wall top pocket.
-2. BR slides onto BL along −Y. Drop 2 base bowties into the BL–BR
-   floor slots and 1 wall bowtie into the back-wall top pocket.
-3. Back pair slides in −X onto front pair. Drop 4 base bowties into
-   the four Y = qy floor slots and 2 wall bowties into the left- and
-   right-wall top pockets.
+Removal is the reverse — pull each quadrant straight up.
 
 ## Editing rules
 
 - Don't add a `BEGIN_PARAMS` block (not customizable).
 - Don't add geometry to `parts/*.scad` — tunable dimensions live in
   the lib's top-level `=` bindings.
-- **Z-zoning in the base must not overlap.** Currently:
-  base-bowtie pocket [5, 10], solid bridge [4, 5], dovetail [1, 4],
-  solid bottom [0, 1]. If you enlarge one, shrink another.
-- The base bowtie and wall bowtie share `key_len`, `key_flare`,
-  `key_waist`, `key_clr`. If you change any of those, both key STLs
-  need to be reprinted.
-- The wall pocket extrudes `wall_key_depth = 20 mm` down from each
-  wall's top face. For the tall walls (top at Z = 85) the pocket
-  bottom is at Z = 65 — well above the base and below the top. For
-  the short front wall (top at Z = 35) the pocket bottom is at Z = 15
-  — 5 mm above the tray floor at Z = 10. Do not increase
-  `wall_key_depth` past 25 mm without also raising the short-wall
-  height or shifting the pocket to a taller wall only, otherwise the
-  front-wall pocket will punch into the base and collide with the
-  base dovetail / bowtie zoning.
-- The bowtie polygon's LONG AXIS IS PERPENDICULAR TO THE SEAM. This
-  applies to BOTH the base bowties (rot = 0 for X = qx seams,
-  rot = 90 for Y = qy) AND the wall bowties (same rot values). If
-  you swap them, the bowtie no longer crosses the seam and won't
-  lock anything.
-- If a bowtie key fits too loose, reprint keys only with a smaller
-  `key_clr`. Quadrants don't need re-rendering — the slot / pocket
-  is sized from the same `key_clr`.
+- Don't reintroduce a base, drop-in keys, or horizontal-slide joints
+  — the whole point of this design is that every part is press-fit
+  vertically. If the joint isn't strong enough, thicken the dovetail
+  or lengthen `vdt_height`; don't add a second joint system.
+- The tongue is anchored at its narrow base (at the seam plane) —
+  keep `vdt_narrow` chunky enough for shear strength (≥ 5 mm).
+- The tongue tip must fit inside the mating wall's cross-section.
+  `vdt_wide / 2` plus its Y offset must stay inside
+  `wall_thickness` — currently `vdt_wide = 10` in a 25 mm wall,
+  centered → 7.5 mm of clearance on each side. Do not raise
+  `vdt_wide` past ~20 without also thickening the wall.
+- The tongue extends `vdt_depth` past the seam plane into the
+  mating quadrant. Keep it well below `qx / 2` (or `qy / 2`) so
+  it never intrudes into a non-neighbor quadrant's zone.
+- The groove ceiling sits at `vdt_height + vdt_clr + vdt_cap_h`.
+  Keep that below every wall's top (short front wall is the
+  tightest constraint at 25 mm — currently 15 + 0.15 + 6 = 21.15
+  mm, leaving ~3.85 mm of wall above the peak).
+- If you raise `vdt_wide`, either raise `vdt_cap_h` in proportion
+  (keep `vdt_cap_h ≥ vdt_wide / 2` for a self-supporting 45°
+  overhang) or accept that the ceiling will need bridging /
+  support material.
+- If the joint binds, raise `vdt_clr` (the same value sizes every
+  quadrant's groove — increase it and reprint the mates).
