@@ -19,6 +19,9 @@
     "test:build": "node --test tests/build/build.test.mjs",
     "test:build:baseline": "TEST_UPDATE_BASELINE=1 node --test tests/build/build.test.mjs",
     "preflight": "node scripts/preflight.mjs",
+    "apk": "cd packages/android-shell && gradle assembleDebug",
+    "apk:install": "cd packages/android-shell && gradle assembleDebug && adb install -r app/build/outputs/apk/debug/app-debug.apk && adb shell am start -n com.mmmaxwwwell.gallery3d/.MainActivity",
+    "apk:debug": "npm run apk:install && adb logcat -c && adb logcat WebConsole:D Gallery3D:D SlicerBridge:D *:S",
     "prepare": "git config core.hooksPath .githooks"
   },
   "devDependencies": {

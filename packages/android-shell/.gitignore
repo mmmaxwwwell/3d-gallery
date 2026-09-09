@@ -1,0 +1,22 @@
+# Gradle
+.gradle/
+build/
+app/build/
+app/.cxx/
+
+# CMake / NDK
+app/.cxx/
+
+# WebView assets — built from packages/gallery-app/dist on demand
+app/src/main/assets/webapp/
+
+# Prebuilt JNI outputs — produced by openscad-web-generator's Nix
+# packages (orcaslicer-android-arm64/arm32). Copy in via a script or
+# gradle task if you want the native slicer path.
+app/src/main/jniLibs/
+app/src/main/jni/include/
+
+# Local overrides
+local.properties
+.idea/
+*.iml
