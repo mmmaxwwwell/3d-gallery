@@ -2,7 +2,7 @@ import { defineConfig, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve, sep } from 'node:path';
-import { buildModel, loadManifest } from './scripts/build-models.mjs';
+import { buildModel, loadManifest } from '../../scripts/build-models.mjs';
 
 // Serve the source `models/manifest.json` in dev so edits show up on
 // refresh without needing `npm run build:models`. In production the
@@ -10,7 +10,7 @@ import { buildModel, loadManifest } from './scripts/build-models.mjs';
 // this middleware never runs. Keeps humans + e2e tests + the app all
 // looking at the same source of truth.
 function liveManifestPlugin(): Plugin {
-  const sourcePath = resolve(__dirname, 'models', 'manifest.json');
+  const sourcePath = resolve(__dirname, '..', '..', 'models', 'manifest.json');
   return {
     name: 'live-manifest',
     apply: 'serve',
@@ -34,7 +34,7 @@ function liveManifestPlugin(): Plugin {
 // reload so the viewer re-fetches the artifact. Debounced per-slug so a
 // burst of saves collapses into one build.
 function scadWatcherPlugin(): Plugin {
-  const modelsDir = resolve(__dirname, 'models');
+  const modelsDir = resolve(__dirname, '..', '..', 'models');
   const pending = new Set<string>();
   const inflight = new Map<string, Promise<void>>();
   let timer: NodeJS.Timeout | null = null;
@@ -92,12 +92,26 @@ function scadWatcherPlugin(): Plugin {
 
 export default defineConfig({
   base: '/3d-gallery/',
+  // Static assets (built STL/3MF, wasm, icons, PWA manifest) live at the
+  // repo-root `public/`: `scripts/build-models.mjs` writes STL/3MF into
+  // `public/models/`, `flake.nix` symlinks WASM into `public/wasm/`, and
+  // the gallery-app icons live alongside them. Point Vite at the shared
+  // dir instead of duplicating it per-package.
+  publicDir: resolve(__dirname, '..', '..', 'public'),
+  define: {
+    // Bundle marker — logged on boot so we can tell whether the browser
+    // is running the current bundle or a cached one from a stale SW.
+    __BUILD_TAG__: JSON.stringify(new Date().toISOString()),
+  },
   plugins: [
     liveManifestPlugin(),
     scadWatcherPlugin(),
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: false, // main.ts registers via virtual:pwa-register
+      // In dev, the PWA plugin should be a no-op. Any SW registration
+      // (from a prior prod visit) is cleared client-side in main.ts.
+      devOptions: { enabled: false },
       // Precache the built vite bundle + everything Vite copies from
       // public/ (models, wasm, icons). Ranges: keep the model assets
       // small enough that offline install is meaningful without

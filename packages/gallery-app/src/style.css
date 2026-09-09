@@ -252,7 +252,43 @@ html, body {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 2px 0;
+  padding: 3px 4px;
+  margin: 0 -4px;
+  border-radius: 3px;
+  transition: background 120ms ease;
+}
+
+.legend-row.legend-clickable {
+  cursor: pointer;
+}
+
+.legend-row.legend-clickable:hover,
+.legend-row.legend-active {
+  background: rgba(43, 108, 176, 0.12);
+}
+
+.legend-row.legend-active .legend-label {
+  font-weight: 600;
+}
+
+#viewer-leader {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9;
+  overflow: visible;
+}
+
+#viewer-leader line {
+  stroke: #2b6cb0;
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+  opacity: 0.85;
+}
+
+#viewer-leader circle {
+  fill: #2b6cb0;
+  opacity: 0.85;
 }
 
 .legend-swatch {
@@ -457,33 +493,53 @@ html, body {
 /* ── Customizer ────────────────────────────────────────── */
 
 #customizer {
-  padding: 10px 14px;
   background: #fff;
   border-top: 1px solid #e0e0e0;
-  max-height: 280px;
-  overflow-y: auto;
+  max-height: 320px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.customizer-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1 1 auto;
 }
 
 .customizer-panel h3 {
-  margin: 0 0 10px;
+  margin: 0;
+  padding: 10px 14px 6px;
   font-size: 13px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: #555;
+  flex-shrink: 0;
 }
 
+/* Auto-sized card grid: each param is a card that shrinks/grows to fit
+   the available width. Wraps to as many rows as it needs. */
 .param-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 10px;
-  margin-bottom: 12px;
+  padding: 4px 14px 10px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .param-field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  padding: 10px;
+  background: #f7f8fa;
+  border: 1px solid #e2e5ea;
+  border-radius: 6px;
+  min-width: 0;
 }
 
 .param-label {
@@ -494,15 +550,16 @@ html, body {
 
 .param-name {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   color: #222;
-  font-family: monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  word-break: break-word;
 }
 
 .param-help {
   font-size: 11px;
-  color: #777;
-  line-height: 1.3;
+  color: #666;
+  line-height: 1.35;
 }
 
 .param-input input[type="text"],
@@ -510,21 +567,31 @@ html, body {
 .param-input select,
 .param-input textarea {
   width: 100%;
-  padding: 8px;
+  padding: 7px 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 16px;
+  font-size: 14px;
   font-family: inherit;
+  background: #fff;
 }
 
 .param-input textarea {
   resize: vertical;
 }
 
+/* Sticky action bar — always visible at the bottom of the customizer
+   even when the param grid scrolls. */
 .customizer-actions {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  padding: 10px 14px;
+  background: #fff;
+  border-top: 1px solid #e0e0e0;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  flex-shrink: 0;
 }
 
 .btn {
@@ -654,8 +721,20 @@ html, body {
   }
 
   #customizer {
+    max-height: 360px;
+  }
+
+  .customizer-panel h3 {
+    padding: 12px 18px 6px;
+  }
+
+  .param-list {
+    padding: 4px 18px 12px;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+
+  .customizer-actions {
     padding: 12px 18px;
-    max-height: 320px;
   }
 
   #hardware-list {

@@ -36,9 +36,23 @@ export function coerceToParamType(
       const parts = body.split(',').map((s) => Number(s.trim()));
       return parts.every(Number.isFinite) ? parts : fallback;
     }
+    case 'enum': {
+      // Enum options are always strings (parsed from a comment), but the
+      // actual default may be numeric. Coerce back to the type of the
+      // fallback so `split = "2"` doesn't slip into SCAD as a string.
+      if (typeof fallback === 'number') {
+        const n = Number(raw);
+        return Number.isFinite(n) ? n : fallback;
+      }
+      if (typeof fallback === 'boolean') {
+        if (raw === 'true') return true;
+        if (raw === 'false') return false;
+        return fallback;
+      }
+      return raw;
+    }
     case 'string':
     case 'text':
-    case 'enum':
     default:
       return raw;
   }

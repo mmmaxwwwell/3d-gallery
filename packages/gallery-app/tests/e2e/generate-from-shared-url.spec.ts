@@ -42,7 +42,7 @@ interface Model {
 }
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const MANIFEST_PATH = resolve(HERE, "..", "..", "models", "manifest.json");
+const MANIFEST_PATH = resolve(HERE, "..", "..", "..", "..", "models", "manifest.json");
 const manifest = JSON.parse(readFileSync(MANIFEST_PATH, "utf8")) as { models: Model[] };
 
 // Primary text-like param per model — the one users actually change

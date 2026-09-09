@@ -13,10 +13,7 @@
     "isolatedModules": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "useDefineForClassFields": true,
-    "paths": {
-      "@owg/*": ["../openscad-web-generator/src/*"]
-    }
+    "useDefineForClassFields": true
   },
   "include": ["src"]
 }

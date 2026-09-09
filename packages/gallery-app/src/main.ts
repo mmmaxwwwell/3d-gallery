@@ -1,20 +1,59 @@
 import { createViewer, type ModelFormat } from "./viewer";
 import { registerSW } from "virtual:pwa-register";
 import { render, h } from "preact";
-import { useState } from "preact/hooks";
+import { useState, useEffect, useRef } from "preact/hooks";
 
 // PWA: check for a new SW every time the app opens; if one is
 // waiting, activate it and reload so the user always sees the latest
 // deploy. Between opens the cached shell keeps working offline.
-const updateSW = registerSW({
-  immediate: true,
-  onRegisteredSW(_swUrl, registration) {
-    if (registration) registration.update().catch(() => {});
-  },
-  onNeedRefresh() {
-    void updateSW(true);
-  },
-});
+//
+// In dev, actively unregister any lingering service worker (from a
+// previous prod visit on localhost, or a stale `vite preview` run) and
+// nuke its caches. Without this, the SW keeps serving the old bundle
+// and edits appear to not take effect until the whole browser cache is
+// cleared — which is what people mean when they say "I have to kill
+// the dev server."
+// Bundle marker — if you don't see this in the console after refresh,
+// your browser is still running a cached bundle (probably from a stale
+// service worker) and none of the recent fixes are in effect.
+console.info("[3d-gallery] boot", { dev: import.meta.env.DEV, buildTag: __BUILD_TAG__ });
+
+if (import.meta.env.PROD) {
+  const updateSW = registerSW({
+    immediate: true,
+    onRegisteredSW(_swUrl, registration) {
+      if (registration) registration.update().catch(() => {});
+    },
+    onNeedRefresh() {
+      void updateSW(true);
+    },
+  });
+} else if ("serviceWorker" in navigator) {
+  // Kill any lingering service worker + cache from a prior prod visit
+  // (or an old `vite preview`) that's still intercepting fetches with a
+  // stale bundle. Reload once so the current page runs the fresh code.
+  (async () => {
+    let didWork = false;
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const r of regs) {
+        if (await r.unregister()) didWork = true;
+      }
+    } catch { /* noop */ }
+    try {
+      if ("caches" in window) {
+        const names = await caches.keys();
+        for (const n of names) {
+          if (await caches.delete(n)) didWork = true;
+        }
+      }
+    } catch { /* noop */ }
+    if (didWork) {
+      console.warn("[3d-gallery] cleared stale service worker + caches — reloading");
+      window.location.reload();
+    }
+  })();
+}
 
 // Install button: hidden until Chromium fires beforeinstallprompt
 // (i.e. install is actually available on this browser + state). Once
@@ -49,18 +88,21 @@ if (installBtn) {
     });
   }
 }
-import collarTagLib from "../models/collar-tag/lib/collar-tag-lib.scad?raw";
-import collarTagMulticolor from "../models/collar-tag/previews/multicolor.scad?raw";
-import fiMiniCaseLib from "../models/fi-mini-case/lib/fi-mini-case-lib.scad?raw";
-import fiMiniCaseAssembled from "../models/fi-mini-case/previews/assembled.scad?raw";
-import fiMiniCaseCap from "../models/fi-mini-case/previews/cap.scad?raw";
-import qrSignLib from "../models/qr-sign/lib/qr-sign-lib.scad?raw";
-import qrSignAssembled from "../models/qr-sign/previews/assembled.scad?raw";
-import parametricShelfLib from "../models/parametric-shelf/lib/parametric-shelf-lib.scad?raw";
-import ff5mFilamentSensorLib from "../models/ff5m-filament-sensor/lib/ff5m-filament-sensor-lib.scad?raw";
-import et300KnobAideKnurledLib from "../models/et300-knob-aide-knurled/lib/et300-knob-aide-knurled-lib.scad?raw";
-import et300KnobAideKnurledLogoPolygon from "../models/et300-knob-aide-knurled/lib/logo-polygon-data.scad?raw";
-import et300KnobAideKnurledMulticolor from "../models/et300-knob-aide-knurled/previews/tactile-aide-multicolor.scad?raw";
+import collarTagLib from "../../../models/collar-tag/lib/collar-tag-lib.scad?raw";
+import collarTagMulticolor from "../../../models/collar-tag/previews/multicolor.scad?raw";
+import fiMiniCaseLib from "../../../models/fi-mini-case/lib/fi-mini-case-lib.scad?raw";
+import fiMiniCaseAssembled from "../../../models/fi-mini-case/previews/assembled.scad?raw";
+import fiMiniCaseCap from "../../../models/fi-mini-case/previews/cap.scad?raw";
+import qrSignLib from "../../../models/qr-sign/lib/qr-sign-lib.scad?raw";
+import qrSignAssembled from "../../../models/qr-sign/previews/assembled.scad?raw";
+import parametricShelfLib from "../../../models/parametric-shelf/lib/parametric-shelf-lib.scad?raw";
+import ff5mFilamentSensorLib from "../../../models/ff5m-filament-sensor/lib/ff5m-filament-sensor-lib.scad?raw";
+import et300KnobAideKnurledLib from "../../../models/et300-knob-aide-knurled/lib/et300-knob-aide-knurled-lib.scad?raw";
+import et300KnobAideKnurledLogoPolygon from "../../../models/et300-knob-aide-knurled/lib/logo-polygon-data.scad?raw";
+import et300KnobAideKnurledMulticolor from "../../../models/et300-knob-aide-knurled/previews/tactile-aide-multicolor.scad?raw";
+import splitTray500Lib from "../../../models/split-tray-500/lib/split-tray-500-lib.scad?raw";
+import splitTray500Assembled2x2 from "../../../models/split-tray-500/previews/assembled-2x2.scad?raw";
+import splitTray500Assembled3x3 from "../../../models/split-tray-500/previews/assembled-3x3.scad?raw";
 import { parseParams, coerceToParamType } from "./lib/scad-parser";
 import { createOpenSCADApi, injectParameters } from "./lib/openscad-api";
 import { embedSourceUrl } from "./lib/embed-source-url";
@@ -69,6 +111,10 @@ import type { ScadParam, ScadValue } from "./lib/types";
 interface LegendEntry {
   color: string;
   label: string;
+  /** File name of the part this legend row navigates to when clicked. */
+  part?: string;
+  /** Customizer params applied when navigating (e.g. { piece_i: 1 }). */
+  params?: Record<string, ScadValue>;
 }
 
 interface ComponentRef {
@@ -164,6 +210,13 @@ const CUSTOMIZABLE_SOURCES: Record<string, { lib: string; previews: Record<strin
       assembled: stripIncludes(et300KnobAideKnurledMulticolor),
     },
   },
+  "split-tray-500": {
+    lib: splitTray500Lib,
+    previews: {
+      "assembled-2x2": stripIncludes(splitTray500Assembled2x2),
+      "assembled-3x3": stripIncludes(splitTray500Assembled3x3),
+    },
+  },
 };
 
 // ── DOM refs ─────────────────────────────────────────────
@@ -188,8 +241,124 @@ const loadingOverlay = document.getElementById("viewer-loading")!;
 const loadingStatus = loadingOverlay.querySelector(".loading-status")!;
 const loadingBarFill = loadingOverlay.querySelector(".loading-bar-fill") as HTMLElement;
 const viewerPrompt = document.getElementById("viewer-prompt")!;
+const leaderSvg = document.getElementById("viewer-leader") as unknown as SVGSVGElement;
 
 const viewer = createViewer(viewerContainer);
+
+// Bidirectional legend ↔ viewer hover wiring. `legendRowsByColor` is
+// rebuilt whenever we re-render the legend for a new part; the viewer's
+// hover callback fires the same handler either way so the "which row is
+// active" state stays consistent no matter the input device.
+const legendRowsByColor = new Map<string, HTMLElement>();
+let activeLegendColor: string | null = null;
+
+function normColor(hex: string): string {
+  return hex.toLowerCase();
+}
+
+/**
+ * Applies the same linear→sRGB transform that scripts/build-multicolor-3mf.mjs
+ * runs on OpenSCAD's raw CSG color values, so a manifest legend hex
+ * (authored in matching SCAD `color("#…")` source form) resolves to the
+ * hex Three.js actually reads out of the 3MF.
+ *
+ * OpenSCAD's CSG output stores `color("#5b8dd6")` as `color([0.357, 0.553,
+ * 0.839, 1])` — raw sRGB channels normalized to [0,1]. The pipeline then
+ * treats those values as *linear* and encodes them back out as sRGB before
+ * writing to the .3mf, so the on-disk hex is effectively double-encoded.
+ */
+function scadHexToDisplayHex(hex: string): string {
+  const m = /^#?([0-9a-fA-F]{6})$/.exec(hex);
+  if (!m) return normColor(hex);
+  const linearToSrgb = (v: number) =>
+    v <= 0.0031308 ? v * 12.92 : 1.055 * Math.pow(v, 1 / 2.4) - 0.055;
+  const chan = (i: number) => parseInt(m[1].slice(i, i + 2), 16) / 255;
+  const r = chan(0), g = chan(2), b = chan(4);
+  const enc = (v: number) =>
+    Math.round(Math.max(0, Math.min(1, linearToSrgb(v))) * 255)
+      .toString(16)
+      .padStart(2, "0");
+  return `#${enc(r)}${enc(g)}${enc(b)}`;
+}
+
+function setActiveLegend(color: string | null) {
+  activeLegendColor = color;
+  for (const [c, row] of legendRowsByColor) {
+    row.classList.toggle("legend-active", color !== null && c === color);
+  }
+  updateLeaderLine();
+}
+
+function updateLeaderLine() {
+  clearLeader();
+  if (!activeLegendColor) return;
+  const row = legendRowsByColor.get(activeLegendColor);
+  if (!row) return;
+  const meshPos = viewer.getScreenPositionForColor(activeLegendColor);
+  if (!meshPos) return;
+
+  // Legend row's midpoint on its left edge — the leader lands where the
+  // color swatch sits so the connection reads visually as "this piece →
+  // that row."
+  const containerRect = viewerContainer.getBoundingClientRect();
+  const rowRect = row.getBoundingClientRect();
+  const rowX = rowRect.left - containerRect.left;
+  const rowY = rowRect.top - containerRect.top + rowRect.height / 2;
+
+  drawLeader(meshPos.x, meshPos.y, rowX, rowY);
+}
+
+function clearLeader() {
+  while (leaderSvg.firstChild) leaderSvg.removeChild(leaderSvg.firstChild);
+}
+
+function drawLeader(x1: number, y1: number, x2: number, y2: number) {
+  const svgNs = "http://www.w3.org/2000/svg";
+  const dot = document.createElementNS(svgNs, "circle");
+  dot.setAttribute("cx", String(x1));
+  dot.setAttribute("cy", String(y1));
+  dot.setAttribute("r", "3");
+  leaderSvg.appendChild(dot);
+  const line = document.createElementNS(svgNs, "line");
+  line.setAttribute("x1", String(x1));
+  line.setAttribute("y1", String(y1));
+  line.setAttribute("x2", String(x2));
+  line.setAttribute("y2", String(y2));
+  leaderSvg.appendChild(line);
+}
+
+viewer.onHover((info) => {
+  if (info) {
+    const col = normColor(info.color);
+    // Only highlight if this color is in the current legend — 3MFs may
+    // include ancillary colors (edges, defaults) we don't want to flash.
+    if (legendRowsByColor.has(col)) {
+      const row = legendRowsByColor.get(col);
+      const clickable = row?.classList.contains("legend-clickable") ?? false;
+      viewerContainer.style.cursor = clickable ? "pointer" : "";
+      setActiveLegend(col);
+      return;
+    }
+  }
+  viewerContainer.style.cursor = "";
+  setActiveLegend(null);
+});
+
+// Clicking a mesh navigates to the same target the matching legend row
+// links to — delegated by dispatching the row's own click handler so
+// both entry points share one flow.
+viewer.onClick((hex) => {
+  const row = legendRowsByColor.get(normColor(hex));
+  if (row?.classList.contains("legend-clickable")) row.click();
+});
+
+// Redraw the leader line each animation frame while a legend is active
+// so it tracks camera orbit without needing a viewer event.
+function leaderTick() {
+  if (activeLegendColor) updateLeaderLine();
+  requestAnimationFrame(leaderTick);
+}
+requestAnimationFrame(leaderTick);
 
 // Mobile sidebar toggle
 sidebarToggle.addEventListener("click", () => {
@@ -372,8 +541,10 @@ function setDownloadUrl(url: string, filename: string) {
 
 // ── Legend & hardware ────────────────────────────────────
 
-function renderLegend(part: Part) {
+function renderLegend(model: Model, part: Part) {
   legendEl.innerHTML = "";
+  legendRowsByColor.clear();
+  setActiveLegend(null);
   if (!part.legend || part.legend.length === 0) {
     legendEl.hidden = true;
     return;
@@ -394,6 +565,35 @@ function renderLegend(part: Part) {
     label.textContent = entry.label;
     row.appendChild(swatch);
     row.appendChild(label);
+
+    // The 3MF pipeline transforms SCAD hex literals before writing them
+    // out, so we key the row (and paint its swatch) using the display hex
+    // — otherwise viewer-emitted color events won't match. See
+    // scadHexToDisplayHex().
+    const displayColor = scadHexToDisplayHex(entry.color);
+    swatch.style.background = displayColor;
+    legendRowsByColor.set(displayColor, row);
+
+    row.addEventListener("pointerenter", () => {
+      viewer.highlightByColor(displayColor);
+      setActiveLegend(displayColor);
+    });
+    row.addEventListener("pointerleave", () => {
+      viewer.highlightByColor(null);
+      setActiveLegend(null);
+    });
+
+    if (entry.part && entry.params) {
+      const target = (model.parts ?? []).find((p) => p.file === entry.part);
+      if (target) {
+        row.classList.add("legend-clickable");
+        row.title = `Open ${target.label}`;
+        row.addEventListener("click", () => {
+          handlePartChange(target.file, entry.params);
+        });
+      }
+    }
+
     legendEl.appendChild(row);
   }
   legendEl.hidden = false;
@@ -517,6 +717,9 @@ interface CustomizerProps {
   slug: string;
   part: Part;
   initialValues?: Record<string, ScadValue>;
+  /** When true, fire Generate automatically on first mount (used when
+   *  clicking a legend row / cell — the click IS the generate action). */
+  autoGenerate?: boolean;
   onValuesChange: (values: Record<string, ScadValue>) => void;
   onStart: () => void;
   onProgress: (status: string) => void;
@@ -525,7 +728,7 @@ interface CustomizerProps {
   onError: (msg: string) => void;
 }
 
-function Customizer({ libSource, previewSource, params, slug, part, initialValues, onValuesChange, onStart, onProgress, onFinish, onGenerated, onError }: CustomizerProps) {
+function Customizer({ libSource, previewSource, params, slug, part, initialValues, autoGenerate, onValuesChange, onStart, onProgress, onFinish, onGenerated, onError }: CustomizerProps) {
   const [values, setValues] = useState<Record<string, ScadValue>>(() => {
     const defaults: Record<string, ScadValue> = {};
     const known = new Map(params.map((p) => [p.name, p]));
@@ -549,6 +752,11 @@ function Customizer({ libSource, previewSource, params, slug, part, initialValue
   });
   const [generating, setGenerating] = useState(false);
 
+  // useRef-latch so the auto-generate useEffect can invoke the latest
+  // handleGenerate closure without adding it to the deps (which would
+  // rerun it every render).
+  const handleGenerateRef = useRef<() => void>(() => {});
+
   const handleChange = (name: string, value: ScadValue) => {
     const next = { ...values, [name]: value };
     setValues(next);
@@ -566,9 +774,13 @@ function Customizer({ libSource, previewSource, params, slug, part, initialValue
     onError("");
 
     try {
+      // Inject user params into the lib first so any preview-specific
+      // trailing assignments (e.g. `split = 3;` in assembled-3x3.scad)
+      // remain authoritative — those are the preview's whole point.
+      const injectedLib = injectParameters(libSource, values);
       const fullSource = isMulticolor && previewSource
-        ? libSource + "\n" + previewSource
-        : libSource + `\n$fn=40;\n${moduleName}();\n`;
+        ? injectedLib + "\n" + previewSource
+        : injectedLib + `\n$fn=40;\n${moduleName}();\n`;
       const cacheHash = await computeCacheKey(libSource, moduleName, values);
 
       const cached = getCachedResult(slug, cacheHash);
@@ -586,12 +798,11 @@ function Customizer({ libSource, previewSource, params, slug, part, initialValue
       await api.init();
       onProgress(`Rendering ${outputFormat.toUpperCase()} — this may take a while…`);
 
-      const source = injectParameters(fullSource, values);
       let result: ArrayBuffer;
       if (isMulticolor) {
-        result = await api.renderMulticolor(source, (line) => onProgress(line));
+        result = await api.renderMulticolor(fullSource, (line) => onProgress(line));
       } else {
-        result = await api.render(source, outputFormat, (line) => onProgress(line));
+        result = await api.render(fullSource, outputFormat, (line) => onProgress(line));
       }
 
       // Embed a permalink back to this exact param set into the output
@@ -615,6 +826,18 @@ function Customizer({ libSource, previewSource, params, slug, part, initialValue
       setGenerating(false);
     }
   };
+
+  // Keep the ref pointing at the latest handleGenerate so the mount-time
+  // auto-generate effect below fires it with today's params.
+  handleGenerateRef.current = handleGenerate;
+
+  useEffect(() => {
+    if (autoGenerate) handleGenerateRef.current();
+    // Only fire once when the Customizer instance mounts. Subsequent
+    // clicks on the same legend/cell force a fresh Customizer via the
+    // `key={slug}:{part.module}` prop, so this useEffect re-runs then.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return h("div", { className: "customizer-panel" },
     h("h3", null, "Customize"),
@@ -644,8 +867,18 @@ function Customizer({ libSource, previewSource, params, slug, part, initialValue
                 })
               : param.type === "enum"
               ? h("select", {
-                  value: values[param.name] as string,
-                  onChange: (e: Event) => handleChange(param.name, (e.target as HTMLSelectElement).value),
+                  value: String(values[param.name]),
+                  onChange: (e: Event) => {
+                    const raw = (e.target as HTMLSelectElement).value;
+                    // Preserve the original param type — the enum options
+                    // came from a comment string, but the actual default
+                    // may be a number, and injecting `"2"` into SCAD would
+                    // break arithmetic on it.
+                    handleChange(
+                      param.name,
+                      typeof param.default === "number" ? Number(raw) : raw,
+                    );
+                  },
                 }, (param.options ?? []).map((opt) => h("option", { key: opt, value: opt }, opt)))
               : param.type === "text"
               ? h("textarea", {
@@ -673,7 +906,7 @@ function Customizer({ libSource, previewSource, params, slug, part, initialValue
   );
 }
 
-function showCustomizer(model: Model, part: Part, initialValues?: Record<string, ScadValue>) {
+function showCustomizer(model: Model, part: Part, initialValues?: Record<string, ScadValue>, autoGenerate = false) {
   const sources = CUSTOMIZABLE_SOURCES[model.slug];
   if (!sources || !part.module) {
     customizerEl.hidden = true;
@@ -685,17 +918,19 @@ function showCustomizer(model: Model, part: Part, initialValues?: Record<string,
   customizerEl.hidden = false;
   render(
     h(Customizer, {
-      // Force a fresh Customizer instance whenever the model or part
-      // changes. Without this Preact reuses the previous instance's
-      // useState, so values from a prior model leak into the URL of
-      // whatever model you navigate to next.
-      key: `${model.slug}:${part.module ?? ""}`,
+      // Force a fresh Customizer instance whenever the model, part, or
+      // incoming initialValues change. Without this Preact reuses the
+      // previous instance's useState (so cell-click params never make
+      // it into the form) AND the mount-time autoGenerate useEffect
+      // never re-fires on subsequent clicks of a different cell.
+      key: `${model.slug}:${part.module ?? ""}:${JSON.stringify(initialValues ?? null)}`,
       libSource: sources.lib,
       previewSource,
       params,
       slug: model.slug,
       part,
       initialValues,
+      autoGenerate,
       onValuesChange: (vals) => {
         const path = buildUrl(model.slug, part.module, vals);
         history.replaceState({ slug: model.slug, part: part.module, custom: vals }, "", path);
@@ -793,7 +1028,7 @@ async function loadPart(model: Model, part: Part, opts: LoadPartOptions = {}) {
   currentPart = part;
   setCustomizedBadge(false);
   hideViewerPrompt();
-  renderLegend(part);
+  renderLegend(model, part);
   renderPartsList(model, part);
 
   if (!opts.skipPush) {
@@ -804,16 +1039,31 @@ async function loadPart(model: Model, part: Part, opts: LoadPartOptions = {}) {
   const baseName = part.file.replace(/\.\w+$/, "");
   const downloadName = `${model.slug}-${baseName}.${ext}`;
 
+  // When we're navigating in with pre-set params (a legend / cell click),
+  // the click IS the "Generate" — auto-run WASM instead of showing the
+  // Press-Generate prompt or fetching the pre-built default artifact.
+  const autoGenerate = !!opts.initialValues && !!model.customizable;
+
   if (model.customizable) {
-    showCustomizer(model, part, opts.initialValues);
-    if (!opts.promptOnly) {
-      setDownloadUrl(url, downloadName);
-    } else {
+    showCustomizer(model, part, opts.initialValues, autoGenerate);
+    if (autoGenerate || opts.promptOnly) {
       downloadLink.hidden = true;
+    } else {
+      setDownloadUrl(url, downloadName);
     }
   } else {
     hideCustomizer();
     setDownloadUrl(url, downloadName);
+  }
+
+  if (autoGenerate) {
+    // Auto-generate takes over: clear the viewer, hide the prompt, and
+    // show the loading overlay immediately so there's no empty flash
+    // before the Customizer's mount-time useEffect kicks off WASM.
+    viewer.clear();
+    hideViewerPrompt();
+    showLoadingOverlay("Starting…");
+    return;
   }
 
   if (opts.promptOnly) {
@@ -868,15 +1118,18 @@ function selectModel(model: Model, partOverride?: Part, opts: LoadPartOptions = 
   closeSidebarOnMobile();
 }
 
-// Dropdown change → switch part within the current model
-function handlePartChange(selectedFile: string) {
+// Dropdown change → switch part within the current model. `initialValues`
+// pre-populates the customizer (used when a legend row / cell click
+// routes through to its target piece with `piece_i` / `piece_j` set);
+// loadPart's autoGenerate branch handles firing WASM immediately.
+function handlePartChange(selectedFile: string, initialValues?: Record<string, ScadValue>) {
   if (!currentModel) return;
   const item = currentItems.find((i) => i.part.file === selectedFile);
   if (item) {
     // Sync both selects
     partSelect.value = selectedFile;
     mobilePartSelect.value = selectedFile;
-    loadPart(currentModel, item.part);
+    loadPart(currentModel, item.part, { initialValues });
   }
 }
 
