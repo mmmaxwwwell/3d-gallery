@@ -56,7 +56,7 @@ for (const share of ["node_modules", ".cache"]) {
 const STEPS = [
   ["build:models", ["npm", "run", "build:models"]],
   ["test:build",   ["npm", "run", "test:build"]],
-  ["vite build",   ["npx", "vite", "build"]],
+  ["vite build",   ["npm", "run", "build", "-w", "@3d-gallery/gallery-app"]],
 ];
 
 const started = Date.now();

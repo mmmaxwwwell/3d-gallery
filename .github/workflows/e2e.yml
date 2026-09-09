@@ -75,7 +75,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: playwright-report/
+          path: packages/gallery-app/playwright-report/
           retention-days: 14
 
       - name: Upload Playwright test artifacts
@@ -83,5 +83,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-test-results
-          path: test-results/
+          path: packages/gallery-app/test-results/
           retention-days: 14

@@ -59,11 +59,11 @@ jobs:
         run: nix develop --command npm run test:build
 
       - name: Build site
-        run: nix develop --command npx vite build
+        run: nix develop --command npm run build -w @3d-gallery/gallery-app
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: packages/gallery-app/dist
 
   deploy:
     needs: build

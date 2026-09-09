@@ -29,6 +29,16 @@ npm run dev                 # vite dev server at localhost:5173
 3. Add an entry to [`models/manifest.json`](models/manifest.json).
 4. Push — the GitHub Action rebuilds the artifacts and redeploys.
 
+## Workspaces
+
+The repo is an npm workspace. Shared tooling (models, build scripts, `tests/build/`, `flake.nix`, `preflight`) lives at the root; UI and toolkit code live under `packages/`.
+
+- **`packages/gallery-app/`** — the web UI (Vite + Preact + Three.js). `npm run dev`, `npm run build`, `npm run preview`, and `npm run test:e2e*` at the repo root are thin wrappers that delegate to this package via `-w @3d-gallery/gallery-app`.
+- **`packages/print-toolkit/`** — framework-free slicer + Moonraker + Orca importer (migration in progress). Fetch its WASM assets with `npm run fetch-wasm -w @3d-gallery/print-toolkit` before building anything that needs them.
+- **`packages/android-shell/`** — planned WebView host for on-device slicing. Not seeded yet.
+
+Root-only scripts (still run from the repo root): `npm run build:models`, `npm run test:build`, `npm run preflight`.
+
 ## License
 
 MIT (see [LICENSE](LICENSE)). The Three.js viewer code is derived from [openscad-web-generator](https://github.com/mmmaxwwwell/openscad-web-generator) (AGPL); the lifted portion is small enough to be relicensed under MIT.

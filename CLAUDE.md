@@ -175,4 +175,23 @@ If you add a new SCAD dependency, it must land in **both** places or the CLI/WAS
 - **Base path** is `/3d-gallery/` in production. Local dev also serves under `/3d-gallery/`. Asset URLs go through Vite's base handling.
 - **Filenames in manifest** map to `models/<slug>/build/<file>`; the source `.scad` is discovered by matching the base name against `parts/` then `previews/`.
 - **Build test = semantic fingerprint, not exact checksum**: `tests/build/fingerprint.mjs` compares color palette (exact), bbox (±5e-3 mm), and triangle count (±25%). Different boolean engines re-triangulate the same volume differently, so hash-equality would false-positive. Baseline lives at `tests/build/baseline.json`; re-capture with `TEST_UPDATE_BASELINE=1`.
-- **CI**: `.github/workflows/deploy.yml` builds via Nix; artifacts are baked into `dist/` and pushed to Pages. `e2e.yml` runs Playwright on PRs.
+- **CI**: `.github/workflows/deploy.yml` builds via Nix; artifacts are baked into `packages/gallery-app/dist/` and pushed to Pages. `e2e.yml` runs Playwright on PRs.
+
+## Workspaces
+
+The repo is an npm workspace (`workspaces: ["packages/*"]` in root `package.json`). The historical single-project layout has been split; per-package details override anything above that reads as "at the repo root".
+
+- **`packages/gallery-app/`** — the Vite + Preact + Three.js UI. Owns `index.html`, `vite.config.ts`, `playwright.config.ts`, `src/`, `tests/e2e/`. `vite.config.ts` still aliases `react → preact/compat` (and `react-dom`, `react/jsx-runtime`) — the print UI is Preact, not React. `models/manifest.json` is served in dev by middleware in this config, reading from repo-root `models/`. Base path stays `/3d-gallery/`.
+- **`packages/print-toolkit/`** — framework-free slicer + Moonraker + Orca importer. **Never import React, Preact, or DOM globals beyond `window.*` feature-detects** here. Consumers wire their own UI. WASM assets ship out-of-band via `npm run fetch-wasm -w @3d-gallery/print-toolkit`.
+- **`packages/android-shell/`** — planned WebView host. Not seeded.
+
+Root scripts split by concern:
+
+- **Stay at root** (still run from the repo root, unchanged): `build:models`, `build:model`, `test:build`, `test:build:baseline`, `preflight`. The scripts they invoke live in `scripts/` at the repo root and operate on `models/` and `tests/build/`.
+- **Delegate to gallery-app** via `-w @3d-gallery/gallery-app`: `dev`, `build`, `preview`, `test:e2e`, `test:e2e:full`, `test:e2e:ui`. Root `build` still runs `build:models` first, then delegates.
+
+CI + hooks:
+
+- `.github/workflows/deploy.yml` runs `npm run build:models`, `npm run test:build`, `npm run build -w @3d-gallery/gallery-app`, then uploads `packages/gallery-app/dist/` to Pages.
+- `.github/workflows/e2e.yml` runs `npm run test:e2e` at root; Playwright artifacts land under `packages/gallery-app/{playwright-report,test-results}/`.
+- `.githooks/pre-push` runs `npm run preflight`, which now builds via the gallery-app workspace instead of a bare `npx vite build`.
