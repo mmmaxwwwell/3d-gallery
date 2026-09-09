@@ -107,6 +107,7 @@ import { parseParams, coerceToParamType } from "./lib/scad-parser";
 import { createOpenSCADApi, injectParameters } from "./lib/openscad-api";
 import { embedSourceUrl } from "./lib/embed-source-url";
 import type { ScadParam, ScadValue } from "./lib/types";
+import { openPrintDialog, openSettingsPanel } from "./print/mount";
 
 interface LegendEntry {
   color: string;
@@ -230,6 +231,8 @@ const partSelect = document.getElementById("part-select") as HTMLSelectElement;
 const mobilePartSelect = document.getElementById("mobile-part-select") as HTMLSelectElement;
 const viewerContainer = document.getElementById("viewer-container")!;
 const downloadLink = document.getElementById("download-link") as HTMLAnchorElement;
+const printBtn = document.getElementById("print-btn") as HTMLButtonElement | null;
+const printSettingsBtn = document.getElementById("print-settings-btn") as HTMLButtonElement | null;
 const errorEl = document.getElementById("viewer-error")!;
 const partsListEl = document.getElementById("parts-list")!;
 const filamentListEl = document.getElementById("filament-list")!;
@@ -527,6 +530,7 @@ function setDownloadBlob(data: ArrayBuffer, filename: string) {
   downloadLink.href = currentBlobUrl;
   downloadLink.setAttribute("download", filename);
   downloadLink.hidden = false;
+  updatePrintButtonVisibility();
 }
 
 function setDownloadUrl(url: string, filename: string) {
@@ -537,6 +541,21 @@ function setDownloadUrl(url: string, filename: string) {
   downloadLink.href = url;
   downloadLink.setAttribute("download", filename);
   downloadLink.hidden = false;
+  updatePrintButtonVisibility();
+}
+
+// The Print button is only meaningful when there's a fetchable mesh in a
+// format the WASM slicer understands. We piggy-back on whatever the download
+// link points to since it's already the source of truth for "current mesh."
+function updatePrintButtonVisibility() {
+  if (!printBtn) return;
+  if (downloadLink.hidden) {
+    printBtn.hidden = true;
+    return;
+  }
+  const href = downloadLink.href;
+  const format = formatOf(href);
+  printBtn.hidden = !format || !currentModel || !currentPart;
 }
 
 // ── Legend & hardware ────────────────────────────────────
@@ -1048,6 +1067,7 @@ async function loadPart(model: Model, part: Part, opts: LoadPartOptions = {}) {
     showCustomizer(model, part, opts.initialValues, autoGenerate);
     if (autoGenerate || opts.promptOnly) {
       downloadLink.hidden = true;
+      updatePrintButtonVisibility();
     } else {
       setDownloadUrl(url, downloadName);
     }
@@ -1135,6 +1155,28 @@ function handlePartChange(selectedFile: string, initialValues?: Record<string, S
 
 partSelect.addEventListener("change", () => handlePartChange(partSelect.value));
 mobilePartSelect.addEventListener("change", () => handlePartChange(mobilePartSelect.value));
+
+// Print controls — settings is always available, per-part Print appears only
+// once a printable mesh (STL or 3MF) is loaded and downloadLink points at it.
+printSettingsBtn?.addEventListener("click", () => {
+  openSettingsPanel();
+});
+
+printBtn?.addEventListener("click", () => {
+  if (!currentModel || !currentPart) return;
+  const format = formatOf(downloadLink.href);
+  if (!format) return;
+  const filename = downloadLink.getAttribute("download") ?? currentPart.file;
+  openPrintDialog(
+    { slug: currentModel.slug, title: currentModel.title },
+    {
+      file: filename,
+      format,
+      label: currentPart.label,
+      meshUrl: downloadLink.href,
+    },
+  );
+});
 
 // ── Sidebar & routing ────────────────────────────────────
 

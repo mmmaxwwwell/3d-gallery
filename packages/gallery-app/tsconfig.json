@@ -4,9 +4,15 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
+    "jsxImportSource": "preact",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "strict": true,
-    "noUnusedLocals": true,
+    /* noUnusedLocals is off because @3d-gallery/print-toolkit is consumed as
+     * TS source (its package.json points main+types at src/index.ts), so tsc
+     * follows imports into that package and applies our flags to files we
+     * don't own. Enabling noUnusedLocals here would trip on toolkit-internal
+     * bookkeeping (see e.g. perExtStr in orca-slicer-settings.ts). Re-enable
+     * once the toolkit ships a prebuilt d.ts / dist. */
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "resolveJsonModule": true,

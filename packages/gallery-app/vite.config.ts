@@ -1,8 +1,27 @@
 import { defineConfig, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { resolve, sep } from 'node:path';
 import { buildModel, loadManifest } from '../../scripts/build-models.mjs';
+import { copyPrintToolkitAssets } from '@3d-gallery/print-toolkit/vite-plugin';
+
+// libslic3r.wasm is fetched on demand from GitHub Releases (T4). Until that
+// release exists the assets/ dir is empty and the toolkit's Vite plugin
+// throws in buildStart — which would fail the whole gallery build even
+// though the print UI can lazy-init the WASM later. Only wire the plugin
+// in when there's actually something to copy; otherwise log a warning so
+// the human notices during dev.
+const toolkitAssetsDir = resolve(__dirname, '..', 'print-toolkit', 'assets');
+const toolkitAssetsPresent =
+  existsSync(toolkitAssetsDir) &&
+  readdirSync(toolkitAssetsDir).some((n) => n.endsWith('.wasm') || n.endsWith('.js'));
+if (!toolkitAssetsPresent) {
+  // eslint-disable-next-line no-console
+  console.warn(
+    '[gallery-app] print-toolkit assets missing — skipping copyPrintToolkitAssets. ' +
+      'Run `npm run fetch-wasm -w @3d-gallery/print-toolkit` to populate.',
+  );
+}
 
 // Serve the source `models/manifest.json` in dev so edits show up on
 // refresh without needing `npm run build:models`. In production the
@@ -106,6 +125,7 @@ export default defineConfig({
   plugins: [
     liveManifestPlugin(),
     scadWatcherPlugin(),
+    ...(toolkitAssetsPresent ? [copyPrintToolkitAssets({ dest: 'wasm' })] : []),
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: false, // main.ts registers via virtual:pwa-register
