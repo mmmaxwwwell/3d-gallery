@@ -11,7 +11,7 @@
  */
 
 import { parseGcodeStats } from './gcode-parser.js';
-import type { SliceResult } from './types.js';
+import type { SliceResult, ProgressCallback } from './types.js';
 // Ensure the ambient Window declarations for NativeSlicer etc. are loaded.
 import './android-shim-types.js';
 
@@ -40,8 +40,6 @@ export function getNativeEngineName(): string | null {
 // ---------------------------------------------------------------------------
 // Callback registry
 // ---------------------------------------------------------------------------
-
-type ProgressCallback = (stage: string, progress: number) => void;
 
 interface PendingSlice {
   resolve: (result: SliceResult) => void;
