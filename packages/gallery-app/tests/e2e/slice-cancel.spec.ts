@@ -8,6 +8,9 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { test, expect, type Page } from '@playwright/test';
+import { fsSrcUrl } from './helpers';
+
+const PRINT_STORAGE_URL = fsSrcUrl('packages/gallery-app/src/print/print-storage.ts');
 
 const HERE = fileURLToPath(new URL('.', import.meta.url));
 const FIX = (n: string) => JSON.parse(readFileSync(join(HERE, 'fixtures', n), 'utf8'));
@@ -15,13 +18,11 @@ const PRINTER = FIX('flashforge-adventurer-5m-klipper-left.json');
 const FILAMENT = FIX('kingroon-petg-ffadm5.json');
 
 async function seedPresets(page: Page): Promise<void> {
-  await page.evaluate(async ([printer, filament]) => {
-    const store = await import(
-      '/3d-gallery/@fs/home/max/git/3d-gallery/packages/gallery-app/src/print/print-storage.ts'
-    );
+  await page.evaluate(async ({ printer, filament, storeUrl }) => {
+    const store = await import(storeUrl);
     await store.savePreset({ kind: 'printer', name: printer.name, raw: printer.raw, parents: printer.parents });
     await store.savePreset({ kind: 'filament', name: filament.name, raw: filament.raw, parents: filament.parents });
-  }, [PRINTER, FILAMENT]);
+  }, { printer: PRINTER, filament: FILAMENT, storeUrl: PRINT_STORAGE_URL });
 }
 
 test('slicing shows a cancellable progress overlay', async ({ page }) => {

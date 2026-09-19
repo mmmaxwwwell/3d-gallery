@@ -10,6 +10,9 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { test, expect, type Page } from '@playwright/test';
+import { fsSrcUrl } from './helpers';
+
+const PRINT_STORAGE_URL = fsSrcUrl('packages/gallery-app/src/print/print-storage.ts');
 
 const HERE = fileURLToPath(new URL('.', import.meta.url));
 const PRINTER = JSON.parse(
@@ -18,12 +21,10 @@ const PRINTER = JSON.parse(
 
 /** Seed a printer preset straight into the store the print UI reads. */
 async function seedPrinter(page: Page, preset: typeof PRINTER): Promise<void> {
-  await page.evaluate(async (p) => {
-    const store = await import(
-      '/3d-gallery/@fs/home/max/git/3d-gallery/packages/gallery-app/src/print/print-storage.ts'
-    );
+  await page.evaluate(async ({ p, storeUrl }) => {
+    const store = await import(storeUrl);
     await store.savePreset({ kind: 'printer', name: p.name, raw: p.raw, parents: p.parents });
-  }, preset);
+  }, { p: preset, storeUrl: PRINT_STORAGE_URL });
 }
 
 /** Cards are addressed by their title, not by any text they happen to hold:

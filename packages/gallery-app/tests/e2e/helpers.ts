@@ -1,4 +1,18 @@
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { expect, type Page } from "@playwright/test";
+
+const REPO_ROOT = resolve(fileURLToPath(new URL(".", import.meta.url)), "..", "..", "..", "..");
+
+/**
+ * Vite's `@fs` URL for a repo source file, so a spec can pull a production
+ * module into the page. The path is absolute and machine-specific, so a spec
+ * must never spell one out: a literal that works on the machine that wrote it
+ * 404s on a CI runner.
+ */
+export function fsSrcUrl(repoRelative: string): string {
+  return `/3d-gallery/@fs${resolve(REPO_ROOT, repoRelative)}`;
+}
 
 export type ParamValue = string | number | boolean;
 

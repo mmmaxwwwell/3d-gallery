@@ -14,6 +14,10 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { test, expect } from '@playwright/test';
+import { fsSrcUrl } from './helpers';
+
+const TOOLKIT_URL = fsSrcUrl('packages/print-toolkit/src/index.ts');
+const PRESET_FLATTEN_URL = fsSrcUrl('packages/gallery-app/src/print/preset-flatten.ts');
 
 const HERE = fileURLToPath(new URL('.', import.meta.url));
 const FIX = (n: string) => JSON.parse(readFileSync(join(HERE, 'fixtures', n), 'utf8'));
@@ -53,13 +57,9 @@ test('sliced XYZ test cube fits in Flashforge Adventurer 5M bed after post-proce
   // Slice in-page using the real toolkit exports and the gallery-app's
   // preset-flatten helper (same production code path).
   const sliceResult = await page.evaluate(
-    async ({ printerFixture, filamentFixture, process }) => {
-      const toolkit = await import(
-        '/3d-gallery/@fs/home/max/git/3d-gallery/packages/print-toolkit/src/index.ts'
-      );
-      const flat = await import(
-        '/3d-gallery/@fs/home/max/git/3d-gallery/packages/gallery-app/src/print/preset-flatten.ts'
-      );
+    async ({ printerFixture, filamentFixture, process, toolkitUrl, flattenUrl }) => {
+      const toolkit = await import(toolkitUrl);
+      const flat = await import(flattenUrl);
 
       const meshRes = await fetch('/3d-gallery/models/test-cube-xyz/cube.stl');
       if (!meshRes.ok) throw new Error(`STL fetch failed: HTTP ${meshRes.status}`);
@@ -140,6 +140,8 @@ test('sliced XYZ test cube fits in Flashforge Adventurer 5M bed after post-proce
     {
       printerFixture: PRINTER,
       filamentFixture: FILAMENT,
+      toolkitUrl: TOOLKIT_URL,
+      flattenUrl: PRESET_FLATTEN_URL,
       process: {
         // Match the print-dialog defaults: 0.2 mm layer, 3 walls, 15% gyroid,
         // no supports, no brim, no skirt. `curr_bed_type = Hot Plate` picks
