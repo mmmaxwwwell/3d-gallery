@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { test, expect, type Page } from '@playwright/test';
-import { fsSrcUrl } from './helpers';
+import { fsSrcUrl, slicerWasmServed } from './helpers';
 
 const PRINT_STORAGE_URL = fsSrcUrl('packages/gallery-app/src/print/print-storage.ts');
 
@@ -33,11 +33,7 @@ test('slicing shows a cancellable progress overlay', async ({ page }) => {
   await page.reload();
 
   // Skip when the slicer WASM isn't served — there is no slice to cancel.
-  const wasmOk = await page.evaluate(async () => {
-    const res = await fetch('/3d-gallery/wasm/libslic3r.wasm', { method: 'HEAD' });
-    return res.ok;
-  });
-  test.skip(!wasmOk, 'slicer WASM assets not present');
+  test.skip(!(await slicerWasmServed(page)), 'slicer WASM assets not present');
 
   await page.waitForFunction(() => document.querySelectorAll('#model-list .model-item').length > 0);
   await page.locator('#model-list .model-item').first().click();

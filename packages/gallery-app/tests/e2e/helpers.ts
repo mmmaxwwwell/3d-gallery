@@ -14,6 +14,21 @@ export function fsSrcUrl(repoRelative: string): string {
   return `/3d-gallery/@fs${resolve(REPO_ROOT, repoRelative)}`;
 }
 
+/**
+ * Whether the slicer WASM is genuinely being served.
+ *
+ * A bare `res.ok` is not enough: the dev server answers an unknown path under
+ * the base with index.html, so a missing asset still returns 200 — and the
+ * slicer then chokes on HTML ("Unexpected token '<'") instead of skipping.
+ * Only the content type tells the two apart.
+ */
+export async function slicerWasmServed(page: Page): Promise<boolean> {
+  return page.evaluate(async () => {
+    const res = await fetch("/3d-gallery/wasm/libslic3r.wasm", { method: "HEAD" });
+    return res.ok && (res.headers.get("content-type") ?? "").includes("wasm");
+  });
+}
+
 export type ParamValue = string | number | boolean;
 
 export interface LoadOpts {

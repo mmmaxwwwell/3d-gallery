@@ -14,7 +14,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { test, expect } from '@playwright/test';
-import { fsSrcUrl } from './helpers';
+import { fsSrcUrl, slicerWasmServed } from './helpers';
 
 const TOOLKIT_URL = fsSrcUrl('packages/print-toolkit/src/index.ts');
 const PRESET_FLATTEN_URL = fsSrcUrl('packages/gallery-app/src/print/preset-flatten.ts');
@@ -48,11 +48,10 @@ test('sliced XYZ test cube fits in Flashforge Adventurer 5M bed after post-proce
   // to init. Populate `packages/print-toolkit/assets/` first (either
   // `npm run fetch-wasm -w @3d-gallery/print-toolkit` or copy from
   // `openscad-web-generator/result/`).
-  const wasmOk = await page.evaluate(async () => {
-    const res = await fetch('/3d-gallery/wasm/libslic3r.wasm', { method: 'HEAD' });
-    return res.ok;
-  });
-  test.skip(!wasmOk, 'libslic3r.wasm not served — populate packages/print-toolkit/assets first.');
+  test.skip(
+    !(await slicerWasmServed(page)),
+    'libslic3r.wasm not served — populate packages/print-toolkit/assets first.',
+  );
 
   // Slice in-page using the real toolkit exports and the gallery-app's
   // preset-flatten helper (same production code path).
