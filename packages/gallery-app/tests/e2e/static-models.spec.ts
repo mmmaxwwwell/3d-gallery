@@ -19,6 +19,7 @@ interface Model {
   slug: string;
   title: string;
   customizable?: boolean;
+  devOnly?: boolean;
   previews?: Part[];
   parts?: Part[];
 }
@@ -27,7 +28,8 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const MANIFEST_PATH = resolve(HERE, "..", "..", "..", "..", "models", "manifest.json");
 const manifest = JSON.parse(readFileSync(MANIFEST_PATH, "utf8")) as { models: Model[] };
 
-const staticModels = manifest.models.filter((m) => !m.customizable);
+// Dev-only models are never built or published, so CI has no artifact for them.
+const staticModels = manifest.models.filter((m) => !m.customizable && !m.devOnly);
 
 test.describe("static models / viewer", () => {
   for (const model of staticModels) {

@@ -337,38 +337,6 @@
       ]
     ]
   },
-  "ff5m-filament-sensor/body.stl": {
-    "format": "stl",
-    "triangleCount": 2390,
-    "bbox": [
-      [
-        -7.869,
-        -7.869,
-        0
-      ],
-      [
-        10.97,
-        10.97,
-        29.95
-      ]
-    ]
-  },
-  "ff5m-filament-sensor/cap.stl": {
-    "format": "stl",
-    "triangleCount": 280,
-    "bbox": [
-      [
-        -8,
-        -5,
-        0
-      ],
-      [
-        8,
-        5,
-        6.1
-      ]
-    ]
-  },
   "fi-mini-case/assembled.3mf": {
     "format": "3mf",
     "colors": [
@@ -570,22 +538,6 @@
         67.499,
         7.499,
         5.999
-      ]
-    ]
-  },
-  "osmo-remote-belt-mount/belt-mount.stl": {
-    "format": "stl",
-    "triangleCount": 2220,
-    "bbox": [
-      [
-        -3.495,
-        -10.745,
-        -20.495
-      ],
-      [
-        7.25,
-        10.745,
-        20.495
       ]
     ]
   },

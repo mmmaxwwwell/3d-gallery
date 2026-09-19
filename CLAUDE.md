@@ -62,6 +62,8 @@ The sidebar, download list, and build queue all come from here.
   "title": "…",
   "description": "…",
   "customizable": true,            // optional — enables the WASM customizer UI
+  "default": true,                 // optional — opens when the app loads with no ?model=
+  "devOnly": true,                 // optional — dev server only; never built or published
   "filament": [                    // optional — hints in the sidebar
     { "material": "PLA", "color": "any", "note": "…" }
   ],
@@ -85,6 +87,8 @@ The sidebar, download list, and build queue all come from here.
 - `format`: `"stl"` (single-color) or `"3mf"` (multicolor, top-level `color()` calls).
 - `module`: the lib module name to render live in the WASM customizer. Only needed when `customizable: true`.
 - `previews` = multicolor 3MFs, `parts` = single-color STLs. A part with just STL is fine; no preview is fine too.
+- `default` (model level): what the gallery opens on when the URL carries no `?model=`. At most one model may set it; without one the first model wins. The `default` on a part/preview picks which of *that* model's entries opens.
+- `devOnly`: a work-in-progress model. `scripts/build-models.mjs` builds a forge with `includeDevOnly: false`, so the model is never rendered, never mirrored into `public/`, and never named in the published `manifest.json` — which in turn keeps it out of the fingerprint baseline and the e2e suites (both filter it out). The dev server's forge keeps it, so `npm run dev` shows it as usual. Flip the flag to ship it.
 
 ## Adding a model — checklist
 

@@ -181,21 +181,6 @@
       ]
     },
     {
-      "slug": "osmo-remote-belt-mount",
-      "title": "Osmo Remote Belt Mount",
-      "description": "Belt-mount cradle for the YDW Bluetooth Remote Control for DJI Osmo Action cameras. Rear belt-loop slot keeps the shutter/record button reachable one-handed. Scaffold — geometry still to be finalized.",
-      "parts": [
-        { "file": "belt-mount.stl", "format": "stl", "label": "Belt-mount cradle" }
-      ],
-      "hardware": [
-        {
-          "qty": 1,
-          "label": "YDW Bluetooth Remote Control for DJI Osmo Action",
-          "source": { "url": "https://www.amazon.com/dp/B0GF1RWSR2", "vendor": "Amazon" }
-        }
-      ]
-    },
-    {
       "slug": "parametric-shelf",
       "title": "Parametric Shelf",
       "description": "Open-frame shelf, printed as a single piece — two side walls with solid corner columns and a hex-lattice interior, capped by a solid top plate. Triangular gussets brace the four internal top corners. Adjust the width, depth, height, wall / top thickness, hex cell size, and gusset length to fit your space.",
@@ -206,6 +191,7 @@
     },
     {
       "slug": "ff5m-filament-sensor",
+      "devOnly": true,
       "title": "Flashforge Adventurer 5M Filament Sensor",
       "description": "Ball-plunger filament runout sensor for the Flashforge Adventurer 5M. Two-piece 64D TPU: a body that slips over the 7 mm print-head boss (held by one M3 self-tapping screw), and a cap that mounts a D2F-01F pin-plunger microswitch with two M2 screws which also fasten the switch through its own mount holes. A ball bearing rides in a 40°-tilted pocket tangent to the 1.75 mm filament surface and drops 0.65 mm when filament runs out, releasing the switch. Top of the body accepts a 4 mm-OD PTFE tube (12 mm grip) with a 45° funnel down to the filament bore.",
       "customizable": true,
@@ -312,11 +298,12 @@
     },
     {
       "slug": "under-desk-cord-protector",
+      "default": true,
       "title": "Under-Desk Cord Protector",
       "description": "Modular cord cradle that screws to the underside of a desk. The profile drops 3 in straight down, then wraps the outside of a 6 in circle for 135° (90 + 45) so cords leaving the desk are supported through the bend instead of kinked over an edge. 8 mm thick throughout. Each 150 mm segment interlocks with the next through a rib-and-groove joint that follows the whole profile — print as many as your desk is wide. Three screws per segment pass through the vertical wall itself — an angled round recess bored in from the cord side takes a #6 × 5/8 in pan-head screw driven straight up into the desktop, with its head bearing on the 2 mm of plastic left below the desk face, so the outside face stays solid and nothing protrudes into the cord channel. An optional prop finishes the half circle at the cradle's tip and runs straight up to the desk — a narrow beam, a solid full-width panel, or a hex screen — closing the tube and taking the sag out of a long run. It bolts onto the shell with M5 × 8 button heads driven into the plastic, in a half-lap that keeps the joint the same thickness as the rest of the tube, so it goes on after the cords are laid in, and takes the desk screws the same way the wall does — recessed and angled, here toward the outside of the tube so a driver can still reach them once it is closed. Prints standing on the grooved end with no supports.",
       "customizable": true,
       "previews": [
-        { "file": "assembled.3mf", "format": "3mf", "label": "Three segments", "default": true, "module": "assembled",
+        { "file": "assembled.3mf", "format": "3mf", "label": "Three segments", "module": "assembled",
           "legend": [
             { "color": "#00eaff", "label": "Segment 1", "part": "segment.stl" },
             { "color": "#39ff14", "label": "Segment 2", "part": "segment.stl" },
@@ -346,7 +333,7 @@
             { "part": "prop-screen.stl", "qty": 2 }
           ]
         },
-        { "file": "propped.3mf", "format": "3mf", "label": "Segments with props", "module": "propped",
+        { "file": "propped.3mf", "format": "3mf", "label": "Segments with props", "default": true, "module": "propped",
           "legend": [
             { "color": "#00eaff", "label": "Segments", "part": "segment.stl" },
             { "color": "#2b5cff", "label": "Segment with hex openings", "part": "segment-screen.stl" },

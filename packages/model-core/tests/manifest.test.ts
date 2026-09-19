@@ -89,6 +89,15 @@ describe('validateManifest', () => {
     expect(issues.some((i) => i.includes('at most one is allowed'))).toBe(true);
   });
 
+  it('rejects more than one default model', () => {
+    const issues = issuesOf({ models: [model({ default: true }), model({ slug: 'other', default: true })] });
+    expect(issues.some((i) => i.includes('models marked "default"'))).toBe(true);
+  });
+
+  it('rejects a non-boolean devOnly', () => {
+    expect(issuesOf({ models: [model({ devOnly: 'yes' })] })).toEqual(['thing: "devOnly" must be a boolean']);
+  });
+
   it('rejects a module name that could escape a path', () => {
     const issues = issuesOf({ models: [model({ parts: [part({ module: '../x' })] })] });
     expect(issues.some((i) => i.includes('"module" must match'))).toBe(true);

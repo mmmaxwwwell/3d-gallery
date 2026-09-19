@@ -107,7 +107,9 @@ async function emitArtifacts(forge, models) {
 }
 
 async function main() {
-  const forge = createForge({ root: ROOT, artifactBase: ARTIFACT_BASE });
+  // Publishing forge: `devOnly` models are dropped, so they are never rendered,
+  // never mirrored into public/, and never named in the manifest the site ships.
+  const forge = createForge({ root: ROOT, artifactBase: ARTIFACT_BASE, includeDevOnly: false });
   const manifest = forge.manifest;
 
   if (manifest.models.length === 0) {
@@ -135,7 +137,17 @@ async function main() {
 
   // A full build owns the whole tree, so stale keys from an earlier source
   // revision go away. A single-slug build leaves the other models' copies alone.
-  if (requested.length === 0) rmSync(PUBLIC_ARTIFACTS_DIR, { recursive: true, force: true });
+  if (requested.length === 0) {
+    rmSync(PUBLIC_ARTIFACTS_DIR, { recursive: true, force: true });
+    // Same for a model that has left the manifest — or turned dev-only — since
+    // the last build: its copy would otherwise keep being served and precached.
+    const published = new Set(manifest.models.map((m) => m.slug));
+    for (const entry of readdirSync(PUBLIC_MODELS_DIR, { withFileTypes: true })) {
+      if (entry.isDirectory() && !published.has(entry.name)) {
+        rmSync(join(PUBLIC_MODELS_DIR, entry.name), { recursive: true, force: true });
+      }
+    }
+  }
 
   const started = Date.now();
   await Promise.all(models.map((model) => {

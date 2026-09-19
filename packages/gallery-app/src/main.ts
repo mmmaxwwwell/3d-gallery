@@ -173,6 +173,10 @@ interface Model {
   title: string;
   description?: string;
   customizable?: boolean;
+  /** Opened when the app loads without a route. */
+  default?: boolean;
+  /** Work in progress — a published manifest never carries one. */
+  devOnly?: boolean;
   previews?: Part[];
   parts?: Part[];
   hardware?: HardwareItem[];
@@ -1550,9 +1554,16 @@ function navigateToRoute(route: ReturnType<typeof getRouteFromUrl>, skipPush = f
   return true;
 }
 
+/** What opens when there is no route: the manifest's default model, else the first. */
+function landingModel(): Model | undefined {
+  return models.find((m) => m.default) ?? models[0];
+}
+
 function renderSidebar(manifest: Manifest) {
   modelListEl.innerHTML = "";
-  models = manifest.models;
+  // A published manifest already omits dev-only models. This keeps them out of
+  // any other host that serves the dev middleware's manifest instead.
+  models = manifest.models.filter((m) => import.meta.env.DEV || !m.devOnly);
 
   for (const model of models) {
     const item = document.createElement("div");
@@ -1567,10 +1578,8 @@ function renderSidebar(manifest: Manifest) {
   const route = getRouteFromUrl();
   if (route && navigateToRoute(route, true)) return;
 
-  // Otherwise select first model
-  if (models.length > 0) {
-    selectModel(models[0], undefined, { skipPush: true });
-  }
+  const landing = landingModel();
+  if (landing) selectModel(landing, undefined, { skipPush: true });
 }
 
 // Handle browser back/forward
@@ -1578,8 +1587,9 @@ window.addEventListener("popstate", () => {
   const route = getRouteFromUrl();
   if (route) {
     navigateToRoute(route, true);
-  } else if (models.length > 0) {
-    selectModel(models[0], undefined, { skipPush: true });
+  } else {
+    const landing = landingModel();
+    if (landing) selectModel(landing, undefined, { skipPush: true });
   }
 });
 

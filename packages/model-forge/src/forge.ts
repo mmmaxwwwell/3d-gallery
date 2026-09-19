@@ -27,6 +27,8 @@ export interface ForgeConfig {
   modelsDir?: string;
   /** Pass a manifest directly, or let it load from `<modelsDir>/manifest.json`. */
   manifest?: Manifest;
+  /** Keep `devOnly` models. On for a dev server; off for a build that publishes. */
+  includeDevOnly?: boolean;
   /** Defaults to `<root>/.cache/forge`. */
   cacheDir?: string;
   engine?: EngineChoice;
@@ -114,9 +116,16 @@ export function createForge(config: ForgeConfig) {
   const timeoutMs = config.timeoutMs ?? 120_000;
   const negativeTtlMs = config.negativeTtlMs ?? 60_000;
 
-  const manifest: Manifest = config.manifest
+  const authored: Manifest = config.manifest
     ? validateManifest(config.manifest)
     : validateManifest(JSON.parse(readFileSync(join(modelsDir, 'manifest.json'), 'utf8')));
+
+  // Dropped at the door rather than at each consumer, so nothing downstream —
+  // the part index, the declared requests, the runtime manifest — can publish a
+  // dev-only model by forgetting to filter.
+  const manifest: Manifest = (config.includeDevOnly ?? true)
+    ? authored
+    : { ...authored, models: authored.models.filter((m) => !m.devOnly) };
 
   const store: Store = createStore(cacheDir);
   const sources = createSourceCache(root);

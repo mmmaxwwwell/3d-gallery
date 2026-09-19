@@ -56,6 +56,14 @@ export interface ManifestModel {
   title: string;
   description: string;
   customizable?: boolean;
+  /** Opened when the gallery loads without a route. At most one model may set it. */
+  default?: boolean;
+  /**
+   * Work in progress: served by a dev server, never built or published. The
+   * production build drops it from the manifest it emits, so nothing
+   * downstream — artifacts, fingerprint baseline, e2e coverage — sees it.
+   */
+  devOnly?: boolean;
   filament?: FilamentHint[];
   previews?: ManifestPart[];
   parts?: ManifestPart[];
@@ -190,6 +198,7 @@ export function validateManifest(raw: unknown): Manifest {
   if (!Array.isArray(raw.models)) throw new ManifestError(['manifest: "models" must be an array']);
 
   const seenSlugs = new Set<string>();
+  let defaultModels = 0;
 
   raw.models.forEach((model, i) => {
     const where = `models[${i}]`;
@@ -214,6 +223,13 @@ export function validateManifest(raw: unknown): Manifest {
       }
     }
 
+    for (const flag of ['default', 'devOnly'] as const) {
+      if (model[flag] !== undefined && typeof model[flag] !== 'boolean') {
+        issues.push(`${label}: "${flag}" must be a boolean`);
+      }
+    }
+    if (model.default === true) defaultModels++;
+
     const seenFiles = new Map<string, string>();
     let defaults = 0;
     for (const group of ['previews', 'parts'] as const) {
@@ -233,6 +249,10 @@ export function validateManifest(raw: unknown): Manifest {
       issues.push(`${label}: ${defaults} entries marked "default" — at most one is allowed`);
     }
   });
+
+  if (defaultModels > 1) {
+    issues.push(`manifest: ${defaultModels} models marked "default" — at most one is allowed`);
+  }
 
   if (issues.length > 0) throw new ManifestError(issues);
   return raw as unknown as Manifest;

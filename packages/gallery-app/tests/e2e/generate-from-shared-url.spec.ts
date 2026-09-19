@@ -37,6 +37,7 @@ interface Model {
   slug: string;
   title: string;
   customizable?: boolean;
+  devOnly?: boolean;
   previews?: Part[];
   parts?: Part[];
 }
@@ -54,7 +55,8 @@ const PRIMARY_PARAM: Record<string, { name: string; value: string }> = {
   "fi-mini-case": { name: "qr_code_text", value: "Rex 555-1234" },
 };
 
-const customizable = manifest.models.filter((m) => m.customizable);
+// Dev-only models are never built or published, so CI has no artifact for them.
+const customizable = manifest.models.filter((m) => m.customizable && !m.devOnly);
 
 test.describe("shared-URL generate (copy-URL, open-in-new-window flow)", () => {
   for (const model of customizable) {

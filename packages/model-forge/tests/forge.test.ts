@@ -50,6 +50,21 @@ describe('createForge', () => {
     expect(passed.manifest.models[0].slug).toBe('fixture-cube');
   });
 
+  it('drops dev-only models when the caller is publishing', () => {
+    const authored = JSON.parse(readFileSync(join(root, 'models', 'manifest.json'), 'utf8'));
+    authored.models[0].devOnly = true;
+    const publishing = createForge({
+      root,
+      cacheDir: join(root, '.cache2'),
+      manifest: authored,
+      includeDevOnly: false,
+    });
+    expect(publishing.manifest.models).toEqual([]);
+    expect(publishing.declaredRequests()).toEqual([]);
+    expect(createForge({ root, cacheDir: join(root, '.cache3'), manifest: authored }).manifest.models)
+      .toHaveLength(1);
+  });
+
   it('rejects an unknown slug', () => {
     expect(() => forge.shapeFor('nope', 'box')).toThrow(UnknownModelError);
   });
