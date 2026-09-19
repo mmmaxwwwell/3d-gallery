@@ -1,0 +1,800 @@
+import * as THREE from "three";
+import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
+import { ThreeMFLoader } from "three/examples/jsm/loaders/3MFLoader.js";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+
+export type ModelFormat = "stl" | "3mf";
+
+export interface LoadOptions {
+  /** Keep the current camera position + orbit target. Near/far are still
+   *  updated so the new geometry doesn't clip. Used for HMR reloads. */
+  preserveView?: boolean;
+}
+
+export interface HoverInfo {
+  /** Normalized #rrggbb of the hovered mesh's color, in sRGB (matches the manifest). */
+  color: string;
+  /** Container-relative screen position of the hovered mesh's projected center. */
+  screenX: number;
+  screenY: number;
+}
+
+export interface HighlightState {
+  /** sRGB hex of the piece under the cursor. It alone gets the brightness lift. */
+  hover?: string | null;
+  /** sRGB hexes of the sibling pieces of the same part. They get the neon glow. */
+  glow?: string[];
+}
+
+export interface Viewer {
+  load(data: ArrayBuffer, format: ModelFormat, opts?: LoadOptions): void;
+  clear(): void;
+  dispose(): void;
+  /** Listen for mesh-hover events. Passes null when the cursor leaves any mesh. */
+  onHover(cb: (info: HoverInfo | null) => void): () => void;
+  /** Listen for mesh-click events (sRGB hex of the clicked mesh). */
+  onClick(cb: (color: string) => void): () => void;
+  /** Paint the hovered piece bright and its siblings with a glow. */
+  setHighlight(state: HighlightState): void;
+  /** sRGB hexes of every distinct piece colour in the loaded model. */
+  getPartColors(): string[];
+  /** Container-relative projected screen position of the mesh matching `hex`. */
+  getScreenPositionForColor(hex: string): { x: number; y: number } | null;
+  /**
+   * Serialize the mesh whose sRGB color matches `hex` to a binary STL buffer,
+   * with its XY bbox recentered on the origin and its minZ dropped to 0 —
+   * ready to drop into a slicer or the local cache as a printable piece.
+   * Returns null if no mesh matches.
+   */
+  getMeshStlByColor(hex: string): ArrayBuffer | null;
+}
+
+const DEFAULT_FACE = 0x00d5ff;
+
+/**
+ * Normalized `#rrggbb` for a material colour, in sRGB — the same encoding the
+ * .3mf stores. `getHexString` already converts out of the working (linear)
+ * space, so converting first would apply gamma twice and every mid-tone would
+ * read back a shade too bright (black and white, being fixed points, would
+ * still look correct — which is how that hides).
+ */
+function toSrgbHex(color: THREE.Color): string {
+  return "#" + color.getHexString();
+}
+
+/**
+ * Retrowave sunset as an equirectangular canvas texture. Used as the scene
+ * background so it sits at infinity and swings with the camera orbit instead
+ * of being painted flat behind the canvas.
+ *
+ * Canvas rows map top→zenith and the midpoint to the horizon, so the sun is
+ * drawn straddling y = H/2 and the ground gradient is painted over its lower
+ * half — that clip is what gives the disc its horizon-cut look.
+ */
+function makeSunsetTexture(): THREE.CanvasTexture {
+  const W = 2048;
+  const H = 1024;
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext("2d")!;
+  // Eye level — v = 0.5 is the one row that projects to a straight horizon
+  // whatever way the camera is turned. The default camera elevation below is
+  // shallow enough to keep it in frame.
+  const horizon = H / 2;
+
+  // Stops bunch up at the horizon on purpose: the camera looks down at the
+  // model, so only the first ten or so degrees of sky are ever in frame and
+  // that is where the whole gradient has to happen.
+  const sky = ctx.createLinearGradient(0, 0, 0, horizon);
+  sky.addColorStop(0, "#02000a");
+  sky.addColorStop(0.7, "#0d0230");
+  sky.addColorStop(0.88, "#2e0655");
+  sky.addColorStop(0.95, "#6d0f6e");
+  sky.addColorStop(0.985, "#c01480");
+  sky.addColorStop(1, "#ff3d7a");
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, W, horizon);
+
+  // Deterministic star field — a seeded LCG keeps the backdrop identical
+  // across reloads, so a screenshot diff of the viewer stays meaningful.
+  let seed = 0x5eed;
+  const rand = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 0xffffffff);
+  ctx.fillStyle = "#ffffff";
+  for (let i = 0; i < 280; i++) {
+    const x = rand() * W;
+    const y = rand() * horizon * 0.72;
+    ctx.globalAlpha = 0.25 + rand() * 0.55;
+    ctx.fillRect(x, y, 2, 2);
+  }
+  ctx.globalAlpha = 1;
+
+  // Equirect u maps +X to 0.5; the default camera sits at (+x, +y, +z) looking
+  // back at the origin, so u = 0.125 puts the sun dead ahead on first paint.
+  const sunX = W * 0.125;
+  const sunR = 80;
+  const sunY = horizon - sunR * 0.2;
+  const disc = ctx.createLinearGradient(0, sunY - sunR, 0, sunY + sunR);
+  disc.addColorStop(0, "#ffe600");
+  disc.addColorStop(0.3, "#ff8a00");
+  disc.addColorStop(0.7, "#ff17c7");
+  disc.addColorStop(1, "#a021ff");
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(sunX, sunY, sunR, 0, Math.PI * 2);
+  ctx.clip();
+  ctx.fillStyle = disc;
+  ctx.fillRect(sunX - sunR, sunY - sunR, sunR * 2, sunR * 2);
+  // Slats: thicker and closer together toward the bottom of the disc.
+  ctx.fillStyle = "#12022e";
+  for (let i = 0, y = sunY - sunR * 0.3; y < sunY + sunR; i++) {
+    const band = 3 + i * 1.6;
+    ctx.fillRect(sunX - sunR, y, sunR * 2, band);
+    y += band + Math.max(4, 22 - i * 2.4);
+  }
+  ctx.restore();
+
+  const glow = ctx.createRadialGradient(sunX, horizon, 0, sunX, horizon, sunR * 2.6);
+  glow.addColorStop(0, "rgba(255, 23, 199, 0.28)");
+  glow.addColorStop(1, "rgba(255, 23, 199, 0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(sunX - sunR * 2.6, horizon - sunR * 2.6, sunR * 5.2, sunR * 5.2);
+
+  // Scenery draws from its own LCG rather than the star field's: pulling from
+  // that one would shift every star and void any screenshot baseline.
+  let landSeed = 0x1a2d;
+  const landRand = () => ((landSeed = (landSeed * 1664525 + 1013904223) >>> 0) / 0xffffffff);
+
+  // u wraps at x = W, so a span crossing either edge is painted a second time a
+  // full width away — without it the seam shows up as a sliced silhouette.
+  const drawWrapped = (left: number, right: number, paint: () => void) => {
+    paint();
+    const shift = right > W ? -W : left < 0 ? W : 0;
+    if (shift === 0) return;
+    ctx.save();
+    ctx.translate(shift, 0);
+    paint();
+    ctx.restore();
+  };
+
+  // Both silhouettes land before the ground gradient, which gives their skirts
+  // the same horizon cut the sun disc gets. Crests stay inside ~55px of the
+  // horizon because that is the sliver of sky the camera actually frames.
+  const skirt = horizon + 14;
+
+  const ridgeSpan = W / 3;
+  const ridgeLeft = W * (0.125 + 1 / 3) - ridgeSpan / 2;
+  const ridges: Array<{ peak: number; teeth: number; fill: string; rim: string; alpha: number }> = [
+    { peak: 34, teeth: 11, fill: "#3d0b57", rim: "#ff2e6e", alpha: 0.8 },
+    { peak: 44, teeth: 8, fill: "#250641", rim: "#a021ff", alpha: 0.92 },
+    { peak: 54, teeth: 6, fill: "#12022e", rim: "#00eaff", alpha: 1 },
+  ];
+  for (const layer of ridges) {
+    const steps = layer.teeth * 2;
+    const crest: Array<[number, number]> = [];
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const taper = Math.min(1, Math.sin(Math.PI * t) * 1.7);
+      const h =
+        i % 2 === 1
+          ? layer.peak * (0.6 + landRand() * 0.4)
+          : layer.peak * (0.1 + landRand() * 0.25);
+      crest.push([ridgeLeft + t * ridgeSpan, horizon - h * taper]);
+    }
+    drawWrapped(ridgeLeft, ridgeLeft + ridgeSpan, () => {
+      ctx.globalAlpha = layer.alpha;
+      ctx.beginPath();
+      ctx.moveTo(crest[0][0], skirt);
+      for (const [x, y] of crest) ctx.lineTo(x, y);
+      ctx.lineTo(crest[crest.length - 1][0], skirt);
+      ctx.closePath();
+      ctx.fillStyle = layer.fill;
+      ctx.fill();
+      ctx.globalAlpha = layer.alpha * 0.5;
+      ctx.beginPath();
+      for (const [x, y] of crest) ctx.lineTo(x, y);
+      ctx.strokeStyle = layer.rim;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    });
+  }
+
+  const forestSpan = W / 3;
+  const forestCenter = W * (0.125 + 2 / 3);
+  const forestLeft = forestCenter - forestSpan / 2;
+  const pineRows: Array<Array<{ x: number; w: number; h: number }>> = [[], []];
+  pineRows.forEach((row, depth) => {
+    const step = depth === 0 ? 9 : 7;
+    for (let x = forestLeft; x <= forestLeft + forestSpan; x += step) {
+      const t = (x - forestLeft) / forestSpan;
+      const taper = Math.min(1, Math.sin(Math.PI * t) * 1.9);
+      const h = depth === 0 ? 8 + landRand() * 11 : 12 + landRand() * 16;
+      row.push({ x: x + landRand() * step * 0.6, w: 3 + landRand() * 2.4, h: h * taper });
+    }
+  });
+  const tracePine = (tree: { x: number; w: number; h: number }) => {
+    ctx.moveTo(tree.x - tree.w, skirt);
+    ctx.lineTo(tree.x - tree.w * 0.58, horizon - tree.h * 0.44);
+    ctx.lineTo(tree.x - tree.w * 0.86, horizon - tree.h * 0.4);
+    ctx.lineTo(tree.x, horizon - tree.h);
+    ctx.lineTo(tree.x + tree.w * 0.86, horizon - tree.h * 0.4);
+    ctx.lineTo(tree.x + tree.w * 0.58, horizon - tree.h * 0.44);
+    ctx.lineTo(tree.x + tree.w, skirt);
+    ctx.closePath();
+  };
+  drawWrapped(forestLeft, forestLeft + forestSpan, () => {
+    // Squashing the radial turns it into a haze band hugging the horizon; a
+    // round one at this width would tower far above the treeline.
+    ctx.save();
+    ctx.translate(forestCenter, horizon);
+    ctx.scale(1, 0.075);
+    const haze = ctx.createRadialGradient(0, 0, 0, 0, 0, forestSpan * 0.6);
+    haze.addColorStop(0, "rgba(0, 234, 255, 0.15)");
+    haze.addColorStop(1, "rgba(0, 234, 255, 0)");
+    ctx.fillStyle = haze;
+    ctx.fillRect(-forestSpan * 0.6, -forestSpan * 0.6, forestSpan * 1.2, forestSpan * 1.2);
+    ctx.restore();
+
+    pineRows.forEach((row, depth) => {
+      ctx.beginPath();
+      for (const tree of row) tracePine(tree);
+      ctx.fillStyle = depth === 0 ? "#26073d" : "#12022e";
+      ctx.fill();
+    });
+    ctx.globalAlpha = 0.22;
+    ctx.beginPath();
+    for (const tree of pineRows[1]) tracePine(tree);
+    ctx.strokeStyle = "#39ff14";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  });
+
+  const ground = ctx.createLinearGradient(0, horizon, 0, H);
+  ground.addColorStop(0, "#6b0c58");
+  ground.addColorStop(0.06, "#280442");
+  ground.addColorStop(0.3, "#0b0119");
+  ground.addColorStop(1, "#000000");
+  ctx.fillStyle = ground;
+  ctx.fillRect(0, horizon, W, H - horizon);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.mapping = THREE.EquirectangularReflectionMapping;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+function addEdgeLines(mesh: THREE.Mesh, faceColor: THREE.Color): THREE.LineSegments {
+  const edges = new THREE.EdgesGeometry(mesh.geometry, 30);
+  const inverted = new THREE.Color(1 - faceColor.r, 1 - faceColor.g, 1 - faceColor.b);
+  const lineMat = new THREE.LineBasicMaterial({ color: inverted, transparent: true, opacity: 0.35 });
+  const lines = new THREE.LineSegments(edges, lineMat);
+  mesh.add(lines);
+  return lines;
+}
+
+const HIGHLIGHT_WHITE = new THREE.Color(0xffffff);
+/** Shared glow hue, so "this piece belongs with the one you are pointing at"
+ *  reads the same whatever colour the piece itself is — including black. */
+const GLOW_TINT = new THREE.Color(0xff17c7);
+
+/**
+ * The 3MFLoader produces a single vertex-colored mesh per <object> — all
+ * cells of an assembled preview end up sharing one white MeshPhongMaterial
+ * with per-vertex color data. Split those meshes so each unique color
+ * becomes its own solid-color Mesh; that's what lets hover / highlight
+ * key off `material.color`.
+ */
+function splitVertexColoredMesh(mesh: THREE.Mesh): THREE.Mesh[] {
+  const geo = mesh.geometry;
+  const posAttr = geo.getAttribute("position") as THREE.BufferAttribute;
+  const colorAttr = geo.getAttribute("color") as THREE.BufferAttribute | undefined;
+  if (!posAttr || !colorAttr) return [mesh];
+
+  // The pipeline writes flat per-triangle color (all three verts of a
+  // triangle share the same p-index), so keying off vertex 0 of each
+  // triangle correctly groups the whole tri.
+  const groups = new Map<string, { positions: number[]; r: number; g: number; b: number }>();
+  const triCount = Math.floor(posAttr.count / 3);
+  for (let t = 0; t < triCount; t++) {
+    const v0 = t * 3;
+    const r = colorAttr.getX(v0);
+    const g = colorAttr.getY(v0);
+    const b = colorAttr.getZ(v0);
+    const key = `${r.toFixed(5)},${g.toFixed(5)},${b.toFixed(5)}`;
+    let group = groups.get(key);
+    if (!group) {
+      group = { positions: [], r, g, b };
+      groups.set(key, group);
+    }
+    for (let v = 0; v < 3; v++) {
+      const vi = v0 + v;
+      group.positions.push(posAttr.getX(vi), posAttr.getY(vi), posAttr.getZ(vi));
+    }
+  }
+
+  const out: THREE.Mesh[] = [];
+  for (const [, group] of groups) {
+    const newGeo = new THREE.BufferGeometry();
+    newGeo.setAttribute("position", new THREE.Float32BufferAttribute(group.positions, 3));
+    newGeo.computeVertexNormals();
+    const color = new THREE.Color(group.r, group.g, group.b); // still linear
+    const material = new THREE.MeshPhongMaterial({
+      color,
+      specular: 0x222222,
+      shininess: 40,
+      flatShading: true,
+    });
+    const newMesh = new THREE.Mesh(newGeo, material);
+    newMesh.position.copy(mesh.position);
+    newMesh.rotation.copy(mesh.rotation);
+    newMesh.scale.copy(mesh.scale);
+    out.push(newMesh);
+  }
+  return out;
+}
+
+export function createViewer(container: HTMLElement): Viewer {
+  const scene = new THREE.Scene();
+  scene.background = makeSunsetTexture();
+
+  const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 10000);
+  camera.position.set(100, 100, 100);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(container.clientWidth, container.clientHeight);
+  container.appendChild(renderer.domElement);
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.1;
+
+  // Near-white key so filament colours read true, with a violet ambient and a
+  // cyan rim: the neon comes off the scene, not out of the model's own colour.
+  //
+  // The ambient is the floor a face gets when it points away from both
+  // directionals, so it sets how a part reads *unhighlighted*. Dark and
+  // saturated, it rendered those faces as near-black violet — legible only
+  // once hover or glow added emissive on top. Bright and near-neutral, they
+  // read as the filament's own colour. The key drops to match: ambient + key
+  // now lands just under clipping on a white filament, where before the lit
+  // side blew out and the shadow side vanished.
+  scene.add(new THREE.AmbientLight(0x7a6d8a));
+  const key = new THREE.DirectionalLight(0xfff0ff, 0.8);
+  key.position.set(1, 1, 1).normalize();
+  scene.add(key);
+  const back = new THREE.DirectionalLight(0x00eaff, 0.55);
+  back.position.set(-1, -0.5, -1).normalize();
+  scene.add(back);
+
+  scene.add(new THREE.GridHelper(200, 20, 0xff2e6e, 0x39ff14));
+
+  let currentGroup: THREE.Group | null = null;
+
+  interface TrackedMesh {
+    mesh: THREE.Mesh;
+    material: THREE.MeshPhongMaterial;
+    baseColor: THREE.Color;
+    baseEmissive: THREE.Color;
+    edges: THREE.LineSegments | null;
+    edgeColor: THREE.Color;
+    edgeOpacity: number;
+    color: string;
+  }
+  // A colour can appear in more than one 3MF object, so this is one-to-many.
+  const meshesByColor = new Map<string, TrackedMesh[]>();
+  const trackedByMesh = new Map<THREE.Mesh, TrackedMesh>();
+  let painted: TrackedMesh[] = [];
+
+  const hoverListeners = new Set<(info: HoverInfo | null) => void>();
+  const clickListeners = new Set<(color: string) => void>();
+
+  function paint(t: TrackedMesh, state: "base" | "glow" | "hover") {
+    if (state === "hover") {
+      t.material.color.copy(t.baseColor).lerp(HIGHLIGHT_WHITE, 0.38);
+      t.material.emissive.copy(t.baseColor).multiplyScalar(0.18);
+    } else if (state === "glow") {
+      t.material.color.copy(t.baseColor);
+      // Self-illuminate in the piece's own hue, so a glowing part still reads
+      // as the colour its swatch shows. A piece too dark to light itself —
+      // black cap bodies, dark grey gaskets — falls back to the shared tint.
+      t.material.emissive.copy(t.baseColor).multiplyScalar(0.5);
+      const lit = t.material.emissive;
+      if (lit.r + lit.g + lit.b < 0.12) lit.copy(GLOW_TINT).multiplyScalar(0.35);
+    } else {
+      t.material.color.copy(t.baseColor);
+      t.material.emissive.copy(t.baseEmissive);
+    }
+    t.material.needsUpdate = true;
+    if (!t.edges) return;
+    const lineMat = t.edges.material as THREE.LineBasicMaterial;
+    if (state === "base") {
+      lineMat.color.copy(t.edgeColor);
+      lineMat.opacity = t.edgeOpacity;
+    } else {
+      lineMat.color.copy(state === "hover" ? HIGHLIGHT_WHITE : GLOW_TINT);
+      lineMat.opacity = 0.9;
+    }
+  }
+
+  function setHighlight(state: HighlightState) {
+    for (const t of painted) paint(t, "base");
+    painted = [];
+    const hover = state.hover ? state.hover.toLowerCase() : null;
+    const glow = new Set((state.glow ?? []).map((c) => c.toLowerCase()));
+    if (hover) glow.delete(hover);
+    for (const color of glow) {
+      for (const t of meshesByColor.get(color) ?? []) {
+        paint(t, "glow");
+        painted.push(t);
+      }
+    }
+    if (hover) {
+      for (const t of meshesByColor.get(hover) ?? []) {
+        paint(t, "hover");
+        painted.push(t);
+      }
+    }
+  }
+
+  function projectMeshScreen(mesh: THREE.Mesh): { x: number; y: number } | null {
+    if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+    const center = new THREE.Vector3();
+    mesh.geometry.boundingBox!.getCenter(center);
+    mesh.updateWorldMatrix(true, false);
+    center.applyMatrix4(mesh.matrixWorld);
+    center.project(camera);
+    if (center.z < -1 || center.z > 1) return null;
+    const canvasRect = renderer.domElement.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    const x = (center.x + 1) * 0.5 * canvasRect.width + (canvasRect.left - containerRect.left);
+    const y = (-center.y + 1) * 0.5 * canvasRect.height + (canvasRect.top - containerRect.top);
+    return { x, y };
+  }
+
+  const raycaster = new THREE.Raycaster();
+  const pointer = new THREE.Vector2();
+  let pointerInside = false;
+
+  function updateHover() {
+    if (!pointerInside || !currentGroup) {
+      for (const cb of hoverListeners) cb(null);
+      return;
+    }
+    raycaster.setFromCamera(pointer, camera);
+    const targets: THREE.Mesh[] = [];
+    currentGroup.traverse((c) => {
+      if (c instanceof THREE.Mesh) targets.push(c);
+    });
+    const hits = raycaster.intersectObjects(targets, false);
+    const hitMesh = hits.length > 0 ? (hits[0].object as THREE.Mesh) : null;
+    // Keyed off the mesh, not its current material colour — highlighting
+    // mutates that colour, and the lookup has to survive it.
+    const tracked = hitMesh ? trackedByMesh.get(hitMesh) : undefined;
+    if (!tracked) {
+      for (const cb of hoverListeners) cb(null);
+      return;
+    }
+    const proj = projectMeshScreen(tracked.mesh);
+    const info: HoverInfo = {
+      color: tracked.color,
+      screenX: proj?.x ?? 0,
+      screenY: proj?.y ?? 0,
+    };
+    for (const cb of hoverListeners) cb(info);
+  }
+
+  function onPointerMove(ev: PointerEvent) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    pointer.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
+    pointer.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
+    pointerInside = true;
+    updateHover();
+  }
+  function onPointerLeave() {
+    pointerInside = false;
+    updateHover();
+  }
+  renderer.domElement.addEventListener("pointermove", onPointerMove);
+  renderer.domElement.addEventListener("pointerleave", onPointerLeave);
+
+  // Listen on the WINDOW (not the canvas) with a target-filter — OrbitControls
+  // captures pointer events on the canvas which was suppressing compat
+  // mouse events from firing there. Window-level pointerdown/pointerup
+  // still see the events after they bubble past the capturing element.
+  const CLICK_DRAG_TOLERANCE_PX = 6;
+  let mouseDownAt: { x: number; y: number } | null = null;
+  function isOverCanvas(ev: MouseEvent | PointerEvent): boolean {
+    const rect = renderer.domElement.getBoundingClientRect();
+    return (
+      ev.clientX >= rect.left &&
+      ev.clientX <= rect.right &&
+      ev.clientY >= rect.top &&
+      ev.clientY <= rect.bottom
+    );
+  }
+  function onWinPointerDown(ev: PointerEvent) {
+    if (ev.button !== 0) return;
+    if (!isOverCanvas(ev)) return;
+    mouseDownAt = { x: ev.clientX, y: ev.clientY };
+  }
+  function onWinPointerUp(ev: PointerEvent) {
+    if (ev.button !== 0 || !mouseDownAt) return;
+    const dx = ev.clientX - mouseDownAt.x;
+    const dy = ev.clientY - mouseDownAt.y;
+    const wasClick = dx * dx + dy * dy <= CLICK_DRAG_TOLERANCE_PX * CLICK_DRAG_TOLERANCE_PX;
+    mouseDownAt = null;
+    if (!wasClick) return;
+    if (!isOverCanvas(ev)) return;
+    if (!currentGroup || clickListeners.size === 0) return;
+    const rect = renderer.domElement.getBoundingClientRect();
+    pointer.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
+    pointer.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(pointer, camera);
+    const targets: THREE.Mesh[] = [];
+    currentGroup.traverse((c) => {
+      if (c instanceof THREE.Mesh) targets.push(c);
+    });
+    const hits = raycaster.intersectObjects(targets, false);
+    if (hits.length === 0) return;
+    const tracked = trackedByMesh.get(hits[0].object as THREE.Mesh);
+    if (!tracked) return;
+    for (const cb of clickListeners) cb(tracked.color);
+  }
+  window.addEventListener("pointerdown", onWinPointerDown);
+  window.addEventListener("pointerup", onWinPointerUp);
+
+  const resizeObserver = new ResizeObserver(() => {
+    const w = container.clientWidth;
+    const h = container.clientHeight;
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+  });
+  resizeObserver.observe(container);
+
+  let animId = 0;
+  const animate = () => {
+    animId = requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+  };
+  animate();
+
+  function disposeGroup(group: THREE.Group) {
+    group.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.geometry.dispose();
+        const mat = child.material;
+        if (Array.isArray(mat)) mat.forEach((m) => m.dispose());
+        else mat.dispose();
+      }
+      if (child instanceof THREE.LineSegments) {
+        child.geometry.dispose();
+        const mat = child.material;
+        if (Array.isArray(mat)) mat.forEach((m) => m.dispose());
+        else mat.dispose();
+      }
+    });
+  }
+
+  function clear() {
+    if (currentGroup) {
+      scene.remove(currentGroup);
+      disposeGroup(currentGroup);
+      currentGroup = null;
+    }
+    meshesByColor.clear();
+    trackedByMesh.clear();
+    painted = [];
+  }
+
+  function trackMesh(mesh: THREE.Mesh, edges: THREE.LineSegments | null) {
+    const mat = mesh.material as THREE.MeshPhongMaterial;
+    if (!mat || !mat.color) return;
+    const hex = toSrgbHex(mat.color);
+    const lineMat = edges?.material as THREE.LineBasicMaterial | undefined;
+    const tracked: TrackedMesh = {
+      mesh,
+      material: mat,
+      baseColor: mat.color.clone(),
+      baseEmissive: mat.emissive.clone(),
+      edges,
+      edgeColor: lineMat ? lineMat.color.clone() : new THREE.Color(),
+      edgeOpacity: lineMat?.opacity ?? 0,
+      color: hex,
+    };
+    const existing = meshesByColor.get(hex);
+    if (existing) existing.push(tracked);
+    else meshesByColor.set(hex, [tracked]);
+    trackedByMesh.set(mesh, tracked);
+  }
+
+  function load(data: ArrayBuffer, format: ModelFormat, opts: LoadOptions = {}) {
+    clear();
+    let group: THREE.Group;
+    if (format === "stl") {
+      const geometry = new STLLoader().parse(data);
+      const material = new THREE.MeshPhongMaterial({ color: DEFAULT_FACE, specular: 0x222222, shininess: 40 });
+      const mesh = new THREE.Mesh(geometry, material);
+      group = new THREE.Group();
+      group.add(mesh);
+      trackMesh(mesh, addEdgeLines(mesh, material.color));
+    } else {
+      group = new ThreeMFLoader().parse(data) as THREE.Group;
+
+      // First pass — collect existing meshes.
+      const originals: THREE.Mesh[] = [];
+      group.traverse((child) => {
+        if (child instanceof THREE.Mesh) originals.push(child);
+      });
+
+      for (const original of originals) {
+        const mat = original.material as THREE.MeshPhongMaterial | undefined;
+        if (mat?.vertexColors) {
+          // Split into one solid-color mesh per unique color so hover
+          // can key off material.color.
+          const parts = splitVertexColoredMesh(original);
+          const parent = original.parent!;
+          parent.remove(original);
+          original.geometry.dispose();
+          mat.dispose();
+          for (const p of parts) {
+            parent.add(p);
+            trackMesh(p, addEdgeLines(p, (p.material as THREE.MeshPhongMaterial).color));
+          }
+        } else if (!mat) {
+          original.material = new THREE.MeshPhongMaterial({ color: DEFAULT_FACE, specular: 0x222222, shininess: 40 });
+          trackMesh(original, addEdgeLines(original, new THREE.Color(DEFAULT_FACE)));
+        } else if (mat.name === THREE.Loader.DEFAULT_MATERIAL_NAME) {
+          mat.color.setHex(DEFAULT_FACE);
+          mat.specular = new THREE.Color(0x222222);
+          mat.shininess = 40;
+          trackMesh(original, addEdgeLines(original, mat.color));
+        } else {
+          mat.specular = mat.specular ?? new THREE.Color(0x222222);
+          mat.shininess = mat.shininess ?? 40;
+          trackMesh(original, addEdgeLines(original, mat.color ?? new THREE.Color(0x808080)));
+        }
+      }
+    }
+
+    // OpenSCAD is Z-up, Three.js is Y-up — rotate to lay flat.
+    group.rotation.x = -Math.PI / 2;
+    const box = new THREE.Box3().setFromObject(group);
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z);
+    group.position.set(-center.x, -box.min.y, -center.z);
+    currentGroup = group;
+    scene.add(group);
+
+    camera.near = maxDim * 0.001;
+    camera.far = maxDim * 100;
+    if (!opts.preserveView) {
+      const fitDistance = maxDim / (2 * Math.tan((Math.PI * camera.fov) / 360));
+      // Shallow elevation: enough to read the top of a part, low enough that
+      // the backdrop's horizon and sun stay in frame.
+      camera.position.set(fitDistance * 1.2, fitDistance * 0.42, fitDistance * 1.2);
+      controls.target.set(0, 0, 0);
+    }
+    camera.updateProjectionMatrix();
+    controls.update();
+  }
+
+  function dispose() {
+    cancelAnimationFrame(animId);
+    resizeObserver.disconnect();
+    controls.dispose();
+    renderer.domElement.removeEventListener("pointermove", onPointerMove);
+    renderer.domElement.removeEventListener("pointerleave", onPointerLeave);
+    window.removeEventListener("pointerdown", onWinPointerDown);
+    window.removeEventListener("pointerup", onWinPointerUp);
+    clear();
+    renderer.dispose();
+    if (container.contains(renderer.domElement)) {
+      container.removeChild(renderer.domElement);
+    }
+  }
+
+  function onHover(cb: (info: HoverInfo | null) => void) {
+    hoverListeners.add(cb);
+    return () => hoverListeners.delete(cb);
+  }
+
+  function onClick(cb: (color: string) => void) {
+    clickListeners.add(cb);
+    return () => clickListeners.delete(cb);
+  }
+
+  function getPartColors(): string[] {
+    return [...meshesByColor.keys()];
+  }
+
+  function getScreenPositionForColor(hex: string): { x: number; y: number } | null {
+    const tracked = meshesByColor.get(hex.toLowerCase());
+    if (!tracked || tracked.length === 0) return null;
+    return projectMeshScreen(tracked[0].mesh);
+  }
+
+  function getMeshStlByColor(hex: string): ArrayBuffer | null {
+    const tracked = meshesByColor.get(hex.toLowerCase());
+    if (!tracked || tracked.length === 0) return null;
+    if (tracked.length === 1) return meshToBinaryStl(tracked[0].mesh.geometry);
+    const merged = new THREE.BufferGeometry();
+    const positions: number[] = [];
+    for (const t of tracked) {
+      const attr = t.mesh.geometry.getAttribute("position");
+      for (let i = 0; i < attr.count; i++) positions.push(attr.getX(i), attr.getY(i), attr.getZ(i));
+    }
+    merged.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    merged.computeVertexNormals();
+    return meshToBinaryStl(merged);
+  }
+
+  return { load, clear, dispose, onHover, onClick, setHighlight, getPartColors, getScreenPositionForColor, getMeshStlByColor };
+}
+
+/**
+ * Serialize a BufferGeometry to a binary STL. Recenters XY to the origin
+ * and drops minZ to 0 so the exported piece is print-ready without needing
+ * further transforms in the slicer.
+ */
+function meshToBinaryStl(geo: THREE.BufferGeometry): ArrayBuffer {
+  const posAttr = geo.getAttribute("position") as THREE.BufferAttribute | undefined;
+  if (!posAttr) return new ArrayBuffer(84);
+
+  // Compute bbox to recenter XY / floor Z.
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, minZ = Infinity;
+  for (let i = 0; i < posAttr.count; i++) {
+    const x = posAttr.getX(i), y = posAttr.getY(i), z = posAttr.getZ(i);
+    if (x < minX) minX = x; if (x > maxX) maxX = x;
+    if (y < minY) minY = y; if (y > maxY) maxY = y;
+    if (z < minZ) minZ = z;
+  }
+  const cx = (minX + maxX) / 2;
+  const cy = (minY + maxY) / 2;
+  const dz = minZ;
+
+  const triCount = Math.floor(posAttr.count / 3);
+  const buf = new ArrayBuffer(84 + triCount * 50);
+  const view = new DataView(buf);
+  // 80-byte header left as zeros. UInt32 triangle count at offset 80.
+  view.setUint32(80, triCount, true);
+
+  let off = 84;
+  const tmp = new Float32Array(3);
+  for (let t = 0; t < triCount; t++) {
+    const i0 = t * 3;
+    const x0 = posAttr.getX(i0) - cx, y0 = posAttr.getY(i0) - cy, z0 = posAttr.getZ(i0) - dz;
+    const x1 = posAttr.getX(i0 + 1) - cx, y1 = posAttr.getY(i0 + 1) - cy, z1 = posAttr.getZ(i0 + 1) - dz;
+    const x2 = posAttr.getX(i0 + 2) - cx, y2 = posAttr.getY(i0 + 2) - cy, z2 = posAttr.getZ(i0 + 2) - dz;
+
+    // Face normal via (v1-v0) × (v2-v0).
+    const ax = x1 - x0, ay = y1 - y0, az = z1 - z0;
+    const bx = x2 - x0, by = y2 - y0, bz = z2 - z0;
+    let nx = ay * bz - az * by;
+    let ny = az * bx - ax * bz;
+    let nz = ax * by - ay * bx;
+    const len = Math.hypot(nx, ny, nz);
+    if (len > 0) { nx /= len; ny /= len; nz /= len; }
+
+    tmp[0] = nx; tmp[1] = ny; tmp[2] = nz;
+    view.setFloat32(off, nx, true); off += 4;
+    view.setFloat32(off, ny, true); off += 4;
+    view.setFloat32(off, nz, true); off += 4;
+    view.setFloat32(off, x0, true); off += 4;
+    view.setFloat32(off, y0, true); off += 4;
+    view.setFloat32(off, z0, true); off += 4;
+    view.setFloat32(off, x1, true); off += 4;
+    view.setFloat32(off, y1, true); off += 4;
+    view.setFloat32(off, z1, true); off += 4;
+    view.setFloat32(off, x2, true); off += 4;
+    view.setFloat32(off, y2, true); off += 4;
+    view.setFloat32(off, z2, true); off += 4;
+    view.setUint16(off, 0, true); off += 2;
+  }
+  return buf;
+}

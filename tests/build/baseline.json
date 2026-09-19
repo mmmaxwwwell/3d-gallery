@@ -2,7 +2,7 @@
   "air-purifier-shelf/assembled.3mf": {
     "format": "3mf",
     "colors": [
-      "#83B8EEFF"
+      "#00EAFFFF"
     ],
     "triangleCount": 2346,
     "bbox": [
@@ -37,8 +37,8 @@
   "collar-tag/multicolor.3mf": {
     "format": "3mf",
     "colors": [
-      "#D29D38FF",
-      "#FFD200FF"
+      "#00EAFFFF",
+      "#FF17C7FF"
     ],
     "triangleCount": 4288,
     "bbox": [
@@ -70,14 +70,194 @@
       ]
     ]
   },
+  "et300-knob-aide-knurled/knurl-depth-grid.stl": {
+    "format": "stl",
+    "triangleCount": 57916,
+    "bbox": [
+      [
+        -58,
+        -28,
+        0
+      ],
+      [
+        57.967,
+        28,
+        17.3
+      ]
+    ]
+  },
+  "et300-knob-aide-knurled/tactile-aide-engraved.stl": {
+    "format": "stl",
+    "triangleCount": 9390,
+    "bbox": [
+      [
+        -13,
+        -13,
+        0
+      ],
+      [
+        13,
+        13,
+        17.3
+      ]
+    ]
+  },
+  "et300-knob-aide-knurled/tactile-aide-kd2_0.stl": {
+    "format": "stl",
+    "triangleCount": 9462,
+    "bbox": [
+      [
+        -12,
+        -12,
+        0
+      ],
+      [
+        12,
+        12,
+        17.3
+      ]
+    ]
+  },
+  "et300-knob-aide-knurled/tactile-aide-kd2_5.stl": {
+    "format": "stl",
+    "triangleCount": 9272,
+    "bbox": [
+      [
+        -12.5,
+        -12.409,
+        0
+      ],
+      [
+        12.5,
+        12.409,
+        17.3
+      ]
+    ]
+  },
+  "et300-knob-aide-knurled/tactile-aide-kd3_0.stl": {
+    "format": "stl",
+    "triangleCount": 7886,
+    "bbox": [
+      [
+        -13,
+        -13,
+        0
+      ],
+      [
+        13,
+        13,
+        17.3
+      ]
+    ]
+  },
+  "et300-knob-aide-knurled/tactile-aide-kd3_5.stl": {
+    "format": "stl",
+    "triangleCount": 8084,
+    "bbox": [
+      [
+        -13,
+        -12.88,
+        0
+      ],
+      [
+        12.967,
+        12.88,
+        17.3
+      ]
+    ]
+  },
+  "et300-knob-aide-knurled/tactile-aide-kd4_0.stl": {
+    "format": "stl",
+    "triangleCount": 7812,
+    "bbox": [
+      [
+        -13,
+        -13,
+        0
+      ],
+      [
+        13,
+        13,
+        17.3
+      ]
+    ]
+  },
+  "et300-knob-aide-knurled/tactile-aide-kd4_5.stl": {
+    "format": "stl",
+    "triangleCount": 8086,
+    "bbox": [
+      [
+        -13,
+        -12.927,
+        0
+      ],
+      [
+        13,
+        12.927,
+        17.3
+      ]
+    ]
+  },
+  "et300-knob-aide-knurled/tactile-aide-kd5_0.stl": {
+    "format": "stl",
+    "triangleCount": 7352,
+    "bbox": [
+      [
+        -13,
+        -13,
+        0
+      ],
+      [
+        13,
+        13,
+        17.3
+      ]
+    ]
+  },
+  "et300-knob-aide-knurled/tactile-aide-multicolor.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#000000FF",
+      "#FFFFFFFF"
+    ],
+    "triangleCount": 10898,
+    "bbox": [
+      [
+        -13,
+        -13,
+        0
+      ],
+      [
+        13,
+        13,
+        17.3
+      ]
+    ]
+  },
+  "et300-knob-aide-knurled/tactile-aide.stl": {
+    "format": "stl",
+    "triangleCount": 7886,
+    "bbox": [
+      [
+        -13,
+        -13,
+        0
+      ],
+      [
+        13,
+        13,
+        17.3
+      ]
+    ]
+  },
   "fan-mount/assembled.3mf": {
     "format": "3mf",
     "colors": [
-      "#83B8EEFF",
-      "#A4DAECFF",
-      "#AAAAAAFF",
-      "#C1C1C1FF",
-      "#ECA4CCFF"
+      "#00EAFFFF",
+      "#39FF14FF",
+      "#A021FFFF",
+      "#FF17C7FF",
+      "#FFD60AFF"
     ],
     "triangleCount": 54124,
     "bbox": [
@@ -157,14 +337,46 @@
       ]
     ]
   },
+  "ff5m-filament-sensor/body.stl": {
+    "format": "stl",
+    "triangleCount": 2390,
+    "bbox": [
+      [
+        -7.869,
+        -7.869,
+        0
+      ],
+      [
+        10.97,
+        10.97,
+        29.95
+      ]
+    ]
+  },
+  "ff5m-filament-sensor/cap.stl": {
+    "format": "stl",
+    "triangleCount": 280,
+    "bbox": [
+      [
+        -8,
+        -5,
+        0
+      ],
+      [
+        8,
+        5,
+        6.1
+      ]
+    ]
+  },
   "fi-mini-case/assembled.3mf": {
     "format": "3mf",
     "colors": [
       "#000000FF",
-      "#9C9C9CFF",
+      "#A021FFFF",
       "#FFFFFFFF"
     ],
-    "triangleCount": 8602,
+    "triangleCount": 8604,
     "bbox": [
       [
         -23.475,
@@ -217,7 +429,7 @@
   "hex-bit-holder/assembled.3mf": {
     "format": "3mf",
     "colors": [
-      "#83B8EEFF"
+      "#00EAFFFF"
     ],
     "triangleCount": 129344,
     "bbox": [
@@ -431,6 +643,250 @@
         117.5,
         117.5,
         3.36
+      ]
+    ]
+  },
+  "split-tray-500/assembled-2x2.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#00EAFFFF",
+      "#39FF14FF",
+      "#FF2E6EFF",
+      "#FF6B00FF"
+    ],
+    "triangleCount": 14296,
+    "bbox": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        500,
+        500,
+        74.961
+      ]
+    ]
+  },
+  "split-tray-500/assembled-3x3.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#00EAFFFF",
+      "#00FFA3FF",
+      "#39FF14FF",
+      "#A021FFFF",
+      "#FF17C7FF",
+      "#FF2D55FF",
+      "#FF6B00FF",
+      "#FFD60AFF"
+    ],
+    "triangleCount": 26330,
+    "bbox": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        500,
+        500,
+        74.961
+      ]
+    ]
+  },
+  "split-tray-500/piece.stl": {
+    "format": "stl",
+    "triangleCount": 930,
+    "bbox": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        258,
+        258,
+        74.961
+      ]
+    ]
+  },
+  "test-cube-xyz/cube.stl": {
+    "format": "stl",
+    "triangleCount": 1876,
+    "bbox": [
+      [
+        -14.998,
+        -14.998,
+        -14.998
+      ],
+      [
+        14.998,
+        14.998,
+        14.998
+      ]
+    ]
+  },
+  "under-desk-cord-protector/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#00EAFFFF",
+      "#39FF14FF",
+      "#FF6B00FF"
+    ],
+    "triangleCount": 14178,
+    "bbox": [
+      [
+        0,
+        -454,
+        0
+      ],
+      [
+        132.05,
+        0,
+        160.4
+      ]
+    ]
+  },
+  "under-desk-cord-protector/hex.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2B5CFFFF",
+      "#39FF14FF"
+    ],
+    "triangleCount": 41362,
+    "bbox": [
+      [
+        0,
+        -304,
+        0
+      ],
+      [
+        168.4,
+        0,
+        160.4
+      ]
+    ]
+  },
+  "under-desk-cord-protector/plate.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#00EAFFFF",
+      "#39FF14FF"
+    ],
+    "triangleCount": 20986,
+    "bbox": [
+      [
+        -18.4,
+        0,
+        0
+      ],
+      [
+        132.05,
+        160.4,
+        154
+      ]
+    ]
+  },
+  "under-desk-cord-protector/prop-beam.stl": {
+    "format": "stl",
+    "triangleCount": 1104,
+    "bbox": [
+      [
+        109.961,
+        4.275,
+        0
+      ],
+      [
+        168.4,
+        160.4,
+        15
+      ]
+    ]
+  },
+  "under-desk-cord-protector/prop-panel.stl": {
+    "format": "stl",
+    "triangleCount": 2514,
+    "bbox": [
+      [
+        109.961,
+        4.275,
+        0
+      ],
+      [
+        168.4,
+        160.4,
+        150
+      ]
+    ]
+  },
+  "under-desk-cord-protector/prop-screen.stl": {
+    "format": "stl",
+    "triangleCount": 8184,
+    "bbox": [
+      [
+        109.961,
+        4.275,
+        0
+      ],
+      [
+        168.4,
+        160.4,
+        150
+      ]
+    ]
+  },
+  "under-desk-cord-protector/propped.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#00EAFFFF",
+      "#2B5CFFFF",
+      "#39FF14FF",
+      "#A021FFFF",
+      "#FF6B00FF"
+    ],
+    "triangleCount": 36262,
+    "bbox": [
+      [
+        0,
+        -454,
+        0
+      ],
+      [
+        168.4,
+        0,
+        160.4
+      ]
+    ]
+  },
+  "under-desk-cord-protector/segment-screen.stl": {
+    "format": "stl",
+    "triangleCount": 12802,
+    "bbox": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        132.05,
+        160.4,
+        154
+      ]
+    ]
+  },
+  "under-desk-cord-protector/segment.stl": {
+    "format": "stl",
+    "triangleCount": 4726,
+    "bbox": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        132.05,
+        160.4,
+        154
       ]
     ]
   },

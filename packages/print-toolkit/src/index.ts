@@ -29,6 +29,7 @@ export {
   compute3MFBoundingBox,
   computeMeshBoundingBox,
   autoArrangeObjects,
+  arrangeObjects,
   findLayFlatRotation,
   extractSTLFaces,
   applyRotationToSTL,
@@ -36,11 +37,78 @@ export {
   applyRotationTo3MF,
   layFlatMesh,
 } from './plate-slicer.js';
-export type { MeshBounds, AutoArrangeOptions } from './plate-slicer.js';
+export type {
+  MeshBounds,
+  Rect2,
+  AutoArrangeOptions,
+  ArrangeOptions,
+  ArrangeResult,
+  PlateValidationOptions,
+} from './plate-slicer.js';
+
+export { printerBedFromConfig, evaluatePlateFit } from './plate-fit.js';
+export type {
+  PrinterBed,
+  FitStatus,
+  PlateFitResult,
+  PlateFitOptions,
+} from './plate-fit.js';
+
+export {
+  plateBounds,
+  placePlateOnBed,
+  evaluateAuthoredPlateFit,
+  findPlateOverlaps,
+} from './plate-layout.js';
+export type {
+  PlateFootprint,
+  PlateBounds,
+  PlatePlacement,
+  PlateLayoutOptions,
+  AuthoredFitResult,
+} from './plate-layout.js';
 
 // ─── Klipper / gcode helpers ────────────────────────────────────────────────
 export { convertKlipperGcode } from './slicer-settings.js';
-export { parseGcodeStats } from './gcode-parser.js';
+export {
+  parseGcodeStats,
+  parseGCode,
+  MOVE_TYPE_COLORS,
+  type MoveType,
+  type GCodeSegment,
+  type GCodeLayer,
+  type ParsedGCode,
+} from './gcode-parser.js';
+export {
+  parsePrintableArea,
+  gcodeXYBounds,
+  translateGcodeXY,
+  postProcessGcode,
+  type BedBounds,
+  type PostProcessOptions,
+  type PostProcessReport,
+} from './gcode-post.js';
+export {
+  parseGcodeMetadata,
+  formatDuration,
+  type GcodeMetadata,
+} from './gcode-metadata.js';
+export {
+  buildProvenanceComment,
+  parseProvenanceComment,
+  hashConfig,
+  type Provenance,
+  type ProvenancePart,
+} from './gcode-provenance.js';
+export {
+  parseBedExcludeArea,
+  excludeAreaBboxes,
+  isDegenerateExcludeArea,
+  sanitizeBedExcludeArea,
+  forceStripBedExcludeArea,
+  type Point2,
+  type Polygon2,
+} from './bed-exclude.js';
 
 // ─── Moonraker HTTP client ──────────────────────────────────────────────────
 export {

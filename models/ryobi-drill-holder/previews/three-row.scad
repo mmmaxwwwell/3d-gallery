@@ -7,10 +7,10 @@ $fn = 64;
 
 n = 3;
 
-color("#3a7ad9") solid_row_plate(n);
+color("#00eaff") solid_row_plate(n);
 
 for (i = [0 : n - 1])
     translate([(i - (n - 1) / 2) * section_width, 0, 0]) {
-        color("#5fb3d6") post_half_A();
-        color("#d65f9a") post_half_B();
+        color("#39ff14") post_half_A();
+        color("#ff17c7") post_half_B();
     }

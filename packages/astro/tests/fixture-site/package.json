@@ -1,0 +1,7 @@
+{
+  "name": "3d-gallery-astro-fixture",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "//": "Anchors Astro's project root here. Outside the workspaces glob (packages/*), so npm ignores it."
+}

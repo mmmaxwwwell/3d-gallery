@@ -1,0 +1,38 @@
+{
+  "name": "@3d-gallery/viewer",
+  "private": true,
+  "version": "0.1.0",
+  "license": "MIT",
+  "type": "module",
+  "description": "Browser half of the 3d-gallery module: Three.js viewer, the artifact cache client, and the OpenSCAD-WASM fallback renderer.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./viewer": "./src/viewer.ts",
+    "./artifact-client": "./src/artifact-client.ts",
+    "./artifact-cache": "./src/artifact-cache.ts",
+    "./wasm-renderer": "./src/wasm-renderer.ts",
+    "./worker": "./src/openscad-worker.ts",
+    "./merge-3mf": "./src/merge-3mf.ts"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@3d-gallery/model-core": "*",
+    "fflate": "^0.8.2",
+    "preact": "^10.29.2",
+    "three": "^0.183.1"
+  },
+  "devDependencies": {
+    "@types/three": "^0.183.1",
+    "typescript": "^5.7.0",
+    "vitest": "4.0.18"
+  }
+}

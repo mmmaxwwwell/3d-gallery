@@ -19,4 +19,4 @@ spacing_y = block_depth + 5;
 
 for (idx = [0:7])
     translate([0, idx * spacing_y, 0])
-        color("#3a7ad9") _holder_row(idx + 3);
+        color("#00eaff") _holder_row(idx + 3);

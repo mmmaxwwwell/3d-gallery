@@ -1,0 +1,36 @@
+{
+  "name": "@3d-gallery/model-forge",
+  "private": true,
+  "version": "0.1.0",
+  "license": "MIT",
+  "type": "module",
+  "description": "Node-side renderer and content-addressed artifact cache for the 3d-gallery module. Resolves SCAD sources, renders on demand, and serves build-time and request-time from the same store.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./middleware": "./src/middleware.ts"
+  },
+  "files": [
+    "src",
+    "scripts",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "fetch-wasm": "node scripts/fetch-wasm.mjs"
+  },
+  "dependencies": {
+    "@3d-gallery/model-core": "*",
+    "fflate": "^0.8.2"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "typescript": "^5.7.0",
+    "vitest": "4.0.18"
+  }
+}

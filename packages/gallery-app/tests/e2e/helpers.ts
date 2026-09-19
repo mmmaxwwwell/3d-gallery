@@ -52,10 +52,18 @@ export async function fillParams(page: Page, params: Record<string, ParamValue>)
   }
 }
 
+/**
+ * The download href as it stood before the click, per page. Every successful
+ * generate mints a fresh object URL, so a changed href is an unambiguous
+ * "this render finished" — it can't be satisfied by a previous one.
+ */
+const generateBaseline = new WeakMap<Page, string>();
+
 /** Click the customizer's Generate button. */
 export async function clickGenerate(page: Page) {
   const btn = page.locator(".customizer-panel button.btn-primary");
   await expect(btn).toBeEnabled();
+  generateBaseline.set(page, (await page.locator("#download-link").getAttribute("href")) ?? "");
   await btn.click();
 }
 
@@ -70,20 +78,31 @@ export async function assertGenerateSucceeds(page: Page, timeoutMs = 150_000) {
   const download = page.locator("#download-link");
   const badge = page.locator("#customized-badge");
   const prompt = page.locator("#viewer-prompt");
+  const before = generateBaseline.get(page) ?? "";
 
-  // Loading overlay should appear right after the click. If it doesn't
-  // appear at all within ~5s, the click didn't fire the render path.
-  await expect(loading, "loading overlay should appear after clicking Generate").toBeVisible({
-    timeout: 5_000,
-  });
-
-  // …then hide when generation finishes (success or error).
-  await expect(loading).toBeHidden({ timeout: timeoutMs });
+  // Wait on the OUTCOME, not on the loading overlay having been seen: a warm
+  // artifact cache can satisfy the render before any poll observes the
+  // spinner, which made every cached render look like a failure.
+  await expect
+    .poll(
+      async () => {
+        if (await error.isVisible()) return "error";
+        const href = await download.getAttribute("href");
+        return href?.startsWith("blob:") && href !== before ? "done" : "pending";
+      },
+      {
+        timeout: timeoutMs,
+        message: "Generate should finish and mint a fresh blob: download href",
+      },
+    )
+    .not.toBe("pending");
 
   if (await error.isVisible()) {
     const msg = (await error.textContent())?.trim() ?? "(no error text)";
     throw new Error(`Customizer error surfaced in #viewer-error: ${msg}`);
   }
+
+  await expect(loading).toBeHidden({ timeout: timeoutMs });
 
   // Prompt should be gone once render succeeded — if it's still up we
   // rendered but the UI never took us out of prompt-only state.
@@ -91,8 +110,6 @@ export async function assertGenerateSucceeds(page: Page, timeoutMs = 150_000) {
 
   await expect(badge, "customized-badge should show after successful Generate").toBeVisible();
   await expect(download).toBeVisible();
-  const href = await download.getAttribute("href");
-  expect(href, "download link should have a blob: href after Generate").toMatch(/^blob:/);
   await expect(page.locator("#viewer-container canvas")).toBeVisible();
 }
 
@@ -128,12 +145,22 @@ export function assertUrlParamsOnly(page: Page, allowedParams: string[]) {
   ).toEqual([]);
 }
 
+/**
+ * A miss on the content-addressed artifact store 404s by design — the client
+ * probes `/a/<key>.<ext>` and falls back. The browser logs every 404 as a
+ * console error, so match on the resource URL (which `text()` omits but
+ * `location()` carries) rather than treating the whole class as a failure.
+ */
+const ARTIFACT_PROBE = /\/a\/[0-9a-f]+\.(stl|3mf)$/;
+
 /** Capture browser console + page errors to fail with useful context. */
 export function watchForBrowserErrors(page: Page): { flush: () => string[] } {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(`[pageerror] ${e.message}`));
   page.on("console", (msg) => {
-    if (msg.type() === "error") errors.push(`[console.error] ${msg.text()}`);
+    if (msg.type() !== "error") return;
+    if (ARTIFACT_PROBE.test(msg.location()?.url ?? "")) return;
+    errors.push(`[console.error] ${msg.text()}`);
   });
   return { flush: () => errors };
 }

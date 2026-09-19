@@ -10,6 +10,7 @@ import {
   buildPlateSliceConfig,
   validatePlateForSlicing,
   autoArrangeObjects,
+  arrangeObjects,
   computeSTLBoundingBox,
   compute3MFBoundingBox,
   computeMeshBoundingBox,
@@ -23,7 +24,7 @@ import {
   computeRecommendedPrimeTowerWidth,
   getMaxFlushVolume,
 } from '../src/plate-slicer.js';
-import type { AutoArrangeOptions } from '../src/plate-slicer.js';
+import type { AutoArrangeOptions, Rect2 } from '../src/plate-slicer.js';
 import type { PrimeTowerConfig } from '../src/build-plate.js';
 import { DEFAULT_PRINT_PROFILE } from '../src/print-profile.js';
 import type { PrintProfile } from '../src/print-profile.js';
@@ -1566,5 +1567,241 @@ describe('computeRecommendedPrimeTowerWidth', () => {
   it('never goes below 35mm', () => {
     const width = computeRecommendedPrimeTowerWidth(1, 0.2, 0.4);
     expect(width).toBeGreaterThanOrEqual(35);
+  });
+});
+
+
+// ─── arrangeObjects ──────────────────────────────────────
+
+/** Half-extent of the 40×40 footprint used across the arrange tests */
+const HALF = 20;
+
+function rectsIntersect(a: Rect2, b: Rect2): boolean {
+  return a.minX < b.maxX && a.maxX > b.minX && a.minY < b.maxY && a.maxY > b.minY;
+}
+
+function footprintRect(pos: { x: number; y: number }): Rect2 {
+  return { minX: pos.x - HALF, minY: pos.y - HALF, maxX: pos.x + HALF, maxY: pos.y + HALF };
+}
+
+function insideBed(pos: { x: number; y: number }, bed: Rect2): boolean {
+  const r = footprintRect(pos);
+  return r.minX >= bed.minX && r.maxX <= bed.maxX && r.minY >= bed.minY && r.maxY <= bed.maxY;
+}
+
+describe('arrangeObjects', () => {
+  const BED: Rect2 = { minX: 0, minY: 0, maxX: 200, maxY: 200 };
+  const SPACING = 10;
+
+  const square = (id: string, position = { x: 0, y: 0 }) =>
+    makeObject({ id, name: id, position, meshData: makeSTLData(40, 40, 10) });
+
+  it('packs every object that fits, in input order', () => {
+    const objs = [square('a'), square('b'), square('c'), square('d')];
+    const { placed, unplaced } = arrangeObjects(objs, { bed: BED, spacing: SPACING });
+
+    expect(unplaced).toHaveLength(0);
+    expect(placed.map(o => o.id)).toEqual(['a', 'b', 'c', 'd']);
+    for (const obj of placed) {
+      expect(insideBed(obj.position, BED)).toBe(true);
+    }
+    for (let i = 0; i < placed.length; i++) {
+      for (let j = i + 1; j < placed.length; j++) {
+        const dx = Math.abs(placed[i].position.x - placed[j].position.x);
+        const dy = Math.abs(placed[i].position.y - placed[j].position.y);
+        expect(dx >= 2 * HALF + SPACING || dy >= 2 * HALF + SPACING).toBe(true);
+      }
+    }
+  });
+
+  it('reports objects that do not fit instead of placing them off the bed', () => {
+    const bed: Rect2 = { minX: 0, minY: 0, maxX: 60, maxY: 60 };
+    const objs = [square('a'), square('b', { x: 5, y: 5 })];
+    const { placed, unplaced } = arrangeObjects(objs, { bed, spacing: SPACING });
+
+    expect(placed).toHaveLength(1);
+    expect(insideBed(placed[0].position, bed)).toBe(true);
+    expect(unplaced.map(o => o.id)).toEqual(['b']);
+    expect(unplaced[0].position).toEqual({ x: 5, y: 5 });
+  });
+
+  it('reports an object larger than the bed as unplaced', () => {
+    const bed: Rect2 = { minX: 0, minY: 0, maxX: 30, maxY: 30 };
+    const { placed, unplaced } = arrangeObjects([square('a')], { bed, spacing: SPACING });
+    expect(placed).toHaveLength(0);
+    expect(unplaced).toHaveLength(1);
+  });
+
+  it('never places an object inside a keepout', () => {
+    const keepout: Rect2 = { minX: 0, minY: 0, maxX: 100, maxY: 100 };
+    const { placed, unplaced } = arrangeObjects([square('a')], {
+      bed: BED,
+      spacing: SPACING,
+      keepouts: [keepout],
+    });
+
+    expect(unplaced).toHaveLength(0);
+    expect(rectsIntersect(footprintRect(placed[0].position), keepout)).toBe(false);
+    expect(insideBed(placed[0].position, BED)).toBe(true);
+  });
+
+  it('reserves space for the prime tower', () => {
+    const primeTower: PrimeTowerConfig = {
+      enabled: true,
+      position: { x: 30, y: 30 },
+      width: 40,
+      brimWidth: 0,
+    };
+    const { placed } = arrangeObjects([square('a')], { bed: BED, spacing: SPACING, primeTower });
+    const towerRect: Rect2 = { minX: 10, minY: 10, maxX: 50, maxY: 50 };
+
+    expect(rectsIntersect(footprintRect(placed[0].position), towerRect)).toBe(false);
+  });
+
+  it('honors a center-origin bed rect', () => {
+    const bed: Rect2 = { minX: -100, minY: -100, maxX: 100, maxY: 100 };
+    const { placed, unplaced } = arrangeObjects([square('a'), square('b')], {
+      bed,
+      spacing: SPACING,
+    });
+
+    expect(unplaced).toHaveLength(0);
+    expect(placed[0].position.x).toBeCloseTo(-70);
+    expect(placed[0].position.y).toBeCloseTo(-70);
+    for (const obj of placed) {
+      expect(insideBed(obj.position, bed)).toBe(true);
+    }
+  });
+
+  it('honors an offset bed rect', () => {
+    const bed: Rect2 = { minX: 50, minY: 20, maxX: 250, maxY: 220 };
+    const { placed, unplaced } = arrangeObjects([square('a')], { bed, spacing: SPACING });
+
+    expect(unplaced).toHaveLength(0);
+    expect(placed[0].position.x).toBeCloseTo(80);
+    expect(placed[0].position.y).toBeCloseTo(50);
+  });
+});
+
+// ─── validatePlateForSlicing — footprint checks ──────────
+
+describe('validatePlateForSlicing — footprint checks', () => {
+  const box = (
+    name: string,
+    position: { x: number; y: number },
+    w = 40,
+    d = 40,
+    h = 10,
+  ) => makeObject({ id: name, name, position, meshData: makeSTLData(w, d, h) });
+
+  it('flags an object hanging half off the bed', () => {
+    const plate = makePlate({ objects: [box('Edge', { x: 210, y: 100 })] });
+    const errors = validatePlateForSlicing(plate);
+    expect(errors.some(e => e.includes('Edge') && e.includes('X axis'))).toBe(true);
+  });
+
+  it('accepts an object whose whole footprint is on the bed', () => {
+    const plate = makePlate({ objects: [box('Inside', { x: 110, y: 110 })] });
+    expect(validatePlateForSlicing(plate)).toHaveLength(0);
+  });
+
+  it('accounts for rotation when checking bed bounds', () => {
+    const rotated = (rotation: number) => makePlate({
+      objects: [makeObject({
+        name: 'Rot',
+        rotation,
+        position: { x: 200, y: 110 },
+        meshData: makeSTLData(60, 20, 10),
+      })],
+    });
+    expect(validatePlateForSlicing(rotated(0)).length).toBeGreaterThan(0);
+    expect(validatePlateForSlicing(rotated(90))).toHaveLength(0);
+  });
+
+  it('flags overlapping footprints', () => {
+    const plate = makePlate({
+      objects: [box('A', { x: 100, y: 100 }), box('B', { x: 120, y: 100 })],
+    });
+    const errors = validatePlateForSlicing(plate);
+    expect(errors.some(e => e.includes('"A"') && e.includes('"B"') && /overlap/i.test(e))).toBe(true);
+  });
+
+  it('allows footprints that merely touch', () => {
+    const plate = makePlate({
+      objects: [box('A', { x: 100, y: 100 }), box('B', { x: 140, y: 100 })],
+    });
+    expect(validatePlateForSlicing(plate)).toHaveLength(0);
+  });
+
+  it('honors the spacing option between footprints', () => {
+    const plate = makePlate({
+      objects: [box('A', { x: 100, y: 100 }), box('B', { x: 140, y: 100 })],
+    });
+    expect(validatePlateForSlicing(plate, { spacing: 5 }).length).toBeGreaterThan(0);
+  });
+
+  it('flags a footprint that hits a keepout', () => {
+    const plate = makePlate({ objects: [box('Clash', { x: 100, y: 100 })] });
+    const errors = validatePlateForSlicing(plate, {
+      keepouts: [{ minX: 90, minY: 90, maxX: 130, maxY: 130 }],
+    });
+    expect(errors.some(e => e.includes('Clash') && /keep-out/i.test(e))).toBe(true);
+  });
+
+  it('flags an object taller than the plate maximum', () => {
+    const plate = makePlate({
+      maxHeight: 250,
+      objects: [box('Tall', { x: 110, y: 110 }, 40, 40, 300)],
+    });
+    const errors = validatePlateForSlicing(plate);
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toMatch(/Tall.*tall/);
+  });
+
+  it('uses the bed override from options', () => {
+    const plate = makePlate({ objects: [box('Off', { x: 110, y: 110 })] });
+    expect(validatePlateForSlicing(plate)).toHaveLength(0);
+    expect(
+      validatePlateForSlicing(plate, { bed: { minX: 0, minY: 0, maxX: 100, maxY: 100 } }).length,
+    ).toBeGreaterThan(0);
+  });
+});
+
+describe('computeSTLBoundingBox — ASCII STL', () => {
+  const ascii = (verts: Array<[number, number, number]>) => {
+    const body = verts.map(([x, y, z]) => `      vertex ${x} ${y} ${z}`).join('\n');
+    const text = `solid OpenSCAD_Model\n  facet normal 0 0 1\n    outer loop\n${body}\n    endloop\n  endfacet\nendsolid\n`;
+    return new TextEncoder().encode(text).buffer as ArrayBuffer;
+  };
+
+  it('measures an ASCII STL instead of returning null', () => {
+    const b = computeSTLBoundingBox(ascii([[0, 0, 0], [120, 0, 0], [0, 80, 5]]));
+    expect(b).not.toBeNull();
+    expect(b!.width).toBeCloseTo(120);
+    expect(b!.depth).toBeCloseTo(80);
+    expect(b!.height).toBeCloseTo(5);
+  });
+
+  it('handles negative coordinates and exponent notation', () => {
+    const b = computeSTLBoundingBox(ascii([[-10, -10, 0], [1e1, 5, 0], [0, 0, 2.5]]));
+    expect(b!.width).toBeCloseTo(20);
+    expect(b!.depth).toBeCloseTo(15);
+  });
+
+  it('still parses binary STL whose header starts with "solid"', () => {
+    const buf = new ArrayBuffer(84 + 50);
+    const view = new DataView(buf);
+    new Uint8Array(buf).set(new TextEncoder().encode('solid'), 0);
+    view.setUint32(80, 1, true);
+    const verts: Array<[number, number, number]> = [[0, 0, 0], [30, 0, 0], [0, 40, 2]];
+    verts.forEach(([x, y, z], i) => {
+      const off = 84 + 12 + i * 12;
+      view.setFloat32(off, x, true);
+      view.setFloat32(off + 4, y, true);
+      view.setFloat32(off + 8, z, true);
+    });
+    const b = computeSTLBoundingBox(buf);
+    expect(b!.width).toBeCloseTo(30);
+    expect(b!.depth).toBeCloseTo(40);
   });
 });

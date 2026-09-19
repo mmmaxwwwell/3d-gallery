@@ -7,21 +7,21 @@ $fn = 64;
 // can split it into per-color meshes.
 clamp_z = base_thickness/2 + clamp_skirt_drop - clamp_interference;
 
-color("#3a7ad9") base();
+color("#00eaff") base();
 
-color("#888888")
+color("#a021ff")
     translate([0, 0, -base_thickness/2 - base_gasket_thickness/2])
         base_gasket();
 
-color("#666666")
+color("#ffd60a")
     translate([0, 0, base_thickness/2 + fan_gasket_thickness/2])
         fan_gasket();
 
-color("#5fb3d6")
+color("#39ff14")
     translate([0, 0, clamp_z])
         fan_clamp_half();
 
-color("#d65f9a")
+color("#ff17c7")
     translate([0, 0, clamp_z])
         rotate([0, 0, 180])
             fan_clamp_half();

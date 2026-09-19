@@ -1,4 +1,4 @@
-import { createViewer, type ModelFormat } from "./viewer";
+import { createViewer, type ModelFormat } from "@3d-gallery/viewer";
 import { registerSW } from "virtual:pwa-register";
 import { render, h } from "preact";
 import { useState, useEffect, useRef } from "preact/hooks";
@@ -103,11 +103,29 @@ import et300KnobAideKnurledMulticolor from "../../../models/et300-knob-aide-knur
 import splitTray500Lib from "../../../models/split-tray-500/lib/split-tray-500-lib.scad?raw";
 import splitTray500Assembled2x2 from "../../../models/split-tray-500/previews/assembled-2x2.scad?raw";
 import splitTray500Assembled3x3 from "../../../models/split-tray-500/previews/assembled-3x3.scad?raw";
-import { parseParams, coerceToParamType } from "./lib/scad-parser";
-import { createOpenSCADApi, injectParameters } from "./lib/openscad-api";
-import { embedSourceUrl } from "./lib/embed-source-url";
-import type { ScadParam, ScadValue } from "./lib/types";
-import { openPrintDialog, openSettingsPanel } from "./print/mount";
+import underDeskCordProtectorLib from "../../../models/under-desk-cord-protector/lib/under-desk-cord-protector-lib.scad?raw";
+import underDeskCordProtectorAssembled from "../../../models/under-desk-cord-protector/previews/assembled.scad?raw";
+import underDeskCordProtectorPropped from "../../../models/under-desk-cord-protector/previews/propped.scad?raw";
+import underDeskCordProtectorHex from "../../../models/under-desk-cord-protector/previews/hex.scad?raw";
+import underDeskCordProtectorPlate from "../../../models/under-desk-cord-protector/previews/plate.scad?raw";
+import { parseParams, coerceToParamType, KEY_SCHEMA } from "@3d-gallery/model-core";
+import type { ScadParam, ScadValue, RuntimeManifest } from "@3d-gallery/model-core";
+import {
+  createArtifactClient,
+  createIdbCache,
+  createWasmRenderer,
+  embedSourceUrl,
+  type ArtifactClient,
+  type ArtifactSource,
+} from "@3d-gallery/viewer";
+import {
+  PRINT_ROUTE_PARAMS,
+  initPrintRouting,
+  openPlateDialog,
+  openPlatesPanel,
+} from "./print/mount";
+import { setPlateArtifactClient } from "./print/plate-resolve";
+import { addItemToPlate, ensureTargetPlate } from "./print/plate-store";
 
 interface LegendEntry {
   color: string;
@@ -173,7 +191,10 @@ function stripIncludes(source: string): string {
     .join("\n");
 }
 
-// Customizable model sources keyed by slug
+// Customizable model sources keyed by slug. `previews` is keyed by the
+// artifact target — the manifest file's base name, which is what the forge
+// resolves `previews/<target>.scad` against. That is not always the manifest
+// `module` (et300's preview declares `assembled`).
 const CUSTOMIZABLE_SOURCES: Record<string, { lib: string; previews: Record<string, string> }> = {
   "collar-tag": {
     lib: collarTagLib,
@@ -208,7 +229,7 @@ const CUSTOMIZABLE_SOURCES: Record<string, { lib: string; previews: Record<strin
     // the include so the customizer sees a single self-contained source.
     lib: et300KnobAideKnurledLogoPolygon + "\n" + stripIncludes(et300KnobAideKnurledLib),
     previews: {
-      assembled: stripIncludes(et300KnobAideKnurledMulticolor),
+      "tactile-aide-multicolor": stripIncludes(et300KnobAideKnurledMulticolor),
     },
   },
   "split-tray-500": {
@@ -218,12 +239,22 @@ const CUSTOMIZABLE_SOURCES: Record<string, { lib: string; previews: Record<strin
       "assembled-3x3": stripIncludes(splitTray500Assembled3x3),
     },
   },
+  "under-desk-cord-protector": {
+    lib: underDeskCordProtectorLib,
+    previews: {
+      assembled: stripIncludes(underDeskCordProtectorAssembled),
+      propped: stripIncludes(underDeskCordProtectorPropped),
+      hex: stripIncludes(underDeskCordProtectorHex),
+      plate: stripIncludes(underDeskCordProtectorPlate),
+    },
+  },
 };
 
 // ── DOM refs ─────────────────────────────────────────────
 
 const sidebarEl = document.getElementById("sidebar")!;
 const sidebarToggle = document.getElementById("sidebar-toggle")!;
+const sidebarBackdrop = document.getElementById("sidebar-backdrop")!;
 const modelListEl = document.getElementById("model-list")!;
 const modelTitleEl = document.getElementById("model-title")!;
 const modelDescEl = document.getElementById("model-description")!;
@@ -232,13 +263,15 @@ const mobilePartSelect = document.getElementById("mobile-part-select") as HTMLSe
 const viewerContainer = document.getElementById("viewer-container")!;
 const downloadLink = document.getElementById("download-link") as HTMLAnchorElement;
 const printBtn = document.getElementById("print-btn") as HTMLButtonElement | null;
-const printSettingsBtn = document.getElementById("print-settings-btn") as HTMLButtonElement | null;
+const platesBtn = document.getElementById("plates-btn") as HTMLButtonElement | null;
 const errorEl = document.getElementById("viewer-error")!;
 const partsListEl = document.getElementById("parts-list")!;
 const filamentListEl = document.getElementById("filament-list")!;
 const hardwareEl = document.getElementById("hardware-list")!;
 const legendEl = document.getElementById("viewer-legend")!;
 const customizerEl = document.getElementById("customizer")!;
+const customizerBackdrop = document.getElementById("customizer-backdrop")!;
+const customizeBtn = document.getElementById("customize-btn") as HTMLButtonElement;
 const customizedBadge = document.getElementById("customized-badge")!;
 const loadingOverlay = document.getElementById("viewer-loading")!;
 const loadingStatus = loadingOverlay.querySelector(".loading-status")!;
@@ -248,56 +281,95 @@ const leaderSvg = document.getElementById("viewer-leader") as unknown as SVGSVGE
 
 const viewer = createViewer(viewerContainer);
 
-// Bidirectional legend ↔ viewer hover wiring. `legendRowsByColor` is
-// rebuilt whenever we re-render the legend for a new part; the viewer's
-// hover callback fires the same handler either way so the "which row is
-// active" state stays consistent no matter the input device.
-const legendRowsByColor = new Map<string, HTMLElement>();
-let activeLegendColor: string | null = null;
+// Bidirectional parts-key ↔ viewer hover wiring. A group is one physical
+// part of the assembly — every piece of it, whatever colour those pieces are
+// drawn in. Rebuilt whenever the key re-renders; the viewer's hover callback
+// and the key rows drive the same handler so the active state stays
+// consistent no matter the input device.
+interface PartGroup {
+  /** Display colours of every piece belonging to this part, as authored. */
+  colors: string[];
+  /** Those colours snapped onto what the loaded mesh actually carries. */
+  meshColors: string[];
+  /** How many pieces of this part the assembly contains. */
+  qty: number;
+  row: HTMLElement;
+  /** Manifest entry to open on click, when the part resolves to one. */
+  target: Part | null;
+  params?: Record<string, ScadValue>;
+}
+
+let partGroups: PartGroup[] = [];
+const partGroupByColor = new Map<string, PartGroup>();
+let activeGroup: PartGroup | null = null;
+/** Colour of the piece the leader line points at. */
+let activeColor: string | null = null;
+/** Set by renderLegend: only an assembly's key has parts worth pointing at. */
+let leaderEnabled = false;
 
 function normColor(hex: string): string {
   return hex.toLowerCase();
 }
 
 /**
- * Applies the same linear→sRGB transform that scripts/build-multicolor-3mf.mjs
- * runs on OpenSCAD's raw CSG color values, so a manifest legend hex
- * (authored in matching SCAD `color("#…")` source form) resolves to the
- * hex Three.js actually reads out of the 3MF.
- *
- * OpenSCAD's CSG output stores `color("#5b8dd6")` as `color([0.357, 0.553,
- * 0.839, 1])` — raw sRGB channels normalized to [0,1]. The pipeline then
- * treats those values as *linear* and encodes them back out as sRGB before
- * writing to the .3mf, so the on-disk hex is effectively double-encoded.
+ * Two tiers of highlight: the piece under the cursor brightens, and every
+ * other piece of the same part glows. Pointing at a key row has no single
+ * piece under the cursor, so it glows the whole group and anchors the leader
+ * line (when one is drawn) on the first piece.
  */
-function scadHexToDisplayHex(hex: string): string {
-  const m = /^#?([0-9a-fA-F]{6})$/.exec(hex);
-  if (!m) return normColor(hex);
-  const linearToSrgb = (v: number) =>
-    v <= 0.0031308 ? v * 12.92 : 1.055 * Math.pow(v, 1 / 2.4) - 0.055;
-  const chan = (i: number) => parseInt(m[1].slice(i, i + 2), 16) / 255;
-  const r = chan(0), g = chan(2), b = chan(4);
-  const enc = (v: number) =>
-    Math.round(Math.max(0, Math.min(1, linearToSrgb(v))) * 255)
-      .toString(16)
-      .padStart(2, "0");
-  return `#${enc(r)}${enc(g)}${enc(b)}`;
+function setActivePart(group: PartGroup | null, hoverColor: string | null) {
+  activeGroup = group;
+  activeColor = hoverColor ?? group?.meshColors[0] ?? null;
+  for (const g of partGroups) g.row.classList.toggle("legend-active", g === group);
+  viewer.setHighlight({ hover: hoverColor, glow: group?.meshColors ?? [] });
+  updateLeaderLine();
 }
 
-function setActiveLegend(color: string | null) {
-  activeLegendColor = color;
-  for (const [c, row] of legendRowsByColor) {
-    row.classList.toggle("legend-active", color !== null && c === color);
+/**
+ * Join the key to the loaded mesh by colour. A manifest hex and the hex the
+ * viewer reads back off the mesh now describe the same sRGB value, but they
+ * get there through OpenSCAD's 6-significant-digit CSG floats and two 8-bit
+ * roundings, so they can still land a shade apart — near enough to snap, far
+ * enough that an exact match would silently drop the row. Runs after every
+ * load because the colours only exist once the mesh is in the viewer.
+ */
+const COLOR_SNAP_TOLERANCE = 12;
+
+function colorDistance(a: string, b: string): number {
+  const ca = parseInt(a.slice(1), 16);
+  const cb = parseInt(b.slice(1), 16);
+  if (Number.isNaN(ca) || Number.isNaN(cb)) return Number.POSITIVE_INFINITY;
+  const dr = ((ca >> 16) & 0xff) - ((cb >> 16) & 0xff);
+  const dg = ((ca >> 8) & 0xff) - ((cb >> 8) & 0xff);
+  const db = (ca & 0xff) - (cb & 0xff);
+  return Math.sqrt(dr * dr + dg * dg + db * db);
+}
+
+function resolvePartColors() {
+  const loaded = viewer.getPartColors();
+  if (loaded.length === 0) return;
+  for (const group of partGroups) {
+    group.meshColors = group.colors.map((color) => {
+      let best = color;
+      let bestDist = COLOR_SNAP_TOLERANCE;
+      for (const candidate of loaded) {
+        const dist = colorDistance(color, candidate);
+        if (dist <= bestDist) {
+          bestDist = dist;
+          best = candidate;
+        }
+      }
+      return best;
+    });
+    for (const color of group.meshColors) partGroupByColor.set(color, group);
   }
-  updateLeaderLine();
 }
 
 function updateLeaderLine() {
   clearLeader();
-  if (!activeLegendColor) return;
-  const row = legendRowsByColor.get(activeLegendColor);
-  if (!row) return;
-  const meshPos = viewer.getScreenPositionForColor(activeLegendColor);
+  if (!leaderEnabled || !activeGroup || !activeColor) return;
+  const row = activeGroup.row;
+  const meshPos = viewer.getScreenPositionForColor(activeColor);
   if (!meshPos) return;
 
   // Legend row's midpoint on its left edge — the leader lands where the
@@ -331,47 +403,85 @@ function drawLeader(x1: number, y1: number, x2: number, y2: number) {
 }
 
 viewer.onHover((info) => {
-  if (info) {
-    const col = normColor(info.color);
-    // Only highlight if this color is in the current legend — 3MFs may
-    // include ancillary colors (edges, defaults) we don't want to flash.
-    if (legendRowsByColor.has(col)) {
-      const row = legendRowsByColor.get(col);
-      const clickable = row?.classList.contains("legend-clickable") ?? false;
-      viewerContainer.style.cursor = clickable ? "pointer" : "";
-      setActiveLegend(col);
-      return;
-    }
+  if (!info) {
+    viewerContainer.style.cursor = "";
+    setActivePart(null, null);
+    return;
   }
-  viewerContainer.style.cursor = "";
-  setActiveLegend(null);
+  const col = normColor(info.color);
+  // A 3MF can carry ancillary colours that no key row claims. Those still
+  // brighten under the cursor; they just have no part to glow or link to.
+  const group = partGroupByColor.get(col) ?? null;
+  viewerContainer.style.cursor = group?.target ? "pointer" : "";
+  setActivePart(group, col);
+  if (group) warmGroup(group);
 });
 
-// Clicking a mesh navigates to the same target the matching legend row
-// links to — delegated by dispatching the row's own click handler so
-// both entry points share one flow.
+// Clicking a mesh opens the same part its key row links to — delegated by
+// dispatching the row's own click handler so both entry points share a flow.
 viewer.onClick((hex) => {
-  const row = legendRowsByColor.get(normColor(hex));
+  const row = partGroupByColor.get(normColor(hex))?.row;
   if (row?.classList.contains("legend-clickable")) row.click();
 });
 
-// Redraw the leader line each animation frame while a legend is active
-// so it tracks camera orbit without needing a viewer event.
+// Redraw the leader line each animation frame while a part is active so it
+// tracks camera orbit without needing a viewer event.
 function leaderTick() {
-  if (activeLegendColor) updateLeaderLine();
+  if (leaderEnabled && activeGroup) updateLeaderLine();
   requestAnimationFrame(leaderTick);
 }
 requestAnimationFrame(leaderTick);
 
-// Mobile sidebar toggle
-sidebarToggle.addEventListener("click", () => {
-  sidebarEl.classList.toggle("open");
+// Mobile sidebar drawer
+function setSidebarOpen(open: boolean) {
+  sidebarEl.classList.toggle("open", open);
+  document.body.classList.toggle("sidebar-open", open);
+  sidebarToggle.setAttribute("aria-expanded", String(open));
+}
+
+sidebarToggle.addEventListener("click", (e) => {
+  e.stopPropagation();
+  setSidebarOpen(!sidebarEl.classList.contains("open"));
+});
+
+sidebarBackdrop.addEventListener("click", () => setSidebarOpen(false));
+
+// ── Mobile header controls ───────────────────────────────
+// The customizer sheet is CSS-gated to narrow viewports; the handler below
+// just owns its open/closed state.
+
+// Mobile caps the blurb and scrolls it; the fade that signals "there is more"
+// has to stay off short descriptions, which CSS alone cannot tell apart.
+function markDescriptionClipped() {
+  requestAnimationFrame(() => {
+    modelDescEl.classList.toggle(
+      "is-clipped",
+      modelDescEl.scrollHeight > modelDescEl.clientHeight + 1,
+    );
+  });
+}
+
+window.addEventListener("resize", markDescriptionClipped);
+
+function setCustomizerOpen(open: boolean) {
+  document.body.classList.toggle("customizer-open", open);
+  customizeBtn.setAttribute("aria-expanded", String(open));
+}
+
+customizeBtn.addEventListener("click", () => {
+  setCustomizerOpen(!document.body.classList.contains("customizer-open"));
+});
+
+customizerBackdrop.addEventListener("click", () => setCustomizerOpen(false));
+
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  setCustomizerOpen(false);
+  setSidebarOpen(false);
 });
 
 function closeSidebarOnMobile() {
-  if (window.innerWidth < 768) {
-    sidebarEl.classList.remove("open");
-  }
+  if (window.innerWidth < 768) setSidebarOpen(false);
 }
 
 // Track current blob URL for cleanup
@@ -427,11 +537,23 @@ function hideViewerPrompt() {
 
 // ── URL routing ──────────────────────────────────────────
 
-const ROUTE_PARAMS = new Set(["model", "part"]);
+// Everything else in the query is a customizer parameter, so the print UI's
+// own route names have to be named here or a `?plate=<id>` deep link would
+// reach the model as a param.
+const ROUTE_PARAMS = new Set(["model", "part", ...PRINT_ROUTE_PARAMS]);
 
 function buildUrl(slug: string, partModule?: string, customValues?: Record<string, ScadValue>): string {
   const url = new URL(window.location.href);
+  // The query is rebuilt from scratch so a stale customizer param can't
+  // survive a model switch — but the print UI's params say which panel is
+  // open, which this router knows nothing about. Carry them across.
+  const open = new Map<string, string>();
+  for (const name of PRINT_ROUTE_PARAMS) {
+    const value = url.searchParams.get(name);
+    if (value !== null) open.set(name, value);
+  }
   url.search = "";
+  for (const [name, value] of open) url.searchParams.set(name, value);
   url.searchParams.set("model", slug);
   if (partModule) url.searchParams.set("part", partModule);
   if (customValues) {
@@ -463,61 +585,112 @@ function getRouteFromUrl(): { slug: string; partModule?: string; customValues: R
   return { slug, partModule, customValues };
 }
 
-// ── localStorage cache ───────────────────────────────────
+// ── Artifact client ──────────────────────────────────────
 
-async function computeCacheKey(scadSource: string, moduleName: string, values: Record<string, ScadValue>): Promise<string> {
-  const sortedKeys = Object.keys(values).sort();
-  const sortedValues: Record<string, ScadValue> = {};
-  for (const k of sortedKeys) sortedValues[k] = values[k];
-  const payload = scadSource + "\0" + moduleName + "\0" + JSON.stringify(sortedValues);
-  // crypto.subtle only exists in secure contexts (HTTPS or localhost). Fall
-  // back to a non-cryptographic hash for plain HTTP so the customizer still
-  // caches correctly when the dev server is reached over a LAN / tailscale IP.
-  if (typeof crypto !== "undefined" && crypto.subtle) {
-    const buf = new TextEncoder().encode(payload);
-    const hash = await crypto.subtle.digest("SHA-256", buf);
-    return Array.from(new Uint8Array(hash))
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
-  }
-  return fnv1aHex(payload);
+/** A part's file base name — how the runtime manifest addresses it. */
+function targetOf(part: Part): string {
+  return part.file.replace(/\.\w+$/, "");
 }
 
-// Two 32-bit FNV-1a-style hashes with different multipliers, concatenated
-// for a 64-bit-ish key. Not cryptographic — just for cache-key uniqueness
-// across the small set of param combinations one user will try.
-function fnv1aHex(text: string): string {
-  let h1 = 0x811c9dc5;
-  let h2 = 0x1000193;
-  for (let i = 0; i < text.length; i++) {
-    const c = text.charCodeAt(i);
-    h1 = Math.imul(h1 ^ c, 0x01000193);
-    h2 = Math.imul(h2 ^ c, 0x85ebca6b);
-  }
-  return (h1 >>> 0).toString(16).padStart(8, "0") + (h2 >>> 0).toString(16).padStart(8, "0");
+const artifactCache = createIdbCache();
+let artifactClient: ArtifactClient | null = null;
+
+/** Progress sink of the resolve in flight, if any. */
+let renderProgress: ((status: string) => void) | null = null;
+/** `x-forge-status` off the most recent artifact response: `hit` or `built`. */
+let lastForgeStatus: string | null = null;
+
+const trackedFetch: typeof fetch = async (input, init) => {
+  const res = await fetch(input, init);
+  const status = res.headers.get("x-forge-status");
+  if (status) lastForgeStatus = status;
+  return res;
+};
+
+function buildArtifactClient(manifest: RuntimeManifest): ArtifactClient {
+  return createArtifactClient({
+    manifest,
+    cache: artifactCache,
+    localRenderer: createWasmRenderer(CUSTOMIZABLE_SOURCES, {
+      onLog: (line) => renderProgress?.(line),
+    }),
+    // Only the dev middleware can answer the `?r=` retry. On a static host it
+    // is a second 404 in front of the browser render we already know we need.
+    allowServerRender: import.meta.env.DEV,
+    fetchImpl: trackedFetch,
+    onLog: (line) => {
+      console.debug("[3d-gallery] artifact", line);
+      // Booting OpenSCAD-WASM and rendering takes seconds. The cache and
+      // network paths finish before a status line could even be read, so only
+      // the local render is worth reporting.
+      if (line.startsWith("local render")) {
+        renderProgress?.("Rendering in your browser — this may take a while…");
+      }
+    },
+  });
 }
 
-function getCachedResult(slug: string, hash: string): ArrayBuffer | null {
+interface ArtifactOrigin {
+  source: ArtifactSource;
+  key: string;
+  /** Forge render status, when the response carried one. */
+  forgeStatus: string | null;
+}
+
+const ORIGIN_LABEL: Record<ArtifactSource, string> = {
+  memory: "Cached",
+  cache: "Cached",
+  network: "Prebuilt",
+  local: "Rendered locally",
+};
+
+const ORIGIN_COLOR: Record<ArtifactSource, string> = {
+  memory: "#2bff88",
+  cache: "#2bff88",
+  network: "#00eaff",
+  local: "#ffd60a",
+};
+
+async function resolveArtifact(
+  req: { slug: string; target: string; params?: Record<string, ScadValue> },
+  onProgress: (status: string) => void,
+): Promise<{ bytes: ArrayBuffer; format: ModelFormat; origin: ArtifactOrigin }> {
+  if (!artifactClient) throw new Error("The model manifest hasn't loaded yet — reload the page.");
+  lastForgeStatus = null;
+  renderProgress = onProgress;
   try {
-    const b64 = localStorage.getItem(`3dg:${slug}:${hash}`);
-    if (!b64) return null;
-    const binary = atob(b64);
-    const buf = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) buf[i] = binary.charCodeAt(i);
-    return buf.buffer;
-  } catch {
-    return null;
+    const { bytes, format, key, source } = await artifactClient.get(req);
+    return { bytes, format, origin: { source, key, forgeStatus: lastForgeStatus } };
+  } finally {
+    renderProgress = null;
   }
 }
 
-function setCachedResult(slug: string, hash: string, data: ArrayBuffer): void {
+/**
+ * When a user clicks a colored legend piece on an already-loaded assembled
+ * preview, that mesh is *already* sitting in the viewer as its own split
+ * BufferGeometry. Extract it as STL and store it under the artifact key the
+ * customizer is about to ask for — so when `handlePartChange` fires and the
+ * customizer auto-generates, it hits cache instantly instead of firing WASM to
+ * reproduce a mesh we already have. Silent on failure — falls back to WASM.
+ */
+async function seedCacheFromLegendClick(model: Model, target: Part, entry: LegendEntry): Promise<void> {
   try {
-    const bytes = new Uint8Array(data);
-    let binary = "";
-    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-    localStorage.setItem(`3dg:${slug}:${hash}`, btoa(binary));
+    // Without params this would address the pre-built default artifact, and a
+    // mesh lifted out of the viewer has no business standing in for that.
+    if (!artifactClient || target.format !== "stl" || !entry.params) return;
+    const meshBytes = viewer.getMeshStlByColor(entry.color);
+    if (!meshBytes) return;
+    // Params equal to a lib default drop out during canonicalization, so the
+    // legend's overrides alone address the same artifact as the full form.
+    const key = await artifactClient.keyFor({
+      slug: model.slug,
+      target: targetOf(target),
+      params: entry.params,
+    });
+    await artifactCache.put(key, meshBytes);
   } catch {
-    // localStorage full — silently ignore
+    // Cache seeding is a nice-to-have — never let it break the click flow.
   }
 }
 
@@ -553,69 +726,180 @@ function updatePrintButtonVisibility() {
     printBtn.hidden = true;
     return;
   }
-  const href = downloadLink.href;
-  const format = formatOf(href);
+  // Customizer output is a `blob:` URL — the format isn't in the href, but
+  // it IS in the download attribute (which setDownloadBlob writes) or the
+  // current part's manifest entry.
+  const format = currentPrintFormat();
   printBtn.hidden = !format || !currentModel || !currentPart;
+}
+
+/** Detect the current mesh's format from whichever source is set. Handles
+ *  static server-served files (URL ends in .stl/.3mf) AND customizer blob
+ *  URLs (blob:… with the format in the `download` attribute). */
+function currentPrintFormat(): ModelFormat | null {
+  return (
+    formatOf(downloadLink.href) ??
+    formatOf(downloadLink.getAttribute('download') ?? '') ??
+    (currentPart ? formatOf(currentPart.file) : null)
+  );
 }
 
 // ── Legend & hardware ────────────────────────────────────
 
+/** Pieces of `file` this view contains, when the BOM declares a count. */
+function bomQty(part: Part, file: string): number | null {
+  return part.components?.find((c) => c.part === file)?.qty ?? null;
+}
+
+/**
+ * Two different things wear the same key, and which one it is changes what the
+ * rows mean:
+ *
+ * - An **assembly** — two or more parts on screen. Rows are parts, carry a
+ *   `×N` piece count, and earn a leader line, because "which of these is
+ *   that?" is a real question.
+ * - A **single part** — one object, however many filaments it takes. Rows are
+ *   that part's material assignments. No leader line: the whole viewport is
+ *   already the part the row names.
+ *
+ * Rows group by part *and* params: repeated pieces of one part collapse into a
+ * single row (and glow together on hover), but the same part rendered with
+ * different params — a tray cell, say — is a different artifact and keeps its
+ * own row. Entries with no part link stay one row each.
+ *
+ * The two readings meet on a multicolour part inside an assembly: it repeats in
+ * the key once per filament, not once per copy, so those rows are labelled with
+ * their filament count instead of a piece count.
+ */
 function renderLegend(model: Model, part: Part) {
   legendEl.innerHTML = "";
-  legendRowsByColor.clear();
-  setActiveLegend(null);
+  partGroups = [];
+  partGroupByColor.clear();
+  setActivePart(null, null);
+  leaderEnabled = false;
   if (!part.legend || part.legend.length === 0) {
     legendEl.hidden = true;
     return;
   }
+
+  const grouped = new Map<string, LegendEntry[]>();
+  for (const entry of part.legend) {
+    const key = entry.part
+      ? `${entry.part}\u0000${JSON.stringify(entry.params ?? null)}`
+      : `label\u0000${entry.label}`;
+    const bucket = grouped.get(key);
+    if (bucket) bucket.push(entry);
+    else grouped.set(key, [entry]);
+  }
+
+  const rows = [...grouped.values()].map((entries) => {
+    const target = entries[0].part ? findPart(model, entries[0].part) : null;
+    // Repeats only stand for copies when the target prints in one filament —
+    // a 3MF part's repeats are its own colours.
+    const pieces =
+      (target ? bomQty(part, target.file) : null)
+      ?? (target && target.format !== "3mf" ? entries.length : 1);
+    return { entries, target, pieces };
+  });
+
+  const partRows = rows.filter((r) => r.target).length;
+  const bomPieces = (part.components ?? []).reduce((n, c) => n + c.qty, 0);
+  const isPartsKey = partRows > 0 && (partRows >= 2 || bomPieces >= 2);
+  leaderEnabled = partRows >= 2;
+  const swatchCount = rows.reduce((n, r) => n + r.entries.length, 0);
+
   const heading = document.createElement("div");
   heading.className = "legend-title";
-  heading.textContent = "Colors";
+  heading.textContent = isPartsKey ? "Parts" : swatchCount > 1 ? "Filaments" : "Filament";
   legendEl.appendChild(heading);
 
-  for (const entry of part.legend) {
+  for (const { entries, target, pieces } of rows) {
+    const first = entries[0];
+    const colors = entries.map((e) => normColor(e.color));
+
     const row = document.createElement("div");
     row.className = "legend-row";
-    const swatch = document.createElement("span");
-    swatch.className = "legend-swatch";
-    swatch.style.background = entry.color;
+    const swatches = document.createElement("span");
+    swatches.className = "legend-swatches";
+    for (const color of colors) {
+      const swatch = document.createElement("span");
+      swatch.className = "legend-swatch";
+      swatch.style.background = color;
+      swatches.appendChild(swatch);
+    }
     const label = document.createElement("span");
     label.className = "legend-label";
-    label.textContent = entry.label;
-    row.appendChild(swatch);
+    label.textContent = target?.label ?? first.label;
+    row.appendChild(swatches);
     row.appendChild(label);
+    if (isPartsKey && pieces > 1) {
+      const qty = document.createElement("span");
+      qty.className = "legend-qty";
+      qty.textContent = `×${pieces}`;
+      row.appendChild(qty);
+    } else if (isPartsKey && target && entries.length > 1) {
+      const note = document.createElement("span");
+      note.className = "legend-qty legend-note";
+      note.textContent = `${entries.length} filaments`;
+      row.appendChild(note);
+    }
 
-    // The 3MF pipeline transforms SCAD hex literals before writing them
-    // out, so we key the row (and paint its swatch) using the display hex
-    // — otherwise viewer-emitted color events won't match. See
-    // scadHexToDisplayHex().
-    const displayColor = scadHexToDisplayHex(entry.color);
-    swatch.style.background = displayColor;
-    legendRowsByColor.set(displayColor, row);
+    const group: PartGroup = {
+      colors,
+      meshColors: colors,
+      qty: pieces,
+      row,
+      target,
+      params: first.params,
+    };
+    partGroups.push(group);
+    for (const color of colors) partGroupByColor.set(color, group);
 
     row.addEventListener("pointerenter", () => {
-      viewer.highlightByColor(displayColor);
-      setActiveLegend(displayColor);
+      setActivePart(group, null);
+      warmGroup(group);
     });
-    row.addEventListener("pointerleave", () => {
-      viewer.highlightByColor(null);
-      setActiveLegend(null);
-    });
+    row.addEventListener("pointerleave", () => setActivePart(null, null));
 
-    if (entry.part && entry.params) {
-      const target = (model.parts ?? []).find((p) => p.file === entry.part);
-      if (target) {
-        row.classList.add("legend-clickable");
-        row.title = `Open ${target.label}`;
-        row.addEventListener("click", () => {
-          handlePartChange(target.file, entry.params);
+    if (target) {
+      row.classList.add("legend-clickable");
+      row.title = `Open ${target.label}`;
+      row.addEventListener("click", () => {
+        void seedCacheFromLegendClick(model, target, first).finally(() => {
+          handlePartChange(target.file, first.params);
         });
-      }
+      });
     }
 
     legendEl.appendChild(row);
   }
   legendEl.hidden = false;
+}
+
+/** A legend `part` may name either a printable part or a multicolour preview. */
+function findPart(model: Model, file: string): Part | null {
+  return (model.parts ?? []).find((p) => p.file === file)
+    ?? (model.previews ?? []).find((p) => p.file === file)
+    ?? null;
+}
+
+/**
+ * Fetch a part's prebuilt artifact ahead of the click that opens it, so the
+ * jump from the assembly to the part is a cache hit. Only for parts addressed
+ * without params — those are the prerendered ones, already sitting on the
+ * server. A params-carrying row would have to *render* to warm, which is what
+ * seedCacheFromLegendClick sidesteps by lifting the mesh out of the viewer.
+ */
+const warmedTargets = new Set<string>();
+function warmGroup(group: PartGroup): void {
+  const model = currentModel;
+  if (!model || !artifactClient || !group.target || group.params) return;
+  const key = `${model.slug}/${group.target.file}`;
+  if (warmedTargets.has(key)) return;
+  warmedTargets.add(key);
+  void artifactClient
+    .get({ slug: model.slug, target: targetOf(group.target) })
+    .catch(() => warmedTargets.delete(key));
 }
 
 function renderHardware(model: Model) {
@@ -730,8 +1014,6 @@ function renderFilament(model: Model) {
 // ── Customizer (Preact) ──────────────────────────────────
 
 interface CustomizerProps {
-  libSource: string;
-  previewSource?: string;
   params: ScadParam[];
   slug: string;
   part: Part;
@@ -743,11 +1025,16 @@ interface CustomizerProps {
   onStart: () => void;
   onProgress: (status: string) => void;
   onFinish: () => void;
-  onGenerated: (data: ArrayBuffer, format: ModelFormat, filename: string) => void;
+  onGenerated: (
+    data: ArrayBuffer,
+    format: ModelFormat,
+    filename: string,
+    request: { key: string; params: Record<string, ScadValue> },
+  ) => void;
   onError: (msg: string) => void;
 }
 
-function Customizer({ libSource, previewSource, params, slug, part, initialValues, autoGenerate, onValuesChange, onStart, onProgress, onFinish, onGenerated, onError }: CustomizerProps) {
+function Customizer({ params, slug, part, initialValues, autoGenerate, onValuesChange, onStart, onProgress, onFinish, onGenerated, onError }: CustomizerProps) {
   const [values, setValues] = useState<Record<string, ScadValue>>(() => {
     const defaults: Record<string, ScadValue> = {};
     const known = new Map(params.map((p) => [p.name, p]));
@@ -770,6 +1057,7 @@ function Customizer({ libSource, previewSource, params, slug, part, initialValue
     return defaults;
   });
   const [generating, setGenerating] = useState(false);
+  const [origin, setOrigin] = useState<ArtifactOrigin | null>(null);
 
   // useRef-latch so the auto-generate useEffect can invoke the latest
   // handleGenerate closure without adding it to the deps (which would
@@ -784,60 +1072,29 @@ function Customizer({ libSource, previewSource, params, slug, part, initialValue
 
   const moduleName = part.module ?? "main";
   const outputFormat = part.format;
-  const isMulticolor = outputFormat === "3mf" && !!previewSource;
 
   const handleGenerate = async () => {
     setGenerating(true);
     onStart();
-    onProgress("Checking cache…");
+    onProgress("Resolving artifact…");
     onError("");
 
     try {
-      // Inject user params into the lib first so any preview-specific
-      // trailing assignments (e.g. `split = 3;` in assembled-3x3.scad)
-      // remain authoritative — those are the preview's whole point.
-      const injectedLib = injectParameters(libSource, values);
-      const fullSource = isMulticolor && previewSource
-        ? injectedLib + "\n" + previewSource
-        : injectedLib + `\n$fn=40;\n${moduleName}();\n`;
-      const cacheHash = await computeCacheKey(libSource, moduleName, values);
+      const { bytes, format, origin: resolved } = await resolveArtifact(
+        { slug, target: targetOf(part), params: values },
+        onProgress,
+      );
 
-      const cached = getCachedResult(slug, cacheHash);
-      if (cached) {
-        onProgress("Loaded from cache!");
-        const filename = `${slug}-${moduleName}-custom.${outputFormat}`;
-        onGenerated(cached, outputFormat, filename);
-        onFinish();
-        setGenerating(false);
-        return;
-      }
+      // Embed a permalink back to this exact param set into the downloaded
+      // file. The cache holds the artifact as addressed, untagged — the
+      // permalink is a property of this page, not of the geometry.
+      const sourceUrl = window.location.origin + buildUrl(slug, moduleName, values);
+      const tagged = embedSourceUrl(bytes, format, sourceUrl);
 
-      onProgress("Initializing OpenSCAD WASM…");
-      const api = createOpenSCADApi();
-      await api.init();
-      onProgress(`Rendering ${outputFormat.toUpperCase()} — this may take a while…`);
-
-      let result: ArrayBuffer;
-      if (isMulticolor) {
-        result = await api.renderMulticolor(fullSource, (line) => onProgress(line));
-      } else {
-        result = await api.render(fullSource, outputFormat, (line) => onProgress(line));
-      }
-
-      // Embed a permalink back to this exact param set into the output
-      // file itself. Cache the tagged version so subsequent hits also
-      // include it — the URL is derived from the same params as the
-      // cache key, so they stay in sync.
-      const sourceUrl =
-        window.location.origin + buildUrl(slug, moduleName, values);
-      const tagged = embedSourceUrl(result, outputFormat, sourceUrl);
-
-      setCachedResult(slug, cacheHash, tagged);
-
-      const filename = `${slug}-${moduleName}-custom.${outputFormat}`;
-      onGenerated(tagged, outputFormat, filename);
+      setOrigin(resolved);
+      const filename = `${slug}-${moduleName}-custom.${format}`;
+      onGenerated(tagged, format, filename, { key: resolved.key, params: values });
       onFinish();
-      api.dispose();
     } catch (err) {
       onError(err instanceof Error ? err.message : String(err));
       onFinish();
@@ -921,6 +1178,17 @@ function Customizer({ libSource, previewSource, params, slug, part, initialValue
         onClick: handleGenerate,
         disabled: generating,
       }, generating ? "Generating…" : `Generate Custom ${outputFormat.toUpperCase()}`),
+      // Where the mesh on screen came from. Stays put while params are
+      // edited — it describes what is displayed, not what Generate would do.
+      origin && h("div", {
+        className: "legend-row",
+        style: { marginLeft: "auto", fontSize: "11px" },
+        title: `Artifact ${origin.key.slice(0, 12)}…`
+          + (origin.forgeStatus ? ` · forge ${origin.forgeStatus}` : ""),
+      },
+        h("span", { className: "legend-swatch", style: { background: ORIGIN_COLOR[origin.source] } }),
+        h("span", { className: "legend-label" }, ORIGIN_LABEL[origin.source]),
+      ),
     ),
   );
 }
@@ -928,13 +1196,14 @@ function Customizer({ libSource, previewSource, params, slug, part, initialValue
 function showCustomizer(model: Model, part: Part, initialValues?: Record<string, ScadValue>, autoGenerate = false) {
   const sources = CUSTOMIZABLE_SOURCES[model.slug];
   if (!sources || !part.module) {
-    customizerEl.hidden = true;
+    hideCustomizer();
     return;
   }
   const params = parseParams(sources.lib);
-  const previewSource = sources.previews[part.module];
 
   customizerEl.hidden = false;
+  customizeBtn.hidden = false;
+  setCustomizerOpen(false);
   render(
     h(Customizer, {
       // Force a fresh Customizer instance whenever the model, part, or
@@ -943,8 +1212,6 @@ function showCustomizer(model: Model, part: Part, initialValues?: Record<string,
       // it into the form) AND the mount-time autoGenerate useEffect
       // never re-fires on subsequent clicks of a different cell.
       key: `${model.slug}:${part.module ?? ""}:${JSON.stringify(initialValues ?? null)}`,
-      libSource: sources.lib,
-      previewSource,
       params,
       slug: model.slug,
       part,
@@ -955,6 +1222,7 @@ function showCustomizer(model: Model, part: Part, initialValues?: Record<string,
         history.replaceState({ slug: model.slug, part: part.module, custom: vals }, "", path);
       },
       onStart: () => {
+        setCustomizerOpen(false);
         hideViewerPrompt();
         viewer.clear();
         showLoadingOverlay("Starting…");
@@ -965,8 +1233,10 @@ function showCustomizer(model: Model, part: Part, initialValues?: Record<string,
       onFinish: () => {
         hideLoadingOverlay();
       },
-      onGenerated: (data, format, filename) => {
+      onGenerated: (data, format, filename, request) => {
+        lastCustomizerRequest = request;
         viewer.load(data, format);
+        resolvePartColors();
         setDownloadBlob(data, filename);
         setCustomizedBadge(true);
         setError(null);
@@ -979,6 +1249,8 @@ function showCustomizer(model: Model, part: Part, initialValues?: Record<string,
 
 function hideCustomizer() {
   customizerEl.hidden = true;
+  customizeBtn.hidden = true;
+  setCustomizerOpen(false);
   render(null, customizerEl);
 }
 
@@ -1028,12 +1300,35 @@ function populatePartSelect(model: Model, activePart: Part) {
 // Current model state
 let currentModel: Model | null = null;
 let currentPart: Part | null = null;
+/** The render request behind `downloadLink`, when the customizer produced it. */
+let lastCustomizerRequest: { key: string; params: Record<string, ScadValue> } | null = null;
 let currentItems: { part: Part; group: string }[] = [];
 
 interface LoadPartOptions {
   initialValues?: Record<string, ScadValue>;
   promptOnly?: boolean;
   skipPush?: boolean;
+}
+
+/**
+ * Prefer the content-addressed artifact over the static path: that is the copy
+ * the key warms on hover, so opening a part from an assembly is a cache hit
+ * rather than a second download. The static path stays the fallback for
+ * anything the runtime manifest can't address — and remains what the download
+ * link points at, since it carries a meaningful filename.
+ */
+async function fetchPartBytes(model: Model, part: Part, url: string): Promise<ArrayBuffer> {
+  if (artifactClient) {
+    try {
+      const { bytes } = await artifactClient.get({ slug: model.slug, target: targetOf(part) });
+      return bytes;
+    } catch {
+      // Fall through — an unaddressable part is still servable by path.
+    }
+  }
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Failed to fetch ${part.file}: HTTP ${res.status}`);
+  return res.arrayBuffer();
 }
 
 async function loadPart(model: Model, part: Part, opts: LoadPartOptions = {}) {
@@ -1045,6 +1340,7 @@ async function loadPart(model: Model, part: Part, opts: LoadPartOptions = {}) {
   }
 
   currentPart = part;
+  lastCustomizerRequest = null;
   setCustomizedBadge(false);
   hideViewerPrompt();
   renderLegend(model, part);
@@ -1094,10 +1390,9 @@ async function loadPart(model: Model, part: Part, opts: LoadPartOptions = {}) {
 
   try {
     setError(null);
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Failed to fetch ${part.file}: HTTP ${res.status}`);
-    const buf = await res.arrayBuffer();
+    const buf = await fetchPartBytes(model, part, url);
     viewer.load(buf, format);
+    resolvePartColors();
   } catch (err) {
     viewer.clear();
     setError(err instanceof Error ? err.message : String(err));
@@ -1119,6 +1414,7 @@ function selectModel(model: Model, partOverride?: Part, opts: LoadPartOptions = 
   if (model.description) {
     modelDescEl.textContent = model.description;
     modelDescEl.hidden = false;
+    markDescriptionClipped();
   } else {
     modelDescEl.hidden = true;
   }
@@ -1156,26 +1452,77 @@ function handlePartChange(selectedFile: string, initialValues?: Record<string, S
 partSelect.addEventListener("change", () => handlePartChange(partSelect.value));
 mobilePartSelect.addEventListener("change", () => handlePartChange(mobilePartSelect.value));
 
-// Print controls — settings is always available, per-part Print appears only
-// once a printable mesh (STL or 3MF) is loaded and downloadLink points at it.
-printSettingsBtn?.addEventListener("click", () => {
-  openSettingsPanel();
+// Print controls — Plates lives in the sidebar and is always available, Add
+// to plate appears only once a printable mesh (STL or 3MF) is loaded and
+// downloadLink points at it.
+platesBtn?.addEventListener("click", () => {
+  closeSidebarOnMobile();
+  openPlatesPanel();
 });
 
-printBtn?.addEventListener("click", () => {
-  if (!currentModel || !currentPart) return;
-  const format = formatOf(downloadLink.href);
+const plateNotice = document.createElement("span");
+plateNotice.id = "plate-added";
+plateNotice.hidden = true;
+printBtn?.insertAdjacentElement("beforebegin", plateNotice);
+let plateNoticeTimer: number | undefined;
+
+function showPlateNotice(plateId: string, where: string): void {
+  window.clearTimeout(plateNoticeTimer);
+  plateNotice.textContent = `Added to ${where} · `;
+  const open = document.createElement("a");
+  open.className = "part-link";
+  open.href = "#";
+  open.textContent = "Open plate";
+  open.addEventListener("click", (e) => {
+    e.preventDefault();
+    window.clearTimeout(plateNoticeTimer);
+    plateNotice.hidden = true;
+    openPlateDialog(plateId);
+  });
+  plateNotice.appendChild(open);
+  plateNotice.hidden = false;
+  plateNoticeTimer = window.setTimeout(() => { plateNotice.hidden = true; }, 8000);
+}
+
+async function addCurrentPartToPlate(): Promise<void> {
+  if (!printBtn || !currentModel || !currentPart || !artifactClient) return;
+  const format = currentPrintFormat();
   if (!format) return;
-  const filename = downloadLink.getAttribute("download") ?? currentPart.file;
-  openPrintDialog(
-    { slug: currentModel.slug, title: currentModel.title },
-    {
-      file: filename,
+  const model = currentModel;
+  const part = currentPart;
+  const target = targetOf(part);
+  // A plate item is a render request, so it stores the params the mesh on
+  // screen was built from — the customizer's own values when it produced one,
+  // otherwise none, which addresses the pre-built default artifact.
+  const params = lastCustomizerRequest?.params;
+
+  printBtn.disabled = true;
+  try {
+    const key = lastCustomizerRequest?.key
+      ?? await artifactClient.keyFor({ slug: model.slug, target });
+
+    const { project, plate } = await ensureTargetPlate(model.title);
+    await addItemToPlate(plate.id, {
+      slug: model.slug,
+      target,
       format,
-      label: currentPart.label,
-      meshUrl: downloadLink.href,
-    },
-  );
+      label: part.label,
+      modelTitle: model.title,
+      params,
+      key,
+      qty: 1,
+    });
+    setError(null);
+    showPlateNotice(plate.id, `${project.name} / ${plate.name}`);
+  } catch (err) {
+    setError(err instanceof Error ? err.message : String(err));
+  } finally {
+    printBtn.disabled = false;
+  }
+}
+
+printBtn?.addEventListener("click", () => {
+  void addCurrentPartToPlate();
 });
 
 // ── Sidebar & routing ────────────────────────────────────
@@ -1240,12 +1587,22 @@ async function init() {
   try {
     const res = await fetch(`${import.meta.env.BASE_URL}models/manifest.json`);
     if (!res.ok) throw new Error(`manifest.json: HTTP ${res.status}`);
-    const manifest = (await res.json()) as Manifest;
+    const manifest = (await res.json()) as RuntimeManifest;
+    const client = buildArtifactClient(manifest);
+    // A bundle that hashes differently than the manifest was generated for
+    // would 404 on every artifact forever; fail here instead.
+    client.assertKeySchema(KEY_SCHEMA);
+    artifactClient = client;
+    // Plate resolution shares this client so it inherits the WASM renderer.
+    setPlateArtifactClient(client);
     renderSidebar(manifest);
   } catch (err) {
     modelListEl.textContent = "Failed to load manifest";
     setError(err instanceof Error ? err.message : String(err));
   }
+  // After the gallery, so a `?plate=` deep link opens over a painted page
+  // rather than a blank one — and so a manifest failure still routes.
+  initPrintRouting();
 }
 
 init();
@@ -1268,6 +1625,7 @@ if (import.meta.hot) {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const buf = await res.arrayBuffer();
       viewer.load(buf, format, { preserveView: true });
+      resolvePartColors();
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));

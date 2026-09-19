@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#000000" />
     <title>mmmaxwwwell's 3d-gallery</title>
     <link rel="icon" type="image/svg+xml" href="/3d-gallery/icons/icon.svg" />
     <link rel="apple-touch-icon" href="/3d-gallery/icons/icon-192.png" />
@@ -11,25 +11,42 @@
   </head>
   <body>
     <div id="app">
-      <div id="mobile-bar">
-        <button id="sidebar-toggle" type="button" aria-label="Toggle menu">☰</button>
-        <select id="mobile-part-select" hidden></select>
-      </div>
+      <div id="sidebar-backdrop"></div>
       <aside id="sidebar">
         <h1>3D Gallery</h1>
         <nav id="model-list">Loading…</nav>
+        <div id="sidebar-footer">
+          <button id="plates-btn" type="button" title="Projects and build plates">
+            <span aria-hidden="true">🗂️</span> Plates
+          </button>
+        </div>
       </aside>
       <main id="viewer-pane">
         <header id="viewer-header">
           <div id="header-left">
+            <button id="sidebar-toggle" type="button" aria-label="Browse models" aria-expanded="false">☰</button>
             <h2 id="model-title">Select a model</h2>
             <select id="part-select" hidden></select>
           </div>
-          <button id="install-app" type="button" hidden>Install app</button>
-          <button id="print-settings-btn" type="button" title="Import and manage OrcaSlicer presets">Print settings</button>
-          <button id="print-btn" type="button" hidden title="Slice and send to Moonraker">Print</button>
-          <a id="download-link" href="#" download hidden>Download</a>
+          <div id="header-actions">
+            <a id="download-link" href="#" download hidden aria-label="Download" title="Download this part">
+              <span aria-hidden="true">⬇️</span>
+            </a>
+            <button id="print-btn" type="button" hidden aria-label="Add to plate" title="Add this part to the active build plate">
+              <span aria-hidden="true">➕</span>
+            </button>
+            <button id="customize-btn" type="button" hidden aria-expanded="false" aria-label="Configure" title="Configure this model">
+              <span aria-hidden="true">✏️</span>
+            </button>
+            <button id="install-app" type="button" hidden aria-label="Install app" title="Install this gallery as an app">
+              <span aria-hidden="true">📲</span>
+            </button>
+          </div>
         </header>
+        <label id="mobile-part-row" for="mobile-part-select">
+          <span class="mobile-part-label">Showing</span>
+          <select id="mobile-part-select" hidden></select>
+        </label>
         <p id="model-description" hidden></p>
         <div id="viewer-container">
           <svg id="viewer-leader" width="100%" height="100%" aria-hidden="true"></svg>
@@ -45,6 +62,7 @@
           </div>
         </div>
         <div id="viewer-error" hidden></div>
+        <div id="customizer-backdrop"></div>
         <section id="customizer" hidden></section>
         <section id="parts-list" hidden></section>
         <section id="filament-list" hidden></section>

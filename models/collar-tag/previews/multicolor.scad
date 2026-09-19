@@ -5,5 +5,5 @@ $fn = 72;
 // scans top-level color() calls and emits one mesh per color into a
 // single 3MF, one filament per object.
 
-color("orange")  body();
-color("#a5560a") emboss();
+color("#00eaff")  body();
+color("#ff17c7") emboss();

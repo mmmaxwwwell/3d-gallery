@@ -7,14 +7,17 @@ interface ModalProps {
   title: string;
   onClose: () => void;
   children: ComponentChildren;
+  /** Hands the body to the caller whole: no padding, no scroll. For screens
+   *  that own their own layout — the plate editor fills it with a canvas. */
+  bleed?: boolean;
 }
 
 /**
  * Minimal modal with backdrop + Esc-to-close. Mounted per-instance into a
- * dedicated portal div (see openPrintDialog / openSettingsPanel in main.ts)
+ * dedicated portal div (see openPlateDialog / openSettingsPanel in mount.tsx)
  * so it sits above the viewer chrome without fighting the existing layout.
  */
-export function Modal({ title, onClose, children }: ModalProps) {
+export function Modal({ title, onClose, children, bleed }: ModalProps) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -32,7 +35,7 @@ export function Modal({ title, onClose, children }: ModalProps) {
             ×
           </button>
         </header>
-        <div class="print-modal-body">{children}</div>
+        <div class={`print-modal-body${bleed ? ' is-bleed' : ''}`}>{children}</div>
       </div>
     </div>
   );

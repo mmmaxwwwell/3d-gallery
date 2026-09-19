@@ -1,0 +1,37 @@
+{
+  "name": "@3d-gallery/astro",
+  "private": true,
+  "version": "0.1.0",
+  "license": "MIT",
+  "type": "module",
+  "description": "Astro integration for the 3d-gallery module: deferred artifact generation in dev, prerendered content-addressed artifacts at build, and a <ModelViewer> island.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./ModelViewer.astro": "./src/components/ModelViewer.astro",
+    "./client": "./src/client/mount.ts",
+    "./registry": "./src/registry.ts"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "astro": "^5.0.0"
+  },
+  "dependencies": {
+    "@3d-gallery/model-core": "*",
+    "@3d-gallery/model-forge": "*",
+    "@3d-gallery/viewer": "*"
+  },
+  "devDependencies": {
+    "astro": "^5.18.1",
+    "typescript": "^5.7.0",
+    "vitest": "4.0.18"
+  }
+}

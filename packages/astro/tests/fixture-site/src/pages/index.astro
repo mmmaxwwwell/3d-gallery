@@ -1,0 +1,13 @@
+---
+import ModelViewer from '@3d-gallery/astro/ModelViewer.astro';
+import { manifest } from 'virtual:3d-gallery';
+---
+<html lang="en">
+  <head><meta charset="utf-8" /><title>3d-gallery astro fixture</title></head>
+  <body>
+    <h1>{manifest.models.length} model(s)</h1>
+    <p data-key-schema={manifest.keySchema}>schema</p>
+    <p data-default-key={manifest.models[0].parts[0].defaultKey}>key</p>
+    <ModelViewer slug="demo-cube" height="320px" />
+  </body>
+</html>

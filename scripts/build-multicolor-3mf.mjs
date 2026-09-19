@@ -184,7 +184,7 @@ module color(c, alpha = 1) {
  * no textmetrics. Typically 5-10x faster than rendering the original
  * source once per color.
  */
-async function renderColorPassFromCsg({ flatCsgPath, tmpDir, selectedKey, outStl }) {
+async function renderColorPassFromCsg({ flatCsgPath, tmpDir, selectedKey, outStl, execOpts = {} }) {
   const safeName = selectedKey.replace(/[^a-z0-9]/gi, "_");
   const wrapperPath = join(tmpDir, `_pass_${safeName}.scad`);
   const wrapper = `${colorFilterSource(selectedKey)}
@@ -192,7 +192,7 @@ include <${basename(flatCsgPath)}>;
 `;
   writeFileSync(wrapperPath, wrapper);
   try {
-    await execFileAsync("openscad", [...OPENSCAD_ARGS, "-o", outStl, wrapperPath]);
+    await execFileAsync("openscad", [...OPENSCAD_ARGS, "-o", outStl, wrapperPath], execOpts);
   } finally {
     rmSync(wrapperPath, { force: true });
   }
@@ -200,7 +200,7 @@ include <${basename(flatCsgPath)}>;
 
 // ---------- STL parsing ----------
 
-function parseStl(path) {
+export function parseStl(path) {
   const buf = readFileSync(path);
   const isAscii = buf.slice(0, 5).toString("ascii") === "solid"
     && (buf.length < 84
@@ -209,7 +209,7 @@ function parseStl(path) {
                  : parseBinaryStl(buf);
 }
 
-function parseBinaryStl(buf) {
+export function parseBinaryStl(buf) {
   const triCount = buf.readUInt32LE(80);
   const vertices = [];
   const triangles = [];
@@ -270,14 +270,21 @@ function parseAsciiStl(text) {
 
 // ---------- 3MF assembly ----------
 
+/**
+ * OpenSCAD's channels are already plain sRGB in [0,1] — `color("#39ff14")`
+ * reaches us as `[0.223529, 1, 0.078431, 1]`, and the named table is the same
+ * convention. So they go straight to 8-bit hex. Gamma-encoding here would be
+ * reading sRGB as linear and encoding a second time, which leaves the fixed
+ * points (0 and 1) alone and washes out everything between: that neon green
+ * used to land in the .3mf as #82FF4F. Alpha is never gamma-encoded at all.
+ */
 function rgbaToHex(rgba) {
-  const linearToSrgb = (v) => v <= 0.0031308 ? v * 12.92 : 1.055 * Math.pow(v, 1/2.4) - 0.055;
-  const c = (v) => Math.round(Math.max(0, Math.min(1, linearToSrgb(v))) * 255)
+  const c = (v) => Math.round(Math.max(0, Math.min(1, v)) * 255)
                        .toString(16).padStart(2, "0").toUpperCase();
   return `#${c(rgba[0])}${c(rgba[1])}${c(rgba[2])}${c(rgba[3])}`;
 }
 
-function build3mf(perColorMeshes, { asAssembly = false } = {}) {
+export function build3mf(perColorMeshes, { asAssembly = false } = {}) {
   // perColorMeshes: [{ key, rgba, mesh:{vertices,triangles} }]
   // asAssembly: when true, wrap all color-objects inside one component
   // assembly and put ONLY the assembly in <build>. Bambu Studio / OrcaSlicer
@@ -423,25 +430,46 @@ function escXml(s) {
 
 // ---------- entry point ----------
 
-export async function buildMulticolor3mf({ scadPath, outPath, asAssembly = false }) {
-  const source = readFileSync(scadPath, "utf8");
+/**
+ * @param {object} opts
+ * @param {string} [opts.scadPath] Source file to build. Omit when passing `scadSource`.
+ * @param {string} [opts.scadSource] Source text to build, e.g. with customizer
+ *   parameters already injected. Written to a temp file so nothing is ever
+ *   created inside the model tree.
+ * @param {string} [opts.sourceDir] Directory relative `import()` paths resolve
+ *   against. Defaults to the directory of `scadPath`; required with `scadSource`
+ *   if the source imports any external asset.
+ * @param {string} opts.outPath
+ * @param {boolean} [opts.asAssembly]
+ * @param {number} [opts.timeoutMs] Wall-clock cap on each openscad invocation.
+ */
+export async function buildMulticolor3mf({ scadPath, scadSource, sourceDir, outPath, asAssembly = false, timeoutMs }) {
+  const source = scadSource ?? readFileSync(scadPath, "utf8");
+  const label = scadPath ?? "<source>";
   if (extractColors(source).length === 0) {
-    throw new Error(`No top-level color() calls in ${scadPath}; cannot build multi-color 3MF.`);
+    throw new Error(`No top-level color() calls in ${label}; cannot build multi-color 3MF.`);
   }
 
+  const execOpts = timeoutMs ? { timeout: timeoutMs } : {};
   const tmpDir = mkdtempSync(join(tmpdir(), "3dgallery-passes-"));
   try {
+    // When given source text rather than a path, stage it in the temp dir.
+    // Local includes are already inlined by the caller and library includes
+    // resolve via OPENSCADPATH, so the file does not need to sit next to the model.
+    const inputPath = scadPath ?? join(tmpDir, "input.scad");
+    if (!scadPath) writeFileSync(inputPath, source);
+
     // 1. Flatten the source once — resolve every include (BOSL2, qr.scad),
     //    evaluate every module/bezier/function, and canonicalize color()
     //    literals to RGBA arrays. This is the expensive step.
     const flatCsgPath = join(tmpDir, "flat.csg");
-    await execFileAsync("openscad", [...OPENSCAD_ARGS, "-o", flatCsgPath, scadPath]);
+    await execFileAsync("openscad", [...OPENSCAD_ARGS, "-o", flatCsgPath, inputPath], execOpts);
 
     // 2. Rewrite relative paths in `import(file = "...")` calls to absolute
     //    paths anchored at the source directory. The CSG is about to be
     //    included from tmpDir on every per-color pass; without this, any
     //    SVG/DXF/STL import would resolve against tmpDir and fail.
-    absolutizeCsgImports(flatCsgPath, dirname(scadPath));
+    absolutizeCsgImports(flatCsgPath, sourceDir ?? (scadPath ? dirname(scadPath) : tmpDir));
 
     // 3. Discover colors from the CSG (not the source) so keys match
     //    the exact string form the SCAD wrapper's str() will produce
@@ -449,7 +477,7 @@ export async function buildMulticolor3mf({ scadPath, outPath, asAssembly = false
     const csgText = readFileSync(flatCsgPath, "utf8");
     const colors = extractColorsFromCsg(csgText);
     if (colors.length === 0) {
-      throw new Error(`No color() calls found in CSG for ${scadPath}`);
+      throw new Error(`No color() calls found in CSG for ${label}`);
     }
 
     // 3. Fan out N cheap per-color renders against the flat CSG. No
@@ -458,7 +486,7 @@ export async function buildMulticolor3mf({ scadPath, outPath, asAssembly = false
     const jobs = colors.map(({ key, rgba }) => {
       const safeName = key.replace(/[^a-z0-9]/gi, "_");
       const outStl = join(tmpDir, `${safeName}.stl`);
-      return renderColorPassFromCsg({ flatCsgPath, tmpDir, selectedKey: key, outStl })
+      return renderColorPassFromCsg({ flatCsgPath, tmpDir, selectedKey: key, outStl, execOpts })
         .then(() => ({ key, rgba, mesh: parseStl(outStl) }));
     });
     const perColorMeshes = await Promise.all(jobs);

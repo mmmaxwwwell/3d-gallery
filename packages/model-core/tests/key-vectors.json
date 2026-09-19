@@ -1,0 +1,10 @@
+{
+  "keySchema": "3dg-artifact/2",
+  "keys": {
+    "defaults": "243263460878f06bb1048628dd510e02f497bd16f01143efe80a693690b96728",
+    "one-number": "9ee4b847d3844b0a1471b9836cfc6d1d77a70ccca5dcccf5c6740f7674478181",
+    "enum-and-string": "276d84c278d8100ea6d0151f32f8da4b5afd6ad0e645e298c04f4e60f8631824",
+    "stl-part": "2643aefe98a5024398edacd5638592413172efbe9014f0dd93280d87d1ecbbc3",
+    "unicode": "d11e44e9c7074005b12e9a8c0776e0238d73acbaac9ff192ca6291bee069b210"
+  }
+}

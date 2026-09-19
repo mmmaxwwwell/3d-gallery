@@ -14,31 +14,31 @@ html, body {
   height: 100vh;
 }
 
-/* ── Mobile top bar ────────────────────────────────────── */
+/* ── Mobile part switcher ──────────────────────────────── */
+/* Sits directly under the title row so it reads as "what you are looking at",
+   not as a nav bar. Hidden whole when the model has a single part. */
 
-#mobile-bar {
-  display: flex;
-  align-items: stretch;
-  background: #fff;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-#sidebar-toggle {
+#mobile-part-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: #252b38;
-  color: #a8c4f0;
-  border: none;
-  border-right: 1px solid #2d3340;
-  width: 48px;
+  gap: 10px;
+  padding: 8px 14px;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
   flex-shrink: 0;
-  font-size: 20px;
-  cursor: pointer;
 }
 
-#sidebar-toggle:hover {
-  background: #2e3648;
+#mobile-part-row:has(> #mobile-part-select[hidden]) {
+  display: none;
+}
+
+.mobile-part-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #666;
+  flex-shrink: 0;
 }
 
 #mobile-part-select {
@@ -46,39 +46,112 @@ html, body {
   min-width: 0;
   background: #fff;
   color: #222;
-  border: none;
-  border-left: 1px solid #e0e0e0;
-  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 9px 10px;
   font-size: 14px;
   font-family: inherit;
   appearance: auto;
-}
-
-#mobile-part-select:not([hidden]) {
-  display: block;
-}
-
-#mobile-part-select[hidden] ~ .mobile-title {
-  display: block;
+  min-height: 42px;
 }
 
 /* ── Sidebar ───────────────────────────────────────────── */
+/* Mobile: an overlay drawer. It used to sit in the app's flex column, so
+   opening it shoved the header — and the ☰ that opened it — down the page. */
 
 #sidebar {
   background: #1f2530;
   color: #e8eaed;
-  overflow-y: auto;
-  border-bottom: 1px solid #2d3340;
-  display: none;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   flex-shrink: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 60;
+  width: min(80vw, 300px);
+  transform: translateX(-100%);
+  transition: transform 180ms ease;
 }
 
 #sidebar.open {
+  transform: translateX(0);
+}
+
+#sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+body.sidebar-open #sidebar-backdrop {
   display: block;
 }
 
 #sidebar h1 {
-  display: none;
+  margin: 0 0 12px;
+  padding: 16px 16px 0;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #a8c4f0;
+}
+
+#sidebar-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e8ecf0;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 40px;
+  min-height: 38px;
+  flex-shrink: 0;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#model-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Plates is app-level, not per-model, so it sits under the model list rather
+   than in the viewer header with the per-part actions. */
+#sidebar-footer {
+  flex: none;
+  padding: 8px;
+  border-top: 1px solid #2d3340;
+}
+
+#plates-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  color: #b0b8c6;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#plates-btn:hover {
+  background: #2e3648;
+  color: #e0e4ea;
 }
 
 .model-item {
@@ -141,6 +214,19 @@ html, body {
   white-space: nowrap;
 }
 
+/* Mobile shares the row with ☰ + two buttons, so long titles wrap rather
+   than ellipsing down to a couple of characters. */
+@media (max-width: 767px) {
+  #viewer-header h2 {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 1.25;
+  }
+}
+
 #part-select {
   padding: 4px 8px;
   border: 1px solid #ccc;
@@ -153,41 +239,6 @@ html, body {
   display: none;
 }
 
-#download-link {
-  font-size: 12px;
-  color: #2b6cb0;
-  text-decoration: none;
-  padding: 4px 10px;
-  border: 1px solid #2b6cb0;
-  border-radius: 4px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-#download-link:hover {
-  background: #2b6cb0;
-  color: #fff;
-}
-
-#install-app {
-  font: inherit;
-  font-size: 12px;
-  color: #2f855a;
-  background: transparent;
-  padding: 4px 10px;
-  border: 1px solid #2f855a;
-  border-radius: 4px;
-  white-space: nowrap;
-  flex-shrink: 0;
-  cursor: pointer;
-  margin-right: 8px;
-}
-
-#install-app:hover {
-  background: #2f855a;
-  color: #fff;
-}
-
 #model-description {
   margin: 0;
   padding: 10px 14px;
@@ -196,6 +247,39 @@ html, body {
   line-height: 1.5;
   background: #fff;
   border-bottom: 1px solid #e0e0e0;
+}
+
+/* Mobile: the pane scrolls as a whole, so the parts / hardware lists sit
+   below the fold instead of squeezing the model into a strip. The blurb is
+   capped hard and scrolls inside itself; the viewer keeps a floor. */
+@media (max-width: 767px) {
+  #viewer-pane {
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+  }
+
+  #viewer-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+  }
+
+  #model-description {
+    flex: 0 0 auto;
+    max-height: 22vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* Fade the cut line so a clipped blurb reads as "scroll me", not "broken". */
+  #model-description.is-clipped {
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 20px), transparent);
+  }
+
+  #viewer-container {
+    flex: 1 0 auto;
+    min-height: 46vh;
+  }
 }
 
 #viewer-container {
@@ -225,18 +309,23 @@ html, body {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
+/* Mobile docks the legend to the bottom edge: an assembly's key can run to a
+   dozen rows, and floating that over the top-right buries the model. */
 #viewer-legend {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(255, 255, 255, 0.92);
-  border: 1px solid #d0d4dc;
-  border-radius: 6px;
-  padding: 8px 10px;
+  border-top: 1px solid #d0d4dc;
+  border-radius: 8px 8px 0 0;
+  padding: 8px 12px;
   font-size: 11px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 -1px 6px rgba(0, 0, 0, 0.12);
   z-index: 10;
-  max-width: 200px;
+  max-height: 38%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .legend-title {
@@ -291,6 +380,13 @@ html, body {
   opacity: 0.85;
 }
 
+.legend-swatches {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
 .legend-swatch {
   display: inline-block;
   width: 12px;
@@ -298,6 +394,20 @@ html, body {
   border-radius: 3px;
   border: 1px solid rgba(0, 0, 0, 0.2);
   flex-shrink: 0;
+}
+
+.legend-qty {
+  margin-left: auto;
+  padding-left: 8px;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+/* Shares the ×N slot but stays quieter — a piece count is the louder fact. */
+.legend-note {
+  font-size: 10px;
+  opacity: 0.7;
+  white-space: nowrap;
 }
 
 .legend-label {
@@ -501,6 +611,51 @@ html, body {
   min-height: 0;
 }
 
+/* `display: flex` above outranks the UA `[hidden]` rule, so restate it. */
+#customizer[hidden] {
+  display: none;
+}
+
+/* Mobile keeps the customizer out of the initial view entirely — the pencil
+   button in the header slides it up as a sheet over the viewer. */
+#customizer-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+@media (max-width: 767px) {
+  body.customizer-open #customizer-backdrop {
+    display: block;
+  }
+
+  #customizer:not([hidden]) {
+    display: none;
+  }
+
+  body.customizer-open #customizer:not([hidden]) {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    max-height: 78vh;
+    border-radius: 14px 14px 0 0;
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5);
+    overscroll-behavior: contain;
+  }
+
+  /* Keep the header above the backdrop so the pencil that opened the sheet
+     is also what closes it. */
+  body.customizer-open #viewer-header {
+    position: relative;
+    z-index: 46;
+  }
+}
+
 .customizer-panel {
   display: flex;
   flex-direction: column;
@@ -630,6 +785,65 @@ html, body {
   cursor: not-allowed;
 }
 
+/* ── Header actions ───────────────────────────────────────
+   A row of emoji icon buttons — download, add to plate, configure, install.
+   The glyph carries the meaning visually; aria-label carries it otherwise. */
+
+#header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+#header-actions > * {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  min-height: 40px;
+  padding: 0;
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  text-decoration: none;
+  background: #e8ecf0;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+#header-actions > *:hover {
+  background: #d5dbe2;
+}
+
+#header-actions > [hidden] {
+  display: none;
+}
+
+/* Add to plate is the one action that commits something, so it reads as the
+   primary of the row. */
+#print-btn {
+  background: #e2ecf8;
+  border-color: #2b6cb0;
+}
+
+#print-btn:hover {
+  background: #cfe0f4;
+}
+
+#print-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+body.customizer-open #customize-btn {
+  background: #d5dbe2;
+  border-color: #888;
+}
+
 /* ── Desktop (≥768px) ──────────────────────────────────── */
 
 @media (min-width: 768px) {
@@ -637,12 +851,17 @@ html, body {
     flex-direction: row;
   }
 
-  #mobile-bar {
+  #mobile-part-row,
+  #sidebar-toggle,
+  #sidebar-backdrop,
+  body.sidebar-open #sidebar-backdrop {
     display: none;
   }
 
   #sidebar {
-    display: block;
+    position: static;
+    transform: none;
+    transition: none;
     width: 240px;
     flex-shrink: 0;
     height: 100vh;
@@ -682,20 +901,28 @@ html, body {
     display: block;
   }
 
-  #model-description {
-    padding: 10px 18px;
+  /* The customizer is an inline panel here, so its sheet trigger has no job. */
+  #customize-btn {
+    display: none;
   }
 
-  #download-link {
-    font-size: 13px;
+  #model-description {
+    padding: 10px 18px;
   }
 
   #viewer-legend {
     top: 12px;
     right: 12px;
+    left: auto;
+    bottom: auto;
     padding: 10px 12px;
     font-size: 12px;
     max-width: 240px;
+    max-height: none;
+    overflow: visible;
+    border: 1px solid #d0d4dc;
+    border-radius: 6px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   }
 
   .legend-title {
@@ -746,35 +973,6 @@ html, body {
   }
 }
 
-/* ── Print controls in header ─────────────────────────── */
-
-#print-settings-btn,
-#print-btn {
-  background: #e8ecf0;
-  color: #333;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 13px;
-  font-family: inherit;
-  cursor: pointer;
-}
-
-#print-settings-btn:hover,
-#print-btn:hover {
-  background: #d5dbe2;
-}
-
-#print-btn {
-  background: #2b6cb0;
-  color: #fff;
-  border-color: #2b6cb0;
-}
-
-#print-btn:hover {
-  background: #225694;
-}
-
 /* ── Print modal ──────────────────────────────────────── */
 
 .print-modal-backdrop {
@@ -782,58 +980,95 @@ html, body {
   inset: 0;
   background: rgba(15, 23, 42, 0.55);
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   z-index: 1000;
-  padding: 16px;
+  padding: 0;
 }
 
 .print-modal {
   background: #fff;
-  border-radius: 8px;
-  width: min(560px, 100%);
-  max-height: calc(100vh - 32px);
+  border-radius: 14px 14px 0 0;
+  width: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 -6px 30px rgba(0, 0, 0, 0.35);
 }
 
 .print-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 18px;
+  padding: 12px 16px;
   border-bottom: 1px solid #e0e0e0;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 4;
+  min-height: 52px;
 }
 
 .print-modal-header h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: 17px;
+  line-height: 1.2;
 }
 
 .print-modal-close {
   background: none;
   border: none;
-  font-size: 22px;
+  font-size: 26px;
   line-height: 1;
   cursor: pointer;
   color: #666;
-  padding: 0 4px;
+  padding: 8px 10px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 8px;
 }
 
-.print-modal-close:hover {
+.print-modal-close:hover,
+.print-modal-close:active {
   color: #000;
+  background: #f2f4f7;
 }
 
 .print-modal-body {
-  padding: 16px 18px 18px;
+  padding: 14px 16px 96px;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  flex: 1;
+  -webkit-overflow-scrolling: touch;
 }
 
+/* On tablet+ up, revert to a centered floating card. Below that (default),
+ * the modal is a full-height bottom sheet — the mobile-first baseline. */
+@media (min-width: 720px) {
+  .print-modal-backdrop {
+    align-items: center;
+    padding: 24px;
+  }
+  .print-modal {
+    width: min(720px, 100%);
+    height: auto;
+    max-height: calc(100vh - 48px);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  }
+  .print-modal-body {
+    padding: 20px 24px 24px;
+  }
+}
+
+/* Laptop+: use more horizontal real estate. Modal grows wider and the
+ * print dialog's essential + process sections sit side-by-side. */
 .print-dialog {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  font-size: 15px;
 }
 
 .print-dialog-empty {
@@ -847,14 +1082,15 @@ html, body {
 .print-dialog-row {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  font-size: 13px;
+  gap: 6px;
+  font-size: 14px;
 }
 
 .print-dialog-row > span:first-child,
 .print-dialog-row > label:first-child {
   font-weight: 600;
-  color: #444;
+  color: #333;
+  font-size: 13px;
 }
 
 .print-dialog-value {
@@ -863,12 +1099,23 @@ html, body {
 }
 
 .print-dialog-row select,
-.print-dialog-row input[type="text"] {
-  padding: 8px 10px;
+.print-dialog-row input[type="text"],
+.print-dialog-row input[type="number"] {
+  padding: 12px 14px;
   border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 13px;
+  border-radius: 8px;
+  font-size: 16px; /* ≥16px prevents iOS Safari zoom-on-focus. */
   font-family: inherit;
+  min-height: 48px;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.print-dialog-row select:focus,
+.print-dialog-row input:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: -1px;
+  border-color: #3b82f6;
 }
 
 .print-dialog-progress {
@@ -908,9 +1155,166 @@ html, body {
 
 .print-dialog-actions {
   display: flex;
+  flex-direction: row-reverse;
+  gap: 10px;
+  padding: 12px 16px calc(env(safe-area-inset-bottom, 0px) + 12px);
+  margin: 0 -16px -96px;
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  border-top: 1px solid #e5e7eb;
+  z-index: 5;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.print-dialog-actions .btn {
+  min-height: 56px;
+  padding-inline: 22px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 12px;
+  flex: 1;
+  letter-spacing: 0.3px;
+}
+
+.print-dialog-actions .btn-primary {
+  flex: 2;
+  min-height: 60px;
+  font-size: 17px;
+}
+
+@media (min-width: 720px) {
+  .print-dialog-actions {
+    margin: 0;
+    padding: 10px 0 4px;
+    border-top: none;
+    box-shadow: none;
+    background: linear-gradient(to bottom, rgba(255,255,255,0), #fff 30%);
+  }
+  .print-dialog-actions .btn {
+    flex: 0 0 auto;
+  }
+}
+
+/* Presets are imported, not authored here, so the way out sits above the
+   selects that depend on them. */
+.pd-essentials-bar {
+  display: flex;
   justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+/* Layer height + Adaptive pill in one row */
+.pd-layer-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.pd-layer-select {
+  flex: 1;
+  min-width: 0;
+}
+
+.pd-adaptive-pill {
+  height: 48px;
+  padding: 0 16px;
+  border-radius: 24px;
+  border: 1.5px solid #d0d0d0;
+  background: #fff;
+  color: #555;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
   gap: 8px;
-  padding-top: 6px;
+  white-space: nowrap;
+  transition: all 120ms ease-out;
+  flex-shrink: 0;
+}
+
+.pd-adaptive-pill-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ccc;
+  transition: all 120ms ease-out;
+}
+
+.pd-adaptive-pill.on {
+  background: linear-gradient(135deg, #ff2e6e 0%, #a021ff 100%);
+  color: #fff;
+  border-color: rgba(255, 46, 110, 0.6);
+  box-shadow: 0 0 0 1px rgba(255, 46, 110, 0.35), 0 0 14px rgba(255, 46, 110, 0.35);
+}
+
+.pd-adaptive-pill.on .pd-adaptive-pill-dot {
+  background: #fff;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.9);
+}
+
+.pd-adaptive-pill:hover:not(:disabled):not(.on) {
+  border-color: #00eaff;
+  color: #0e8fa8;
+}
+
+.pd-adaptive-pill:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Segmented button group (supports off / auto normal / auto tree) */
+.pd-segmented {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid #d0d0d0;
+  border-radius: 10px;
+}
+
+.pd-segmented-btn {
+  padding: 10px 8px;
+  min-height: 40px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #555;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 7px;
+  transition: all 100ms ease-out;
+}
+
+.pd-segmented-btn:hover:not(.on) {
+  color: #00eaff;
+  background: rgba(0, 234, 255, 0.06);
+}
+
+.pd-segmented-btn.on {
+  background: linear-gradient(135deg, #ff2e6e 0%, #a021ff 100%);
+  color: #fff;
+  border-color: rgba(255, 46, 110, 0.6);
+  box-shadow: 0 0 12px rgba(255, 46, 110, 0.3);
+}
+
+/* Mobile tap-target bump for form controls inside the dialog. */
+@media (max-width: 719px) {
+  .print-dialog-row select,
+  .print-dialog-row input[type="text"],
+  .print-dialog-row input[type="number"] {
+    padding: 10px 12px;
+    font-size: 14px;
+    min-height: 44px;
+  }
+  .print-dialog-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+  }
 }
 
 /* ── Print settings panel ─────────────────────────────── */
@@ -1023,3 +1427,2905 @@ html, body {
   gap: 8px;
 }
 
+
+.print-settings-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 12px;
+}
+
+.print-settings-tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #555;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.print-settings-tab.active {
+  color: #0f172a;
+  border-bottom-color: #0f172a;
+  font-weight: 500;
+}
+
+.print-settings-tab-count {
+  font-size: 11px;
+  background: #e0e0e0;
+  color: #333;
+  padding: 1px 6px;
+  border-radius: 8px;
+}
+
+.print-settings-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.print-settings-toolbar input[type="search"] {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.print-settings-warnings {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #b8860b;
+}
+
+.print-settings-warnings ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
+.print-settings-item-compat {
+  border-top: 1px dashed #e0e0e0;
+  padding-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.print-settings-compat-universal {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #444;
+}
+
+.print-settings-compat-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.print-settings-compat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  font-size: 11px;
+  cursor: pointer;
+  background: #fff;
+}
+
+.print-settings-compat-chip.on {
+  background: #0f172a;
+  color: #fff;
+  border-color: #0f172a;
+}
+
+.print-settings-compat-chip input {
+  display: none;
+}
+
+.print-dialog-process {
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  padding: 8px 12px 10px;
+  margin: 6px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.print-dialog-process legend {
+  padding: 0 6px;
+  font-size: 12px;
+  color: #555;
+  font-weight: 500;
+}
+
+.print-dialog-checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.print-dialog-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
+
+.print-settings-badge {
+  font-style: normal;
+  font-size: 10px;
+  background: #e0e0e0;
+  color: #555;
+  padding: 1px 6px;
+  border-radius: 8px;
+  margin-left: 8px;
+}
+
+.print-settings-item-summary {
+  font-size: 12px;
+  color: #666;
+}
+
+.print-settings-new-template {
+  margin-top: 12px;
+  padding: 8px 10px;
+  background: #f8f9fb;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+}
+
+.print-settings-new-template summary {
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.print-settings-new-template-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 12px;
+  margin-top: 10px;
+}
+
+.print-settings-new-template-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11px;
+  color: #666;
+}
+
+.print-settings-new-template-grid input,
+.print-settings-new-template-grid select {
+  padding: 5px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.print-settings-new-template-grid button {
+  grid-column: 1 / -1;
+  justify-self: flex-end;
+}
+
+.print-dialog-save-template {
+  gap: 6px;
+  align-items: center;
+}
+
+.print-dialog-save-template input {
+  flex: 1;
+}
+
+.gcode-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 640px;
+}
+
+.gcode-preview-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  background: #f8f9fb;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 10px;
+}
+
+@media (min-width: 520px) {
+  .gcode-preview-stats {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 720px) {
+  .gcode-preview-stats {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+.gcode-preview-stats > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.gcode-preview-stats strong {
+  font-size: 15px;
+  color: #0f172a;
+}
+
+.gcode-preview-stats span {
+  font-size: 10px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.gcode-preview-parsing {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+  font-size: 13px;
+}
+
+.gcode-preview-error {
+  color: #b00020;
+  font-size: 12px;
+  padding: 8px;
+  background: #fdeaea;
+  border-radius: 4px;
+}
+
+.gcode-preview-canvas-wrap {
+  border: 1px solid #333;
+  border-radius: 6px;
+  background: #0f172a;
+  padding: 0;
+  overflow: hidden;
+}
+
+.gcode-preview-canvas {
+  display: block;
+  width: 100%;
+  height: min(60vh, 520px);
+}
+
+.gcode-preview-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gcode-preview-slider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.gcode-preview-slider input[type="range"] {
+  flex: 1;
+}
+
+.gcode-preview-z {
+  color: #666;
+  min-width: 80px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.gcode-preview-height-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 8px;
+  background: #f8f9fb;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+}
+
+.gcode-preview-height-strip-label {
+  font-size: 11px;
+  color: #555;
+}
+
+.gcode-preview-height-strip-label strong {
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+
+.gcode-preview-height-strip-canvas {
+  display: block;
+  width: 100%;
+  height: 24px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.gcode-preview-height-strip-scale {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: #666;
+  font-variant-numeric: tabular-nums;
+}
+
+.gcode-preview-height-strip-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.gcode-preview-height-strip-gradient {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(to right, #3b82f6, #facc15, #ef4444);
+}
+
+.gcode-preview-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.gcode-preview-legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  font-size: 11px;
+  cursor: pointer;
+  background: #fff;
+  opacity: 0.5;
+}
+
+.gcode-preview-legend-chip.on {
+  opacity: 1;
+}
+
+.gcode-preview-legend-chip input {
+  display: none;
+}
+
+.gcode-preview-legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.gcode-preview-legend-count {
+  font-variant-numeric: tabular-nums;
+  color: #666;
+  font-size: 10px;
+}
+
+.print-dialog-send {
+  padding: 10px;
+  background: #f8f9fb;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.print-dialog-hint {
+  font-size: 11px;
+  color: #b8860b;
+}
+
+.gcode-preview-source {
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 6px 8px;
+  background: #fff;
+}
+
+.gcode-preview-source summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: #666;
+}
+
+.gcode-preview-source pre {
+  margin: 6px 0 0;
+  padding: 8px;
+  background: #0f172a;
+  color: #e0e0e0;
+  border-radius: 4px;
+  font-family: 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 10.5px;
+  line-height: 1.4;
+  max-height: 260px;
+  overflow: auto;
+  white-space: pre;
+}
+
+.gcode-preview-diagnostic {
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: #f8f9fb;
+  font-size: 12px;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.gcode-preview-diagnostic.warn {
+  background: #fff8e5;
+  border-color: #d4a017;
+}
+
+.gcode-preview-diagnostic.danger {
+  background: #fdeaea;
+  border-color: #b00020;
+}
+
+.gcode-preview-diagnostic-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 11px;
+}
+
+.gcode-preview-diagnostic-row > span:first-child {
+  color: #666;
+  min-width: 100px;
+}
+
+.gcode-preview-diagnostic-msg {
+  margin-top: 4px;
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+.slice-presets {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  background: #f8f9fb;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+}
+
+.slice-presets-label {
+  font-size: 11px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.slice-presets-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.slice-preset-chip-wrap {
+  scroll-snap-align: start;
+  flex: 0 0 auto;
+}
+
+@media (min-width: 720px) {
+  .slice-presets-row {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+}
+
+.slice-presets-empty {
+  font-size: 12px;
+  color: #888;
+  font-style: italic;
+}
+
+.slice-preset-chip-wrap {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.slice-preset-chip {
+  border: none;
+  background: transparent;
+  padding: 6px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  cursor: pointer;
+  font-family: inherit;
+  min-width: 140px;
+  transition: background 60ms ease;
+}
+
+.slice-preset-chip:hover:not(:disabled) {
+  background: #eef4ff;
+}
+
+.slice-preset-chip-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.slice-preset-chip-sub {
+  font-size: 10px;
+  color: #888;
+  line-height: 1.2;
+}
+
+.slice-preset-chip-delete {
+  border: none;
+  background: transparent;
+  color: #999;
+  cursor: pointer;
+  padding: 0 8px;
+  font-size: 14px;
+  line-height: 1;
+  border-left: 1px solid #e0e0e0;
+}
+
+.slice-preset-chip-delete:hover:not(:disabled) {
+  background: #fdeaea;
+  color: #b00020;
+}
+
+.slice-presets-save {
+  display: flex;
+  gap: 6px;
+}
+
+.slice-presets-save input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.slice-presets-save button {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.gcode-health {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  border: 1px solid transparent;
+}
+
+.gcode-health-ok {
+  background: #e6f7ec;
+  border-color: #52c17b;
+  color: #205e38;
+}
+
+.gcode-health-warn {
+  background: #fff8e5;
+  border-color: #d4a017;
+  color: #6f5108;
+}
+
+.gcode-health-danger {
+  background: #fdeaea;
+  border-color: #b00020;
+  color: #7a0014;
+}
+
+.gcode-health-icon {
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.gcode-preview-stats {
+  grid-template-columns: repeat(4, 1fr) !important;
+}
+
+.print-dialog-temp-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: -2px 0 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #eef4ff;
+  border: 1px solid #cfe0ff;
+  font-size: 12px;
+  color: #1e3a5f;
+}
+
+.print-dialog-temp-preview-label {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 10px;
+  color: #5a7a9e;
+  font-weight: 600;
+}
+
+.print-dialog-temp-preview-value strong {
+  font-family: 'SF Mono', Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.print-dialog-temp-preview-missing {
+  color: #b08010;
+  font-style: normal;
+  font-size: 11px;
+}
+
+.print-dialog-mesh-dims {
+  color: #888;
+  font-style: normal;
+  font-size: 11px;
+  font-family: 'SF Mono', Menlo, Consolas, monospace;
+}
+
+.print-dialog-fit {
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  border: 1px solid transparent;
+  line-height: 1.4;
+}
+
+.print-dialog-fit.ok {
+  background: #e6f7ec;
+  border-color: #52c17b;
+  color: #205e38;
+}
+
+.print-dialog-fit.bad {
+  background: #fdeaea;
+  border-color: #b00020;
+  color: #7a0014;
+}
+
+.print-dialog-fit.warn {
+  background: #fff8e5;
+  border-color: #d4a017;
+  color: #6f5108;
+}
+
+.print-dialog-fit code {
+  background: rgba(0,0,0,0.06);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+
+/* ================================================================
+ * Dark theme — cyberpunk retrowave. Saturated neon, no pastels.
+ *
+ * Palette:
+ *   bg deep       #000000  (true black)
+ *   bg surface    #0b0116  (raised card)
+ *   bg surface-2  #16032e  (deeper raised)
+ *   border neon   #4b1093  (line at rest)
+ *   text primary  #ffffff
+ *   text muted    #d4b0ff
+ *   magenta neon  #ff17c7  (primary highlight)
+ *   violet neon   #a021ff  (cool end of the ramp)
+ *   cyan neon     #00eaff  (secondary / links)
+ *   hot pink      #ff2e6e  (punctuation)
+ *   ok            #2bff88
+ *   warn          #ffd60a
+ *   danger        #ff2d55
+ *
+ * Applied as a single overlay at the end of the sheet so it can be
+ * removed as a block if the design needs to revert.
+ * ================================================================ */
+
+:root {
+  /* True black, not a tinted near-black: the surfaces above it carry a violet
+     cast so panels separate from the page without lifting to grey. */
+  --rw-bg: #000000;
+  --rw-surface: #0b0116;
+  --rw-surface-2: #16032e;
+  --rw-surface-3: #260550;
+  --rw-border: #4b1093;
+  --rw-border-strong: #b829ff;
+  --rw-text: #ffffff;
+  --rw-text-muted: #d4b0ff;
+  --rw-text-dim: #9470d9;
+
+  /* Neon ramp — the primary highlight. Magenta carries emphasis, violet is the
+     cool end of the gradient, and the bright tint is for text on black. */
+  --rw-magenta: #ff17c7;
+  --rw-magenta-bright: #ff72e4;
+  --rw-violet: #a021ff;
+
+  /* Accents. Hot pink and cyan as punctuation against the magentas. */
+  --rw-pink: #ff2e6e;
+  --rw-cyan: #00eaff;
+  --rw-cyan-dim: #0097ad;
+
+  /* Status. The -text tints sit on a 10%-alpha wash of their own hue, so they
+     are lifted for contrast but stay fully saturated. */
+  --rw-ok: #2bff88;
+  --rw-ok-text: #3dffa0;
+  --rw-warn: #ffd60a;
+  --rw-danger: #ff2d55;
+  --rw-danger-text: #ff4d78;
+
+  --rw-glow-magenta: 0 0 0 1px rgba(255, 23, 199, 0.45), 0 0 16px rgba(255, 23, 199, 0.35);
+  --rw-glow-pink: 0 0 0 1px rgba(255, 46, 110, 0.40), 0 0 14px rgba(255, 46, 110, 0.30);
+  --rw-glow-cyan: 0 0 0 1px rgba(0, 234, 255, 0.40), 0 0 14px rgba(0, 234, 255, 0.28);
+}
+
+body {
+  /* Reads as a horizon: magenta low and wide like the sun just under the edge,
+     a violet band above it, and a cyan cast up top for contrast. Black
+     underneath so the glow has something to sit on. */
+  background: var(--rw-bg);
+  background-image:
+    radial-gradient(ellipse 120% 45% at 50% 108%, rgba(255, 23, 199, 0.24), transparent 70%),
+    radial-gradient(ellipse 90% 30% at 50% 100%, rgba(160, 33, 255, 0.20), transparent 65%),
+    radial-gradient(ellipse at 85% 0%, rgba(0, 234, 255, 0.10), transparent 55%),
+    radial-gradient(ellipse at 12% 4%, rgba(255, 46, 110, 0.10), transparent 50%),
+    linear-gradient(180deg, #000000 0%, #000000 100%);
+  background-attachment: fixed;
+  color: var(--rw-text);
+}
+
+/* ── Print modal ─────────────────────────────────────── */
+
+.print-modal-backdrop {
+  background: rgba(4, 0, 12, 0.78);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.print-modal {
+  background: linear-gradient(180deg, var(--rw-surface) 0%, var(--rw-bg) 100%);
+  color: var(--rw-text);
+  border: 1px solid var(--rw-border);
+  box-shadow:
+    0 -6px 30px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 46, 110, 0.15) inset;
+}
+
+.print-modal-header {
+  background: linear-gradient(90deg, var(--rw-surface-2), var(--rw-surface));
+  border-bottom: 1px solid var(--rw-border);
+}
+
+.print-modal-header h3 {
+  color: var(--rw-text);
+  text-shadow: 0 0 12px rgba(255, 46, 110, 0.4);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.print-modal-close {
+  color: var(--rw-text-muted);
+}
+.print-modal-close:hover,
+.print-modal-close:active {
+  color: var(--rw-pink);
+  background: var(--rw-surface-2);
+}
+
+/* ── Buttons ─────────────────────────────────────────── */
+
+.btn {
+  background: var(--rw-surface-2);
+  color: var(--rw-text);
+  border: 1px solid var(--rw-border);
+  border-radius: 8px;
+  transition: all 120ms ease-out;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--rw-surface-3);
+  border-color: var(--rw-border-strong);
+}
+
+.btn-primary {
+  /* Sunset gradient: hot pink burning into amber. Dark text, because amber at
+     full chroma does not carry white at an accessible contrast. */
+  background: linear-gradient(135deg, var(--rw-pink) 0%, var(--rw-violet) 55%, var(--rw-magenta) 100%);
+  color: #1a0016;
+  border: 1px solid rgba(255, 23, 199, 0.65);
+  font-weight: 650;
+  text-shadow: none;
+  box-shadow: var(--rw-glow-magenta);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ff5cd8 0%, #c04dff 55%, var(--rw-magenta-bright) 100%);
+  border-color: var(--rw-magenta);
+  box-shadow: 0 0 0 1px var(--rw-magenta), 0 0 22px rgba(255, 23, 199, 0.55);
+}
+
+.btn-secondary {
+  background: var(--rw-surface-2);
+  color: var(--rw-cyan);
+  border: 1px solid var(--rw-cyan-dim);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--rw-surface-3);
+  border-color: var(--rw-cyan);
+  box-shadow: var(--rw-glow-cyan);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.print-dialog-row > span:first-child,
+.print-dialog-row > label:first-child {
+  color: var(--rw-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-size: 11px;
+}
+
+.print-dialog-row select,
+.print-dialog-row input[type="text"],
+.print-dialog-row input[type="number"] {
+  background: var(--rw-surface-2);
+  color: var(--rw-text);
+  border: 1px solid var(--rw-border);
+}
+
+.print-dialog-row select:focus,
+.print-dialog-row input:focus {
+  outline: none;
+  border-color: var(--rw-pink);
+  box-shadow: 0 0 0 1px var(--rw-pink), 0 0 12px rgba(255, 46, 110, 0.35);
+}
+
+/* Native select arrow needs a color hint on dark backgrounds. */
+.print-dialog-row select {
+  color-scheme: dark;
+}
+
+.print-dialog-value {
+  color: var(--rw-text);
+}
+
+.print-dialog-mesh-dims {
+  color: var(--rw-cyan);
+  font-style: normal;
+}
+
+.print-dialog-checkbox input[type="checkbox"] {
+  accent-color: var(--rw-pink);
+}
+
+.print-dialog-process {
+  background: var(--rw-surface-2);
+  border-color: var(--rw-border);
+}
+
+.print-dialog-process legend {
+  color: var(--rw-cyan);
+  background: var(--rw-surface);
+  padding: 2px 8px;
+  border: 1px solid var(--rw-border);
+  border-radius: 4px;
+}
+
+.print-dialog-empty {
+  background: rgba(255, 214, 10, 0.08);
+  border-color: rgba(255, 214, 10, 0.4);
+  color: var(--rw-warn);
+}
+
+/* Fit banner and exclusion warnings — status pills. */
+.print-dialog-fit {
+  background: var(--rw-surface-2);
+  border: 1px solid var(--rw-border);
+  color: var(--rw-text);
+}
+.print-dialog-fit.ok {
+  background: rgba(43, 255, 136, 0.08);
+  border-color: rgba(43, 255, 136, 0.35);
+  color: var(--rw-ok-text);
+}
+.print-dialog-fit.bad {
+  background: rgba(255, 45, 85, 0.1);
+  border-color: rgba(255, 45, 85, 0.45);
+  color: var(--rw-danger-text);
+}
+.print-dialog-fit.warn {
+  background: rgba(255, 214, 10, 0.08);
+  border-color: rgba(255, 214, 10, 0.4);
+  color: var(--rw-warn);
+}
+.print-dialog-fit code {
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--rw-cyan);
+}
+
+/* Temps preview strip */
+.print-dialog-temp-preview {
+  background: var(--rw-surface-2);
+  border: 1px solid var(--rw-border);
+  color: var(--rw-text);
+}
+.print-dialog-temp-preview-label {
+  color: var(--rw-text-dim);
+}
+.print-dialog-temp-preview-value strong {
+  color: var(--rw-magenta);
+}
+
+/* Actions bar */
+.print-dialog-actions {
+  background: linear-gradient(180deg, transparent, var(--rw-bg) 40%);
+  border-top-color: var(--rw-border);
+}
+
+@media (min-width: 720px) {
+  .print-dialog-actions {
+    background: linear-gradient(to bottom, transparent, var(--rw-bg) 30%);
+  }
+}
+
+/* Progress */
+.print-dialog-progress-bar {
+  background: var(--rw-surface-2);
+  border: 1px solid var(--rw-border);
+}
+.print-dialog-progress-fill {
+  background: linear-gradient(90deg, var(--rw-cyan), var(--rw-pink));
+  box-shadow: 0 0 10px rgba(255, 46, 110, 0.5);
+}
+.print-dialog-progress-status {
+  color: var(--rw-text-muted);
+}
+
+.print-dialog-error {
+  background: rgba(255, 45, 85, 0.12);
+  border: 1px solid var(--rw-danger);
+  color: var(--rw-danger-text);
+}
+
+/* Slice presets card */
+.slice-presets {
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+}
+.slice-presets-label {
+  color: var(--rw-cyan);
+  text-shadow: 0 0 6px rgba(0, 234, 255, 0.25);
+}
+.slice-preset-chip-wrap {
+  background: var(--rw-surface-2);
+  border-color: var(--rw-border);
+}
+.slice-preset-chip {
+  color: var(--rw-text);
+}
+.slice-preset-chip:hover:not(:disabled) {
+  background: rgba(255, 46, 110, 0.1);
+}
+.slice-preset-chip-name {
+  color: var(--rw-text);
+}
+.slice-preset-chip-sub {
+  color: var(--rw-text-muted);
+}
+.slice-preset-chip-delete {
+  color: var(--rw-text-dim);
+  border-left-color: var(--rw-border);
+}
+.slice-preset-chip-delete:hover:not(:disabled) {
+  background: rgba(255, 45, 85, 0.15);
+  color: var(--rw-danger);
+}
+.slice-presets-save input {
+  background: var(--rw-surface-2);
+  color: var(--rw-text);
+  border-color: var(--rw-border);
+}
+.slice-presets-empty {
+  color: var(--rw-text-dim);
+}
+
+/* ── G-code preview ─────────────────────────────────── */
+
+.gcode-health {
+  background: var(--rw-surface-2);
+  color: var(--rw-text);
+  border: 1px solid var(--rw-border);
+}
+.gcode-health-ok {
+  background: rgba(43, 255, 136, 0.08);
+  border-color: rgba(43, 255, 136, 0.35);
+  color: var(--rw-ok-text);
+}
+.gcode-health-warn {
+  background: rgba(255, 214, 10, 0.08);
+  border-color: rgba(255, 214, 10, 0.4);
+  color: var(--rw-warn);
+}
+.gcode-health-danger {
+  background: rgba(255, 45, 85, 0.1);
+  border-color: rgba(255, 45, 85, 0.45);
+  color: var(--rw-danger-text);
+}
+.gcode-preview-stats {
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+}
+.gcode-preview-stats strong {
+  color: var(--rw-cyan);
+  text-shadow: 0 0 8px rgba(0, 234, 255, 0.3);
+}
+.gcode-preview-stats span {
+  color: var(--rw-text-dim);
+}
+.gcode-preview-canvas-wrap {
+  border-color: var(--rw-border);
+  background: #07001a;
+  box-shadow: inset 0 0 40px rgba(255, 46, 110, 0.05);
+}
+.gcode-preview-height-strip {
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+}
+.gcode-preview-height-strip-label {
+  color: var(--rw-text-muted);
+}
+.gcode-preview-height-strip-label strong {
+  color: var(--rw-magenta);
+}
+.gcode-preview-height-strip-scale {
+  color: var(--rw-text-dim);
+}
+.gcode-preview-parsing {
+  color: var(--rw-text-muted);
+}
+.gcode-preview-z {
+  color: var(--rw-cyan);
+}
+.gcode-preview-legend-chip {
+  background: var(--rw-surface-2);
+  color: var(--rw-text);
+  border-color: var(--rw-border);
+}
+.gcode-preview-legend-count {
+  color: var(--rw-text-dim);
+}
+.gcode-preview-source summary {
+  color: var(--rw-cyan);
+}
+.gcode-preview-source pre {
+  background: var(--rw-surface-2);
+  color: var(--rw-text-muted);
+  border: 1px solid var(--rw-border);
+  border-radius: 6px;
+}
+.gcode-preview-diagnostic {
+  background: var(--rw-surface-2);
+  color: var(--rw-text);
+  border: 1px solid var(--rw-border);
+}
+.gcode-preview-diagnostic.warn {
+  background: rgba(255, 214, 10, 0.08);
+  border-color: rgba(255, 214, 10, 0.4);
+  color: var(--rw-warn);
+}
+.gcode-preview-diagnostic.danger {
+  background: rgba(255, 45, 85, 0.1);
+  border-color: rgba(255, 45, 85, 0.45);
+  color: var(--rw-danger-text);
+}
+.gcode-preview-diagnostic-row > span:first-child {
+  color: var(--rw-text-muted);
+}
+
+/* ── Settings panel ─────────────────────────────────── */
+
+.print-settings-tabs {
+  border-bottom-color: var(--rw-border);
+}
+.print-settings-tab {
+  color: var(--rw-text-muted);
+  background: transparent;
+}
+.print-settings-tab:hover:not(.active) {
+  color: var(--rw-cyan);
+}
+.print-settings-tab.active {
+  color: var(--rw-pink);
+  border-bottom-color: var(--rw-pink);
+  text-shadow: 0 0 6px rgba(255, 46, 110, 0.35);
+}
+.print-settings-tab-count {
+  background: var(--rw-surface-3);
+  color: var(--rw-text-muted);
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 10px;
+}
+.print-settings-help {
+  color: var(--rw-text-muted);
+}
+.print-settings-help code {
+  background: var(--rw-surface-2);
+  color: var(--rw-cyan);
+}
+.print-settings-item {
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+}
+.print-settings-item-name {
+  color: var(--rw-text);
+}
+.print-settings-item-summary {
+  color: var(--rw-text-muted);
+}
+.print-settings-item-hint {
+  color: var(--rw-text-dim);
+}
+.print-settings-item-address input,
+.print-settings-toolbar input,
+.print-settings-new-template-grid input,
+.print-settings-new-template-grid select {
+  background: var(--rw-surface-2);
+  color: var(--rw-text);
+  border-color: var(--rw-border);
+}
+.print-settings-item-address input:focus,
+.print-settings-toolbar input:focus,
+.print-settings-new-template-grid input:focus,
+.print-settings-new-template-grid select:focus {
+  border-color: var(--rw-magenta);
+  outline: none;
+  box-shadow: 0 0 0 1px var(--rw-pink);
+}
+.print-settings-empty {
+  color: var(--rw-text-dim);
+}
+.print-settings-badge {
+  background: var(--rw-surface-3);
+  color: var(--rw-cyan);
+}
+.print-settings-compat-chip {
+  background: var(--rw-surface-2);
+  color: var(--rw-text-muted);
+  border-color: var(--rw-border);
+}
+.print-settings-compat-chip.on {
+  background: rgba(0, 234, 255, 0.1);
+  color: var(--rw-cyan);
+  border-color: var(--rw-cyan-dim);
+}
+.print-settings-new-template {
+  background: var(--rw-surface);
+  border-color: var(--rw-border);
+}
+.print-settings-new-template summary {
+  color: var(--rw-cyan);
+}
+.print-settings-notice {
+  color: var(--rw-cyan);
+}
+.print-settings-error {
+  color: var(--rw-danger);
+}
+.print-settings-warnings {
+  color: var(--rw-text-muted);
+}
+
+/* Main app chrome — subtle so gallery imagery stays the star. */
+#sidebar,
+.model-sidebar,
+.viewer-chrome {
+  color: var(--rw-text);
+}
+
+::selection {
+  background: rgba(255, 46, 110, 0.4);
+  color: #fff;
+}
+
+/* ── Full-app retrowave theme ─────────────────────────── */
+
+html, body {
+  background: var(--rw-bg);
+  color: var(--rw-text);
+}
+
+/* Mobile part switcher + drawer trigger */
+#mobile-part-row {
+  background: var(--rw-surface);
+  border-bottom-color: var(--rw-border);
+}
+
+.mobile-part-label {
+  color: var(--rw-text-muted);
+}
+
+#sidebar-toggle {
+  background: var(--rw-surface-2);
+  color: var(--rw-cyan);
+  border-color: var(--rw-cyan-dim);
+}
+
+#sidebar-toggle:hover {
+  background: var(--rw-surface-3);
+  color: var(--rw-pink);
+}
+
+#sidebar-backdrop {
+  background: rgba(2, 0, 12, 0.72);
+}
+
+#mobile-part-select {
+  background: var(--rw-surface-2);
+  color: var(--rw-text);
+  border-color: var(--rw-border);
+  color-scheme: dark;
+}
+
+/* Sidebar */
+#sidebar {
+  background: var(--rw-bg);
+  color: var(--rw-text);
+  border-right: 1px solid var(--rw-border);
+  background-image: linear-gradient(180deg, var(--rw-surface) 0%, var(--rw-bg) 80%);
+}
+
+#sidebar h1 {
+  color: var(--rw-cyan);
+  text-shadow: 0 0 8px rgba(0, 234, 255, 0.35);
+}
+
+.model-item {
+  color: var(--rw-text-muted);
+  border-left-color: transparent;
+}
+
+.model-item:hover {
+  background: rgba(0, 234, 255, 0.06);
+  color: var(--rw-cyan);
+}
+
+.model-item.active {
+  background: linear-gradient(90deg, rgba(255, 23, 199, 0.16), transparent 80%);
+  color: var(--rw-magenta-bright);
+  border-left-color: var(--rw-magenta);
+  text-shadow: 0 0 6px rgba(255, 23, 199, 0.38);
+}
+
+#sidebar-footer {
+  border-top-color: var(--rw-border);
+}
+
+#plates-btn {
+  color: var(--rw-cyan);
+}
+
+#plates-btn:hover {
+  background: rgba(0, 234, 255, 0.08);
+  color: var(--rw-cyan);
+  border-color: var(--rw-cyan-dim);
+}
+
+/* Viewer header */
+#viewer-header {
+  background: linear-gradient(180deg, var(--rw-surface) 0%, transparent 100%);
+  border-bottom-color: var(--rw-border);
+}
+
+#viewer-header h2 {
+  color: var(--rw-text);
+  text-shadow: 0 0 8px rgba(0, 234, 255, 0.2);
+}
+
+#part-select {
+  background: var(--rw-surface-2);
+  color: var(--rw-text);
+  border-color: var(--rw-border);
+  color-scheme: dark;
+}
+
+#model-description {
+  color: var(--rw-text-muted);
+  background: transparent;
+  border-bottom-color: var(--rw-border);
+}
+
+/* Viewer container / canvas backdrop */
+/* The sunset itself lives in the scene (an equirectangular background texture
+   in the viewer), so it orbits with the camera. This is only what shows before
+   the first frame. */
+#viewer-container {
+  background: linear-gradient(180deg, #05000f 0%, #12033a 55%, #07001a 100%);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* CRT scanlines — the lo-fi layer. Faint enough that model detail survives. */
+#viewer-container::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 8;
+  background: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.16) 0 1px, transparent 1px 3px);
+}
+
+#viewer-container canvas {
+  position: relative;
+  z-index: 1;
+}
+
+#viewer-loading,
+#viewer-prompt {
+  background: rgba(10, 4, 32, 0.85);
+  backdrop-filter: blur(4px);
+}
+
+.loading-status,
+.prompt-message {
+  color: var(--rw-text-muted);
+}
+
+.loading-bar-track {
+  background: var(--rw-surface-3);
+}
+
+.loading-bar-fill {
+  background: linear-gradient(90deg, var(--rw-violet), var(--rw-magenta-bright));
+  box-shadow: 0 0 10px rgba(255, 23, 199, 0.55);
+}
+
+.loading-note {
+  color: var(--rw-text-dim);
+}
+
+#viewer-error {
+  background: rgba(255, 45, 85, 0.12);
+  color: var(--rw-danger-text);
+  border-bottom-color: var(--rw-danger);
+}
+
+/* Legend overlay */
+#viewer-legend {
+  background: rgba(16, 2, 38, 0.92);
+  border-color: var(--rw-border);
+  color: var(--rw-text);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+}
+
+/* Docked to the bottom edge on mobile, so the shadow has to cast upward. */
+@media (max-width: 767px) {
+  #viewer-legend {
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.6);
+  }
+}
+
+.legend-title {
+  color: var(--rw-cyan);
+}
+
+.legend-label {
+  color: var(--rw-text);
+}
+
+.legend-row.legend-clickable:hover,
+.legend-row.legend-active {
+  background: rgba(255, 46, 110, 0.15);
+}
+
+.legend-row.legend-active .legend-label {
+  color: var(--rw-pink);
+}
+
+.legend-qty {
+  color: var(--rw-cyan);
+}
+
+/* The active row's swatches carry the glow the matching pieces have in the
+   scene, so the key and the model read as one highlight. */
+.legend-row.legend-active .legend-swatch {
+  box-shadow: 0 0 6px rgba(255, 23, 199, 0.75);
+  border-color: var(--rw-magenta);
+}
+
+#viewer-leader line {
+  stroke: var(--rw-pink);
+}
+
+#viewer-leader circle {
+  fill: var(--rw-pink);
+}
+
+.legend-swatch {
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Customized-since-URL badge */
+#customized-badge {
+  background: linear-gradient(135deg, var(--rw-violet), var(--rw-magenta));
+  color: #1a0016;
+  box-shadow: 0 0 12px rgba(255, 23, 199, 0.45);
+}
+
+/* Parts / filament / hardware lists */
+#parts-list,
+#filament-list,
+#hardware-list {
+  background: var(--rw-surface);
+  color: var(--rw-text);
+  border-color: var(--rw-border);
+}
+
+#parts-list h3,
+#filament-list h3,
+#hardware-list h3 {
+  color: var(--rw-cyan);
+}
+
+.part-link {
+  color: var(--rw-cyan);
+}
+
+.part-link:hover {
+  color: var(--rw-pink);
+  text-shadow: 0 0 6px rgba(255, 46, 110, 0.25);
+}
+
+.hardware-qty {
+  color: var(--rw-magenta);
+  font-weight: 600;
+}
+
+.hardware-label {
+  color: var(--rw-text);
+}
+
+.hardware-source {
+  color: var(--rw-cyan);
+}
+
+.hardware-source:hover {
+  color: var(--rw-pink);
+}
+
+/* Customizer panel */
+#customizer,
+.customizer-panel {
+  background: var(--rw-surface);
+  color: var(--rw-text);
+  border-color: var(--rw-border);
+}
+
+.customizer-panel h3 {
+  color: var(--rw-magenta);
+  text-shadow: 0 0 6px rgba(255, 23, 199, 0.28);
+}
+
+.param-field {
+  background: var(--rw-surface-2);
+  border-color: var(--rw-border);
+}
+
+.param-name {
+  color: var(--rw-text);
+}
+
+.param-help {
+  color: var(--rw-text-muted);
+}
+
+.param-input input[type="text"],
+.param-input input[type="number"],
+.param-input select,
+.param-input textarea {
+  background: var(--rw-surface-3);
+  color: var(--rw-text);
+  border-color: var(--rw-border);
+  color-scheme: dark;
+}
+
+.param-input input:focus,
+.param-input select:focus,
+.param-input textarea:focus {
+  border-color: var(--rw-magenta);
+  outline: none;
+  box-shadow: 0 0 0 1px var(--rw-magenta), 0 0 12px rgba(255, 23, 199, 0.38);
+}
+
+/* Header actions — one row of emoji icon buttons */
+#header-actions > * {
+  background: var(--rw-surface-2);
+  color: var(--rw-cyan);
+  border-color: var(--rw-cyan-dim);
+}
+
+#header-actions > *:hover {
+  background: var(--rw-surface-3);
+  border-color: var(--rw-pink);
+  box-shadow: 0 0 12px rgba(255, 46, 110, 0.4);
+}
+
+#print-btn {
+  background: var(--rw-surface-2);
+  border-color: var(--rw-magenta);
+  box-shadow: 0 0 10px rgba(255, 23, 199, 0.22);
+}
+
+#print-btn:hover {
+  background: var(--rw-surface-3);
+}
+
+body.customizer-open #customize-btn {
+  background: linear-gradient(135deg, var(--rw-pink), var(--rw-magenta));
+  border-color: var(--rw-pink);
+}
+
+#customizer-backdrop {
+  background: rgba(2, 0, 12, 0.72);
+}
+
+@media (max-width: 767px) {
+  body.customizer-open #customizer:not([hidden]) {
+    border-top: 1px solid var(--rw-border-strong);
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.8), 0 0 24px rgba(255, 23, 199, 0.18);
+  }
+}
+
+/* Scrollbars */
+* {
+  scrollbar-color: var(--rw-surface-3) var(--rw-bg);
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--rw-bg);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--rw-surface-3);
+  border-radius: 6px;
+  border: 2px solid var(--rw-bg);
+}
+
+/* Rules the light sheet defines with no dark counterpart — the last white
+   surfaces left in the app. */
+.customizer-actions {
+  background: var(--rw-surface);
+  border-top-color: var(--rw-border);
+}
+
+.pd-adaptive-pill {
+  background: var(--rw-surface-2);
+  border-color: var(--rw-border);
+  color: var(--rw-text-muted);
+}
+
+.pd-adaptive-pill-dot {
+  background: var(--rw-border-strong);
+}
+
+.pd-segmented-btn {
+  color: var(--rw-text-muted);
+}
+
+.print-settings-item-address label,
+.print-settings-new-template-grid label {
+  color: var(--rw-text-muted);
+}
+
+.print-settings-toolbar input[type="search"] {
+  background: var(--rw-surface-3);
+  color: var(--rw-text);
+  border-color: var(--rw-border);
+  color-scheme: dark;
+}
+
+.print-settings-item-compat {
+  border-top-color: var(--rw-border);
+}
+
+.print-dialog-send {
+  background: var(--rw-surface-2);
+  border-color: var(--rw-border);
+}
+
+.gcode-preview-source {
+  background: var(--rw-surface-2);
+  border-color: var(--rw-border);
+  color: var(--rw-text);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--rw-border-strong);
+}
+
+/* Focus rings on any focusable */
+:focus-visible {
+  outline: 2px solid var(--rw-cyan);
+  outline-offset: 2px;
+}
+
+button:focus-visible {
+  outline-color: var(--rw-pink);
+}
+
+@media (min-width: 1360px) {
+  .print-modal {
+    width: min(1240px, calc(100vw - 120px));
+  }
+}
+
+/* ================================================================
+ * Build plates — canvas, plate list, and the print dialog's object
+ * list. Appended after the dark overlay, so these rules speak the
+ * --rw-* palette directly rather than needing a second pass.
+ * ================================================================ */
+
+/* ── Plate list ──────────────────────────────────────── */
+
+.plates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.plate-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 10px 12px;
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+  border-radius: 8px;
+}
+
+.plate-row.is-active {
+  border-color: var(--rw-border-strong);
+  background: linear-gradient(90deg, rgba(255, 23, 199, 0.10), var(--rw-surface) 55%);
+  box-shadow: inset 3px 0 0 var(--rw-magenta);
+}
+
+.plate-row-name {
+  flex: 1 1 160px;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--rw-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+input.plate-row-name {
+  padding: 5px 8px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--rw-surface-2);
+  color: var(--rw-text);
+  border: 1px solid var(--rw-border);
+  border-radius: 6px;
+}
+
+input.plate-row-name:focus {
+  outline: none;
+  border-color: var(--rw-magenta);
+  box-shadow: 0 0 0 1px var(--rw-magenta);
+}
+
+.plate-row-meta {
+  flex: 0 0 auto;
+  font-size: 12px;
+  color: var(--rw-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.plate-row-fit {
+  order: 3;
+  flex: 1 1 100%;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--rw-text-muted);
+}
+
+.plate-row-fit.is-blocked {
+  color: var(--rw-danger-text);
+}
+
+.plate-row-fit-link {
+  font: inherit;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--rw-cyan);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.plate-row-actions {
+  order: 2;
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.plate-row-actions .btn {
+  padding: 5px 12px;
+  min-height: 34px;
+  font-size: 12px;
+}
+
+.plate-empty {
+  padding: 18px 12px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--rw-text-dim);
+  background: var(--rw-surface);
+  border: 1px dashed var(--rw-border);
+  border-radius: 8px;
+}
+
+/* ── Print dialog: plate objects ─────────────────────── */
+
+.pd-objects {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pd-object-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+  background: var(--rw-surface-2);
+  border: 1px solid var(--rw-border);
+  border-radius: 6px;
+}
+
+.pd-object-row > span:first-child {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--rw-text);
+}
+
+.pd-object-qty {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+  border-radius: 6px;
+  font-variant-numeric: tabular-nums;
+  color: var(--rw-text);
+}
+
+.pd-object-qty button {
+  min-width: 34px;
+  min-height: 34px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--rw-cyan);
+  font: inherit;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pd-object-qty button:hover:not(:disabled) {
+  background: rgba(0, 234, 255, 0.12);
+  color: var(--rw-text);
+}
+
+.pd-object-qty button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pd-object-qty > span,
+.pd-object-qty output {
+  min-width: 26px;
+  text-align: center;
+}
+
+.pd-object-qty input {
+  width: 46px;
+  padding: 4px 2px;
+  text-align: center;
+  border: none;
+  background: transparent;
+  color: var(--rw-text);
+  font: inherit;
+  color-scheme: dark;
+}
+
+.pd-object-qty input:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 1px var(--rw-magenta);
+}
+
+.pd-object-failed {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  background: rgba(255, 214, 10, 0.08);
+  border: 1px solid rgba(255, 214, 10, 0.4);
+  border-radius: 6px;
+  color: var(--rw-warn);
+}
+
+.pd-fit-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  vertical-align: middle;
+  background: var(--rw-surface-2);
+  border: 1px solid var(--rw-border);
+  border-radius: 12px;
+  color: var(--rw-text-muted);
+}
+
+.pd-fit-badge.is-warn {
+  background: rgba(255, 214, 10, 0.10);
+  border-color: rgba(255, 214, 10, 0.4);
+  color: var(--rw-warn);
+}
+
+.pd-fit-badge.is-blocked {
+  background: rgba(255, 45, 85, 0.12);
+  border-color: rgba(255, 45, 85, 0.45);
+  color: var(--rw-danger-text);
+}
+
+/* ── Projects pane + plate save state ────────────────── */
+
+.plates-panel-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.plates-panel {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 720px) {
+  .plates-panel {
+    grid-template-columns: minmax(180px, 250px) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.plates-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.plates-pane-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--rw-text-muted);
+}
+
+.plates-pane-hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--rw-text-dim);
+}
+
+.projects-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.project-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.project-row.is-active {
+  border-color: var(--rw-border-strong);
+  background: linear-gradient(90deg, rgba(255, 23, 199, 0.10), var(--rw-surface) 55%);
+  box-shadow: inset 3px 0 0 var(--rw-magenta);
+}
+
+input.project-row-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 5px 8px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--rw-surface-2);
+  color: var(--rw-text);
+  border: 1px solid var(--rw-border);
+  border-radius: 6px;
+}
+
+input.project-row-name:focus {
+  outline: none;
+  border-color: var(--rw-magenta);
+  box-shadow: 0 0 0 1px var(--rw-magenta);
+}
+
+.btn.project-row-delete {
+  flex: 0 0 auto;
+  padding: 4px 10px;
+  min-height: 30px;
+  font-size: 11px;
+}
+
+/* Selecting the plate "Add to plate" targets is a click on the row. */
+.plate-row {
+  cursor: pointer;
+}
+
+.pd-dirty {
+  color: var(--rw-magenta);
+}
+
+.pd-saved {
+  color: var(--rw-text-muted);
+}
+
+/* Pane actions size to their label — the pane is a column flexbox. */
+.plates-pane > .btn {
+  align-self: start;
+}
+
+/* ── 3D plate editor ──────────────────────────────────────────────────────
+   The viewport is a Three.js canvas, so nothing inside it is styleable — the
+   rules here own the frame, the toolbar and the status line only. */
+
+/* The canvas is the view; the tools are chrome under it. Nothing floats over
+   the bed — a thumb reaching for "Rotate" must not orbit the camera instead. */
+.plate3d {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.plate3d-viewport {
+  position: relative;
+  flex: 1 1 auto;
+  /* A flex item's min-height is auto, so without this the canvas refuses to
+     shrink below whatever the renderer last sized it to. */
+  min-height: 0;
+  overflow: hidden;
+  /* The gizmo is pointer-driven — the browser must not claim the gesture. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  border: 1px solid var(--rw-border);
+  border-radius: 6px;
+  background: #07001a;
+  box-shadow: inset 0 0 40px rgba(255, 46, 110, 0.05);
+}
+
+.plate3d-viewport canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* One scrolling row rather than a wrapping block: the tool set is fixed, and
+   a row that reflows to two lines moves every button the moment a part is
+   selected and Delete becomes usable. */
+.plate3d-toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  background: var(--rw-surface);
+  border-top: 1px solid var(--rw-border);
+}
+
+.plate3d-toolbar::-webkit-scrollbar {
+  display: none;
+}
+
+.plate3d-tool {
+  flex: 0 0 auto;
+}
+
+.plate3d-tool {
+  padding: 8px 12px;
+  min-height: 38px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: var(--rw-text-muted);
+  background: var(--rw-surface-2);
+  border: 1px solid var(--rw-border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.plate3d-tool:hover:not(:disabled) {
+  color: var(--rw-text);
+  border-color: var(--rw-border-strong);
+}
+
+.plate3d-tool:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.plate3d-tool.is-active {
+  color: var(--rw-bg);
+  background: var(--rw-magenta);
+  border-color: var(--rw-magenta-bright);
+}
+
+.plate3d-tool.is-danger:not(:disabled) {
+  color: var(--rw-danger-text);
+  border-color: rgba(255, 45, 85, 0.45);
+}
+
+.plate3d-tool.is-danger:hover:not(:disabled) {
+  color: var(--rw-bg);
+  background: var(--rw-danger);
+  border-color: var(--rw-danger);
+}
+
+.plate3d-tool-sep {
+  width: 1px;
+  align-self: stretch;
+  margin: 0 4px;
+  background: var(--rw-border);
+}
+
+.plate3d-status {
+  flex: 0 0 auto;
+  padding: 0 10px 6px;
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--rw-text-dim);
+  background: var(--rw-surface);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The number that decides which printers the plate can go to. */
+.pd-plate-size {
+  margin-right: auto;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--rw-text-muted);
+}
+
+.pd-object-size {
+  display: block;
+  font-size: 10px;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  color: var(--rw-text-dim);
+}
+
+.plate-row-size {
+  font-variant-numeric: tabular-nums;
+  color: var(--rw-text-dim);
+}
+
+/* ── slice / upload busy overlay ──────────────────────────────────────────
+   Sits above the print dialog rather than inside its scroll area: the whole
+   point is to be on screen no matter where the user has scrolled to. */
+
+.slice-progress-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(2px);
+}
+
+.slice-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(420px, 100%);
+  padding: 22px 24px;
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border-strong);
+  border-radius: 10px;
+  box-shadow: var(--rw-glow-pink);
+}
+
+.slice-progress-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--rw-text);
+}
+
+.slice-progress-bar {
+  position: relative;
+  height: 8px;
+  overflow: hidden;
+  background: var(--rw-surface-2);
+  border: 1px solid var(--rw-border);
+  border-radius: 4px;
+}
+
+.slice-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--rw-cyan), var(--rw-pink));
+  box-shadow: 0 0 10px rgba(255, 46, 110, 0.5);
+  transition: width 200ms ease-out;
+}
+
+/* No percentage yet. A bar parked at 0% reads as a hang, so it sweeps. */
+.slice-progress-bar.is-indeterminate .slice-progress-fill {
+  width: 38%;
+  transition: none;
+  animation: slice-progress-sweep 1.3s ease-in-out infinite;
+}
+
+@keyframes slice-progress-sweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slice-progress-bar.is-indeterminate .slice-progress-fill {
+    animation-duration: 3s;
+  }
+
+  #sidebar {
+    transition: none;
+  }
+}
+
+.slice-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--rw-text-muted);
+}
+
+.slice-progress-elapsed {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  color: var(--rw-text-dim);
+}
+
+.slice-progress-cancel {
+  align-self: flex-end;
+}
+
+.slice-progress-note {
+  margin: 0;
+  align-self: flex-end;
+  font-size: 11px;
+  color: var(--rw-text-dim);
+}
+
+/* ================================================================
+ * 3D-first plate editor.
+ *
+ * The plate owns the screen at every width: the canvas fills the modal
+ * body, and every option lives behind a rail button that opens a sheet
+ * over it. Nothing here scrolls except sheet bodies — the stage is sized
+ * by the modal, not by its content.
+ * ================================================================ */
+
+.print-modal-body.is-bleed {
+  padding: 0;
+  overflow: hidden;
+}
+
+.print-dialog {
+  min-height: 0;
+  height: 100%;
+  gap: 0;
+}
+
+.pd-stage {
+  position: relative;
+  flex: 1 1 auto;
+  /* Without this a tall canvas would push the rail off the bottom: a flex
+     item's min-height is auto, so it refuses to shrink below its content. */
+  min-height: 0;
+  background: #07001a;
+  overflow: hidden;
+}
+
+.pd-stage-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  color: var(--rw-text-dim);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ── HUD: the readouts that must survive every sheet being closed ─────── */
+
+.pd-hud {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  max-width: 55%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+
+/* No background here — the badge's own tint is what says fits / warn /
+   blocked, and an override at equal specificity would flatten all three. */
+.pd-hud .pd-fit-badge {
+  padding: 4px 9px;
+  border-radius: 999px;
+  line-height: 1.3;
+}
+
+.pd-hud .pd-plate-size {
+  margin: 0;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(11, 1, 22, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--rw-border);
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+/* ── Notices: in flow, so a warning never hides behind the canvas ─────── */
+
+.pd-notices {
+  flex: 0 0 auto;
+  max-height: 28vh;
+  overflow-y: auto;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid var(--rw-border);
+  background: var(--rw-surface);
+}
+
+.pd-notice {
+  padding: 7px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--rw-text-muted);
+  background: var(--rw-surface-2);
+  border: 1px solid var(--rw-border);
+}
+
+.pd-notice.is-warn {
+  color: var(--rw-warn);
+  border-color: rgba(255, 214, 10, 0.4);
+}
+
+.pd-notice.is-bad {
+  color: var(--rw-danger-text);
+  border-color: rgba(255, 45, 85, 0.45);
+}
+
+.pd-notice-link {
+  padding: 0;
+  font: inherit;
+  color: var(--rw-cyan);
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ── Rail: the whole navigation model, pinned to the bottom edge ──────── */
+
+.pd-rail {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 12px calc(env(safe-area-inset-bottom, 0px) + 10px);
+  border-top: 1px solid var(--rw-border);
+  background: linear-gradient(180deg, var(--rw-surface-2), var(--rw-surface));
+}
+
+.pd-rail-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pd-rail-actions .pd-dirty,
+.pd-rail-actions .pd-saved {
+  margin-right: auto;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pd-rail-actions .btn {
+  flex: 0 0 auto;
+  min-height: 48px;
+  padding-inline: 20px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 12px;
+}
+
+.pd-rail-actions .btn-primary {
+  flex: 1 1 auto;
+  max-width: 340px;
+}
+
+/* ── Sheets: bottom sheet on a phone, docked panel from tablet up ─────── */
+
+.pd-sheet-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  align-items: flex-end;
+  justify-content: stretch;
+  background: rgba(4, 0, 12, 0.5);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.pd-sheet {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: 100%;
+  min-height: 0;
+  background: linear-gradient(180deg, var(--rw-surface-2), var(--rw-surface));
+  border-top: 1px solid var(--rw-border-strong);
+  border-radius: 14px 14px 0 0;
+  box-shadow: 0 -10px 34px rgba(0, 0, 0, 0.55);
+}
+
+.pd-sheet-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--rw-border);
+}
+
+.pd-sheet-head h4 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rw-magenta);
+}
+
+.pd-sheet-close {
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--rw-text-muted);
+  background: none;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.pd-sheet-close:hover {
+  color: var(--rw-pink);
+  background: var(--rw-surface-2);
+}
+
+.pd-sheet-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px calc(env(safe-area-inset-bottom, 0px) + 16px);
+  font-size: 15px;
+}
+
+@media (min-width: 720px) {
+  .pd-sheet-scrim {
+    align-items: stretch;
+    justify-content: flex-end;
+  }
+  .pd-sheet {
+    width: min(400px, 100%);
+    border-top: 0;
+    border-left: 1px solid var(--rw-border-strong);
+    border-radius: 0;
+    box-shadow: -10px 0 34px rgba(0, 0, 0, 0.55);
+  }
+}
+
+/* Tablet+ the modal is a floating card sized by its content, which a
+   bleed body cannot do — the canvas has no intrinsic height. Give the
+   plate editor an explicit one so the stage has room to be the screen. */
+@media (min-width: 720px) {
+  .print-modal:has(> .print-modal-body.is-bleed) {
+    width: min(1100px, calc(100vw - 48px));
+    height: min(860px, calc(100vh - 48px));
+    max-height: calc(100vh - 48px);
+  }
+}
+
+/* Preset readouts — what the chosen printer and filament actually specify. */
+
+.pd-specs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+  border-radius: 10px;
+}
+
+.pd-specs-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--rw-cyan);
+}
+
+.pd-specs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0;
+}
+
+.pd-spec {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.pd-spec dt {
+  color: var(--rw-text-dim);
+  white-space: nowrap;
+}
+
+.pd-spec dd {
+  margin: 0;
+  text-align: right;
+  color: var(--rw-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Print setup screen ──────────────────────────────────────────────── */
+
+.pd-setup {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-size: 15px;
+}
+
+/* ── Setup screen: checks, edit affordances, process status panel ─────── */
+
+.pd-edit {
+  padding: 4px 8px;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--rw-text-muted);
+  background: var(--rw-surface-2);
+  border: 1px solid var(--rw-border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.pd-edit:hover:not(:disabled) {
+  color: var(--rw-text);
+  border-color: var(--rw-cyan);
+}
+
+.pd-edit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pd-edit-wide {
+  align-self: flex-start;
+  padding: 8px 12px;
+  min-height: 38px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pd-edit-wide.is-on {
+  color: var(--rw-bg);
+  background: var(--rw-cyan);
+  border-color: var(--rw-cyan);
+}
+
+.pd-check {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.pd-check-mark {
+  flex: 0 0 auto;
+  width: 14px;
+  text-align: center;
+  font-weight: 700;
+}
+
+.pd-check.is-pass .pd-check-mark { color: var(--rw-ok-text); }
+.pd-check.is-warn .pd-check-mark { color: var(--rw-warn); }
+.pd-check.is-fail .pd-check-mark { color: var(--rw-danger-text); }
+
+.pd-check-label {
+  flex: 0 0 auto;
+  color: var(--rw-text);
+}
+
+.pd-check-detail {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: right;
+  color: var(--rw-text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Process, as a panel of numbers you can read at a glance ──────────── */
+
+.pd-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  gap: 8px;
+}
+
+.pd-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 10px 6px;
+  background: var(--rw-surface-2);
+  border: 1px solid var(--rw-border);
+  border-radius: 10px;
+}
+
+.pd-stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--rw-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.pd-stat-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--rw-text-dim);
+}
+
+.pd-stat-foot {
+  margin: 0;
+  font-size: 11px;
+  color: var(--rw-text-dim);
+}
+
+/* ── Setup cards: a header you can read, a body you can open ──────────── */
+
+.pd-card {
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.pd-card > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.pd-card > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* The caret is drawn rather than inherited so it can sit at the end, past a
+   status that is free to be any length. */
+.pd-card > summary::after {
+  content: '▸';
+  flex: 0 0 auto;
+  color: var(--rw-text-dim);
+  transition: transform 120ms ease-out;
+}
+
+.pd-card[open] > summary::after {
+  transform: rotate(90deg);
+}
+
+.pd-card > summary:hover {
+  background: var(--rw-surface-2);
+}
+
+.pd-card-title {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--rw-magenta);
+}
+
+.pd-card-status {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: right;
+  font-size: 12px;
+  color: var(--rw-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pd-card-status.is-pass { color: var(--rw-ok-text); }
+.pd-card-status.is-warn { color: var(--rw-warn); }
+.pd-card-status.is-fail { color: var(--rw-danger-text); }
+
+.pd-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 14px 14px;
+}
+
+.pd-card > summary > .pd-edit {
+  flex: 0 0 auto;
+}
+
+/* ── Printer picker: a tool, sitting with the other tools ────────────── */
+
+.pd-printer-pick {
+  flex: 0 1 auto;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px 0 8px;
+  background: var(--rw-surface-2);
+  border: 1px solid var(--rw-border);
+  border-radius: 4px;
+}
+
+.pd-printer-pick > span {
+  flex: 0 0 auto;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.pd-printer-pick select {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 190px;
+  padding: 8px 2px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--rw-text-muted);
+  background: none;
+  border: 0;
+  color-scheme: dark;
+}
+
+.pd-printer-pick select:focus {
+  outline: none;
+  color: var(--rw-text);
+}
+
+.pd-stage-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Marks the list button when some object carries an override, so tuning is
+   visible without opening the list. */
+.pd-tool-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-left: 4px;
+  vertical-align: middle;
+  background: var(--rw-cyan);
+  border-radius: 50%;
+}
+
+/* ── Object rows: the object, how it prints, and a way to bin it ─────── */
+
+.pd-object-name {
+  flex: 1 1 140px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pd-object-opt {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 150px;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--rw-text-muted);
+  background: var(--rw-surface-3);
+  border: 1px solid var(--rw-border);
+  border-radius: 6px;
+  color-scheme: dark;
+}
+
+.pd-object-opt:focus {
+  outline: none;
+  border-color: var(--rw-cyan);
+  color: var(--rw-text);
+}
+
+.pd-object-remove {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  font-size: 15px;
+  line-height: 1;
+  background: var(--rw-surface-3);
+  border: 1px solid var(--rw-border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.pd-object-remove:hover:not(:disabled) {
+  border-color: var(--rw-danger);
+  background: rgba(255, 45, 85, 0.15);
+}
+
+.pd-object-remove:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

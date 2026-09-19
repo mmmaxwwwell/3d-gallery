@@ -1,0 +1,47 @@
+{
+  "models": [
+    {
+      "slug": "fixture-cube",
+      "title": "Fixture Cube",
+      "description": "Trivial model used by model-forge tests.",
+      "customizable": true,
+      "previews": [
+        {
+          "file": "duo.3mf",
+          "format": "3mf",
+          "label": "Two colors",
+          "default": true,
+          "module": "duo",
+          "variants": [
+            {
+              "label": "Big",
+              "params": {
+                "size": 14
+              }
+            }
+          ]
+        },
+        {
+          "file": "duo-tall.3mf",
+          "format": "3mf",
+          "label": "Two colors, tall",
+          "module": "duo-tall"
+        },
+        {
+          "file": "duo-hex.3mf",
+          "format": "3mf",
+          "label": "Two hex colors",
+          "module": "duo-hex"
+        }
+      ],
+      "parts": [
+        {
+          "file": "box.stl",
+          "format": "stl",
+          "label": "Box",
+          "module": "box"
+        }
+      ]
+    }
+  ]
+}

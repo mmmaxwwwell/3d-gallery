@@ -1,171 +1,160 @@
-// Build STL + 3MF artifacts for every model under models/<slug>/.
+// Render every model's declared artifacts and lay them out where the site
+// expects them.
 //
-// The manifest (models/manifest.json) is the source of truth. Each part/preview
-// entry has a `format` field ("stl" or "3mf") that determines the build pipeline:
-//   - "stl"  → openscad -o <name>.stl <source>.scad
-//   - "3mf"  → multicolor 3MF via build-multicolor-3mf.mjs
+// Rendering and caching live in @3d-gallery/model-forge, so this script and the
+// dev server share one pipeline and one content-addressed cache. What stays here
+// is the naming convention the rest of the repo depends on:
 //
-// Source .scad files are located by matching the output filename (minus extension)
-// against files in parts/ and previews/ directories.
+//   models/<slug>/build/<file>    per-model output, used by tests/build/
+//   public/models/<slug>/<file>   what Vite serves and the PWA precaches
+//   public/models/manifest.json   the runtime manifest — authored entries plus
+//                                 source digests, param schemas and keys
+//   public/a/<key>.<format>       the same artifacts addressed by key, for
+//                                 clients that resolve through the cache
 //
-// Output: models/<slug>/build/*.{stl,3mf}
-// After building, we copy each model's build/ into public/models/<slug>/ so
-// Vite serves them at /3d-gallery/models/<slug>/<file>.
+// The cache is keyed by source content and parameters, not by file path, so a
+// rename or an unrelated edit elsewhere in the repo doesn't invalidate anything.
+//
+// Usage:  node scripts/build-models.mjs [slug...]     (or MODEL=<slug>)
 
-import { readFileSync, readdirSync, mkdirSync, cpSync, rmSync, existsSync } from "node:fs";
-import { execFile } from "node:child_process";
-import { join, dirname } from "node:path";
+import { cpSync, existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { promisify } from "node:util";
 
-import { buildMulticolor3mf } from "./build-multicolor-3mf.mjs";
-import { OPENSCAD_ARGS } from "./openscad-args.mjs";
-import { lookupCache, storeCache } from "./cache.mjs";
+import { createForge, targetOf } from "../packages/model-forge/src/index.ts";
 import { embedUrlInFile } from "./embed-source-url.mjs";
 
-// Canonical deployed origin — GitHub Pages URL for this repo.
-// The gallery frontend uses the same buildUrl() shape (?model=<slug>&part=<module>),
-// so scanning a printed part's embedded URL takes you straight back to
-// its page with the right model + part pre-selected.
+// Canonical deployed origin — GitHub Pages URL for this repo. The gallery
+// frontend uses the same buildUrl() shape (?model=<slug>&part=<module>), so
+// scanning a printed part's embedded URL lands on its page with the right
+// model + part preselected.
 const SITE_URL = "https://mmmaxwwwell.github.io/3d-gallery/";
 
-const execFileAsync = promisify(execFile);
-
-const CACHE_ENABLED = process.env.OPENSCAD_CACHE !== "0";
-
-const HERE = dirname(fileURLToPath(import.meta.url));
-const ROOT = dirname(HERE);
+const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const MODELS_DIR = join(ROOT, "models");
 const PUBLIC_MODELS_DIR = join(ROOT, "public", "models");
+const PUBLIC_ARTIFACTS_DIR = join(ROOT, "public", "a");
+
+// The browser resolves artifacts by absolute URL, so the deployed base path has
+// to be baked into the manifest. SITE_URL already carries it — deriving it here
+// keeps the two from drifting apart.
+const ARTIFACT_BASE = new URL("a/", SITE_URL).pathname;
 
 export function loadManifest() {
-  const raw = readFileSync(join(MODELS_DIR, "manifest.json"), "utf8");
-  return JSON.parse(raw);
+  return createForge({ root: ROOT }).manifest;
 }
 
-/** Find the .scad source for a given base name in parts/ or previews/. */
-function findScadSource(modelDir, baseName) {
-  for (const sub of ["parts", "previews"]) {
-    const candidate = join(modelDir, sub, `${baseName}.scad`);
-    if (existsSync(candidate)) return candidate;
-  }
-  return null;
+function allParts(model) {
+  return [...(model.previews ?? []), ...(model.parts ?? [])];
 }
 
-async function buildPart({ slug, dir, buildDir, part }) {
-  const format = part.format;
-  const baseName = part.file.replace(/\.\w+$/, "");
-  const scadPath = findScadSource(dir, baseName);
-  if (!scadPath) {
-    console.warn(`  [skip] ${slug}/${part.file} — no .scad source found for "${baseName}"`);
-    return;
-  }
-
-  const out = join(buildDir, part.file);
-  let fromCache = false;
-
-  if (CACHE_ENABLED) {
-    const hit = lookupCache({ scadPath, format, args: OPENSCAD_ARGS });
-    if (hit) {
-      console.log(`  [cache] ${scadPath} → build/${part.file}`);
-      cpSync(hit, out);
-      fromCache = true;
-    }
-  }
-
-  if (!fromCache) {
-    if (format === "3mf") {
-      console.log(`  [3mf ] ${scadPath} → build/${part.file}`);
-      await buildMulticolor3mf({ scadPath, outPath: out, asAssembly: !!part.assembly });
-    } else {
-      console.log(`  [stl ] ${scadPath} → build/${part.file}`);
-      await execFileAsync("openscad", [...OPENSCAD_ARGS, "-o", out, scadPath]);
-    }
-
-    // Cache the pre-injection artifact so the cache key stays purely a
-    // function of the .scad + openscad args, not of the site URL or
-    // the part's manifest module name (both of which can change
-    // without invalidating what OpenSCAD produced).
-    if (CACHE_ENABLED) storeCache({ scadPath, format, args: OPENSCAD_ARGS, outPath: out });
-  }
-
-  // Embed a permalink back to this model's page on GitHub Pages.
-  // Runs on both fresh builds and cache hits — the injection is
-  // idempotent (replaces any existing SourceURL, doesn't append).
-  const url = new URL(SITE_URL);
-  url.searchParams.set("model", slug);
-  if (part.module) url.searchParams.set("part", part.module);
-  embedUrlInFile(out, format, url.toString());
-}
-
-export async function buildModel(model) {
-  const slug = model.slug;
-  const dir = join(MODELS_DIR, slug);
-  const buildDir = join(dir, "build");
+/**
+ * Render one model and mirror it into build/ and public/.
+ *
+ * Exported for the dev server, which rebuilds a single slug on save.
+ */
+export async function buildModel(model, forge = createForge({ root: ROOT })) {
+  const buildDir = join(MODELS_DIR, model.slug, "build");
   mkdirSync(buildDir, { recursive: true });
 
-  const allParts = [
-    ...(model.previews ?? []),
-    ...(model.parts ?? []),
-  ];
+  await Promise.all(allParts(model).map(async (part) => {
+    const target = targetOf(part);
+    const result = await forge.ensure({ slug: model.slug, target, format: part.format });
+    const out = join(buildDir, part.file);
+    cpSync(result.path, out);
 
-  // Build all parts in parallel
-  await Promise.all(allParts.map(part => buildPart({ slug, dir, buildDir, part })));
+    // Injected after copying, never into the cache: the permalink depends on the
+    // manifest's module name and the site URL, neither of which changes what
+    // OpenSCAD produced. Keeping it out of the cached bytes means renaming a
+    // module doesn't invalidate the geometry.
+    const url = new URL(SITE_URL);
+    url.searchParams.set("model", model.slug);
+    if (part.module) url.searchParams.set("part", part.module);
+    embedUrlInFile(out, part.format, url.toString());
 
-  // Mirror into public/ for Vite to serve.
-  const publicDir = join(PUBLIC_MODELS_DIR, slug);
+    console.log(`  [${result.status === "hit" ? "cache" : part.format.padEnd(5)}] ${model.slug}/${part.file}`);
+  }));
+
+  const publicDir = join(PUBLIC_MODELS_DIR, model.slug);
   rmSync(publicDir, { recursive: true, force: true });
   mkdirSync(publicDir, { recursive: true });
   if (existsSync(buildDir)) {
-    for (const f of readdirSync(buildDir)) {
-      cpSync(join(buildDir, f), join(publicDir, f));
-    }
+    for (const f of readdirSync(buildDir)) cpSync(join(buildDir, f), join(publicDir, f));
   }
+}
+
+/**
+ * Mirror every artifact the manifest declares into `public/a/<key>.<format>`.
+ *
+ * Copied straight out of the store, without the permalink the named outputs
+ * carry: the key addresses what OpenSCAD produced, so the bytes behind it have
+ * to match everywhere — including what the dev server's artifact route serves.
+ */
+async function emitArtifacts(forge, models) {
+  const slugs = new Set(models.map((m) => m.slug));
+  const requests = forge.declaredRequests().filter((req) => slugs.has(req.slug));
+
+  mkdirSync(PUBLIC_ARTIFACTS_DIR, { recursive: true });
+
+  let bytes = 0;
+  await Promise.all(requests.map(async (req) => {
+    const result = await forge.ensure(req);
+    cpSync(result.path, join(PUBLIC_ARTIFACTS_DIR, `${result.key}.${result.format}`));
+    bytes += result.bytes.byteLength;
+  }));
+
+  return { count: requests.length, bytes };
 }
 
 async function main() {
-  const manifest = loadManifest();
-  if (!manifest.models || manifest.models.length === 0) {
+  const forge = createForge({ root: ROOT, artifactBase: ARTIFACT_BASE });
+  const manifest = forge.manifest;
+
+  if (manifest.models.length === 0) {
     console.log("No models found in manifest.");
     return;
   }
-  // Copy manifest.json into public/models/ so the viewer can fetch it. (Always
-  // refreshed even for a single-model build, since it's the viewer's index.)
-  mkdirSync(PUBLIC_MODELS_DIR, { recursive: true });
-  cpSync(join(MODELS_DIR, "manifest.json"), join(PUBLIC_MODELS_DIR, "manifest.json"));
 
-  // Optional slug filter: any CLI args (or the MODEL env var) restrict the
-  // build to just those models, so working on one project doesn't rebuild the
-  // whole app. `node build-models.mjs ryobi-drill-holder` builds only that one.
-  const requested = [
-    ...process.argv.slice(2),
-    ...(process.env.MODEL ? [process.env.MODEL] : []),
-  ];
+  mkdirSync(PUBLIC_MODELS_DIR, { recursive: true });
+
+  const requested = [...process.argv.slice(2), ...(process.env.MODEL ? [process.env.MODEL] : [])];
   let models = manifest.models;
+
   if (requested.length > 0) {
-    const known = new Set(manifest.models.map(m => m.slug));
-    const unknown = requested.filter(s => !known.has(s));
+    const known = new Set(manifest.models.map((m) => m.slug));
+    const unknown = requested.filter((s) => !known.has(s));
     if (unknown.length > 0) {
       console.error(`Unknown model slug(s): ${unknown.join(", ")}`);
-      console.error(`Available: ${manifest.models.map(m => m.slug).join(", ")}`);
+      console.error(`Available: ${manifest.models.map((m) => m.slug).join(", ")}`);
       process.exitCode = 1;
       return;
     }
-    const wanted = new Set(requested);
-    models = manifest.models.filter(m => wanted.has(m.slug));
+    models = manifest.models.filter((m) => requested.includes(m.slug));
     console.log(`Building ${models.length} model(s): ${requested.join(", ")}`);
   }
 
-  // Build the selected models in parallel
-  await Promise.all(models.map(model => {
+  // A full build owns the whole tree, so stale keys from an earlier source
+  // revision go away. A single-slug build leaves the other models' copies alone.
+  if (requested.length === 0) rmSync(PUBLIC_ARTIFACTS_DIR, { recursive: true, force: true });
+
+  const started = Date.now();
+  await Promise.all(models.map((model) => {
     console.log(`Building ${model.slug}…`);
-    return buildModel(model);
+    return buildModel(model, forge);
   }));
-  console.log("Done.");
+
+  const emitted = await emitArtifacts(forge, models);
+  console.log(`Emitted ${emitted.count} content-addressed artifacts to public/a (${emitted.bytes} bytes, ${(emitted.bytes / 1048576).toFixed(1)} MB).`);
+
+  writeFileSync(
+    join(PUBLIC_MODELS_DIR, "manifest.json"),
+    `${JSON.stringify(await forge.runtimeManifest())}\n`,
+  );
+
+  const { count, bytes } = forge.store.stats();
+  console.log(`Done in ${Date.now() - started}ms. Cache holds ${count} artifacts (${(bytes / 1048576).toFixed(1)} MB).`);
 }
 
-// Only run main() when invoked as a script (not when imported by the
-// vite dev-server watcher plugin).
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main();
 }

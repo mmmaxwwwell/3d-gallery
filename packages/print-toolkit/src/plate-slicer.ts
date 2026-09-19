@@ -151,11 +151,75 @@ export function buildPlateSliceConfig(
   };
 }
 
+// ─── Bed geometry ────────────────────────────────────────
+
+/** Axis-aligned rectangle in slicer bed coordinates (mm). */
+export interface Rect2 {
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+}
+
+/** Tolerance for "touches the edge" comparisons, mm. */
+const GEOM_EPSILON = 1e-6;
+
+function plateBedRect(plate: BuildPlate): Rect2 {
+  const { bedWidth, bedDepth, originCenter } = plate;
+  return {
+    minX: originCenter ? -bedWidth / 2 : 0,
+    minY: originCenter ? -bedDepth / 2 : 0,
+    maxX: originCenter ? bedWidth / 2 : bedWidth,
+    maxY: originCenter ? bedDepth / 2 : bedDepth,
+  };
+}
+
+function rect2ToPlaced(rect: Rect2): PlacedRect {
+  return {
+    x: (rect.minX + rect.maxX) / 2,
+    y: (rect.minY + rect.maxY) / 2,
+    halfW: Math.abs(rect.maxX - rect.minX) / 2,
+    halfD: Math.abs(rect.maxY - rect.minY) / 2,
+  };
+}
+
+/**
+ * Half-extents of an object's XY footprint — its scaled bounding box expanded
+ * by its own Z rotation. `fallbackSize` is used when the mesh can't be parsed.
+ */
+function objectFootprint(
+  obj: BuildPlateObject,
+  bounds: MeshBounds | null,
+  fallbackSize: number,
+): { halfW: number; halfD: number } {
+  if (!bounds) return { halfW: fallbackSize / 2, halfD: fallbackSize / 2 };
+  const rotRad = (obj.rotation % 180) * Math.PI / 180;
+  const cosR = Math.abs(Math.cos(rotRad));
+  const sinR = Math.abs(Math.sin(rotRad));
+  return {
+    halfW: (bounds.width * cosR + bounds.depth * sinR) / 2,
+    halfD: (bounds.width * sinR + bounds.depth * cosR) / 2,
+  };
+}
+
+/** Extra checks for `validatePlateForSlicing` */
+export interface PlateValidationOptions {
+  /** Overrides the bed derived from plate.bedWidth/bedDepth/originCenter. */
+  bed?: Rect2;
+  /** Forbidden rectangles the footprints must clear. */
+  keepouts?: Rect2[];
+  /** Minimum gap between object footprints, mm. Default 0 (touching is ok). */
+  spacing?: number;
+}
+
 /**
  * Validate a build plate before slicing.
  * Returns an array of human-readable error strings (empty = valid).
  */
-export function validatePlateForSlicing(plate: BuildPlate): string[] {
+export function validatePlateForSlicing(
+  plate: BuildPlate,
+  options?: PlateValidationOptions,
+): string[] {
   const errors: string[] = [];
 
   if (plate.objects.length === 0) {
@@ -163,21 +227,43 @@ export function validatePlateForSlicing(plate: BuildPlate): string[] {
     return errors;
   }
 
-  const { bedWidth, bedDepth, originCenter } = plate;
+  const bed = options?.bed ?? plateBedRect(plate);
+  const keepouts = (options?.keepouts ?? []).map(rect2ToPlaced);
+  const spacing = options?.spacing ?? 0;
 
-  // Compute bed bounds
-  const minX = originCenter ? -bedWidth / 2 : 0;
-  const maxX = originCenter ? bedWidth / 2 : bedWidth;
-  const minY = originCenter ? -bedDepth / 2 : 0;
-  const maxY = originCenter ? bedDepth / 2 : bedDepth;
+  // A mesh we cannot parse gets a zero-size footprint, which degrades this to
+  // the center-point check the function did before footprints existed.
+  const items = plate.objects.map((obj) => {
+    const bounds = computeMeshBoundingBox(obj.meshData, obj.meshFormat, obj.scale);
+    const { halfW, halfD } = objectFootprint(obj, bounds, 0);
+    return { obj, bounds, rect: { x: obj.position.x, y: obj.position.y, halfW, halfD } };
+  });
 
-  for (const obj of plate.objects) {
-    const { x, y } = obj.position;
-    if (x < minX || x > maxX) {
-      errors.push(`Object "${obj.name}" is outside bed bounds on X axis (${x}mm).`);
+  for (const { obj, bounds, rect } of items) {
+    if (rect.x - rect.halfW < bed.minX - GEOM_EPSILON
+      || rect.x + rect.halfW > bed.maxX + GEOM_EPSILON) {
+      errors.push(`Object "${obj.name}" overhangs the bed on the X axis.`);
     }
-    if (y < minY || y > maxY) {
-      errors.push(`Object "${obj.name}" is outside bed bounds on Y axis (${y}mm).`);
+    if (rect.y - rect.halfD < bed.minY - GEOM_EPSILON
+      || rect.y + rect.halfD > bed.maxY + GEOM_EPSILON) {
+      errors.push(`Object "${obj.name}" overhangs the bed on the Y axis.`);
+    }
+    if (keepouts.some((k) => rectsOverlap(rect, k, spacing))) {
+      errors.push(`Object "${obj.name}" overlaps a keep-out zone on the bed.`);
+    }
+    if (bounds && bounds.height > plate.maxHeight + GEOM_EPSILON) {
+      errors.push(
+        `Object "${obj.name}" is ${bounds.height.toFixed(1)}mm tall; `
+        + `the plate maximum is ${plate.maxHeight}mm.`,
+      );
+    }
+  }
+
+  for (let i = 0; i < items.length; i++) {
+    for (let j = i + 1; j < items.length; j++) {
+      if (rectsOverlap(items[i].rect, items[j].rect, spacing)) {
+        errors.push(`Objects "${items[i].obj.name}" and "${items[j].obj.name}" overlap.`);
+      }
     }
   }
 
@@ -319,10 +405,49 @@ export interface MeshBounds {
 }
 
 /**
- * Parse a binary STL and compute axis-aligned bounding box dimensions.
- * Returns null if the buffer is too small or malformed.
+ * A binary STL may legitimately begin with the ASCII tag "solid", so the
+ * discriminator is whether a `facet normal` line follows in the header region.
+ */
+function isAsciiStl(data: ArrayBuffer): boolean {
+  if (data.byteLength < 6) return false;
+  const head = new Uint8Array(data, 0, Math.min(1024, data.byteLength));
+  if (!(head[0] === 0x73 && head[1] === 0x6f && head[2] === 0x6c && head[3] === 0x69 && head[4] === 0x64)) {
+    return false;
+  }
+  return /\bfacet\s+normal\b/i.test(new TextDecoder().decode(head));
+}
+
+function computeAsciiSTLBoundingBox(data: ArrayBuffer): MeshBounds | null {
+  const text = new TextDecoder().decode(new Uint8Array(data));
+  let minX = Infinity, minY = Infinity, minZ = Infinity;
+  let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+
+  const re = /vertex\s+(-?[\d.]+(?:[eE][-+]?\d+)?)\s+(-?[\d.]+(?:[eE][-+]?\d+)?)\s+(-?[\d.]+(?:[eE][-+]?\d+)?)/g;
+  for (const m of text.matchAll(re)) {
+    const x = parseFloat(m[1]), y = parseFloat(m[2]), z = parseFloat(m[3]);
+    if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z)) continue;
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+    if (z < minZ) minZ = z;
+    if (z > maxZ) maxZ = z;
+  }
+
+  if (!isFinite(minX)) return null;
+  return { width: maxX - minX, depth: maxY - minY, height: maxZ - minZ };
+}
+
+/**
+ * Parse an STL (binary or ASCII) and compute axis-aligned bounding box
+ * dimensions. Returns null if the buffer is too small or malformed.
+ *
+ * ASCII support is load-bearing, not a nicety: the OpenSCAD CLI emits ASCII
+ * STL, so without it every CLI-built part sizes as the caller's fallback and
+ * the arranger packs against footprints that bear no relation to the geometry.
  */
 export function computeSTLBoundingBox(data: ArrayBuffer): MeshBounds | null {
+  if (isAsciiStl(data)) return computeAsciiSTLBoundingBox(data);
   if (data.byteLength < 84) return null;
   const view = new DataView(data);
   const triangleCount = view.getUint32(80, true);
@@ -617,6 +742,127 @@ export function autoArrangeObjects(
   }
 
   return result;
+}
+
+/**
+ * Scan the bed on a 1mm grid for the lowest-Y, then lowest-X free spot for a
+ * footprint of the given half-extents. Returns null when nothing fits.
+ */
+function findFreeSpot(
+  halfW: number,
+  halfD: number,
+  bed: Rect2,
+  spacing: number,
+  placed: PlacedRect[],
+): { x: number; y: number } | null {
+  const startX = bed.minX + spacing + halfW;
+  const endX = bed.maxX - spacing - halfW;
+  const startY = bed.minY + spacing + halfD;
+  const endY = bed.maxY - spacing - halfD;
+  if (startX > endX + GEOM_EPSILON || startY > endY + GEOM_EPSILON) return null;
+
+  const step = 1;
+  for (let y = startY; y <= endY + GEOM_EPSILON; y += step) {
+    for (let x = startX; x <= endX + GEOM_EPSILON; x += step) {
+      const candidate: PlacedRect = { x, y, halfW, halfD };
+      if (!placed.some((p) => rectsOverlap(candidate, p, spacing))) return { x, y };
+    }
+  }
+  return null;
+}
+
+/** Options for `arrangeObjects` */
+export interface ArrangeOptions {
+  /** Bed rectangle in slicer coordinates. Required. */
+  bed: Rect2;
+  /** Forbidden rectangles (bed_exclude_area bboxes, etc.). Default []. */
+  keepouts?: Rect2[];
+  /** Edge + inter-object gap, mm. Default 10. */
+  spacing?: number;
+  /** Footprint used when a mesh bbox cannot be computed. Default 30. */
+  fallbackSize?: number;
+  /** Allow the arranger to add 90 deg to an object's rotation. Default true. */
+  tryRotation?: boolean;
+  /** Treated as an additional keepout when enabled. */
+  primeTower?: PrimeTowerConfig;
+}
+
+/** Outcome of `arrangeObjects` */
+export interface ArrangeResult {
+  /** Objects that fit, with `position` and `rotation` updated. Input order. */
+  placed: BuildPlateObject[];
+  /** Objects that did not fit. Positions left untouched. */
+  unplaced: BuildPlateObject[];
+}
+
+/**
+ * Bottom-left-fill packing against an explicit bed rect with keepouts.
+ * Unlike `autoArrangeObjects`, never places an object outside the bed —
+ * it reports it as unplaced instead.
+ */
+export function arrangeObjects(
+  objects: BuildPlateObject[],
+  options: ArrangeOptions,
+): ArrangeResult {
+  const { bed } = options;
+  const spacing = options.spacing ?? 10;
+  const fallbackSize = options.fallbackSize ?? 30;
+  const tryRotation = options.tryRotation ?? true;
+
+  const placedRects: PlacedRect[] = (options.keepouts ?? []).map(rect2ToPlaced);
+  const tower = options.primeTower;
+  if (tower?.enabled) {
+    const towerHalfSize = (tower.width + tower.brimWidth * 2) / 2;
+    placedRects.push({
+      x: tower.position.x,
+      y: tower.position.y,
+      halfW: towerHalfSize,
+      halfD: towerHalfSize,
+    });
+  }
+
+  const items = objects.map((obj, index) => {
+    const bounds = computeMeshBoundingBox(obj.meshData, obj.meshFormat, obj.scale);
+    const { halfW, halfD } = objectFootprint(obj, bounds, fallbackSize);
+    return { obj, index, halfW, halfD };
+  });
+
+  const sorted = [...items].sort((a, b) => (b.halfW * b.halfD) - (a.halfW * a.halfD));
+
+  const arranged = new Array<BuildPlateObject | undefined>(objects.length);
+
+  for (const item of sorted) {
+    const orientations = [{ halfW: item.halfW, halfD: item.halfD, rotDelta: 0 }];
+    if (tryRotation && Math.abs(item.halfW - item.halfD) > 0.5) {
+      orientations.push({ halfW: item.halfD, halfD: item.halfW, rotDelta: 90 });
+    }
+
+    let best: { x: number; y: number; halfW: number; halfD: number; rotDelta: number } | null = null;
+    for (const orient of orientations) {
+      const spot = findFreeSpot(orient.halfW, orient.halfD, bed, spacing, placedRects);
+      if (!spot) continue;
+      if (!best || spot.y < best.y || (spot.y === best.y && spot.x < best.x)) {
+        best = { ...spot, halfW: orient.halfW, halfD: orient.halfD, rotDelta: orient.rotDelta };
+      }
+    }
+    if (!best) continue;
+
+    placedRects.push({ x: best.x, y: best.y, halfW: best.halfW, halfD: best.halfD });
+    arranged[item.index] = {
+      ...item.obj,
+      position: { x: best.x, y: best.y },
+      rotation: item.obj.rotation + best.rotDelta,
+    };
+  }
+
+  const placed: BuildPlateObject[] = [];
+  const unplaced: BuildPlateObject[] = [];
+  for (let i = 0; i < objects.length; i++) {
+    const result = arranged[i];
+    if (result) placed.push(result);
+    else unplaced.push(objects[i]);
+  }
+  return { placed, unplaced };
 }
 
 // ─── Lay Flat utilities ──────────────────────────────────

@@ -1,0 +1,82 @@
+---
+import { manifest } from 'virtual:3d-gallery';
+import { recordReference } from '@3d-gallery/astro/registry';
+import type { ScadValue } from '@3d-gallery/model-core';
+
+interface Props {
+  slug: string;
+  /** File base name of a part or preview. Defaults to the model's default entry. */
+  target?: string;
+  /** Parameter overrides. Anything left at its lib default costs nothing. */
+  params?: Record<string, ScadValue>;
+  height?: string;
+  class?: string;
+}
+
+const { slug, target, params, height = '480px', class: className } = Astro.props;
+
+const model = manifest.models.find((m) => m.slug === slug);
+if (!model) {
+  // Failing the build beats shipping a page with an empty box on it.
+  throw new Error(
+    `<ModelViewer slug="${slug}"> — no such model. Known: ${manifest.models.map((m) => m.slug).join(', ')}`,
+  );
+}
+
+const entries = [...(model.previews ?? []), ...(model.parts ?? [])];
+const baseName = (file: string) => file.replace(/\.\w+$/, '');
+const entry = target
+  ? entries.find((p) => baseName(p.file) === target)
+  : entries.find((p) => p.default) ?? entries[0];
+
+if (!entry) {
+  throw new Error(
+    `<ModelViewer slug="${slug}" target="${target ?? ''}"> — no such part. Known: ${entries.map((p) => baseName(p.file)).join(', ')}`,
+  );
+}
+// Tells the build which artifact this page needs, so `prerender: 'referenced'`
+// bakes exactly that and not the rest of the manifest.
+recordReference({ slug, target: baseName(entry.file), format: entry.format, params });
+---
+
+<div
+  class:list={['dg-viewer', className]}
+  data-dg-slug={slug}
+  data-dg-target={baseName(entry.file)}
+  data-dg-params={JSON.stringify(params ?? {})}
+  style={`height: ${height}`}
+>
+  <p class="dg-viewer-status">Loading…</p>
+</div>
+
+<script>
+  import '@3d-gallery/astro/client';
+</script>
+
+<style>
+  .dg-viewer {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #0f172a;
+  }
+
+  .dg-viewer-status {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 1rem;
+    text-align: center;
+    color: #cbd5e1;
+    font: 0.9rem/1.5 system-ui, sans-serif;
+    pointer-events: none;
+  }
+
+  .dg-viewer-status[hidden] {
+    display: none;
+  }
+</style>

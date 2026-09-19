@@ -139,7 +139,7 @@ Use `include <...>` in every consumer (parts, previews) — the customizer + bui
 nix develop                       # openscad, node, BOSL2, qr.scad
 npm install
 npm run build:models              # render all .scad → STL/3MF under models/*/build/, mirror to public/
-npm run dev                       # vite @ localhost:5173 — auto-rebuilds .scad on save (see below)
+npm run dev                       # vite @ localhost:5173 — renders models on demand (see below)
 npm run build                     # build:models + vite build
 npm run test:build                # verify rendered artifacts against baseline fingerprints
 npm run test:build:baseline       # re-capture fingerprints (only when a change is intentional)
@@ -147,11 +147,15 @@ npm run test:e2e                  # Playwright (fast subset)
 npm run test:e2e:full             # includes @matrix
 ```
 
-**Dev-server auto-rebuild.** `vite.config.ts` includes a `scadWatcherPlugin` that watches `models/**/*.scad` and, on save, calls `buildModel(model)` from `scripts/build-models.mjs` for the affected slug then triggers a full-reload. Debounced 200ms per-slug so a burst of saves collapses into one build. This is why the pipeline both writes to `models/<slug>/build/` and mirrors into `public/models/<slug>/` — the dev server serves from `public/`, not from `build/`. If you run raw `openscad` yourself, the public copy will be stale until `npm run build:models` (or a subsequent save) triggers the mirror.
+**Dev-server generation is lazy.** `vite.config.ts`'s `galleryModelsPlugin` serves `models/<slug>/<file>` straight out of the artifact forge, rendering on a cache miss. Saving a `.scad` no longer rebuilds every part of the model — it changes the source digest, and only the part you actually request gets re-rendered. The URL shape is unchanged, so the app needed no changes to benefit.
+
+The plugin is `enforce: 'pre'`; registered any later, Vite's static handler answers first with a stale `public/models/` copy. It also accepts both base-prefixed and base-stripped URLs, because whether Vite has stripped `/3d-gallery/` by that point depends on where in the middleware stack it runs.
+
+**`models/manifest.json` hot-reloads too.** The forge parses the manifest once at construction, so the plugin watches the file and rebuilds the forge (and everything derived from it — the middlewares and the part index) on change, then sends a full page reload. The registered middlewares delegate through one mutable binding, which is what lets a reload take effect without re-registering them. A half-written or invalid manifest is logged and ignored; the last good one keeps serving. No dev-server restart needed for a manifest edit.
 
 **Shebang note.** `scripts/*.mjs` do NOT carry `#!/usr/bin/env node` shebangs — esbuild (which vite uses to load `vite.config.ts`) rejects shebangs in imported entry points. All scripts are invoked as `node scripts/…` per `package.json`.
 
-- `OPENSCAD_CACHE=0` disables the build cache.
+- `npm run build:models` renders via `@3d-gallery/model-forge` and then writes the named outputs (`models/<slug>/build/` + `public/models/<slug>/`) the viewer, the PWA precache, and `tests/build/` all expect.
 - `OPENSCAD_BACKEND=CGAL` swaps out Manifold (default) for the older CGAL boolean engine — mostly a smoke-test escape hatch.
 
 ## External deps in the SCAD path
@@ -181,9 +185,25 @@ If you add a new SCAD dependency, it must land in **both** places or the CLI/WAS
 
 The repo is an npm workspace (`workspaces: ["packages/*"]` in root `package.json`). The historical single-project layout has been split; per-package details override anything above that reads as "at the repo root".
 
-- **`packages/gallery-app/`** — the Vite + Preact + Three.js UI. Owns `index.html`, `vite.config.ts`, `playwright.config.ts`, `src/`, `tests/e2e/`. `vite.config.ts` still aliases `react → preact/compat` (and `react-dom`, `react/jsx-runtime`) — the print UI is Preact, not React. `models/manifest.json` is served in dev by middleware in this config, reading from repo-root `models/`. Base path stays `/3d-gallery/`.
+- **`packages/gallery-app/`** — the Vite + Preact + Three.js UI. Owns `index.html`, `vite.config.ts`, `playwright.config.ts`, `src/`, `tests/e2e/`. `vite.config.ts` still aliases `react → preact/compat` (and `react-dom`, `react/jsx-runtime`) — the print UI is Preact, not React. The runtime manifest (authored manifest + source digests + artifact keys) is served in dev by `galleryModelsPlugin`, reading from repo-root `models/`. Base path stays `/3d-gallery/`.
 - **`packages/print-toolkit/`** — framework-free slicer + Moonraker + Orca importer. **Never import React, Preact, or DOM globals beyond `window.*` feature-detects** here. Consumers wire their own UI. WASM assets ship out-of-band via `npm run fetch-wasm -w @3d-gallery/print-toolkit`.
+- **`packages/model-core/`** — isomorphic, zero-dep. Manifest schema + validation, SCAD param parsing, parameter canonicalization, content-addressed artifact keys. Imported by both the browser and Node, so **never** import a Node builtin or a DOM global here (`tests/isomorphic.test.ts` enforces it).
+- **`packages/model-forge/`** — Node only. Source resolution, render engines, the content-addressed artifact store, `ensure`/`prerender`, dev middleware. Never import from a browser bundle. Ships two engines: native `openscad`, and OpenSCAD-WASM in Node for machines without it (`npm run fetch-wasm -w @3d-gallery/model-forge`, ~24 MB, gitignored). `auto` prefers native. Their geometry must stay equivalent — `tests/engine-parity.test.ts` enforces it, and that is what licenses leaving the engine out of the artifact key.
+- **`packages/viewer/`** — browser only. Three.js viewer, the artifact cache client, and the OpenSCAD-WASM fallback renderer.
+- **`packages/astro/`** — Astro integration + `<ModelViewer>`. Consumed by an external Astro site; must not become a dependency of `gallery-app`.
 - **`packages/android-shell/`** — planned WebView host. Not seeded.
+
+### Artifact addressing
+
+Every rendered artifact is addressed by `sha256(schema \0 slug \0 target \0 format \0 sourceDigest \0 canonicalParams)` and stored in `.cache/forge/`. Consequences worth knowing before touching any of it:
+
+- **Editing a `.scad` needs no invalidation.** The digest changes, so the next request carries a key the store has never seen. The old artifact goes cold.
+- **The engine is NOT in the key** — it lives in a sidecar next to the bytes. That's what lets a build-time artifact satisfy a request on another machine. Don't "fix" this by hashing `openscad --version`.
+- **Parameters equal to the lib default are dropped before hashing**, so an untouched customizer addresses the same artifact as the pre-built default.
+- **`model-core` must produce identical keys in Node and the browser.** It ships a pure-JS SHA-256 for insecure contexts (plain HTTP on a LAN) precisely because a *different* fallback hash would silently give those clients their own private cache. `tests/key-vectors.json` pins the agreement.
+- Imports in the new packages carry explicit `.ts` extensions so bare `node` runs them via type stripping — no build step. Consumers need `allowImportingTsExtensions`.
+
+See `docs/module-architecture.md` for the full design.
 
 Root scripts split by concern:
 

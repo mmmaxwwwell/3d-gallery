@@ -5,6 +5,7 @@ dist/
 
 # Built model artifacts — produced by scripts/build-models.mjs
 public/models/
+public/a/
 models/*/build/
 
 # Temp per-color wrapper files from build-multicolor-3mf.mjs (normally
@@ -13,6 +14,10 @@ models/*/previews/_pass_*.scad
 
 # WASM files — fetched in CI, symlinked locally
 public/wasm
+
+# OpenSCAD-WASM assets for the model-forge fallback engine (~24 MB).
+# Fetched on demand: npm run fetch-wasm -w @3d-gallery/model-forge
+packages/model-forge/assets/
 
 # Playwright e2e artifacts
 test-results/

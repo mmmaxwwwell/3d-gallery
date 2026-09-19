@@ -16,5 +16,5 @@ if (qr_code_text != "")
 
 // Base (dark gray) — bottom half, offset in Y
 translate([0, case_width + 5, 0])
-    color("#555555")
+    color("#a021ff")
         base();

@@ -459,14 +459,14 @@ export function parseGCode(
 
 /** Color mapping for move types */
 export const MOVE_TYPE_COLORS: Record<MoveType, string> = {
-  'wall':        '#4a90d9',  // blue
-  'solid-fill':  '#3dab5a',  // darker green
-  'infill':      '#50c878',  // emerald green
-  'support':     '#f5a623',  // amber
-  'travel':      '#888888',  // gray
-  'brim':        '#9b59b6',  // purple
-  'skirt':       '#9b59b6',  // purple
-  'purge-tower': '#e74c3c',  // red
-  'shield':      '#95a5a6',  // silver
-  'other':       '#cccccc',  // light gray
+  'wall':        '#00eaff',  // neon cyan
+  'solid-fill':  '#00ffa3',  // neon spring green
+  'infill':      '#7cff2b',  // neon lime
+  'support':     '#ffd60a',  // neon yellow
+  'travel':      '#6b4fa0',  // dim violet — travel should recede
+  'brim':        '#b829ff',  // neon violet
+  'skirt':       '#b829ff',  // neon violet
+  'purge-tower': '#ff2d55',  // neon red
+  'shield':      '#c0a0ff',  // pale violet
+  'other':       '#d4b0ff',  // lavender
 };

@@ -45,11 +45,17 @@ function assertAssetsPresent(assetsDir: string, files: string[]): void {
 export function copyPrintToolkitAssets(options: CopyPrintToolkitAssetsOptions = {}): Plugin {
   const dest = (options.dest ?? 'wasm').replace(/^\/+|\/+$/g, '');
   const assetsDir = resolveAssetsDir();
+  let isServe = false;
 
   return {
     name: '@3d-gallery/print-toolkit:copy-assets',
 
+    config(_c, env) {
+      isServe = env.command === 'serve';
+    },
+
     buildStart() {
+      if (isServe) return;
       const files = listAssets(assetsDir);
       assertAssetsPresent(assetsDir, files);
       for (const name of files) {

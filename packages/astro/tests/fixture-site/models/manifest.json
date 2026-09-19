@@ -1,0 +1,33 @@
+{
+  "models": [
+    {
+      "slug": "demo-cube",
+      "title": "Demo Cube",
+      "description": "Fixture model for the Astro integration test.",
+      "customizable": true,
+      "parts": [
+        {
+          "file": "cube.stl",
+          "format": "stl",
+          "label": "Cube",
+          "module": "demo_cube",
+          "default": true,
+          "variants": [
+            {
+              "label": "Beveled",
+              "params": {
+                "beveled": true
+              }
+            }
+          ]
+        },
+        {
+          "file": "lid.stl",
+          "format": "stl",
+          "label": "Lid",
+          "module": "demo_lid"
+        }
+      ]
+    }
+  ]
+}
