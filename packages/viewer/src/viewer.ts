@@ -251,6 +251,182 @@ function makeSunsetTexture(): THREE.CanvasTexture {
     ctx.globalAlpha = 1;
   });
 
+  // The third of the panorama centred on the sun — the two the ridges and the
+  // forest don't claim. Towers here read as silhouettes against the disc, which
+  // is the whole point of putting the city there rather than beside it.
+  const citySpan = W / 3;
+  const cityCenter = sunX;
+  const cityLeft = cityCenter - citySpan / 2;
+
+  interface Tower {
+    x: number;
+    w: number;
+    h: number;
+    /** Tall ones carry a mast; the beacon on top blinks in nobody's imagination but yours. */
+    mast: number;
+  }
+  const cityRows: Tower[][] = [[], []];
+  cityRows.forEach((row, depth) => {
+    const step = depth === 0 ? 26 : 19;
+    for (let x = cityLeft; x <= cityLeft + citySpan; x += step) {
+      const t = (x - cityLeft) / citySpan;
+      // Same sine taper the ridges use, so the skyline settles into the horizon
+      // at both ends instead of ending on a cliff.
+      const taper = Math.min(1, Math.sin(Math.PI * t) * 1.6);
+      const h = depth === 0 ? 16 + landRand() * 20 : 24 + landRand() * 30;
+      const w = (depth === 0 ? 9 : 12) + landRand() * 9;
+      row.push({
+        x: x + landRand() * step * 0.4,
+        w,
+        h: h * taper,
+        mast: landRand() < 0.28 ? 8 + landRand() * 14 : 0,
+      });
+    }
+  });
+
+  // Windows are precomputed so the wrapped second pass paints the same city
+  // rather than rolling a fresh one a width away.
+  const windows: Array<{ x: number; y: number; w: number; h: number; lit: string; alpha: number }> = [];
+  for (const row of cityRows) {
+    for (const tower of row) {
+      if (tower.h < 14) continue;
+      const cols = Math.max(1, Math.floor(tower.w / 4));
+      const rows = Math.max(1, Math.floor(tower.h / 5));
+      for (let c = 0; c < cols; c++) {
+        for (let r = 0; r < rows; r++) {
+          if (landRand() > 0.38) continue;
+          windows.push({
+            x: tower.x - tower.w / 2 + 1.6 + c * 4,
+            y: horizon - tower.h + 3 + r * 5,
+            w: 1.6,
+            h: 2.4,
+            lit: landRand() < 0.5 ? "#00eaff" : "#ff17c7",
+            alpha: 0.5 + landRand() * 0.4,
+          });
+        }
+      }
+    }
+  }
+
+  /**
+   * A mech silhouette in the same flat-black register as the towers: boxy
+   * shoulders, a V-fin, two lit eyes. Drawn from the feet up so `x` is where it
+   * stands and `scale` is roughly its height in horizon pixels.
+   */
+  const drawMech = (x: number, scale: number, flip: boolean) => {
+    ctx.save();
+    ctx.translate(x, horizon);
+    ctx.scale(flip ? -1 : 1, 1);
+    const u = scale / 100;
+
+    const boxes: Array<[number, number, number, number]> = [
+      // Legs — splayed just enough to read as a stance at this size.
+      [-14, -46, 9, 60],
+      [5, -46, 9, 60],
+      // Torso + hips.
+      [-13, -78, 26, 34],
+      [-16, -52, 32, 9],
+      // Shoulder blocks, the one silhouette cue that sells the whole thing.
+      [-29, -82, 15, 16],
+      [14, -82, 15, 16],
+      // Arms.
+      [-27, -68, 8, 30],
+      [19, -68, 8, 30],
+      // Head.
+      [-7, -92, 14, 13],
+    ];
+    ctx.fillStyle = "#08001c";
+    for (const [bx, by, bw, bh] of boxes) ctx.fillRect(bx * u, by * u, bw * u, bh * u);
+    // A cool rim is what separates it from the towers it stands among; without
+    // it the whole thing reads as one more black rectangle.
+    ctx.globalAlpha = 0.55;
+    ctx.strokeStyle = "#00eaff";
+    ctx.lineWidth = 1;
+    for (const [bx, by, bw, bh] of boxes) ctx.strokeRect(bx * u, by * u, bw * u, bh * u);
+    ctx.globalAlpha = 1;
+
+    // V-fin.
+    ctx.fillStyle = "#ffd60a";
+    ctx.beginPath();
+    ctx.moveTo(-9 * u, -95 * u);
+    ctx.lineTo(0, -89 * u);
+    ctx.lineTo(9 * u, -95 * u);
+    ctx.lineTo(0, -92 * u);
+    ctx.closePath();
+    ctx.fill();
+
+    // Eyes, and a chest light because of course there is one.
+    ctx.fillStyle = "#39ff14";
+    ctx.fillRect(-5 * u, -88 * u, 3.5 * u, 2.5 * u);
+    ctx.fillRect(1.5 * u, -88 * u, 3.5 * u, 2.5 * u);
+    ctx.globalAlpha = 0.75;
+    ctx.fillStyle = "#ff2e6e";
+    ctx.fillRect(-3 * u, -74 * u, 6 * u, 4 * u);
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  };
+
+  const mechs = [
+    { x: cityCenter - citySpan * 0.1, scale: 88, flip: false },
+    { x: cityCenter + citySpan * 0.3, scale: 54, flip: true },
+  ];
+
+  drawWrapped(cityLeft, cityLeft + citySpan, () => {
+    ctx.save();
+    ctx.translate(cityCenter, horizon);
+    ctx.scale(1, 0.09);
+    const smog = ctx.createRadialGradient(0, 0, 0, 0, 0, citySpan * 0.55);
+    smog.addColorStop(0, "rgba(255, 23, 199, 0.18)");
+    smog.addColorStop(1, "rgba(255, 23, 199, 0)");
+    ctx.fillStyle = smog;
+    ctx.fillRect(-citySpan * 0.55, -citySpan * 0.55, citySpan * 1.1, citySpan * 1.1);
+    ctx.restore();
+
+    cityRows.forEach((row, depth) => {
+      ctx.fillStyle = depth === 0 ? "#2a0745" : "#0e0126";
+      for (const tower of row) {
+        ctx.fillRect(tower.x - tower.w / 2, horizon - tower.h, tower.w, tower.h + 14);
+      }
+      // Rooflines catch the sunset the way the ridge crests do.
+      ctx.globalAlpha = depth === 0 ? 0.35 : 0.55;
+      ctx.strokeStyle = depth === 0 ? "#a021ff" : "#00eaff";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (const tower of row) {
+        ctx.moveTo(tower.x - tower.w / 2, horizon - tower.h);
+        ctx.lineTo(tower.x + tower.w / 2, horizon - tower.h);
+      }
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+
+      for (const tower of row) {
+        if (!tower.mast) continue;
+        ctx.globalAlpha = 0.5;
+        ctx.strokeStyle = "#0e0126";
+        ctx.beginPath();
+        ctx.moveTo(tower.x, horizon - tower.h);
+        ctx.lineTo(tower.x, horizon - tower.h - tower.mast);
+        ctx.stroke();
+        ctx.globalAlpha = 0.9;
+        ctx.fillStyle = "#ff2e6e";
+        ctx.fillRect(tower.x - 1, horizon - tower.h - tower.mast - 1.5, 2, 2);
+        ctx.globalAlpha = 1;
+      }
+    });
+
+    for (const win of windows) {
+      ctx.globalAlpha = win.alpha;
+      ctx.fillStyle = win.lit;
+      ctx.fillRect(win.x, win.y, win.w, win.h);
+    }
+    ctx.globalAlpha = 1;
+
+    // Two of them, parked in the skyline like municipal statuary. Played
+    // straight they'd take over the backdrop, so they're scaled to read as
+    // "wait, is that—" rather than as the subject.
+    for (const bot of mechs) drawMech(bot.x, bot.scale, bot.flip);
+  });
+
   const ground = ctx.createLinearGradient(0, horizon, 0, H);
   ground.addColorStop(0, "#6b0c58");
   ground.addColorStop(0.06, "#280442");

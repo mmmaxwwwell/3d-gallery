@@ -90,11 +90,23 @@ if (installBtn) {
 }
 import collarTagLib from "../../../models/collar-tag/lib/collar-tag-lib.scad?raw";
 import collarTagMulticolor from "../../../models/collar-tag/previews/multicolor.scad?raw";
+import collarSlideTagLib from "../../../models/collar-slide-tag/lib/collar-slide-tag-lib.scad?raw";
+import collarSlideTagMulticolor from "../../../models/collar-slide-tag/previews/multicolor.scad?raw";
 import fiMiniCaseLib from "../../../models/fi-mini-case/lib/fi-mini-case-lib.scad?raw";
 import fiMiniCaseAssembled from "../../../models/fi-mini-case/previews/assembled.scad?raw";
 import fiMiniCaseCap from "../../../models/fi-mini-case/previews/cap.scad?raw";
+import fiMiniCaseCaptiveLib from "../../../models/fi-mini-case-captive/lib/fi-mini-case-captive-lib.scad?raw";
+import fiMiniCaseCaptiveAssembled from "../../../models/fi-mini-case-captive/previews/assembled.scad?raw";
+import ugreenFinderDuoLib from "../../../models/ugreen-finder-duo-captive/lib/ugreen-finder-duo-captive-lib.scad?raw";
+import ugreenFinderDuoAssembled from "../../../models/ugreen-finder-duo-captive/previews/assembled.scad?raw";
 import qrSignLib from "../../../models/qr-sign/lib/qr-sign-lib.scad?raw";
 import qrSignAssembled from "../../../models/qr-sign/previews/assembled.scad?raw";
+import qrLeashTagLib from "../../../models/qr-leash-tag/lib/qr-leash-tag-lib.scad?raw";
+import qrLeashTagTag from "../../../models/qr-leash-tag/previews/tag.scad?raw";
+import qrLeashTagPlate from "../../../models/qr-leash-tag/previews/plate.scad?raw";
+import parametricQrCaseLib from "../../../models/parametric-qr-case/lib/parametric-qr-case-lib.scad?raw";
+import parametricQrCaseCase from "../../../models/parametric-qr-case/previews/case.scad?raw";
+import parametricQrCasePlate from "../../../models/parametric-qr-case/previews/plate.scad?raw";
 import parametricShelfLib from "../../../models/parametric-shelf/lib/parametric-shelf-lib.scad?raw";
 import ff5mFilamentSensorLib from "../../../models/ff5m-filament-sensor/lib/ff5m-filament-sensor-lib.scad?raw";
 import et300KnobAideKnurledLib from "../../../models/et300-knob-aide-knurled/lib/et300-knob-aide-knurled-lib.scad?raw";
@@ -108,6 +120,10 @@ import underDeskCordProtectorAssembled from "../../../models/under-desk-cord-pro
 import underDeskCordProtectorPropped from "../../../models/under-desk-cord-protector/previews/propped.scad?raw";
 import underDeskCordProtectorHex from "../../../models/under-desk-cord-protector/previews/hex.scad?raw";
 import underDeskCordProtectorPlate from "../../../models/under-desk-cord-protector/previews/plate.scad?raw";
+import scaffoldCubeLib from "../../../models/scaffold-cube/lib/scaffold-cube-lib.scad?raw";
+import scaffoldCubeUnit1u from "../../../models/scaffold-cube/previews/unit-1u.scad?raw";
+import scaffoldCubeStack3x3 from "../../../models/scaffold-cube/previews/stack-3x3.scad?raw";
+import scaffoldCubeCloset from "../../../models/scaffold-cube/previews/closet.scad?raw";
 import { parseParams, coerceToParamType, KEY_SCHEMA } from "@3d-gallery/model-core";
 import type { ScadParam, ScadValue, RuntimeManifest } from "@3d-gallery/model-core";
 import {
@@ -162,6 +178,14 @@ interface HardwareItem {
   source?: HardwareSource;
 }
 
+/** A product the model is designed around rather than built from. */
+interface CompatibleProduct {
+  label: string;
+  qty?: number;
+  note?: string;
+  source?: HardwareSource;
+}
+
 interface FilamentEntry {
   material: string;
   color?: string;
@@ -180,6 +204,7 @@ interface Model {
   previews?: Part[];
   parts?: Part[];
   hardware?: HardwareItem[];
+  worksWith?: CompatibleProduct[];
   filament?: FilamentEntry[];
 }
 
@@ -206,6 +231,12 @@ const CUSTOMIZABLE_SOURCES: Record<string, { lib: string; previews: Record<strin
       multicolor: stripIncludes(collarTagMulticolor),
     },
   },
+  "collar-slide-tag": {
+    lib: collarSlideTagLib,
+    previews: {
+      multicolor: stripIncludes(collarSlideTagMulticolor),
+    },
+  },
   "fi-mini-case": {
     lib: fiMiniCaseLib,
     previews: {
@@ -213,10 +244,36 @@ const CUSTOMIZABLE_SOURCES: Record<string, { lib: string; previews: Record<strin
       cap: stripIncludes(fiMiniCaseCap),
     },
   },
+  "fi-mini-case-captive": {
+    lib: fiMiniCaseCaptiveLib,
+    previews: {
+      assembled: stripIncludes(fiMiniCaseCaptiveAssembled),
+    },
+  },
+  "ugreen-finder-duo-captive": {
+    lib: ugreenFinderDuoLib,
+    previews: {
+      assembled: stripIncludes(ugreenFinderDuoAssembled),
+    },
+  },
   "qr-sign": {
     lib: qrSignLib,
     previews: {
       assembled: stripIncludes(qrSignAssembled),
+    },
+  },
+  "qr-leash-tag": {
+    lib: qrLeashTagLib,
+    previews: {
+      tag: stripIncludes(qrLeashTagTag),
+      plate: stripIncludes(qrLeashTagPlate),
+    },
+  },
+  "parametric-qr-case": {
+    lib: parametricQrCaseLib,
+    previews: {
+      case: stripIncludes(parametricQrCaseCase),
+      plate: stripIncludes(parametricQrCasePlate),
     },
   },
   "parametric-shelf": {
@@ -252,6 +309,14 @@ const CUSTOMIZABLE_SOURCES: Record<string, { lib: string; previews: Record<strin
       plate: stripIncludes(underDeskCordProtectorPlate),
     },
   },
+  "scaffold-cube": {
+    lib: scaffoldCubeLib,
+    previews: {
+      "unit-1u": stripIncludes(scaffoldCubeUnit1u),
+      "stack-3x3": stripIncludes(scaffoldCubeStack3x3),
+      closet: stripIncludes(scaffoldCubeCloset),
+    },
+  },
 };
 
 // ── DOM refs ─────────────────────────────────────────────
@@ -269,9 +334,16 @@ const downloadLink = document.getElementById("download-link") as HTMLAnchorEleme
 const printBtn = document.getElementById("print-btn") as HTMLButtonElement | null;
 const platesBtn = document.getElementById("plates-btn") as HTMLButtonElement | null;
 const errorEl = document.getElementById("viewer-error")!;
-const partsListEl = document.getElementById("parts-list")!;
-const filamentListEl = document.getElementById("filament-list")!;
+const descTextEl = document.getElementById("description-text")!;
+const descToggle = document.getElementById("description-toggle") as HTMLButtonElement;
+const printedListEl = document.getElementById("printed-list")!;
 const hardwareEl = document.getElementById("hardware-list")!;
+const worksWithEl = document.getElementById("works-with-list")!;
+const filamentListEl = document.getElementById("filament-list")!;
+const infoPanelEl = document.getElementById("info-panel")!;
+const infoPanelEmpty = document.getElementById("info-panel-empty")!;
+const infoBtn = document.getElementById("info-btn") as HTMLButtonElement;
+const infoCloseBtn = document.getElementById("info-close") as HTMLButtonElement;
 const legendEl = document.getElementById("viewer-legend")!;
 const customizerEl = document.getElementById("customizer")!;
 const customizerBackdrop = document.getElementById("customizer-backdrop")!;
@@ -454,18 +526,30 @@ sidebarBackdrop.addEventListener("click", () => setSidebarOpen(false));
 // The customizer sheet is CSS-gated to narrow viewports; the handler below
 // just owns its open/closed state.
 
-// Mobile caps the blurb and scrolls it; the fade that signals "there is more"
-// has to stay off short descriptions, which CSS alone cannot tell apart.
-function markDescriptionClipped() {
+// The blurb is clamped to a couple of lines everywhere and opens on demand.
+// Whether a given description actually overflows that clamp is a measurement,
+// not something CSS can express, so the toggle is shown only when it does.
+function syncDescriptionToggle() {
   requestAnimationFrame(() => {
-    modelDescEl.classList.toggle(
-      "is-clipped",
-      modelDescEl.scrollHeight > modelDescEl.clientHeight + 1,
-    );
+    // Expanded, scrollHeight equals clientHeight — measuring then would hide
+    // the only control that collapses it again.
+    if (modelDescEl.classList.contains("expanded")) return;
+    descToggle.hidden = descTextEl.scrollHeight <= descTextEl.clientHeight + 1;
   });
 }
 
-window.addEventListener("resize", markDescriptionClipped);
+function setDescriptionExpanded(expanded: boolean) {
+  modelDescEl.classList.toggle("expanded", expanded);
+  descToggle.setAttribute("aria-expanded", String(expanded));
+  descToggle.textContent = expanded ? "Less" : "More";
+  if (!expanded) syncDescriptionToggle();
+}
+
+descToggle.addEventListener("click", () => {
+  setDescriptionExpanded(!modelDescEl.classList.contains("expanded"));
+});
+
+window.addEventListener("resize", syncDescriptionToggle);
 
 function setCustomizerOpen(open: boolean) {
   document.body.classList.toggle("customizer-open", open);
@@ -906,114 +990,154 @@ function warmGroup(group: PartGroup): void {
     .catch(() => warmedTargets.delete(key));
 }
 
-function renderHardware(model: Model) {
-  hardwareEl.innerHTML = "";
-  if (!model.hardware || model.hardware.length === 0) {
-    hardwareEl.hidden = true;
-    return;
+// ── Parts list panel ─────────────────────────────────────
+// One surface answering "what do I need to build this": what you print, what
+// you buy at the hardware store, and the product the print is designed around.
+// A separate screen on mobile, a docked column on desktop.
+
+/** Shared row shape: a quantity, a label, and an optional vendor link. */
+function listRow(
+  qty: number | undefined,
+  label: string,
+  opts: { source?: HardwareSource; note?: string; onClick?: () => void } = {},
+): HTMLLIElement {
+  const li = document.createElement("li");
+
+  const qtyEl = document.createElement("span");
+  qtyEl.className = "item-qty";
+  // A lone companion product reads better unquantified than as "1×".
+  qtyEl.textContent = qty === undefined ? "" : `${qty}×`;
+  li.appendChild(qtyEl);
+
+  const body = document.createElement("span");
+  body.className = "item-body";
+
+  if (opts.onClick) {
+    const link = document.createElement("a");
+    link.className = "part-link";
+    link.href = "#";
+    link.textContent = label;
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      closeInfoPanelOnMobile();
+      opts.onClick!();
+    });
+    body.appendChild(link);
+  } else {
+    const text = document.createElement("span");
+    text.className = "item-label";
+    text.textContent = label;
+    body.appendChild(text);
   }
-  const heading = document.createElement("h3");
-  heading.textContent = "Hardware required";
-  hardwareEl.appendChild(heading);
 
-  const ul = document.createElement("ul");
-  for (const item of model.hardware) {
-    const li = document.createElement("li");
-    const qty = document.createElement("span");
-    qty.className = "hardware-qty";
-    qty.textContent = `${item.qty}×`;
-    li.appendChild(qty);
-
-    const label = document.createElement("span");
-    label.className = "hardware-label";
-    label.textContent = ` ${item.label}`;
-    li.appendChild(label);
-
-    if (item.source) {
-      const link = document.createElement("a");
-      link.className = "hardware-source";
-      link.href = item.source.url;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      link.textContent = item.source.vendor ?? "source";
-      li.appendChild(document.createTextNode(" "));
-      li.appendChild(link);
-    }
-    ul.appendChild(li);
+  if (opts.note) {
+    const note = document.createElement("span");
+    note.className = "item-note";
+    note.textContent = opts.note;
+    body.appendChild(note);
   }
-  hardwareEl.appendChild(ul);
-  hardwareEl.hidden = false;
+  li.appendChild(body);
+
+  if (opts.source) {
+    const link = document.createElement("a");
+    link.className = "hardware-source";
+    link.href = opts.source.url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = opts.source.vendor ?? "source";
+    li.appendChild(link);
+  }
+  return li;
 }
 
-// ── Parts list (assembly components) ─────────────────────
-
-function renderPartsList(model: Model, part: Part) {
-  partsListEl.innerHTML = "";
-  if (!part.components || part.components.length === 0) {
-    partsListEl.hidden = true;
+function renderSection(el: HTMLElement, title: string, rows: HTMLLIElement[]) {
+  el.innerHTML = "";
+  if (rows.length === 0) {
+    el.hidden = true;
     return;
   }
-
   const heading = document.createElement("h3");
-  heading.textContent = "Parts in this assembly";
-  partsListEl.appendChild(heading);
+  heading.textContent = title;
+  el.appendChild(heading);
 
   const ul = document.createElement("ul");
-  ul.className = "parts-component-list";
-  for (const comp of part.components) {
-    const matchingPart = (model.parts ?? []).find((p) => p.file === comp.part);
-    const li = document.createElement("li");
-    const qty = document.createElement("span");
-    qty.className = "hardware-qty";
-    qty.textContent = `${comp.qty}×`;
-    li.appendChild(qty);
+  for (const row of rows) ul.appendChild(row);
+  el.appendChild(ul);
+  el.hidden = false;
+}
 
-    if (matchingPart) {
-      const link = document.createElement("a");
-      link.className = "part-link";
-      link.href = "#";
-      link.textContent = ` ${matchingPart.label}`;
-      link.addEventListener("click", (e) => {
-        e.preventDefault();
-        handlePartChange(matchingPart.file);
+/**
+ * What you print. An assembly names its components with quantities; anything
+ * else falls back to the model's own parts, one apiece — either way the screen
+ * answers the question for the whole model, not just the mesh on screen.
+ */
+function printedRows(model: Model, part: Part): HTMLLIElement[] {
+  const modelParts = model.parts ?? [];
+  if (part.components && part.components.length > 0) {
+    return part.components.map((comp) => {
+      const match = modelParts.find((p) => p.file === comp.part);
+      return listRow(comp.qty, match?.label ?? comp.part, {
+        onClick: match ? () => handlePartChange(match.file) : undefined,
       });
-      li.appendChild(link);
-    } else {
-      const label = document.createElement("span");
-      label.textContent = ` ${comp.part}`;
-      li.appendChild(label);
-    }
-    ul.appendChild(li);
+    });
   }
-  partsListEl.appendChild(ul);
-  partsListEl.hidden = false;
+  return modelParts.map((p) =>
+    listRow(1, p.label, { onClick: () => handlePartChange(p.file) }),
+  );
 }
 
-// ── Filament recommendations ─────────────────────────────
+function renderInfoPanel(model: Model, part: Part) {
+  renderSection(printedListEl, "3D printed parts", printedRows(model, part));
 
-function renderFilament(model: Model) {
-  filamentListEl.innerHTML = "";
-  if (!model.filament || model.filament.length === 0) {
-    filamentListEl.hidden = true;
-    return;
-  }
+  renderSection(
+    hardwareEl,
+    "Hardware",
+    (model.hardware ?? []).map((item) =>
+      listRow(item.qty, item.label, { source: item.source }),
+    ),
+  );
 
-  const heading = document.createElement("h3");
-  heading.textContent = "Recommended filament";
-  filamentListEl.appendChild(heading);
+  renderSection(
+    worksWithEl,
+    "Works with",
+    (model.worksWith ?? []).map((item) =>
+      listRow(item.qty, item.label, { source: item.source, note: item.note }),
+    ),
+  );
 
-  const ul = document.createElement("ul");
-  for (const entry of model.filament) {
-    const li = document.createElement("li");
-    let text = entry.material;
-    if (entry.color) text += ` (${entry.color})`;
-    if (entry.note) text += ` — ${entry.note}`;
-    li.textContent = text;
-    ul.appendChild(li);
-  }
-  filamentListEl.appendChild(ul);
-  filamentListEl.hidden = false;
+  renderSection(
+    filamentListEl,
+    "Filament",
+    (model.filament ?? []).map((entry) =>
+      listRow(undefined, entry.color ? `${entry.material} (${entry.color})` : entry.material, {
+        note: entry.note,
+      }),
+    ),
+  );
+
+  const empty =
+    printedListEl.hidden && hardwareEl.hidden && worksWithEl.hidden && filamentListEl.hidden;
+  infoPanelEmpty.hidden = !empty;
+  // Desktop docks the panel permanently, so an all-empty model would otherwise
+  // dock an empty column; hide the whole thing instead.
+  infoPanelEl.hidden = empty;
+  infoBtn.hidden = empty;
+  if (empty) setInfoPanelOpen(false);
 }
+
+function setInfoPanelOpen(open: boolean) {
+  document.body.classList.toggle("info-open", open);
+  infoBtn.setAttribute("aria-expanded", String(open));
+}
+
+function closeInfoPanelOnMobile() {
+  if (window.matchMedia("(max-width: 767px)").matches) setInfoPanelOpen(false);
+}
+
+infoBtn.addEventListener("click", () => {
+  setInfoPanelOpen(!document.body.classList.contains("info-open"));
+});
+infoCloseBtn.addEventListener("click", () => setInfoPanelOpen(false));
 
 // ── Customizer (Preact) ──────────────────────────────────
 
@@ -1348,7 +1472,7 @@ async function loadPart(model: Model, part: Part, opts: LoadPartOptions = {}) {
   setCustomizedBadge(false);
   hideViewerPrompt();
   renderLegend(model, part);
-  renderPartsList(model, part);
+  renderInfoPanel(model, part);
 
   if (!opts.skipPush) {
     pushRoute(model.slug, part.module, opts.initialValues);
@@ -1416,16 +1540,12 @@ function selectModel(model: Model, partOverride?: Part, opts: LoadPartOptions = 
   // Title & description
   modelTitleEl.textContent = model.title;
   if (model.description) {
-    modelDescEl.textContent = model.description;
+    descTextEl.textContent = model.description;
     modelDescEl.hidden = false;
-    markDescriptionClipped();
+    setDescriptionExpanded(false);
   } else {
     modelDescEl.hidden = true;
   }
-
-  // Hardware & filament (show once per model, not per part)
-  renderHardware(model);
-  renderFilament(model);
 
   // Determine which part to load
   const targetPart = partOverride ?? defaultItemFor(model)?.part;
