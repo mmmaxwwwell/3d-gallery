@@ -26,9 +26,10 @@
           "qty": 10,
           "label": "M5x10 button-head cap screw",
           "source": { "url": "https://www.amazon.com/dp/B0CT9Y1G1T", "vendor": "Amazon" }
-        },
+        }
+      ],
+      "worksWith": [
         {
-          "qty": 1,
           "label": "VIVOSUN 4 Inch 130 CFM Inline Duct Fan",
           "source": { "url": "https://www.amazon.com/dp/B0DNSXKN4G", "vendor": "Amazon" }
         }
@@ -44,6 +45,22 @@
           "legend": [
             { "color": "#00eaff", "label": "Tag body (primary filament)" },
             { "color": "#ff17c7", "label": "Name + edge (accent filament)" }
+          ]
+        },
+        { "file": "single.stl", "format": "stl", "label": "Single color (1 filament)", "module": "single" }
+      ],
+      "parts": []
+    },
+    {
+      "slug": "collar-slide-tag",
+      "title": "Slide-On Collar Tag",
+      "description": "A slide-on pet nameplate \u2014 the collar strap threads through a slot in the tag, so nothing dangles, jingles, or snags. Set your strap's width and thickness and the tag wraps itself around it; type a name and the plate grows to fit. The name sits flush in the top face and every edge is rounded.",
+      "customizable": true,
+      "previews": [
+        { "file": "multicolor.3mf", "format": "3mf", "label": "Multicolor (2 filaments)", "default": true, "module": "multicolor",
+          "legend": [
+            { "color": "#00eaff", "label": "Tag body (primary filament)" },
+            { "color": "#ff17c7", "label": "Name inlay (accent filament)" }
           ]
         },
         { "file": "single.stl", "format": "stl", "label": "Single color (1 filament)", "module": "single" }
@@ -75,15 +92,119 @@
       ],
       "hardware": [
         {
-          "qty": 1,
-          "label": "Fi Mini Smart Tag",
-          "source": { "url": "https://www.wagtopia.com/smarttag", "vendor": "Wagtopia" }
-        },
-        {
           "qty": 6,
           "label": "M3x6 socket head cap screw"
         }
+      ],
+      "worksWith": [
+        {
+          "label": "Fi Mini Smart Tag",
+          "source": { "url": "https://www.wagtopia.com/smarttag", "vendor": "Wagtopia" }
+        }
       ]
+    },
+    {
+      "slug": "fi-mini-case-captive",
+      "title": "Fi Mini GPS Case (Captive Collar)",
+      "description": "One-piece Fi Mini cover \u2014 no cap, no screws. The collar threads through a channel along the underside, enclosed at both ends and held by a lip down the middle, and the tracker presses up through that same slot. Supports an optional QR code.",
+      "customizable": true,
+      "devOnly": true,
+      "filament": [
+        { "material": "TPU", "color": "black", "note": "Case body \u2014 the slot is an interference fit, so it has to flex" },
+        { "material": "TPU", "color": "white", "note": "QR modules" }
+      ],
+      "previews": [
+        { "file": "assembled.3mf", "format": "3mf", "label": "Assembly preview", "default": true, "module": "assembled",
+          "legend": [
+            { "color": "#000000", "label": "Case body", "part": "case.stl" },
+            { "color": "#ffffff", "label": "QR code", "part": "case.stl" }
+          ]
+        }
+      ],
+      "parts": [
+        { "file": "case.stl", "format": "stl", "label": "Case (one piece)", "module": "case" }
+      ],
+      "worksWith": [
+        {
+          "label": "Fi Mini Smart Tag",
+          "source": { "url": "https://www.wagtopia.com/smarttag", "vendor": "Wagtopia" }
+        }
+      ]
+    },
+    {
+      "slug": "ugreen-finder-duo-captive",
+      "title": "UGREEN Finder Duo Air Case (Captive Collar)",
+      "description": "The captive-collar cover re-sized for the UGREEN Finder Duo Air. One piece, no cap, no screws: the collar threads through a channel along the underside and the tracker presses up through the same slot. Supports an optional QR code.",
+      "customizable": true,
+      "devOnly": true,
+      "filament": [
+        { "material": "TPU", "color": "black", "note": "Case body \u2014 soft (85A); the square tracker is a 62% stretch across the lip" },
+        { "material": "TPU", "color": "white", "note": "QR modules" }
+      ],
+      "previews": [
+        { "file": "assembled.3mf", "format": "3mf", "label": "Assembly preview", "default": true, "module": "assembled",
+          "legend": [
+            { "color": "#000000", "label": "Case body", "part": "case.stl" },
+            { "color": "#ffffff", "label": "QR code", "part": "case.stl" }
+          ]
+        }
+      ],
+      "parts": [
+        { "file": "case.stl", "format": "stl", "label": "Case (one piece)", "module": "case" }
+      ],
+      "worksWith": [
+        { "label": "UGREEN Finder Duo Air tracker" }
+      ]
+    },
+    {
+      "slug": "qr-leash-tag",
+      "title": "QR Leash Tag",
+      "description": "A QR code that slides onto a leash \u2014 one piece, two filaments, no hardware. The webbing threads through a slot across the middle and the code fills the whole 29mm face. Set your leash's width and thickness and the tag wraps itself around it. Prints face down so the code comes out flat and crisp.",
+      "customizable": true,
+      "filament": [
+        { "material": "PLA", "color": "black", "note": "Tag body" },
+        { "material": "PLA", "color": "white", "note": "QR modules \u2014 the swap lands in the 1mm band against the build plate" }
+      ],
+      "previews": [
+        { "file": "tag.3mf", "format": "3mf", "label": "QR side up", "default": true, "module": "tag",
+          "legend": [
+            { "color": "#000000", "label": "Tag body (dark filament)" },
+            { "color": "#ffffff", "label": "QR modules (light filament)" }
+          ]
+        },
+        { "file": "plate.3mf", "format": "3mf", "label": "Print orientation \u2014 QR on the plate", "module": "plate",
+          "legend": [
+            { "color": "#000000", "label": "Tag body (dark filament)" },
+            { "color": "#ffffff", "label": "QR modules (light filament)" }
+          ]
+        }
+      ],
+      "parts": []
+    },
+    {
+      "slug": "parametric-qr-case",
+      "title": "Parametric QR Case",
+      "description": "A one-piece case for a small rectangular object \u2014 a GPS tracker, a key fob, a battery. Type in the object's length, width and height and the pocket sizes itself around it; the outer face carries a QR code. Prints face down: the code lies on the build plate and the pocket opens upward, so nothing bridges and nothing needs support.",
+      "customizable": true,
+      "filament": [
+        { "material": "PLA", "color": "black", "note": "Case body" },
+        { "material": "PLA", "color": "white", "note": "QR modules \u2014 the swap lands in the 1mm band against the build plate" }
+      ],
+      "previews": [
+        { "file": "case.3mf", "format": "3mf", "label": "QR side up", "default": true, "module": "case",
+          "legend": [
+            { "color": "#000000", "label": "Case body (dark filament)" },
+            { "color": "#ffffff", "label": "QR modules (light filament)" }
+          ]
+        },
+        { "file": "plate.3mf", "format": "3mf", "label": "Print orientation \u2014 QR on the plate, pocket up", "module": "plate",
+          "legend": [
+            { "color": "#000000", "label": "Case body (dark filament)" },
+            { "color": "#ffffff", "label": "QR modules (light filament)" }
+          ]
+        }
+      ],
+      "parts": []
     },
     {
       "slug": "qr-sign",
@@ -131,9 +252,10 @@
         {
           "qty": 4,
           "label": "#6 pan-head wood screw or M3.5 wall anchor"
-        },
+        }
+      ],
+      "worksWith": [
         {
-          "qty": 1,
           "label": "Levoit Core 200S air purifier",
           "source": { "url": "https://www.amazon.com/dp/B08FJ678YK", "vendor": "Amazon" }
         }
@@ -173,7 +295,7 @@
         { "file": "hex-bit-holder-9.stl", "format": "stl", "label": "9-bit holder" },
         { "file": "hex-bit-holder-10.stl", "format": "stl", "label": "10-bit holder" }
       ],
-      "hardware": [
+      "worksWith": [
         {
           "qty": 6,
           "label": "1/4\" hex-shank driver bit"
@@ -239,9 +361,8 @@
         { "file": "tactile-aide-kd5_0.stl", "format": "stl", "label": "Knob aide (knurl depth 5.0 mm)" },
         { "file": "knurl-depth-grid.stl", "format": "stl", "label": "Knurl depth comparison plate (all 7 variants)" }
       ],
-      "hardware": [
+      "worksWith": [
         {
-          "qty": 1,
           "label": "Educator Mini ET-300 remote trainer",
           "source": { "url": "https://www.ecollar.com/collections/educator-e-collars/products/mini-educator-remote-dog-training-collar", "vendor": "E-Collar Technologies" }
         }
@@ -257,9 +378,8 @@
       "parts": [
         { "file": "guard.stl", "format": "stl", "label": "Retention guard sleeve" }
       ],
-      "hardware": [
+      "worksWith": [
         {
-          "qty": 1,
           "label": "VRIG Magnetic Quick Release Adapter (AC-91)",
           "source": { "url": "https://www.amazon.com/dp/B0FL2GD2MN", "vendor": "Amazon" }
         }
@@ -369,6 +489,38 @@
       "description": "30 mm calibration cube with X, Y, Z engraved on the +X, +Y, +Z faces. Quick end-to-end sanity check for slicer + printer coordinate system.",
       "parts": [
         { "file": "cube.stl", "format": "stl", "label": "XYZ test cube" }
+      ]
+    },
+    {
+      "slug": "scaffold-cube",
+      "title": "Scaffold Cube (1U)",
+      "description": "The 1U cube of a printed building-block system \u2014 a 200 mm cube, the largest square that fits a Flashforge Adventurer 5M bed. Each of the 6 walls is independently solid, empty, or a hex lattice, and each of the 12 edges is independently bare or braced with an equal-leg right-triangle prism. Mix the 18 types to get an open frame, a closed box, a tray, a chimney, or anything between.",
+      "customizable": true,
+      "devOnly": true,
+      "previews": [
+        { "file": "unit-1u.3mf", "format": "3mf", "label": "Assembly: 1U, single block", "default": true, "module": "block",
+          "legend": [
+            { "color": "#00eaff", "label": "1U block", "part": "block.stl" }
+          ],
+          "components": [ { "part": "block.stl", "qty": 1 } ]
+        },
+        { "file": "stack-3x3.3mf", "format": "3mf", "label": "Assembly: 3\u00d73 stack, fronts open", "module": "stack_3x3",
+          "legend": [
+            { "color": "#00eaff", "label": "1U block \u00d7 5 (checkerboard, for contrast)", "part": "block.stl" },
+            { "color": "#ff17c7", "label": "1U block \u00d7 4 (checkerboard, for contrast)", "part": "block.stl" }
+          ],
+          "components": [ { "part": "block.stl", "qty": 9 } ]
+        },
+        { "file": "closet.3mf", "format": "3mf", "label": "Assembly: closet, 5\u00d75 with an open 3\u00d73 centre", "module": "closet",
+          "legend": [
+            { "color": "#00eaff", "label": "1U block \u00d7 13 (checkerboard, for contrast)", "part": "block.stl" },
+            { "color": "#ff17c7", "label": "1U block \u00d7 12 (checkerboard, for contrast)", "part": "block.stl" }
+          ],
+          "components": [ { "part": "block.stl", "qty": 25 } ]
+        }
+      ],
+      "parts": [
+        { "file": "block.stl", "format": "stl", "label": "1U block", "module": "block" }
       ]
     }
   ]

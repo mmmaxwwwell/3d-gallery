@@ -51,6 +51,19 @@ export interface HardwareEntry {
   source?: SourceRef;
 }
 
+/**
+ * A product the model is designed around rather than built from — the collar it
+ * clips to, the purifier it shelves, the bits it holds. Distinct from
+ * `hardware`, which is fasteners and raw mechanical parts.
+ */
+export interface CompatibleProduct {
+  label: string;
+  /** Only rendered when greater than one; most companions are a single unit. */
+  qty?: number;
+  note?: string;
+  source?: SourceRef;
+}
+
 export interface ManifestModel {
   slug: string;
   title: string;
@@ -68,6 +81,7 @@ export interface ManifestModel {
   previews?: ManifestPart[];
   parts?: ManifestPart[];
   hardware?: HardwareEntry[];
+  worksWith?: CompatibleProduct[];
 }
 
 export interface Manifest {

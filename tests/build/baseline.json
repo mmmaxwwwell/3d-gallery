@@ -34,6 +34,42 @@
       ]
     ]
   },
+  "collar-slide-tag/multicolor.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#00EAFFFF",
+      "#FF17C7FF"
+    ],
+    "triangleCount": 10938,
+    "bbox": [
+      [
+        -31.144,
+        -15.797,
+        0.003
+      ],
+      [
+        31.144,
+        15.797,
+        6.797
+      ]
+    ]
+  },
+  "collar-slide-tag/single.stl": {
+    "format": "stl",
+    "triangleCount": 5168,
+    "bbox": [
+      [
+        -31.144,
+        -15.797,
+        0.003
+      ],
+      [
+        31.144,
+        15.797,
+        6.797
+      ]
+    ]
+  },
   "collar-tag/multicolor.3mf": {
     "format": "3mf",
     "colors": [
@@ -344,7 +380,7 @@
       "#A021FFFF",
       "#FFFFFFFF"
     ],
-    "triangleCount": 8604,
+    "triangleCount": 8602,
     "bbox": [
       [
         -23.475,
@@ -541,6 +577,46 @@
       ]
     ]
   },
+  "parametric-qr-case/case.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#000000FF",
+      "#FFFFFFFF"
+    ],
+    "triangleCount": 4746,
+    "bbox": [
+      [
+        -23.8,
+        -17.8,
+        0
+      ],
+      [
+        23.8,
+        17.8,
+        14.3
+      ]
+    ]
+  },
+  "parametric-qr-case/plate.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#000000FF",
+      "#FFFFFFFF"
+    ],
+    "triangleCount": 4746,
+    "bbox": [
+      [
+        -23.8,
+        -17.8,
+        0
+      ],
+      [
+        23.8,
+        17.8,
+        14.3
+      ]
+    ]
+  },
   "parametric-shelf/shelf.stl": {
     "format": "stl",
     "triangleCount": 1758,
@@ -575,6 +651,46 @@
         121.099,
         84.2,
         1.6
+      ]
+    ]
+  },
+  "qr-leash-tag/plate.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#000000FF",
+      "#FFFFFFFF"
+    ],
+    "triangleCount": 5988,
+    "bbox": [
+      [
+        -14.5,
+        -14.5,
+        0
+      ],
+      [
+        14.5,
+        14.5,
+        5.5
+      ]
+    ]
+  },
+  "qr-leash-tag/tag.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#000000FF",
+      "#FFFFFFFF"
+    ],
+    "triangleCount": 5988,
+    "bbox": [
+      [
+        -14.5,
+        -14.5,
+        0
+      ],
+      [
+        14.5,
+        14.5,
+        5.5
       ]
     ]
   },

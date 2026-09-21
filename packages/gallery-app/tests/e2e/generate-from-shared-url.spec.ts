@@ -51,8 +51,11 @@ const manifest = JSON.parse(readFileSync(MANIFEST_PATH, "utf8")) as { models: Mo
 // model, otherwise its test will be skipped.
 const PRIMARY_PARAM: Record<string, { name: string; value: string }> = {
   "collar-tag":   { name: "tag_text",     value: "Jelly" },
+  "collar-slide-tag": { name: "name",     value: "Jelly" },
   "qr-sign":      { name: "qr_url_text",  value: "https://shared.example.com/hello" },
   "fi-mini-case": { name: "qr_code_text", value: "Rex 555-1234" },
+  "qr-leash-tag": { name: "qr_text",      value: "Rex 555-1234" },
+  "parametric-qr-case": { name: "qr_text", value: "Rex 555-1234" },
 };
 
 // Dev-only models are never built or published, so CI has no artifact for them.
