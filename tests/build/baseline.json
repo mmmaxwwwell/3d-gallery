@@ -389,6 +389,42 @@
       ]
     ]
   },
+  "fi-mini-case-captive/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#000000FF",
+      "#FFFFFFFF"
+    ],
+    "triangleCount": 6134,
+    "bbox": [
+      [
+        -27.875,
+        -17.875,
+        0.025
+      ],
+      [
+        27.875,
+        17.875,
+        18.31
+      ]
+    ]
+  },
+  "fi-mini-case-captive/case.stl": {
+    "format": "stl",
+    "triangleCount": 3916,
+    "bbox": [
+      [
+        -27.875,
+        -17.875,
+        0.025
+      ],
+      [
+        27.875,
+        17.875,
+        18.275
+      ]
+    ]
+  },
   "fi-mini-case/assembled.3mf": {
     "format": "3mf",
     "colors": [
@@ -1437,6 +1473,46 @@
       ]
     ]
   },
+  "parametric-qr-case/case.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#000000FF",
+      "#FFFFFFFF"
+    ],
+    "triangleCount": 4746,
+    "bbox": [
+      [
+        -23.8,
+        -17.8,
+        0
+      ],
+      [
+        23.8,
+        17.8,
+        14.3
+      ]
+    ]
+  },
+  "parametric-qr-case/plate.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#000000FF",
+      "#FFFFFFFF"
+    ],
+    "triangleCount": 4746,
+    "bbox": [
+      [
+        -23.8,
+        -17.8,
+        0
+      ],
+      [
+        23.8,
+        17.8,
+        14.3
+      ]
+    ]
+  },
   "parametric-shelf/shelf.stl": {
     "format": "stl",
     "triangleCount": 1758,
@@ -1574,6 +1650,42 @@
         258,
         258,
         74.961
+      ]
+    ]
+  },
+  "ugreen-finder-duo-captive/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#000000FF",
+      "#FFFFFFFF"
+    ],
+    "triangleCount": 6102,
+    "bbox": [
+      [
+        -24.375,
+        -20.375,
+        0.025
+      ],
+      [
+        24.375,
+        20.375,
+        16.61
+      ]
+    ]
+  },
+  "ugreen-finder-duo-captive/case.stl": {
+    "format": "stl",
+    "triangleCount": 3856,
+    "bbox": [
+      [
+        -24.375,
+        -20.375,
+        0.025
+      ],
+      [
+        24.375,
+        20.375,
+        16.575
       ]
     ]
   },

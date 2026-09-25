@@ -115,7 +115,6 @@
       "title": "Fi Mini GPS Case (Captive Collar)",
       "description": "One-piece Fi Mini cover \u2014 no cap, no screws. The collar threads through a channel along the underside, enclosed at both ends and held by a lip down the middle, and the tracker presses up through that same slot. Supports an optional QR code.",
       "customizable": true,
-      "devOnly": true,
       "filament": [
         { "material": "TPU", "color": "black", "note": "Case body \u2014 the slot is an interference fit, so it has to flex" },
         { "material": "TPU", "color": "white", "note": "QR modules" }
@@ -143,7 +142,6 @@
       "title": "UGREEN Finder Duo Air Case (Captive Collar)",
       "description": "The captive-collar cover re-sized for the UGREEN Finder Duo Air. One piece, no cap, no screws: the collar threads through a channel along the underside and the tracker presses up through the same slot. Supports an optional QR code.",
       "customizable": true,
-      "devOnly": true,
       "filament": [
         { "material": "TPU", "color": "black", "note": "Case body \u2014 soft (85A); the square tracker is a 62% stretch across the lip" },
         { "material": "TPU", "color": "white", "note": "QR modules" }
@@ -190,7 +188,6 @@
     },
     {
       "slug": "parametric-qr-case",
-      "devOnly": true,
       "title": "Parametric QR Case",
       "description": "A one-piece case for a small rectangular object \u2014 a GPS tracker, a key fob, a battery. Type in the object's length, width and height and the pocket sizes itself around it; the outer face carries a QR code. Prints face down: the code lies on the build plate and the pocket opens upward, so nothing bridges and nothing needs support.",
       "customizable": true,
