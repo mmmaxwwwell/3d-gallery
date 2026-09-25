@@ -190,6 +190,7 @@
     },
     {
       "slug": "parametric-qr-case",
+      "devOnly": true,
       "title": "Parametric QR Case",
       "description": "A one-piece case for a small rectangular object \u2014 a GPS tracker, a key fob, a battery. Type in the object's length, width and height and the pocket sizes itself around it; the outer face carries a QR code. Prints face down: the code lies on the build plate and the pocket opens upward, so nothing bridges and nothing needs support.",
       "customizable": true,
@@ -229,6 +230,7 @@
     },
     {
       "slug": "property-sign",
+      "devOnly": true,
       "title": "Private Property Sign",
       "description": "Three-color property warning sign — white plate with the text recessed and inlaid flush (no relief): \"Private Property\" and \"No Trespassing\" in red, the rest in black. The plate auto-sizes to fit the text. Prints as a single multi-material job.",
       "previews": [
@@ -270,6 +272,7 @@
     },
     {
       "slug": "hex-bit-holder",
+      "devOnly": true,
       "title": "1/4\" Hex Bit Holder",
       "description": "A rounded-edge block with blind hexagonal holes (closed bottom, 1mm base) that grip 1/4\" hex-shank driver bits by friction. 12mm tall with graduated internal grip bumps on all six flats. Sized for 0.25mm fit clearance in 64D TPU. Available in 3–10 hole sizes on 15mm spacing.",
       "filament": [
@@ -425,7 +428,6 @@
     },
     {
       "slug": "under-desk-cord-protector",
-      "default": true,
       "title": "Under-Desk Cord Protector",
       "description": "Modular cord cradle that screws to the underside of a desk. The profile drops 3 in straight down, then wraps the outside of a 6 in circle for 135° (90 + 45) so cords leaving the desk are supported through the bend instead of kinked over an edge. 8 mm thick throughout. Each 150 mm segment interlocks with the next through a rib-and-groove joint that follows the whole profile — print as many as your desk is wide. Three screws per segment pass through the vertical wall itself — an angled round recess bored in from the cord side takes a #6 × 5/8 in pan-head screw driven straight up into the desktop, with its head bearing on the 2 mm of plastic left below the desk face, so the outside face stays solid and nothing protrudes into the cord channel. An optional prop finishes the half circle at the cradle's tip and runs straight up to the desk — a narrow beam, a solid full-width panel, or a hex screen — closing the tube and taking the sag out of a long run. It bolts onto the shell with M5 × 8 button heads driven into the plastic, in a half-lap that keeps the joint the same thickness as the rest of the tube, so it goes on after the cords are laid in, and takes the desk screws the same way the wall does — recessed and angled, here toward the outside of the tube so a driver can still reach them once it is closed. Prints standing on the grooved end with no supports.",
       "customizable": true,
@@ -513,6 +515,7 @@
     },
     {
       "slug": "test-cube-xyz",
+      "devOnly": true,
       "title": "XYZ Test Cube",
       "description": "30 mm calibration cube with X, Y, Z engraved on the +X, +Y, +Z faces. Quick end-to-end sanity check for slicer + printer coordinate system.",
       "parts": [
@@ -556,7 +559,7 @@
       "title": "Spool Roller Stand (Dry Box)",
       "description": "A filament spool roller stand for a 300 × 200 × 240 mm dry box interior, sized around the Bambu Lab 200 mm spool — four lanes wide to fill the box, or a single lane on its own. Every lane runs its own pair of rollers on its own pegs, so every spool unwinds independently. The walls between lanes do the supporting: a 608 presses into each end of a roller, one peg through a wall carries both neighbouring rollers at once, and a 0.5 mm shoulder on the peg holds each roller off the flat wall — no pockets, so the walls print flat with nothing to bridge. Each roller flange tapers at 40° from the wall face down to the running surface, filling the 2 mm between spool and wall, so a spool dropped in has one place to go and no edge to perch on. The roller spacing is solved rather than chosen — asking for the spool to sit 8 mm off the floor is what puts the rollers 156.4 mm apart, with the rims meeting them 42.8° off vertical. Filament leaves the bottom of a spool into a PTFE tube whose mouth is held by a clip just behind the spool, clear of it; the tube runs flat through loops in a round-bottomed groove sunk half the tile's thickness, under the back roller to a second clip tucked behind it, and leaves the tile there for a push-fit bulkhead; a drilling template marks a bulkhead hole at each lane centre, and a second marks the tiles' screw-down holes on the box floor. The floor splits into one dovetailed tile per lane, and the walls split into a left, a centre and a right the same way, so every part fits a 220 mm bed; the four-lane templates print in dovetailed halves, the one-lane ones whole. Screw pads through the lattice let the stand be fixed down, and each wall is one crescent-shaped piece — tall at the back, low through the middle, up again at the front. Walls sit on the floor on full-length V ridges, and are screwed down by three M3s up through the floor — front, middle and back — with the two tiles under a centre wall lapping at each. One hex beam per lane, nested end to end, runs through the top back of the walls, clear of the seated spools, and an M3 screw through the back of each wall locks the wall and both beam ends in it together. Spool size, ride height, lane count, roller and bearing dimensions, the PTFE run and the box are all adjustable.",
       "customizable": true,
-      "devOnly": true,
+      "default": true,
       "filament": [
         {
           "material": "PETG",
