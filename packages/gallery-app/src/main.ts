@@ -685,9 +685,21 @@ function buildUrl(
   return url.pathname + url.search;
 }
 
+function isSameRoute(a: string, b: string): boolean {
+  const canon = (path: string) => {
+    const url = new URL(path, window.location.origin);
+    url.searchParams.sort();
+    return url.pathname + url.search;
+  };
+  return canon(a) === canon(b);
+}
+
 function pushRoute(slug: string, partModule?: string, customValues?: Record<string, ScadValue>, buildId?: string) {
   const path = buildUrl(slug, partModule, customValues, buildId);
-  if (window.location.pathname + window.location.search !== path) {
+  // buildUrl puts the print UI's params first; the print router appends them
+  // last. Same route, different order — pushing it would stack a Back step
+  // that goes nowhere.
+  if (!isSameRoute(window.location.pathname + window.location.search, path)) {
     history.pushState({ slug, build: buildId, part: partModule, custom: customValues }, "", path);
   }
 }
