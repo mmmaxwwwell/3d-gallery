@@ -75,7 +75,7 @@ bump tips get clipped flat by the fillet at `outer_diameter/2`.
   re-measure the bbox and update the `logo_bbox_*` constants in the lib —
   they're in the polygon data's own coordinate space.
 - The multicolor preview is wired into the customizer via `CUSTOMIZABLE_SOURCES`
-  in `src/main.ts`. The customizer concatenates `logo-polygon-data.scad` +
+  in `src/customizable-sources.ts`. The customizer concatenates `logo-polygon-data.scad` +
   (lib with its `include` stripped) so the WASM sees a single
   self-contained source. When adding new preview keys, add both the
   `module` field in the manifest entry and the corresponding stripped-source

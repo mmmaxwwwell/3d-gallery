@@ -46,9 +46,8 @@ test('slicing shows a cancellable progress overlay', async ({ page }) => {
   await page.locator('.plate-row').first().getByRole('button', { name: /open/i }).click();
   await expect(page.locator('.plate3d-viewport canvas')).toBeVisible({ timeout: 120_000 });
 
-  // Slicing is two steps now: the plate screen hands over to print setup,
-  // which is where the slicer is actually started.
-  await page.getByRole('button', { name: 'Slice →' }).click();
+  // Desktop width puts print setup beside the plate, so the slicer starts
+  // from the column that is already on screen.
   await expect(page.locator('.pd-setup')).toBeVisible();
   await page.getByRole('button', { name: /^(Save & slice|Slice)$/ }).click();
 

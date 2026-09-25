@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@3d-gallery/model-core": "*",
+    "@3d-gallery/orca-bridge": "*",
     "@3d-gallery/print-toolkit": "*",
     "@3d-gallery/viewer": "*",
     "fflate": "^0.8.2",

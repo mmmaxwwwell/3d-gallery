@@ -17,3 +17,9 @@ export {
   assertRequestMatchesKey,
   type ArtifactKeyInput,
 } from './key.ts';
+export {
+  INSTANCE_ECHO,
+  INSTANCE_ANCHORS_PATH,
+  parseInstanceEcho,
+  type InstanceAnchor,
+} from './instances.ts';

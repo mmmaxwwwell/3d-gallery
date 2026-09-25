@@ -218,6 +218,27 @@ function saveLastSelections(sel: LastSelections): void {
   } catch { /* ignore */ }
 }
 
+/** Kept in step with the `.pd-split` block in `style.css`: this decides which
+ *  branch renders, that decides how it looks. */
+const SPLIT_QUERY = '(min-width: 1100px)';
+
+/**
+ * True once the viewport is wide enough to show the plate and its print setup
+ * at the same time. Below it the two stay separate screens — a phone has no
+ * room for a 3D stage and a settings column at once.
+ */
+function useSplitLayout(): boolean {
+  const [split, setSplit] = useState(() => window.matchMedia(SPLIT_QUERY).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(SPLIT_QUERY);
+    const onChange = () => setSplit(mq.matches);
+    mq.addEventListener('change', onChange);
+    onChange();
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  return split;
+}
+
 export function PrintDialog({ plateId, onClose, onOpenSettings }: PrintDialogProps) {
   const [printers, setPrinters] = useState<PrintPreset[]>([]);
   const [filaments, setFilaments] = useState<PrintPreset[]>([]);
@@ -273,7 +294,9 @@ export function PrintDialog({ plateId, onClose, onOpenSettings }: PrintDialogPro
   const [resolveProgress, setResolveProgress] = useState<{ done: number; total: number; label: string } | null>(null);
   const [selectedObjectId, setSelectedObjectId] = useState<string | null>(null);
   const [objectsOpen, setObjectsOpen] = useState(false);
+  // Only consulted below the split breakpoint; wide layouts show both at once.
   const [screen, setScreen] = useState<'plate' | 'setup'>('plate');
+  const split = useSplitLayout();
   const [processEditOpen, setProcessEditOpen] = useState(false);
   const [addFilamentOpen, setAddFilamentOpen] = useState(false);
 
@@ -1528,189 +1551,369 @@ export function PrintDialog({ plateId, onClose, onOpenSettings }: PrintDialogPro
     </div>
   );
 
-  // ── Setup: everything about *how* it prints, on the way to the slicer ────
+  // ── Setup: everything about *how* it prints. Its own screen below the
+  //    split breakpoint, the right-hand column above it.
+  const setupCards = (
+    <div class="pd-setup">
+      {/* Checks first, and open by default: whether this plate can be
+          printed at all is the one question that decides whether the rest
+          of the screen matters. */}
+      <details class="pd-card" open>
+        <summary>
+          <span class="pd-card-title">Checks</span>
+          <span class={`pd-card-status is-${checkState}`}>{checkSummary}</span>
+        </summary>
+        <div class="pd-card-body">
+          {checks.map((c) => (
+            <div key={c.label} class={`pd-check is-${c.state}`}>
+              <span class="pd-check-mark" aria-hidden="true">
+                {c.state === 'pass' ? '✓' : c.state === 'warn' ? '⚠' : '✗'}
+              </span>
+              <span class="pd-check-label">{c.label}</span>
+              <span class="pd-check-detail">{c.detail}</span>
+            </div>
+          ))}
+        </div>
+      </details>
+
+      {!split && noticeList}
+
+      <details class="pd-card">
+        <summary>
+          <span class="pd-card-title">Printer</span>
+          <span class="pd-card-status">{selectedPrinter?.name ?? 'none selected'}</span>
+          <button
+            type="button"
+            class="pd-edit"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); openSettingsGuarded(); }}
+            disabled={busy}
+            title="Edit this printer's preset"
+            aria-label="Edit printer preset"
+          >
+            ✏️
+          </button>
+        </summary>
+        <div class="pd-card-body">
+          <div class="pd-stats">
+            {printerStats.map((stat) => (
+              <div key={stat.label} class="pd-stat">
+                <span class="pd-stat-value">{stat.value}</span>
+                <span class="pd-stat-label">{stat.label}</span>
+              </div>
+            ))}
+          </div>
+          <label class="print-dialog-row">
+            <span>Installed plate</span>
+            <select
+              aria-label="Installed plate"
+              value={bedSurface}
+              onChange={(e) => setBedSurface((e.target as HTMLSelectElement).value as BedSurface)}
+              disabled={status !== 'idle'}
+              title="Which build plate is installed. Picks which per-filament temperature the slicer uses — leaving it wrong is why bed heat sometimes lands at 60 °C instead of the filament's expected temp."
+            >
+              {BED_SURFACES.map((s) => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </details>
+
+      <details class="pd-card">
+        <summary>
+          <span class="pd-card-title">Filament</span>
+          <span class={`pd-card-status${filamentId ? '' : ' is-fail'}`}>
+            {selectedFilament?.name ?? 'none selected'}
+          </span>
+        </summary>
+        <div class="pd-card-body">
+          <label class="print-dialog-row">
+            <span>Filament</span>
+            <select
+              aria-label="Filament"
+              value={filamentId}
+              onChange={(e) => {
+                const v = (e.target as HTMLSelectElement).value;
+                if (v === ADD_FILAMENT) { setAddFilamentOpen(true); return; }
+                setFilamentId(v);
+              }}
+              disabled={status !== 'idle'}
+            >
+              <option value="">— select filament —</option>
+              {filamentsForPrinter.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+              <option value={ADD_FILAMENT}>＋ Add filament…</option>
+            </select>
+          </label>
+          {filamentFlat ? (
+            <>
+              <div class="pd-stats">
+                {filamentStats.map((stat) => (
+                  <div key={stat.label} class="pd-stat">
+                    <span class="pd-stat-value">{stat.value}</span>
+                    <span class="pd-stat-label">{stat.label}</span>
+                  </div>
+                ))}
+              </div>
+              {specList('Everything else', filamentRest)}
+            </>
+          ) : (
+            <p class="print-dialog-hint">Pick a filament to see what it specifies.</p>
+          )}
+        </div>
+      </details>
+
+      <details class="pd-card">
+        <summary>
+          <span class="pd-card-title">Process</span>
+          <span class="pd-card-status">{currentTemplate?.name ?? 'custom'}</span>
+          <button
+            type="button"
+            class="pd-edit"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setProcessEditOpen(true); }}
+            disabled={status !== 'idle'}
+            title="Change values or save a new process"
+            aria-label="Edit process"
+          >
+            ✏️
+          </button>
+        </summary>
+        <div class="pd-card-body">
+          <label class="print-dialog-row">
+            <span>Template</span>
+            <select
+              aria-label="Process template"
+              value={templateId}
+              onChange={(e) => setTemplateId((e.target as HTMLSelectElement).value)}
+              disabled={status !== 'idle'}
+            >
+              {templates.map((t) => (
+                <option key={t.id} value={t.id}>{t.name}{t.builtIn ? '' : ' *'}</option>
+              ))}
+            </select>
+          </label>
+          <div class="pd-stats">
+            {processStats.map((stat) => (
+              <div key={stat.label} class="pd-stat">
+                <span class="pd-stat-value">{stat.value}</span>
+                <span class="pd-stat-label">{stat.label}</span>
+              </div>
+            ))}
+          </div>
+          <p class="pd-stat-foot">
+            Brim {proc.brim ? 'on' : 'off'} · Skirt {proc.skirt ? 'on' : 'off'}
+            {tunedCount > 0 && ` · ${tunedCount} object${tunedCount === 1 ? '' : 's'} override this`}
+          </p>
+        </div>
+      </details>
+
+      <details class="pd-card">
+        <summary>
+          <span class="pd-card-title">Slice presets</span>
+          <span class="pd-card-status">
+            {slicePresets.length === 0 ? 'none saved' : `${slicePresets.length} saved`}
+          </span>
+        </summary>
+        <div class="pd-card-body">{presetsPanel}</div>
+      </details>
+
+      <details class="pd-card">
+        <summary>
+          <span class="pd-card-title">Advanced</span>
+          <span class="pd-card-status">
+            {clearExclusionZones ? 'exclusions cleared' : preheat ? 'preheat on' : 'preheat off'}
+          </span>
+        </summary>
+        <div class="pd-card-body">{advancedPanel}</div>
+      </details>
+    </div>
+  );
+
+  const sliceButton = (
+    <button
+      type="button"
+      class="btn btn-primary"
+      onClick={handleSlice}
+      disabled={!canPrint}
+      title="Save the plate, then slice it into g-code."
+    >
+      {status === 'idle' || status === 'error'
+        ? (dirty ? 'Save & slice' : 'Slice')
+        : 'Slicing…'}
+    </button>
+  );
+
+  // These belong to the setup cards, so they follow them into whichever
+  // branch renders them.
+  const setupSheets = (
+    <>
+      {processEditOpen && (
+        <Sheet title="Process values" onClose={() => setProcessEditOpen(false)}>
+          {processPanel}
+        </Sheet>
+      )}
+      {addFilamentOpen && (
+        <Sheet title="Add filament" onClose={() => setAddFilamentOpen(false)}>
+          <p class="print-dialog-hint">
+            Authoring a filament preset here is not built yet. For now, import one
+            from your OrcaSlicer config — the importer walks the inheritance chain,
+            so a vendor profile arrives complete.
+          </p>
+          <button
+            type="button"
+            class="btn btn-primary"
+            onClick={() => { setAddFilamentOpen(false); openSettingsGuarded(); }}
+            disabled={busy}
+          >
+            Open print settings
+          </button>
+        </Sheet>
+      )}
+    </>
+  );
+
+  const plateStage = (
+    <div class="pd-stage">
+      {selectedBed && objectCount > 0 ? (
+        <PlateCanvas3D
+          bed={selectedBed.bed}
+          keepouts={selectedBed.keepouts}
+          maxHeight={Number.isFinite(selectedBed.maxHeight) ? selectedBed.maxHeight : 300}
+          plateOffset={plateOffset}
+          objects={canvas3dObjects}
+          selectedId={selectedObjectId ?? undefined}
+          disabled={status !== 'idle'}
+          onSelect={setSelectedObjectId}
+          onTransform={handleTransform}
+          onDelete={handleDeleteObject}
+          toolbarExtra={
+            <>
+              <button
+                type="button"
+                class="plate3d-tool"
+                onClick={handleArrange}
+                disabled={status !== 'idle'}
+                title="Pack the plate automatically, discarding the positions you set."
+              >
+                Arrange
+              </button>
+              {printerPicker}
+              {listButton}
+            </>
+          }
+        />
+      ) : (
+        <div class="pd-stage-empty">
+          {resolveProgress ? (
+            <p>
+              Loading meshes… {resolveProgress.done}/{resolveProgress.total}
+              {resolveProgress.label ? ` — ${resolveProgress.label}` : ''}
+            </p>
+          ) : objectCount === 0 ? (
+            <p>
+              This plate is empty. Use <strong>Add to plate</strong> on a part to fill it.
+            </p>
+          ) : (
+            <div class="pd-stage-pick">
+              <p>Pick a printer to see the plate on its bed.</p>
+              {printerPicker}
+              {listButton}
+            </div>
+          )}
+        </div>
+      )}
+
+      <div class="pd-hud">
+        {fit && (
+          <span
+            class={`pd-fit-badge${fit.status === 'fits' ? '' : fit.status === 'warn' ? ' is-warn' : ' is-blocked'}`}
+          >
+            {fit.status === 'fits' ? '✓ Fits' : fit.status === 'warn' ? `⚠ ${fitSummary(fit)}` : `✗ ${fitSummary(fit)}`}
+          </span>
+        )}
+        {plateSize && (
+          <span
+            class="pd-plate-size"
+            title="Overall size of the arrangement — this is what decides which printers can take the plate."
+          >
+            {mm(plateSize.width)} × {mm(plateSize.depth)} × {mm(plateSize.height)} mm
+          </span>
+        )}
+      </div>
+
+      {objectsOpen && (
+        <Sheet title="Objects on this plate" onClose={() => setObjectsOpen(false)}>
+          {objectsPanel}
+        </Sheet>
+      )}
+    </div>
+  );
+
+  // Below the split breakpoint the rail is also the way to setup; above it
+  // setup is already on screen, so the save state is all that is left. It is
+  // rendered either way even when it has nothing to say: dropping the bar on
+  // a clean plate would resize the canvas on the first edit, and the two
+  // columns' bottom bars would stop lining up.
+  const plateRail = (
+    <div class="pd-rail">
+      <div class="pd-rail-actions">
+        {dirty ? (
+          <span class="pd-dirty" role="status">● Unsaved</span>
+        ) : savedAt ? (
+          <span class="pd-saved" role="status">✓ Saved {new Date(savedAt).toLocaleTimeString()}</span>
+        ) : null}
+        {dirty && (
+          <button
+            type="button"
+            class="btn"
+            onClick={() => void handleSave()}
+            disabled={status !== 'idle'}
+            title="Store this plate's parts and arrangement. Does not slice."
+          >
+            Save plate
+          </button>
+        )}
+        {!split && (
+          <button
+            type="button"
+            class="btn btn-primary"
+            onClick={() => setScreen('setup')}
+            disabled={!printerId || objectCount === 0 || status !== 'idle'}
+            title="Choose filament and process, then slice."
+          >
+            Slice →
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
+  // ── Split: plate on the left, everything that slices it on the right ────
+  if (split) {
+    return (
+      <Modal title={`Plate — ${plateTitle}`} onClose={closeGuarded} bleed>
+        <div class="pd-split">
+          <div class="pd-split-main">
+            {plateStage}
+            {noticeList}
+            {plateRail}
+          </div>
+          <aside class="pd-split-side" aria-label="Print setup">
+            <div class="pd-split-side-body">{setupCards}</div>
+            <div class="print-dialog-actions">{sliceButton}</div>
+          </aside>
+          {setupSheets}
+          {busyOverlay}
+        </div>
+      </Modal>
+    );
+  }
+
   if (screen === 'setup') {
     return (
       <Modal title={`Print setup — ${plateTitle}`} onClose={closeGuarded}>
-        <div class="pd-setup">
-          {/* Checks first, and open by default: whether this plate can be
-              printed at all is the one question that decides whether the rest
-              of the screen matters. */}
-          <details class="pd-card" open>
-            <summary>
-              <span class="pd-card-title">Checks</span>
-              <span class={`pd-card-status is-${checkState}`}>{checkSummary}</span>
-            </summary>
-            <div class="pd-card-body">
-              {checks.map((c) => (
-                <div key={c.label} class={`pd-check is-${c.state}`}>
-                  <span class="pd-check-mark" aria-hidden="true">
-                    {c.state === 'pass' ? '✓' : c.state === 'warn' ? '⚠' : '✗'}
-                  </span>
-                  <span class="pd-check-label">{c.label}</span>
-                  <span class="pd-check-detail">{c.detail}</span>
-                </div>
-              ))}
-            </div>
-          </details>
-
-          {notices.length > 0 && (
-            <div class="pd-notices">
-              {notices.map((n, i) => <div key={i}>{n}</div>)}
-            </div>
-          )}
-
-          <details class="pd-card">
-            <summary>
-              <span class="pd-card-title">Printer</span>
-              <span class="pd-card-status">{selectedPrinter?.name ?? 'none selected'}</span>
-              <button
-                type="button"
-                class="pd-edit"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); openSettingsGuarded(); }}
-                disabled={busy}
-                title="Edit this printer's preset"
-                aria-label="Edit printer preset"
-              >
-                ✏️
-              </button>
-            </summary>
-            <div class="pd-card-body">
-              <div class="pd-stats">
-                {printerStats.map((stat) => (
-                  <div key={stat.label} class="pd-stat">
-                    <span class="pd-stat-value">{stat.value}</span>
-                    <span class="pd-stat-label">{stat.label}</span>
-                  </div>
-                ))}
-              </div>
-              <label class="print-dialog-row">
-                <span>Installed plate</span>
-                <select
-                  aria-label="Installed plate"
-                  value={bedSurface}
-                  onChange={(e) => setBedSurface((e.target as HTMLSelectElement).value as BedSurface)}
-                  disabled={status !== 'idle'}
-                  title="Which build plate is installed. Picks which per-filament temperature the slicer uses — leaving it wrong is why bed heat sometimes lands at 60 °C instead of the filament's expected temp."
-                >
-                  {BED_SURFACES.map((s) => (
-                    <option key={s.value} value={s.value}>{s.label}</option>
-                  ))}
-                </select>
-              </label>
-            </div>
-          </details>
-
-          <details class="pd-card">
-            <summary>
-              <span class="pd-card-title">Filament</span>
-              <span class={`pd-card-status${filamentId ? '' : ' is-fail'}`}>
-                {selectedFilament?.name ?? 'none selected'}
-              </span>
-            </summary>
-            <div class="pd-card-body">
-              <label class="print-dialog-row">
-                <span>Filament</span>
-                <select
-                  aria-label="Filament"
-                  value={filamentId}
-                  onChange={(e) => {
-                    const v = (e.target as HTMLSelectElement).value;
-                    if (v === ADD_FILAMENT) { setAddFilamentOpen(true); return; }
-                    setFilamentId(v);
-                  }}
-                  disabled={status !== 'idle'}
-                >
-                  <option value="">— select filament —</option>
-                  {filamentsForPrinter.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                  <option value={ADD_FILAMENT}>＋ Add filament…</option>
-                </select>
-              </label>
-              {filamentFlat ? (
-                <>
-                  <div class="pd-stats">
-                    {filamentStats.map((stat) => (
-                      <div key={stat.label} class="pd-stat">
-                        <span class="pd-stat-value">{stat.value}</span>
-                        <span class="pd-stat-label">{stat.label}</span>
-                      </div>
-                    ))}
-                  </div>
-                  {specList('Everything else', filamentRest)}
-                </>
-              ) : (
-                <p class="print-dialog-hint">Pick a filament to see what it specifies.</p>
-              )}
-            </div>
-          </details>
-
-          <details class="pd-card">
-            <summary>
-              <span class="pd-card-title">Process</span>
-              <span class="pd-card-status">{currentTemplate?.name ?? 'custom'}</span>
-              <button
-                type="button"
-                class="pd-edit"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setProcessEditOpen(true); }}
-                disabled={status !== 'idle'}
-                title="Change values or save a new process"
-                aria-label="Edit process"
-              >
-                ✏️
-              </button>
-            </summary>
-            <div class="pd-card-body">
-              <label class="print-dialog-row">
-                <span>Template</span>
-                <select
-                  aria-label="Process template"
-                  value={templateId}
-                  onChange={(e) => setTemplateId((e.target as HTMLSelectElement).value)}
-                  disabled={status !== 'idle'}
-                >
-                  {templates.map((t) => (
-                    <option key={t.id} value={t.id}>{t.name}{t.builtIn ? '' : ' *'}</option>
-                  ))}
-                </select>
-              </label>
-              <div class="pd-stats">
-                {processStats.map((stat) => (
-                  <div key={stat.label} class="pd-stat">
-                    <span class="pd-stat-value">{stat.value}</span>
-                    <span class="pd-stat-label">{stat.label}</span>
-                  </div>
-                ))}
-              </div>
-              <p class="pd-stat-foot">
-                Brim {proc.brim ? 'on' : 'off'} · Skirt {proc.skirt ? 'on' : 'off'}
-                {tunedCount > 0 && ` · ${tunedCount} object${tunedCount === 1 ? '' : 's'} override this`}
-              </p>
-            </div>
-          </details>
-
-          <details class="pd-card">
-            <summary>
-              <span class="pd-card-title">Slice presets</span>
-              <span class="pd-card-status">
-                {slicePresets.length === 0 ? 'none saved' : `${slicePresets.length} saved`}
-              </span>
-            </summary>
-            <div class="pd-card-body">{presetsPanel}</div>
-          </details>
-
-          <details class="pd-card">
-            <summary>
-              <span class="pd-card-title">Advanced</span>
-              <span class="pd-card-status">
-                {clearExclusionZones ? 'exclusions cleared' : preheat ? 'preheat on' : 'preheat off'}
-              </span>
-            </summary>
-            <div class="pd-card-body">{advancedPanel}</div>
-          </details>
-        </div>
-
+        {setupCards}
         <div class="print-dialog-actions">
           <button
             type="button"
@@ -1720,156 +1923,21 @@ export function PrintDialog({ plateId, onClose, onOpenSettings }: PrintDialogPro
           >
             Back to plate
           </button>
-          <button
-            type="button"
-            class="btn btn-primary"
-            onClick={handleSlice}
-            disabled={!canPrint}
-            title="Save the plate, then slice it into g-code."
-          >
-            {status === 'idle' || status === 'error'
-              ? (dirty ? 'Save & slice' : 'Slice')
-              : 'Slicing…'}
-          </button>
+          {sliceButton}
         </div>
-        {processEditOpen && (
-          <Sheet title="Process values" onClose={() => setProcessEditOpen(false)}>
-            {processPanel}
-          </Sheet>
-        )}
-        {addFilamentOpen && (
-          <Sheet title="Add filament" onClose={() => setAddFilamentOpen(false)}>
-            <p class="print-dialog-hint">
-              Authoring a filament preset here is not built yet. For now, import one
-              from your OrcaSlicer config — the importer walks the inheritance chain,
-              so a vendor profile arrives complete.
-            </p>
-            <button
-              type="button"
-              class="btn btn-primary"
-              onClick={() => { setAddFilamentOpen(false); openSettingsGuarded(); }}
-              disabled={busy}
-            >
-              Open print settings
-            </button>
-          </Sheet>
-        )}
+        {setupSheets}
         {busyOverlay}
       </Modal>
     );
   }
 
-
   // ── Plate: the arrangement, and only what changes it ─────────────────────
   return (
     <Modal title={`Plate — ${plateTitle}`} onClose={closeGuarded} bleed>
       <div class="print-dialog">
-        <div class="pd-stage">
-          {selectedBed && objectCount > 0 ? (
-            <PlateCanvas3D
-              bed={selectedBed.bed}
-              keepouts={selectedBed.keepouts}
-              maxHeight={Number.isFinite(selectedBed.maxHeight) ? selectedBed.maxHeight : 300}
-              plateOffset={plateOffset}
-              objects={canvas3dObjects}
-              selectedId={selectedObjectId ?? undefined}
-              disabled={status !== 'idle'}
-              onSelect={setSelectedObjectId}
-              onTransform={handleTransform}
-              onDelete={handleDeleteObject}
-              toolbarExtra={
-                <>
-                  <button
-                    type="button"
-                    class="plate3d-tool"
-                    onClick={handleArrange}
-                    disabled={status !== 'idle'}
-                    title="Pack the plate automatically, discarding the positions you set."
-                  >
-                    Arrange
-                  </button>
-                  {printerPicker}
-                  {listButton}
-                </>
-              }
-            />
-          ) : (
-            <div class="pd-stage-empty">
-              {resolveProgress ? (
-                <p>
-                  Loading meshes… {resolveProgress.done}/{resolveProgress.total}
-                  {resolveProgress.label ? ` — ${resolveProgress.label}` : ''}
-                </p>
-              ) : objectCount === 0 ? (
-                <p>
-                  This plate is empty. Use <strong>Add to plate</strong> on a part to fill it.
-                </p>
-              ) : (
-                <div class="pd-stage-pick">
-                  <p>Pick a printer to see the plate on its bed.</p>
-                  {printerPicker}
-                  {listButton}
-                </div>
-              )}
-            </div>
-          )}
-
-          <div class="pd-hud">
-            {fit && (
-              <span
-                class={`pd-fit-badge${fit.status === 'fits' ? '' : fit.status === 'warn' ? ' is-warn' : ' is-blocked'}`}
-              >
-                {fit.status === 'fits' ? '✓ Fits' : fit.status === 'warn' ? `⚠ ${fitSummary(fit)}` : `✗ ${fitSummary(fit)}`}
-              </span>
-            )}
-            {plateSize && (
-              <span
-                class="pd-plate-size"
-                title="Overall size of the arrangement — this is what decides which printers can take the plate."
-              >
-                {mm(plateSize.width)} × {mm(plateSize.depth)} × {mm(plateSize.height)} mm
-              </span>
-            )}
-          </div>
-
-          {objectsOpen && (
-            <Sheet title="Objects on this plate" onClose={() => setObjectsOpen(false)}>
-              {objectsPanel}
-            </Sheet>
-          )}
-        </div>
-
+        {plateStage}
         {noticeList}
-
-        <div class="pd-rail">
-          <div class="pd-rail-actions">
-            {dirty ? (
-              <span class="pd-dirty" role="status">● Unsaved</span>
-            ) : savedAt ? (
-              <span class="pd-saved" role="status">✓ Saved {new Date(savedAt).toLocaleTimeString()}</span>
-            ) : null}
-            {dirty && (
-              <button
-                type="button"
-                class="btn"
-                onClick={() => void handleSave()}
-                disabled={status !== 'idle'}
-                title="Store this plate's parts and arrangement. Does not slice."
-              >
-                Save plate
-              </button>
-            )}
-            <button
-              type="button"
-              class="btn btn-primary"
-              onClick={() => setScreen('setup')}
-              disabled={!printerId || objectCount === 0 || status !== 'idle'}
-              title="Choose filament and process, then slice."
-            >
-              Slice →
-            </button>
-          </div>
-        </div>
+        {plateRail}
         {busyOverlay}
       </div>
     </Modal>

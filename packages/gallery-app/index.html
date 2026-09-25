@@ -26,6 +26,7 @@
           <div id="header-left">
             <button id="sidebar-toggle" type="button" aria-label="Browse models" aria-expanded="false">☰</button>
             <h2 id="model-title">Select a model</h2>
+            <div id="build-switch" class="section-tabs" role="tablist" aria-label="Build" hidden></div>
             <select id="part-select" hidden></select>
           </div>
           <div id="header-actions">
@@ -78,9 +79,11 @@
         </header>
         <div id="info-panel-body">
           <section id="printed-list" hidden></section>
+          <section id="unlinked-list" hidden></section>
           <section id="hardware-list" hidden></section>
           <section id="works-with-list" hidden></section>
           <section id="filament-list" hidden></section>
+          <section id="print-time" hidden></section>
           <p id="info-panel-empty" hidden>Nothing listed for this model.</p>
         </div>
       </aside>

@@ -1,10 +1,12 @@
 ---
 import { manifest } from 'virtual:3d-gallery';
 import { recordReference } from '@3d-gallery/astro/registry';
-import type { ScadValue } from '@3d-gallery/model-core';
+import { selectBuild, type ScadValue } from '@3d-gallery/model-core';
 
 interface Props {
   slug: string;
+  /** Build id, for a model with builds. Defaults to its default build. */
+  build?: string;
   /** File base name of a part or preview. Defaults to the model's default entry. */
   target?: string;
   /** Parameter overrides. Anything left at its lib default costs nothing. */
@@ -13,7 +15,7 @@ interface Props {
   class?: string;
 }
 
-const { slug, target, params, height = '480px', class: className } = Astro.props;
+const { slug, build, target, params: overrides, height = '480px', class: className } = Astro.props;
 
 const model = manifest.models.find((m) => m.slug === slug);
 if (!model) {
@@ -23,7 +25,10 @@ if (!model) {
   );
 }
 
-const entries = [...(model.previews ?? []), ...(model.parts ?? [])];
+const view = selectBuild(model, build);
+const entries = [...view.previews, ...view.parts];
+// A build's entries render at its params; the page's own overrides go on top.
+const params = Object.keys(view.params).length > 0 ? { ...view.params, ...overrides } : overrides;
 const baseName = (file: string) => file.replace(/\.\w+$/, '');
 const entry = target
   ? entries.find((p) => baseName(p.file) === target)

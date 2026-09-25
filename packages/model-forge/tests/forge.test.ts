@@ -220,6 +220,35 @@ describe('createForge', () => {
     });
   });
 
+  describe('builds', () => {
+    function withBuilds(): Forge {
+      const authored = JSON.parse(readFileSync(join(root, 'models', 'manifest.json'), 'utf8'));
+      const { parts } = authored.models[0];
+      delete authored.models[0].previews;
+      delete authored.models[0].parts;
+      authored.models[0].builds = [
+        { id: 'small', label: 'Small', default: true, params: {}, parts },
+        { id: 'big', label: 'Big', params: { size: 40 }, parts },
+      ];
+      return createForge({ root, cacheDir: join(root, '.cache2'), manifest: authored });
+    }
+
+    it('declares each build\'s entries at that build\'s params', () => {
+      expect(withBuilds().declaredRequests()).toEqual([
+        box,
+        { ...box, params: { size: 40 } },
+      ]);
+    });
+
+    it('keys a build\'s entries at the lib defaults, leaving its params to the caller', async () => {
+      const forged = withBuilds();
+      const [small, big] = (await forged.runtimeManifest()).models[0].builds!;
+      expect(small.parts![0].defaultKey).toBe(big.parts![0].defaultKey);
+      expect(big.parts![0].defaultKey).toBe(await forged.keyFor(box));
+      expect(await forged.keyFor({ ...box, params: big.params })).not.toBe(big.parts![0].defaultKey);
+    });
+  });
+
   describeEngine('prerender', () => {
     it('builds everything declared, then reports pure hits on a rerun', async () => {
       const first = await forge.prerender();

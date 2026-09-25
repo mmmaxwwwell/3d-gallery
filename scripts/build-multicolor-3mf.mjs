@@ -23,6 +23,7 @@ import { promisify } from "node:util";
 import { zipSync } from "fflate";
 
 import { OPENSCAD_ARGS } from "./openscad-args.mjs";
+import { INSTANCE_ANCHORS_PATH, parseInstanceEcho } from "../packages/model-core/src/instances.ts";
 
 const execFileAsync = promisify(execFile);
 
@@ -284,8 +285,10 @@ function rgbaToHex(rgba) {
   return `#${c(rgba[0])}${c(rgba[1])}${c(rgba[2])}${c(rgba[3])}`;
 }
 
-export function build3mf(perColorMeshes, { asAssembly = false } = {}) {
+export function build3mf(perColorMeshes, { asAssembly = false, instances = null } = {}) {
   // perColorMeshes: [{ key, rgba, mesh:{vertices,triangles} }]
+  // instances: the preview's echoed per-piece anchors, carried as JSON at
+  // INSTANCE_ANCHORS_PATH for the viewer (see model-core instances.ts).
   // asAssembly: when true, wrap all color-objects inside one component
   // assembly and put ONLY the assembly in <build>. Bambu Studio / OrcaSlicer
   // treat each top-level build item as an independently-arrangeable
@@ -403,6 +406,7 @@ export function build3mf(perColorMeshes, { asAssembly = false } = {}) {
     '  <Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml" />',
     '  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />',
     '  <Default Extension="config" ContentType="application/vnd.openxmlformats-package.relationships+xml" />',
+    ...(instances ? ['  <Default Extension="json" ContentType="application/json" />'] : []),
     '</Types>',
   ].join("\n");
   const rels = [
@@ -417,7 +421,10 @@ export function build3mf(perColorMeshes, { asAssembly = false } = {}) {
     "[Content_Types].xml": enc.encode(contentTypes),
     "_rels": { ".rels": enc.encode(rels) },
     "3D": { "3dmodel.model": enc.encode(modelXml) },
-    "Metadata": { "model_settings.config": enc.encode(modelSettings) },
+    "Metadata": {
+      "model_settings.config": enc.encode(modelSettings),
+      ...(instances ? { [basename(INSTANCE_ANCHORS_PATH)]: enc.encode(JSON.stringify(instances)) } : {}),
+    },
   });
 }
 
@@ -463,7 +470,8 @@ export async function buildMulticolor3mf({ scadPath, scadSource, sourceDir, outP
     //    evaluate every module/bezier/function, and canonicalize color()
     //    literals to RGBA arrays. This is the expensive step.
     const flatCsgPath = join(tmpDir, "flat.csg");
-    await execFileAsync("openscad", [...OPENSCAD_ARGS, "-o", flatCsgPath, inputPath], execOpts);
+    const { stderr } = await execFileAsync("openscad", [...OPENSCAD_ARGS, "-o", flatCsgPath, inputPath], execOpts);
+    const instances = parseInstanceEcho(stderr.split("\n"));
 
     // 2. Rewrite relative paths in `import(file = "...")` calls to absolute
     //    paths anchored at the source directory. The CSG is about to be
@@ -490,7 +498,7 @@ export async function buildMulticolor3mf({ scadPath, scadSource, sourceDir, outP
         .then(() => ({ key, rgba, mesh: parseStl(outStl) }));
     });
     const perColorMeshes = await Promise.all(jobs);
-    const zipped = build3mf(perColorMeshes, { asAssembly });
+    const zipped = build3mf(perColorMeshes, { asAssembly, instances });
     writeFileSync(outPath, zipped);
   } finally {
     rmSync(tmpDir, { recursive: true, force: true });

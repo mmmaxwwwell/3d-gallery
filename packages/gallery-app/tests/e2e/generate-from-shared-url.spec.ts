@@ -40,6 +40,13 @@ interface Model {
   devOnly?: boolean;
   previews?: Part[];
   parts?: Part[];
+  builds?: { id: string; previews?: Part[]; parts?: Part[] }[];
+}
+
+/** Every entry of a model, with the build it belongs to when it has builds. */
+function entriesOf(model: Model): { build?: string; part: Part }[] {
+  const owners = model.builds ?? [{ id: undefined, previews: model.previews, parts: model.parts }];
+  return owners.flatMap((o) => [...(o.previews ?? []), ...(o.parts ?? [])].map((part) => ({ build: o.id, part })));
 }
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -68,15 +75,14 @@ test.describe("shared-URL generate (copy-URL, open-in-new-window flow)", () => {
       test.skip(`${model.slug}: no PRIMARY_PARAM seed configured`, () => {});
       continue;
     }
-    const parts = [...(model.previews ?? []), ...(model.parts ?? [])].filter((p) => p.module);
-    for (const part of parts) {
-      test(`${model.slug} / ${part.label}: edit → copy URL → open in fresh page → Generate`, async ({ context }) => {
+    for (const { build, part } of entriesOf(model).filter((e) => e.part.module)) {
+      test(`${model.slug}${build ? ` [${build}]` : ""} / ${part.label}: edit → copy URL → open in fresh page → Generate`, async ({ context }) => {
         // First page: normal edit flow. This is what populates the URL
         // via history.replaceState with every current value (including
         // numeric defaults, which get stringified into the URL).
         const editor = await context.newPage();
         attachConsoleDiagnostics(editor);
-        await loadModel(editor, model.slug, { part: part.module });
+        await loadModel(editor, model.slug, { build, part: part.module });
         await fillParams(editor, { [seed.name]: seed.value });
         const sharedUrl = editor.url();
         await editor.close();

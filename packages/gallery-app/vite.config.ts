@@ -4,12 +4,14 @@ import { readdirSync, existsSync, statSync } from 'node:fs';
 import { cpus } from 'node:os';
 import { resolve, sep } from 'node:path';
 import { createForge, targetOf, createArtifactMiddleware, createManifestMiddleware } from '@3d-gallery/model-forge';
-import type { ManifestPart } from '@3d-gallery/model-core';
+import { buildViews, type ManifestPart, type ModelBuild } from '@3d-gallery/model-core';
 // Node-side embedder, not the browser one in @3d-gallery/viewer — importing
 // that package here would drag three.js and a web worker into the Vite config.
 // @ts-expect-error — plain-JS build script, no types.
 import { embedUrl } from '../../scripts/embed-source-url.mjs';
 import { copyPrintToolkitAssets } from '@3d-gallery/print-toolkit/vite-plugin';
+import { createMcpMiddleware } from '@3d-gallery/orca-bridge/mcp';
+import { createDevStoreMiddleware } from '@3d-gallery/orca-bridge/devstore';
 
 // libslic3r.wasm is fetched on demand from GitHub Releases (T4). Until that
 // release exists the assets/ dir is empty and the toolkit's Vite plugin
@@ -43,8 +45,9 @@ const ARTIFACT_BASE = `${BASE}a/`;
  * digest, and the next request for the part you're actually looking at misses
  * the content-addressed cache and renders. Everything else stays cached.
  *
- * The URL shape (`models/<slug>/<file>`) is unchanged, so the app needs no
- * changes to benefit.
+ * The URL shape (`models/<slug>/<file>`, or `models/<slug>/<build>/<file>`)
+ * matches what `scripts/build-models.mjs` publishes, so the app fetches the
+ * same paths in dev and production.
  */
 function galleryModelsPlugin(): Plugin {
   const MANIFEST_PATH = resolve(MODELS_DIR, 'manifest.json');
@@ -70,12 +73,16 @@ function galleryModelsPlugin(): Plugin {
    * keeps the two in step.
    */
   function bind(forge: Forge) {
-    // `file` -> the part entry, so a request can be mapped back to what renders it.
-    const parts = new Map<string, Map<string, ManifestPart>>();
+    // `file`, or `<build>/<file>` for a model with builds -> what renders it.
+    const parts = new Map<string, Map<string, { part: ManifestPart; build?: ModelBuild }>>();
     for (const model of forge.manifest.models) {
-      const byFile = new Map<string, ManifestPart>();
-      for (const part of [...(model.previews ?? []), ...(model.parts ?? [])]) byFile.set(part.file, part);
-      parts.set(model.slug, byFile);
+      const byPath = new Map<string, { part: ManifestPart; build?: ModelBuild }>();
+      for (const { build, previews, parts: list } of buildViews(model)) {
+        for (const part of [...previews, ...list]) {
+          byPath.set(build ? `${build.id}/${part.file}` : part.file, { part, build });
+        }
+      }
+      parts.set(model.slug, byPath);
     }
     return {
       forge,
@@ -124,21 +131,25 @@ function galleryModelsPlugin(): Plugin {
         // Astro the base is already stripped. Accept either.
         const path = (req.url ?? '').split('?')[0];
         const rel = path.startsWith(BASE) ? path.slice(BASE.length - 1) : path;
-        const match = rel.match(/^\/models\/([a-z0-9-]+)\/([^/]+)$/);
+        const match = rel.match(/^\/models\/([a-z0-9-]+)\/((?:[a-z0-9-]+\/)?[^/]+)$/);
         if (!match) return next();
 
         const [, slug, file] = match;
-        const part = bound.parts.get(slug)?.get(file);
-        if (!part) return next();
+        const entry = bound.parts.get(slug)?.get(file);
+        if (!entry) return next();
+        const { part, build } = entry;
 
         try {
           const started = Date.now();
-          const result = await bound.forge.ensure({ slug, target: targetOf(part), format: part.format });
+          const result = await bound.forge.ensure({
+            slug, target: targetOf(part), format: part.format, ...(build ? { params: build.params } : {}),
+          });
 
           // Same permalink the CLI build injects, so a part downloaded from the
           // dev server scans back to its page exactly like a released one.
           const url = new URL(SITE_URL);
           url.searchParams.set('model', slug);
+          if (build) url.searchParams.set('build', build.id);
           if (part.module) url.searchParams.set('part', part.module);
           const bytes: Uint8Array = embedUrl(result.bytes, part.format, url.toString());
 
@@ -202,14 +213,48 @@ function galleryModelsPlugin(): Plugin {
         // content-addressed and needs no eviction.
         bound.forge.invalidate(slug);
         server.config.logger.info(`[gallery-models] ${slug} changed — next request re-renders`);
+        // No full reload: the client swaps the new render in and keeps the camera.
         server.ws.send({ type: 'custom', event: 'scad-rebuilt', data: { slug } });
-        server.ws.send({ type: 'full-reload' });
       }
 
       server.watcher.on('change', onModelsFileEvent);
       server.watcher.on('add', (path: string) => {
         if (path === MANIFEST_PATH) reloadManifest();
       });
+    },
+  };
+}
+
+/**
+ * Serves the orca-bridge MCP server on the dev server.
+ *
+ * Dev only — `configureServer` never runs for a build, so nothing here reaches
+ * the published site. No auth: single user, and the MCP caller is whoever
+ * started this server.
+ *
+ * Mounted under both the base-prefixed and base-stripped paths for the same
+ * reason `galleryModelsPlugin` is: whether Vite has stripped `/3d-gallery/` by
+ * the time a `pre` plugin's middleware runs depends on where in the stack it
+ * lands.
+ */
+function orcaMcpPlugin(): Plugin {
+  const MCP_PATHS = [`${BASE}__mcp`, '/__mcp'];
+  const STORE_PATHS = [`${BASE}__devstore`, '/__devstore'];
+  return {
+    name: 'orca-mcp',
+    enforce: 'pre',
+    apply: 'serve',
+    configureServer(server) {
+      const middleware = createMcpMiddleware({ repoRoot: REPO_ROOT });
+      for (const path of MCP_PATHS) server.middlewares.use(path, middleware);
+      // The browser's half of the same store. Absent in production, which is
+      // what makes the server store opt-in rather than something every user
+      // of the hosted gallery has to be given.
+      const store = createDevStoreMiddleware(REPO_ROOT);
+      for (const path of STORE_PATHS) server.middlewares.use(path, store);
+      server.config.logger.info(
+        `  \x1b[32m➜\x1b[0m  \x1b[1mMCP\x1b[0m:     http://localhost:${server.config.server.port ?? 5173}${MCP_PATHS[0]}`,
+      );
     },
   };
 }
@@ -227,8 +272,18 @@ export default defineConfig({
     // is running the current bundle or a cached one from a stale SW.
     __BUILD_TAG__: JSON.stringify(new Date().toISOString()),
   },
+  server: {
+    port: 5173,
+    // Fail instead of drifting to the next free port. IndexedDB is scoped per
+    // origin and the port is part of the origin, so a server that quietly comes
+    // up on 5174 gives the app an empty preset database — every printer and
+    // filament looks deleted, while the real records sit untouched under
+    // localhost:5173. Refusing to start is far kinder than that.
+    strictPort: true,
+  },
   plugins: [
     galleryModelsPlugin(),
+    orcaMcpPlugin(),
     ...(toolkitAssetsPresent ? [copyPrintToolkitAssets({ dest: 'wasm' })] : []),
     VitePWA({
       registerType: 'autoUpdate',
@@ -252,6 +307,7 @@ export default defineConfig({
         globIgnores: [
           'wasm/libslic3r-wasm64.wasm',
           'models/et300-knob-aide-knurled/knurl-depth-grid.stl',
+          'models/folding-panel-divider/strip.stl',
           // Content-addressed artifact tree emitted by scripts/build-models.mjs.
           // Immutable and fetched on demand; precaching it would ship every
           // model twice.

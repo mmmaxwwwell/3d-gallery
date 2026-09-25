@@ -36,6 +36,10 @@ import {
 
 `libslic3r.js` + `libslic3r.wasm` are fetched into `assets/` by `scripts/fetch-wasm.mjs` from the OrcaSlicer-WASM GitHub releases. Consumers must serve these at `${BASE_URL}/wasm/` in production; a Vite plugin is provided (`@3d-gallery/print-toolkit/vite-plugin`) that copies them into the consumer's build automatically.
 
+## Node
+
+`@3d-gallery/print-toolkit/node` exports `createNodeSlicerEngine()`: the same `SlicerEngine`, loaded straight from `assets/` for build-time slicing (the gallery's print-time estimates). Node only — never import it from a browser bundle. The print-time estimate is filled in by the G-code processor, so call `exportGCode()` before `getSliceStats()`.
+
 ## Android integration
 
 The toolkit is fully usable in an Android WebView. If the host injects any of these globals (all optional), the toolkit uses them instead of the browser fallback:

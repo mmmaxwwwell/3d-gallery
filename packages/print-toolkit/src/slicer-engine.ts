@@ -48,7 +48,7 @@ interface WasmSlicerInstance {
 }
 
 /** The Emscripten module as produced by createSlicerModule() */
-interface SlicerModule {
+export interface SlicerModule {
   WasmSlicer: new () => WasmSlicerInstance;
   /** Emscripten FS API (available because of FORCE_FILESYSTEM) */
   FS: {
@@ -66,7 +66,7 @@ interface SlicerModule {
 }
 
 /** Factory function exported by the Emscripten glue JS */
-type CreateSlicerModule = (opts?: Record<string, unknown>) => Promise<SlicerModule>;
+export type CreateSlicerModule = (opts?: Record<string, unknown>) => Promise<SlicerModule>;
 
 // ---------------------------------------------------------------------------
 // Public API types
@@ -356,8 +356,14 @@ function writeToVFS(
  * Must be called from a Web Worker context.
  */
 export async function createSlicerEngine(wasm64 = false): Promise<SlicerEngine> {
-  const module = await loadSlicerModule(wasm64);
-  const variant: 'wasm32' | 'wasm64' = wasm64 ? 'wasm64' : 'wasm32';
+  return engineFromModule(await loadSlicerModule(wasm64), wasm64 ? 'wasm64' : 'wasm32');
+}
+
+/**
+ * Wrap an already-instantiated slicer module. How the module gets loaded is
+ * the host's business — a worker fetches it, Node reads it off disk.
+ */
+export function engineFromModule(module: SlicerModule, variant: 'wasm32' | 'wasm64'): SlicerEngine {
   let slicer: WasmSlicerInstance | null = new module.WasmSlicer();
   let destroyed = false;
 

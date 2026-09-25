@@ -17,7 +17,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Leaves room for the time-boxed print-estimate step on a cold cache.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
@@ -39,12 +40,19 @@ jobs:
       # about the model source (or the openscad version pinned by
       # flake.lock, or the build scripts) has changed. On a hit, the
       # rebuild is a few file copies.
+      # Print estimates ride along: they're keyed by artifact key + slice
+      # settings, so a restored entry is only ever reused for identical input.
       - name: Cache openscad build artifacts
         uses: actions/cache@v4
         with:
-          path: .cache/forge
-          key: forge-cache-${{ hashFiles('models/**/*.scad') }}
+          path: |
+            .cache/forge
+            .cache/print-estimates
+          # Unique per run so the cache is always saved: a time-boxed estimate
+          # run keeps what it finished, and the next deploy picks up from there.
+          key: forge-cache-${{ hashFiles('models/**/*.scad', 'scripts/estimate-prints.mjs') }}-${{ github.run_id }}
           restore-keys: |
+            forge-cache-${{ hashFiles('models/**/*.scad', 'scripts/estimate-prints.mjs') }}-
             forge-cache-
 
       - name: Install node dependencies
@@ -57,6 +65,21 @@ jobs:
       # (<1s) because it just re-parses the artifacts we just built.
       - name: Verify build fingerprints
         run: nix develop --command npm run test:build
+
+      # npm ci skips the toolkit's postinstall under CI, so fetch the slicer here.
+      - name: Fetch slicer WASM
+        run: nix develop --command npm run fetch-wasm -w @3d-gallery/print-toolkit -- --no-wasm64
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Slice every printable part at 3 / 8 / 12 / 18 mm³/s for the gallery's
+      # print-time estimates. Information, not a gate: a part that won't slice
+      # warns, and a cold cache that runs out of time ships without estimates
+      # (each finished part is cached, so the next deploy resumes).
+      - name: Estimate print times
+        run: nix develop --command npm run estimate:prints -- --published
+        timeout-minutes: 35
+        continue-on-error: true
 
       - name: Build site
         run: nix develop --command npm run build -w @3d-gallery/gallery-app

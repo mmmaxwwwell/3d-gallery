@@ -1,10 +1,14 @@
 // SPDX-License-Identifier: MIT
 //
 // The plate editor, end to end: put two copies of a part on a plate, open it,
-// and check the 3D-first shell — canvas filling the modal, options behind rail
+// and check the 3D-first shell — canvas owning the stage, options behind rail
 // buttons, the plate size readout in the HUD, the Delete key taking a copy off
 // the plate, and the URL naming which plate is open. Uses a real printer preset
 // so the bed, the exclusion zones and the fit verdict are production's.
+//
+// The default Desktop Chrome viewport is above the split breakpoint, so the
+// first test is the one-screen layout. A second test narrows the viewport to
+// cover the separate-screen flow a phone gets.
 
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -44,7 +48,7 @@ async function addFirstPartToPlate(page: Page): Promise<void> {
   await expect(page.locator('#plate-added')).toBeVisible({ timeout: 30_000 });
 }
 
-test('plate editor is 3D-first, edits through the rail, and routes by URL', async ({ page }) => {
+test('desktop shows the plate and its print setup at once, and routes by URL', async ({ page }) => {
   test.setTimeout(180_000);
 
   await page.goto('/');
@@ -74,12 +78,16 @@ test('plate editor is 3D-first, edits through the rail, and routes by URL', asyn
   });
   expect(painted).toBe(true);
 
-  // The canvas is the screen: it fills the modal body, and no options panel is
-  // open until the user asks for one.
+  // Two columns split the body between them: the canvas takes the larger
+  // share on the left, print setup docks on the right, and no options panel
+  // is open over either until the user asks for one.
   const bodyBox = await page.locator('.print-modal-body.is-bleed').boundingBox();
   const stageBox = await page.locator('.pd-stage').boundingBox();
-  if (!bodyBox || !stageBox) throw new Error('plate editor did not lay out');
+  const sideBox = await page.locator('.pd-split-side').boundingBox();
+  if (!bodyBox || !stageBox || !sideBox) throw new Error('plate editor did not lay out');
   expect(stageBox.height).toBeGreaterThan(bodyBox.height * 0.5);
+  expect(stageBox.width).toBeGreaterThan(sideBox.width);
+  expect(stageBox.width + sideBox.width).toBeGreaterThan(bodyBox.width * 0.95);
   await expect(page.locator('.pd-sheet')).toHaveCount(0);
   await expect(page.locator('.pd-printer-pick select')).toHaveValue(/.+/);
 
@@ -122,11 +130,12 @@ test('plate editor is 3D-first, edits through the rail, and routes by URL', asyn
   await page.getByRole('button', { name: 'Save plate' }).click();
   await expect(page.locator('.pd-saved')).toBeVisible({ timeout: 15_000 });
 
-  // Slice leads to print setup, not straight to the slicer. Everything about
-  // *how* it prints lives there, including what the presets actually specify.
-  await page.getByRole('button', { name: 'Slice →' }).click();
+  // Everything about *how* it prints is already beside the plate — no step
+  // to take, and so no button offering to take it.
   await expect(page.locator('.pd-setup')).toBeVisible();
-  await expect(page.locator('.pd-stage')).toHaveCount(0);
+  await expect(page.locator('.pd-stage')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Slice →' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Back to plate' })).toHaveCount(0);
 
   // Checks lead, open by default: whether this can be printed at all decides
   // whether the rest of the screen matters.
@@ -177,14 +186,52 @@ test('plate editor is 3D-first, edits through the rail, and routes by URL', asyn
   await expect(page.locator('.pd-sheet')).toContainText(/not built yet/);
   await page.locator('.pd-sheet-close').click();
 
-  await page.getByRole('button', { name: 'Back to plate' }).click();
-  await expect(page.locator('.pd-stage')).toBeVisible();
-
   // Back closes the editor; the plate URL reopens it.
   await page.goBack();
   await expect(page.locator('.pd-stage')).toHaveCount(0);
   await page.goto(plateUrl);
   await expect(page.locator('.plate3d-viewport canvas')).toBeVisible({ timeout: 120_000 });
+});
+
+/**
+ * A phone has no room for a 3D stage and a settings column at once, so below
+ * the split breakpoint the two stay separate screens reached through the rail.
+ */
+test('a narrow viewport keeps the plate and print setup on separate screens', async ({ page }) => {
+  test.setTimeout(180_000);
+
+  // Filling the plate happens at desktop width: the gallery collapses its
+  // model sidebar on a phone, and that is not what this test is about.
+  await page.goto('/');
+  await seedPrinter(page, PRINTER);
+  await page.reload();
+
+  await addFirstPartToPlate(page);
+  await page.locator('#plates-btn').click();
+  await page.locator('.plate-row').first().getByRole('button', { name: /open/i }).click();
+  await expect(page.locator('.plate3d-viewport canvas')).toBeVisible({ timeout: 120_000 });
+
+  // The editor reads the media query live, so narrowing splits the one screen
+  // back into two without a reload.
+  await page.setViewportSize({ width: 430, height: 900 });
+  await expect(page.locator('.pd-split')).toHaveCount(0);
+  await expect(page.locator('.pd-setup')).toHaveCount(0);
+  await expect(page.locator('.pd-stage')).toBeVisible();
+
+  // The rail is the way across, and back.
+  await page.getByRole('button', { name: 'Slice →' }).click();
+  await expect(page.locator('.pd-setup')).toBeVisible();
+  await expect(page.locator('.pd-stage')).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Back to plate' }).click();
+  await expect(page.locator('.pd-stage')).toBeVisible();
+  await expect(page.locator('.pd-setup')).toHaveCount(0);
+
+  // And widening past the breakpoint joins them again.
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await expect(page.locator('.pd-split')).toBeVisible();
+  await expect(page.locator('.pd-setup')).toBeVisible();
+  await expect(page.locator('.pd-stage')).toBeVisible();
 });
 
 /**

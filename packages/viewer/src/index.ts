@@ -1,5 +1,5 @@
 export { createViewer } from './viewer.ts';
-export type { Viewer, ModelFormat, LoadOptions, HoverInfo } from './viewer.ts';
+export type { Viewer, ModelFormat, LoadOptions, HoverInfo, ViewState } from './viewer.ts';
 
 export {
   createArtifactClient,

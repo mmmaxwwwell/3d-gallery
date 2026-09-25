@@ -1,4 +1,5 @@
 import {
+  allParts,
   artifactKey,
   artifactUrl,
   encodeRenderRequest,
@@ -84,9 +85,11 @@ export function createArtifactClient(options: ArtifactClientOptions) {
   const allowServerRender = options.allowServerRender ?? true;
   const log = options.onLog ?? (() => {});
 
+  // Builds of one model share a file only when it is the same source, so any
+  // one copy of it answers for digest, schema and format.
   const parts = new Map<string, RuntimePart>();
   for (const model of manifest.models) {
-    for (const part of [...(model.previews ?? []), ...(model.parts ?? [])]) {
+    for (const part of allParts(model)) {
       parts.set(`${model.slug}/${part.file.replace(/\.\w+$/, '')}`, part);
     }
   }
@@ -99,7 +102,8 @@ export function createArtifactClient(options: ArtifactClientOptions) {
 
   async function keyFor(req: ArtifactRequest): Promise<string> {
     const part = partFor(req);
-    // No params means the manifest already carries the answer — skip the hash.
+    // No params means the lib defaults, and the manifest already carries that
+    // key — skip the hash.
     if (!req.params || Object.keys(req.params).length === 0) return part.defaultKey;
     return artifactKey({
       slug: req.slug,

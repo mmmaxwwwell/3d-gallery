@@ -11,6 +11,7 @@
     ".": "./src/index.ts",
     "./worker": "./src/slicer-worker.ts",
     "./vite-plugin": "./src/vite-plugin.ts",
+    "./node": "./src/node-slicer.ts",
     "./types": "./src/types.ts"
   },
   "files": [

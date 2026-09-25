@@ -13,6 +13,13 @@ import {
 import { parseOrcaPresetFile, parseOrcaConfigTree } from './orca-import.js';
 import { exportFilename, exportMergedJson, exportRawJson } from './preset-flatten.js';
 import {
+  clearServerAndUseLocal,
+  probeServerStore,
+  pullFromServer,
+  pushToServer,
+  type ServerStoreStatus,
+} from './server-store.js';
+import {
   INFILL_PATTERNS,
   deleteUserTemplate,
   listTemplates,
@@ -52,6 +59,10 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
   const [busy, setBusy] = useState<boolean>(false);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [addressDrafts, setAddressDrafts] = useState<Record<string, string>>({});
+  const [server, setServer] = useState<ServerStoreStatus | null>(null);
+  const [serverBusy, setServerBusy] = useState<boolean>(false);
+  const [serverNotice, setServerNotice] = useState<string>('');
+  const [serverError, setServerError] = useState<string>('');
   const folderInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -65,6 +76,24 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
 
   const refresh = async () => setPresets(await listPresets());
   useEffect(() => { void refresh(); }, []);
+
+  const refreshServer = async () => setServer(await probeServerStore());
+  useEffect(() => { void refreshServer(); }, []);
+
+  /** One wrapper for all three server actions — each is "do the thing, say what
+   *  happened, then re-read both stores so the panel can't show a stale count." */
+  const runServerAction = async (label: string, action: () => Promise<string>) => {
+    setServerBusy(true); setServerError(''); setServerNotice('');
+    try {
+      setServerNotice(await action());
+    } catch (err) {
+      setServerError(`${label} failed: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setServerBusy(false);
+      await refreshServer();
+      await refresh();
+    }
+  };
 
   const savePresetFromParsed = async (parsed: {
     kind: PresetKind;
@@ -274,6 +303,69 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
             {busy && <div class="print-settings-notice">Working…</div>}
             {importedCount > 0 && (
               <div class="print-settings-notice">Imported {importedCount} preset{importedCount === 1 ? '' : 's'}.</div>
+            )}
+
+            {/* Only rendered where a server store actually answers. A deployment
+                without one never shows this, which is what keeps hosting
+                optional rather than something every user needs. */}
+            {server?.available && (
+              <div class="print-settings-server">
+                <h4>Server store (optional)</h4>
+                <p class="print-settings-help">
+                  Your presets live in this browser. A server store is opt-in — use it to share
+                  them between browsers or to let an agent manage them for you.{' '}
+                  <strong>
+                    {server.count === 0
+                      ? 'The server is empty.'
+                      : `The server holds ${server.count} preset${server.count === 1 ? '' : 's'}.`}
+                  </strong>{' '}
+                  {server.optedIn
+                    ? 'Server values are synced into this browser on each load.'
+                    : 'Not syncing — this browser is using its own values.'}
+                </p>
+                <div class="print-settings-server-actions">
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    disabled={serverBusy}
+                    title="Replace the server's set with everything in this browser"
+                    onClick={() => void runServerAction('Export', async () => {
+                      const { exported } = await pushToServer();
+                      return `Exported ${exported} preset${exported === 1 ? '' : 's'} to the server.`;
+                    })}
+                  >
+                    Export to server
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    disabled={serverBusy || server.count === 0}
+                    title="Copy the server's presets into this browser. Never deletes local presets."
+                    onClick={() => void runServerAction('Sync', async () => {
+                      const { imported } = await pullFromServer();
+                      return `Using server values — ${imported} preset${imported === 1 ? '' : 's'} synced in.`;
+                    })}
+                  >
+                    Use server values
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-secondary print-settings-delete"
+                    disabled={serverBusy}
+                    title="Empty the server store and go back to this browser's own presets"
+                    onClick={() => void runServerAction('Delete', async () => {
+                      const { removed } = await clearServerAndUseLocal();
+                      return `Server store emptied (${removed} removed). Using this browser's values; `
+                        + 'nothing local was deleted.';
+                    })}
+                  >
+                    Delete from server, use local
+                  </button>
+                </div>
+                {serverBusy && <div class="print-settings-notice">Working…</div>}
+                {serverNotice && <div class="print-settings-notice">{serverNotice}</div>}
+                {serverError && <div class="print-settings-error">{serverError}</div>}
+              </div>
             )}
             {warnings.length > 0 && (
               <details class="print-settings-warnings">

@@ -5,6 +5,7 @@ import { PrintDialog } from './PrintDialog.js';
 import { PlatesPanel } from './PlatesPanel.js';
 import { SettingsPanel } from './SettingsPanel.js';
 import { mayLeavePrintUI, setPrintLeaveGuard } from './nav-guard.js';
+import { syncFromServerOnce } from './server-store.js';
 
 /**
  * Preact print UI lives in a single portal div appended to <body>. Each open
@@ -133,6 +134,11 @@ export function closePrintUI(): void {
  * moves through history. Call once, after the gallery has booted.
  */
 export function initPrintRouting(): void {
+  // Adopt anything added to the optional server store since the last load —
+  // including records an agent created over MCP. No-op unless the user has
+  // opted in, and failures are swallowed so the local-first path always works.
+  void syncFromServerOnce();
+
   window.addEventListener('popstate', () => {
     // Back is a close, so it has to ask the same question Cancel does. On a
     // refusal the entry we came from goes back on the stack and the DOM is

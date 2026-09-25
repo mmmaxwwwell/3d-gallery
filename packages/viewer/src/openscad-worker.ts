@@ -147,7 +147,7 @@ async function runOpenSCAD(
   return { exitCode, output };
 }
 
-import { NAMED_COLORS, parseColorString } from '@3d-gallery/model-core';
+import { NAMED_COLORS, parseColorString, parseInstanceEcho } from '@3d-gallery/model-core';
 
 async function discoverColors(
   scadSource: string,
@@ -312,13 +312,17 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
 
     try {
       sendLog('Rendering to CSG (resolving colors)...');
+      const csgStderr: string[] = [];
       const { exitCode: csgExit, output: csgOutput } = await runOpenSCAD(
         req.scadSource,
         ['/input.scad', '-o', '/output.csg'],
         '/input.scad',
         '/output.csg',
         () => {},
-        (text) => sendLog(`[stderr] ${text}`),
+        (text) => {
+          csgStderr.push(text);
+          sendLog(`[stderr] ${text}`);
+        },
       );
 
       if (csgExit !== 0 || !csgOutput) throw new Error(`CSG render failed (exit code ${csgExit})`);
@@ -345,7 +349,7 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       }
 
       sendLog('Merging into multi-color 3MF...');
-      const merged = merge3mf(coloredModels);
+      const merged = merge3mf(coloredModels, parseInstanceEcho(csgStderr));
 
       const buf = merged.buffer.byteLength === merged.byteLength
         ? merged.buffer as ArrayBuffer

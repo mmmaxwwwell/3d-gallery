@@ -10,8 +10,9 @@
   "scripts": {
     "build:models": "node scripts/build-models.mjs",
     "build:model": "node scripts/build-models.mjs",
+    "estimate:prints": "node scripts/estimate-prints.mjs",
     "dev": "npm run dev -w @3d-gallery/gallery-app",
-    "build": "npm run build:models && npm run build -w @3d-gallery/gallery-app",
+    "build": "npm run build:models && npm run estimate:prints -- --published && npm run build -w @3d-gallery/gallery-app",
     "preview": "npm run preview -w @3d-gallery/gallery-app",
     "test:e2e": "npm run test:e2e -w @3d-gallery/gallery-app",
     "test:e2e:full": "npm run test:e2e:full -w @3d-gallery/gallery-app",

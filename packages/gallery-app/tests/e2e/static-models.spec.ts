@@ -22,6 +22,13 @@ interface Model {
   devOnly?: boolean;
   previews?: Part[];
   parts?: Part[];
+  builds?: { id: string; previews?: Part[]; parts?: Part[] }[];
+}
+
+/** Every entry of a model, with the build it belongs to when it has builds. */
+function entriesOf(model: Model): { build?: string; part: Part }[] {
+  const owners = model.builds ?? [{ id: undefined, previews: model.previews, parts: model.parts }];
+  return owners.flatMap((o) => [...(o.previews ?? []), ...(o.parts ?? [])].map((part) => ({ build: o.id, part })));
 }
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -33,11 +40,10 @@ const staticModels = manifest.models.filter((m) => !m.customizable && !m.devOnly
 
 test.describe("static models / viewer", () => {
   for (const model of staticModels) {
-    const parts = [...(model.previews ?? []), ...(model.parts ?? [])];
-    for (const part of parts) {
+    for (const { build, part } of entriesOf(model)) {
       const partId = part.module ?? part.file;
-      test(`${model.slug}: ${part.label}`, async ({ page }) => {
-        await loadModel(page, model.slug, part.module ? { part: part.module } : {});
+      test(`${model.slug}${build ? ` [${build}]` : ""}: ${part.label}`, async ({ page }) => {
+        await loadModel(page, model.slug, { build, ...(part.module ? { part: part.module } : {}) });
         // Non-customizable static parts don't have a `module` field, so
         // the URL route falls back to the default part. Verify at least
         // *some* part loaded — precise part selection is exercised for

@@ -32,6 +32,8 @@ export async function slicerWasmServed(page: Page): Promise<boolean> {
 export type ParamValue = string | number | boolean;
 
 export interface LoadOpts {
+  /** Which build of a model with builds (its manifest `id`). */
+  build?: string;
   /** Which preview/part to select (matches manifest `module` field). */
   part?: string;
   /** URL-injected initial values (mostly used to preload the customizer). */
@@ -46,6 +48,7 @@ export interface LoadOpts {
  */
 export async function loadModel(page: Page, slug: string, opts: LoadOpts = {}) {
   const params = new URLSearchParams({ model: slug });
+  if (opts.build) params.set("build", opts.build);
   if (opts.part) params.set("part", opts.part);
   if (opts.initial) for (const [k, v] of Object.entries(opts.initial)) params.set(k, String(v));
   await page.goto(`?${params.toString()}`);

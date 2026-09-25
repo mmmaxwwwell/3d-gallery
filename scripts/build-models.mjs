@@ -6,7 +6,9 @@
 // is the naming convention the rest of the repo depends on:
 //
 //   models/<slug>/build/<file>    per-model output, used by tests/build/
-//   public/models/<slug>/<file>   what Vite serves and the PWA precaches
+//                                 (build/<build-id>/<file> for a model with builds)
+//   public/models/<slug>/<file>   what Vite serves and the PWA precaches — the
+//                                 same tree as build/
 //   public/models/manifest.json   the runtime manifest — authored entries plus
 //                                 source digests, param schemas and keys
 //   public/a/<key>.<format>       the same artifacts addressed by key, for
@@ -21,6 +23,7 @@ import { cpSync, existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } fro
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { buildViews } from "../packages/model-core/src/index.ts";
 import { createForge, targetOf } from "../packages/model-forge/src/index.ts";
 import { embedUrlInFile } from "./embed-source-url.mjs";
 
@@ -44,10 +47,6 @@ export function loadManifest() {
   return createForge({ root: ROOT }).manifest;
 }
 
-function allParts(model) {
-  return [...(model.previews ?? []), ...(model.parts ?? [])];
-}
-
 /**
  * Render one model and mirror it into build/ and public/.
  *
@@ -57,30 +56,38 @@ export async function buildModel(model, forge = createForge({ root: ROOT })) {
   const buildDir = join(MODELS_DIR, model.slug, "build");
   mkdirSync(buildDir, { recursive: true });
 
-  await Promise.all(allParts(model).map(async (part) => {
-    const target = targetOf(part);
-    const result = await forge.ensure({ slug: model.slug, target, format: part.format });
-    const out = join(buildDir, part.file);
-    cpSync(result.path, out);
+  await Promise.all(buildViews(model).flatMap((view) => {
+    // Builds can share a file name, rendered with different params, so each
+    // build's copies get a directory of their own.
+    const outDir = view.build ? join(buildDir, view.build.id) : buildDir;
+    const rel = view.build ? `${view.build.id}/` : "";
+    mkdirSync(outDir, { recursive: true });
+    const params = Object.keys(view.params).length > 0 ? { params: view.params } : {};
 
-    // Injected after copying, never into the cache: the permalink depends on the
-    // manifest's module name and the site URL, neither of which changes what
-    // OpenSCAD produced. Keeping it out of the cached bytes means renaming a
-    // module doesn't invalidate the geometry.
-    const url = new URL(SITE_URL);
-    url.searchParams.set("model", model.slug);
-    if (part.module) url.searchParams.set("part", part.module);
-    embedUrlInFile(out, part.format, url.toString());
+    return [...view.previews, ...view.parts].map(async (part) => {
+      const target = targetOf(part);
+      const result = await forge.ensure({ slug: model.slug, target, format: part.format, ...params });
+      const out = join(outDir, part.file);
+      cpSync(result.path, out);
 
-    console.log(`  [${result.status === "hit" ? "cache" : part.format.padEnd(5)}] ${model.slug}/${part.file}`);
+      // Injected after copying, never into the cache: the permalink depends on the
+      // manifest's module name and the site URL, neither of which changes what
+      // OpenSCAD produced. Keeping it out of the cached bytes means renaming a
+      // module doesn't invalidate the geometry.
+      const url = new URL(SITE_URL);
+      url.searchParams.set("model", model.slug);
+      if (view.build) url.searchParams.set("build", view.build.id);
+      if (part.module) url.searchParams.set("part", part.module);
+      embedUrlInFile(out, part.format, url.toString());
+
+      console.log(`  [${result.status === "hit" ? "cache" : part.format.padEnd(5)}] ${model.slug}/${rel}${part.file}`);
+    });
   }));
 
   const publicDir = join(PUBLIC_MODELS_DIR, model.slug);
   rmSync(publicDir, { recursive: true, force: true });
   mkdirSync(publicDir, { recursive: true });
-  if (existsSync(buildDir)) {
-    for (const f of readdirSync(buildDir)) cpSync(join(buildDir, f), join(publicDir, f));
-  }
+  if (existsSync(buildDir)) cpSync(buildDir, publicDir, { recursive: true });
 }
 
 /**

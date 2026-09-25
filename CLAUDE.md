@@ -65,21 +65,30 @@ The sidebar, download list, and build queue all come from here.
   "default": true,                 // optional — opens when the app loads with no ?model=
   "devOnly": true,                 // optional — dev server only; never built or published
   "filament": [                    // optional — hints in the sidebar
-    { "material": "PLA", "color": "any", "note": "…" }
+    { "material": "PLA", "color": "any", "note": "…" },
+    { "material": "TPU 64D", "color": "any", "parts": ["peg.stl"] }  // parts = files printed in it
   ],
   "previews": [
     { "file": "assembled.3mf", "format": "3mf", "label": "…",
       "default": true, "module": "assembled",     // module = for WASM re-render
-      "legend": [ { "color": "#000", "label": "…" } ],
-      "components": [ { "part": "foo.stl", "qty": 2 } ]  // BOM for assemblies
+      "legend": [ { "color": "#000", "label": "…", "part": "foo.stl",
+                    "shades": ["#333"],                      // optional alternate shade(s) of color
+                    "parts": ["foo.stl", "foo-end.stl"] } ],  // parts = every file drawn in this colour
+      "components": [ { "part": "foo.stl", "qty": 2,     // BOM for assemblies
+                        "instances": [ { "id": "F1", "where": "left end" }, { "id": "F2", "where": "right end" } ] } ]
     }
   ],
   "parts": [
     { "file": "cap.stl", "format": "stl", "label": "…", "module": "cap" }
   ],
   "hardware": [
-    { "qty": 6, "label": "M3x6 SHCS",
-      "source": { "url": "https://…", "vendor": "…" } }
+    { "qty": 6, "label": "M3x6 SHCS — what it's for",
+      "source": { "url": "https://…", "vendor": "…" },
+      "usedBy": [ { "part": "foo.stl", "each": 3 } ] }  // per printed piece
+  ],
+  "builds": [                      // optional — instead of previews/parts/hardware above
+    { "id": "4x", "label": "4×", "default": true, "params": { "lanes": 4 },
+      "previews": [ … ], "parts": [ … ], "hardware": [ … ] }
   ]
 }
 ```
@@ -88,6 +97,13 @@ The sidebar, download list, and build queue all come from here.
 - `module`: the lib module name to render live in the WASM customizer. Only needed when `customizable: true`.
 - `previews` = multicolor 3MFs, `parts` = single-color STLs. A part with just STL is fine; no preview is fine too.
 - `default` (model level): what the gallery opens on when the URL carries no `?model=`. At most one model may set it; without one the first model wins. The `default` on a part/preview picks which of *that* model's entries opens.
+- **Main assembly** = the default preview with `components` (else the first with any). A view without its own BOM — a reference render, a single part — shows the main assembly's in the parts list, not one of everything.
+- `instances` names each physical piece (`qty` of them). Only the main assembly must give `where`; a plate can list just `{ "id": "W2" }` and borrows the rest by id.
+- **Pointing at one piece.** Hovering an id (B1) in the parts list lifts that one piece in the viewer, its siblings glow faintly, and the leader runs to it; hovering the piece lights its id. The viewer can only do this when the preview says where each piece is: the lib computes `[[id, [x, y, z]], …]` (a point near the middle of each piece, in the preview's frame) and the preview echoes it at top level — `echo(gallery_instances = stand_instances());`. Every builder (CLI, node WASM, browser worker) lifts that echo off stderr into the 3MF as `Metadata/gallery_instances.json` (`model-core/src/instances.ts`). The viewer splits each colour into its separate solids and gives each anchor the solid whose bounds hold it. A part lights piece by piece only if one key entry draws it (in any of that entry's shades) and *every* one of its pieces resolved; pieces fused into one solid stay lit by colour. Without the echo nothing changes.
+- `shades`: alternate `#rrggbb` shades of an entry's `color`, for an assembly whose copies of a part alternate shade piece to piece so they read as "different but the same". The key and parts list show the entry as one row with a swatch per shade, and every shade hovers and highlights as that entry. Each shade needs its own top-level `color()` call in the preview — split the lib's placement module by piece parity (see filament-spool-roller's `stand_*(parity)`). Adjacent copies in different shades land in different colour passes, which is also what keeps touching pieces (dovetailed tiles) from fusing into one solid. A `color()` whose subtree draws nothing fails the whole 3MF build, so guard a shade that can come out empty (`if (lanes > 1) color(…) …`).
+- `usedBy` attributes hardware to printed parts: `each` × that part's main-assembly count. Validation rejects an attribution that exceeds `qty`; any remainder shows as "not tied to a printed part". The parts list's Hardware tabs (Total / By part) only appear once some item has `usedBy`. The text before " — " in a hardware label is its short name in the By-part view.
+- On desktop the docked parts list replaces the floating key: printed rows carry the key's swatches (matched through `legend[].part`/`parts`), and key rows that name no part land under "Also shown, not printed".
+- `builds`: for a generator lib built more than one way (a lane count, a size) where each configuration has a different set of pieces. A build is `params` plus its own `previews`, `parts` and `hardware`, each checked like a model's own. A model with `builds` has no top-level entries. The gallery shows a switch beside the title and routes `?build=<id>`. Every entry of a build renders at the build's `params`: the forge prebuilds it at those, the customizer opens on them, and named outputs land in `build/<id>/<file>` and `models/<slug>/<id>/<file>`. Builds may share a file (the same `.scad` at other params), but a shared name must mean the same `file` and `module` in each. The browser finds an artifact by slug and file base name, and only the params tell two builds' copies apart. Runtime `defaultKey` stays at lib defaults, so address a build's entries with its params. Print-time estimates don't cover builds yet. For a single part's baked-in parameter sets, use part-level `variants` instead.
 - `devOnly`: a work-in-progress model. `scripts/build-models.mjs` builds a forge with `includeDevOnly: false`, so the model is never rendered, never mirrored into `public/`, and never named in the published `manifest.json` — which in turn keeps it out of the fingerprint baseline and the e2e suites (both filter it out). The dev server's forge keeps it, so `npm run dev` shows it as usual. Flip the flag to ship it.
 
 ## Adding a model — checklist
@@ -97,7 +113,7 @@ The sidebar, download list, and build queue all come from here.
 3. Add thin `parts/*.scad` and/or `previews/*.scad` files (the 3-line pattern).
 4. Add an entry to `models/manifest.json`.
 5. Write `models/<slug>/README.md` (human-facing) and `models/<slug>/CLAUDE.md` (agent-facing conventions).
-6. If **customizable**: also wire it into `src/main.ts` — add `?raw` imports and an entry in `CUSTOMIZABLE_SOURCES` keyed by slug.
+6. If **customizable**: also wire it into `packages/gallery-app/src/customizable-sources.ts` — add `?raw` imports and an entry in `CUSTOMIZABLE_SOURCES` keyed by slug.
 7. `npm run build:models` to render. `npm run dev` to preview locally.
 8. If adding baseline tests: `npm run test:build:baseline` to seed checksums, then `npm run test:build` to verify.
 
@@ -109,7 +125,7 @@ The sidebar, download list, and build queue all come from here.
 - Wrap top-level parts in `color(...)` in `previews/*.scad`; don't hide them behind a helper module in the lib.
 - The **WASM path** (customizer) uses CSG discovery, not regex, so module-level color works there — but the CLI build won't match. Keep both paths in mind: **top-level color() in the preview file** works for both.
 
-## WASM customizer wiring (`src/main.ts`)
+## WASM customizer wiring (`src/customizable-sources.ts`)
 
 For a customizable model:
 
@@ -117,7 +133,7 @@ For a customizable model:
 import myModelLib from "../models/<slug>/lib/<slug>-lib.scad?raw";
 import myModelAssembled from "../models/<slug>/previews/assembled.scad?raw";
 
-const CUSTOMIZABLE_SOURCES: Record<string, { lib: string; previews: Record<string, string> }> = {
+export const CUSTOMIZABLE_SOURCES: Record<string, { lib: string; previews: Record<string, string> }> = {
   "<slug>": {
     lib: myModelLib,
     previews: {
@@ -143,6 +159,7 @@ Use `include <...>` in every consumer (parts, previews) — the customizer + bui
 nix develop                       # openscad, node, BOSL2, qr.scad
 npm install
 npm run build:models              # render all .scad → STL/3MF under models/*/build/, mirror to public/
+npm run estimate:prints           # slice printable artifacts → public/models/print-estimates.json
 npm run dev                       # vite @ localhost:5173 — renders models on demand (see below)
 npm run build                     # build:models + vite build
 npm run test:build                # verify rendered artifacts against baseline fingerprints
@@ -153,6 +170,8 @@ npm run test:e2e:full             # includes @matrix
 
 **Dev-server generation is lazy.** `vite.config.ts`'s `galleryModelsPlugin` serves `models/<slug>/<file>` straight out of the artifact forge, rendering on a cache miss. Saving a `.scad` no longer rebuilds every part of the model — it changes the source digest, and only the part you actually request gets re-rendered. The URL shape is unchanged, so the app needed no changes to benefit.
 
+**A `.scad` save doesn't reload the page.** The plugin sends a `scad-rebuilt` event instead of a full reload. The client refetches the runtime manifest (the digests moved, so the old artifact keys are stale) and swaps the new render into the viewer with the camera where it was. The `?raw` sources live in `customizable-sources.ts`, a module `main.ts` accepts over HMR — keep them out of `main.ts`, or every edit to a customizable model falls back to a full reload. Full reloads that do still happen (manifest or TS edits) stash the camera in `sessionStorage` and restore it on the same part.
+
 The plugin is `enforce: 'pre'`; registered any later, Vite's static handler answers first with a stale `public/models/` copy. It also accepts both base-prefixed and base-stripped URLs, because whether Vite has stripped `/3d-gallery/` by that point depends on where in the middleware stack it runs.
 
 **`models/manifest.json` hot-reloads too.** The forge parses the manifest once at construction, so the plugin watches the file and rebuilds the forge (and everything derived from it — the middlewares and the part index) on change, then sends a full page reload. The registered middlewares delegate through one mutable binding, which is what lets a reload take effect without re-registering them. A half-written or invalid manifest is logged and ignored; the last good one keeps serving. No dev-server restart needed for a manifest edit.
@@ -160,6 +179,7 @@ The plugin is `enforce: 'pre'`; registered any later, Vite's static handler answ
 **Shebang note.** `scripts/*.mjs` do NOT carry `#!/usr/bin/env node` shebangs — esbuild (which vite uses to load `vite.config.ts`) rejects shebangs in imported entry points. All scripts are invoked as `node scripts/…` per `package.json`.
 
 - `npm run build:models` renders via `@3d-gallery/model-forge` and then writes the named outputs (`models/<slug>/build/` + `public/models/<slug>/`) the viewer, the PWA precache, and `tests/build/` all expect.
+- `npm run estimate:prints` slices every STL — plus the 3MFs of a model with no STL parts, whose 3MF *is* the print — with the OrcaSlicer WASM in Node (`@3d-gallery/print-toolkit/node`) at 3 / 8 / 12 / 18 mm³/s (TPU / – / PETG / PLA), on an Adventurer 5M profile, 2 walls, 15% gyroid, no supports; $10/kg. The gallery's Print time leads with a row that times each piece at its own material's rate and weighs it at that material's density: a `filament` entry with `parts` covers those files, the entry without `parts` covers the rest, and a model that names no filament (or one with no rate, like ASA) is assumed PETG (`defaultMaterial` in the estimator). Material families match on the first word, so "TPU 64D" runs at the TPU rate. Assembly 3MFs are never sliced. Output is keyed by artifact key, so the parts list's "Print time" only matches the exact default render (and hides once customized). Cached in `.cache/print-estimates/`; a cold run takes a while (big parts slice for minutes). A part that won't slice gets a CI warning, not a failure. A local run includes `devOnly` models (so the dev server shows them); CI and `npm run build` pass `--published` to leave them out. Estimates are a snapshot: after a `.scad` edit the part's key moves and its print time disappears until you re-run. Needs the slicer WASM: `npm run fetch-wasm -w @3d-gallery/print-toolkit`.
 - `OPENSCAD_BACKEND=CGAL` swaps out Manifold (default) for the older CGAL boolean engine — mostly a smoke-test escape hatch.
 
 ## External deps in the SCAD path
@@ -194,6 +214,11 @@ The repo is an npm workspace (`workspaces: ["packages/*"]` in root `package.json
 - **`packages/model-core/`** — isomorphic, zero-dep. Manifest schema + validation, SCAD param parsing, parameter canonicalization, content-addressed artifact keys. Imported by both the browser and Node, so **never** import a Node builtin or a DOM global here (`tests/isomorphic.test.ts` enforces it).
 - **`packages/model-forge/`** — Node only. Source resolution, render engines, the content-addressed artifact store, `ensure`/`prerender`, dev middleware. Never import from a browser bundle. Ships two engines: native `openscad`, and OpenSCAD-WASM in Node for machines without it (`npm run fetch-wasm -w @3d-gallery/model-forge`, ~24 MB, gitignored). `auto` prefers native. Their geometry must stay equivalent — `tests/engine-parity.test.ts` enforces it, and that is what licenses leaving the engine out of the artifact key.
 - **`packages/viewer/`** — browser only. Three.js viewer, the artifact cache client, and the OpenSCAD-WASM fallback renderer.
+- **`packages/orca-bridge/`** — Node only. Reads a local OrcaSlicer install: presets with resolved inheritance, `OrcaSlicer.conf` history, and sliced 3MF projects. Serves an MCP HTTP server plus a small REST store on the dev server (`/3d-gallery/__mcp`, `/3d-gallery/__devstore`, wired by `orcaMcpPlugin` in gallery-app's `vite.config.ts`, `apply: 'serve'`), and a CLI — all three over the same `queries.ts`. No auth: single user, dev server only; the per-user seam for a hosted model is the `OrcaPaths` / `repoRoot` pair every query already takes.
+  - **The Orca config is read-only and must stay that way.** A job is reconstructed by *matching* against Orca's data, never by editing it — `orca_*` tools are all `readOnlyHint: true`, enforced by a test.
+  - **The gallery's own store is writable** (`.cache/orca-bridge/gallery-presets.json`, via `gallery_*` tools). That is the only write path, and it exists because MCP runs in Node while the gallery's presets live in browser IndexedDB.
+  - **The gallery is local-first.** IndexedDB is the real store; the server store is opt-in, so a hosted deployment costs nothing to run without one. `server-store.ts` in gallery-app probes `__devstore` and hides its UI unless a real JSON response comes back — a 200 from the SPA fallback is HTML, not a store.
+  - See its README for why 3MF import is reconciliation rather than import, and why the Orca logs are useless for change detection.
 - **`packages/astro/`** — Astro integration + `<ModelViewer>`. Consumed by an external Astro site; must not become a dependency of `gallery-app`.
 - **`packages/android-shell/`** — planned WebView host. Not seeded.
 

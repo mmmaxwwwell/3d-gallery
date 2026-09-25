@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import {
   allParts,
   artifactKey,
+  buildViews,
   artifactUrl,
   canonicalizeParams,
   KEY_SCHEMA,
@@ -12,6 +13,7 @@ import {
   type Manifest,
   type ManifestPart,
   type RenderRequest,
+  type RuntimeBuild,
   type RuntimeManifest,
   type RuntimePart,
   type ScadValue,
@@ -241,15 +243,21 @@ export function createForge(config: ForgeConfig) {
     return promise;
   }
 
-  /** Every artifact the manifest declares: each part at defaults, plus each declared variant. */
+  /**
+   * Every artifact the manifest declares: each entry at its build's params (the
+   * lib defaults, for a model without builds), plus each declared variant.
+   */
   function declaredRequests(): RenderRequest[] {
     const out: RenderRequest[] = [];
     for (const model of manifest.models) {
-      for (const part of allParts(model)) {
-        const target = targetOf(part);
-        out.push({ slug: model.slug, target, format: part.format });
-        for (const variant of part.variants ?? []) {
-          out.push({ slug: model.slug, target, format: part.format, params: variant.params });
+      for (const view of buildViews(model)) {
+        const base = Object.keys(view.params).length > 0 ? { params: view.params } : {};
+        for (const part of [...view.previews, ...view.parts]) {
+          const target = targetOf(part);
+          out.push({ slug: model.slug, target, format: part.format, ...base });
+          for (const variant of part.variants ?? []) {
+            out.push({ slug: model.slug, target, format: part.format, params: { ...view.params, ...variant.params } });
+          }
         }
       }
     }
@@ -332,7 +340,7 @@ export function createForge(config: ForgeConfig) {
      */
     async runtimeManifest(): Promise<RuntimeManifest> {
       const models = await Promise.all(manifest.models.map(async (model) => {
-        async function enrich(part: ManifestPart): Promise<RuntimePart> {
+        async function enrich(part: ManifestPart, buildParams: Record<string, ScadValue> = {}): Promise<RuntimePart> {
           const target = targetOf(part);
           const shape = shapeFor(model.slug, target);
           const base = { sourceDigest: shape.digest, schema: shape.schema };
@@ -345,7 +353,7 @@ export function createForge(config: ForgeConfig) {
             ? await Promise.all(part.variants.map(async (v) => ({
                 ...v,
                 key: await artifactKey({
-                  slug: model.slug, target, format: part.format, params: v.params, ...base,
+                  slug: model.slug, target, format: part.format, params: { ...buildParams, ...v.params }, ...base,
                 }),
               })))
             : undefined;
@@ -362,11 +370,18 @@ export function createForge(config: ForgeConfig) {
           };
         }
 
-        const { previews, parts, ...rest } = model;
+        const { previews, parts, builds, ...rest } = model;
         return {
           ...rest,
-          ...(previews ? { previews: await Promise.all(previews.map(enrich)) } : {}),
-          ...(parts ? { parts: await Promise.all(parts.map(enrich)) } : {}),
+          ...(previews ? { previews: await Promise.all(previews.map((p) => enrich(p))) } : {}),
+          ...(parts ? { parts: await Promise.all(parts.map((p) => enrich(p))) } : {}),
+          ...(builds ? {
+            builds: await Promise.all(builds.map(async ({ previews: bp, parts: bq, ...b }): Promise<RuntimeBuild> => ({
+              ...b,
+              ...(bp ? { previews: await Promise.all(bp.map((p) => enrich(p, b.params))) } : {}),
+              ...(bq ? { parts: await Promise.all(bq.map((p) => enrich(p, b.params))) } : {}),
+            }))),
+          } : {}),
         };
       }));
 

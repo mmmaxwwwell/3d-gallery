@@ -1,4 +1,4 @@
-import { createViewer, type ModelFormat } from "@3d-gallery/viewer";
+import { createViewer, type ModelFormat, type ViewState } from "@3d-gallery/viewer";
 import { registerSW } from "virtual:pwa-register";
 import { render, h } from "preact";
 import { useState, useEffect, useRef } from "preact/hooks";
@@ -88,43 +88,7 @@ if (installBtn) {
     });
   }
 }
-import collarTagLib from "../../../models/collar-tag/lib/collar-tag-lib.scad?raw";
-import collarTagMulticolor from "../../../models/collar-tag/previews/multicolor.scad?raw";
-import collarSlideTagLib from "../../../models/collar-slide-tag/lib/collar-slide-tag-lib.scad?raw";
-import collarSlideTagMulticolor from "../../../models/collar-slide-tag/previews/multicolor.scad?raw";
-import fiMiniCaseLib from "../../../models/fi-mini-case/lib/fi-mini-case-lib.scad?raw";
-import fiMiniCaseAssembled from "../../../models/fi-mini-case/previews/assembled.scad?raw";
-import fiMiniCaseCap from "../../../models/fi-mini-case/previews/cap.scad?raw";
-import fiMiniCaseCaptiveLib from "../../../models/fi-mini-case-captive/lib/fi-mini-case-captive-lib.scad?raw";
-import fiMiniCaseCaptiveAssembled from "../../../models/fi-mini-case-captive/previews/assembled.scad?raw";
-import ugreenFinderDuoLib from "../../../models/ugreen-finder-duo-captive/lib/ugreen-finder-duo-captive-lib.scad?raw";
-import ugreenFinderDuoAssembled from "../../../models/ugreen-finder-duo-captive/previews/assembled.scad?raw";
-import qrSignLib from "../../../models/qr-sign/lib/qr-sign-lib.scad?raw";
-import qrSignAssembled from "../../../models/qr-sign/previews/assembled.scad?raw";
-import qrLeashTagLib from "../../../models/qr-leash-tag/lib/qr-leash-tag-lib.scad?raw";
-import qrLeashTagTag from "../../../models/qr-leash-tag/previews/tag.scad?raw";
-import qrLeashTagPlate from "../../../models/qr-leash-tag/previews/plate.scad?raw";
-import parametricQrCaseLib from "../../../models/parametric-qr-case/lib/parametric-qr-case-lib.scad?raw";
-import parametricQrCaseCase from "../../../models/parametric-qr-case/previews/case.scad?raw";
-import parametricQrCasePlate from "../../../models/parametric-qr-case/previews/plate.scad?raw";
-import parametricShelfLib from "../../../models/parametric-shelf/lib/parametric-shelf-lib.scad?raw";
-import ff5mFilamentSensorLib from "../../../models/ff5m-filament-sensor/lib/ff5m-filament-sensor-lib.scad?raw";
-import et300KnobAideKnurledLib from "../../../models/et300-knob-aide-knurled/lib/et300-knob-aide-knurled-lib.scad?raw";
-import et300KnobAideKnurledLogoPolygon from "../../../models/et300-knob-aide-knurled/lib/logo-polygon-data.scad?raw";
-import et300KnobAideKnurledMulticolor from "../../../models/et300-knob-aide-knurled/previews/tactile-aide-multicolor.scad?raw";
-import splitTray500Lib from "../../../models/split-tray-500/lib/split-tray-500-lib.scad?raw";
-import splitTray500Assembled2x2 from "../../../models/split-tray-500/previews/assembled-2x2.scad?raw";
-import splitTray500Assembled3x3 from "../../../models/split-tray-500/previews/assembled-3x3.scad?raw";
-import underDeskCordProtectorLib from "../../../models/under-desk-cord-protector/lib/under-desk-cord-protector-lib.scad?raw";
-import underDeskCordProtectorAssembled from "../../../models/under-desk-cord-protector/previews/assembled.scad?raw";
-import underDeskCordProtectorPropped from "../../../models/under-desk-cord-protector/previews/propped.scad?raw";
-import underDeskCordProtectorHex from "../../../models/under-desk-cord-protector/previews/hex.scad?raw";
-import underDeskCordProtectorPlate from "../../../models/under-desk-cord-protector/previews/plate.scad?raw";
-import scaffoldCubeLib from "../../../models/scaffold-cube/lib/scaffold-cube-lib.scad?raw";
-import scaffoldCubeUnit1u from "../../../models/scaffold-cube/previews/unit-1u.scad?raw";
-import scaffoldCubeStack3x3 from "../../../models/scaffold-cube/previews/stack-3x3.scad?raw";
-import scaffoldCubeCloset from "../../../models/scaffold-cube/previews/closet.scad?raw";
-import { parseParams, coerceToParamType, KEY_SCHEMA } from "@3d-gallery/model-core";
+import { parseParams, coerceToParamType, mainAssembly, selectBuild, KEY_SCHEMA } from "@3d-gallery/model-core";
 import type { ScadParam, ScadValue, RuntimeManifest } from "@3d-gallery/model-core";
 import {
   createArtifactClient,
@@ -141,20 +105,31 @@ import {
   openPlatesPanel,
 } from "./print/mount";
 import { setPlateArtifactClient } from "./print/plate-resolve";
+import { CUSTOMIZABLE_SOURCES as INITIAL_SOURCES } from "./customizable-sources";
 import { addItemToPlate, ensureTargetPlate } from "./print/plate-store";
 
 interface LegendEntry {
   color: string;
+  /** Alternate shades of `color`, alternating piece to piece; the same entry. */
+  shades?: string[];
   label: string;
   /** File name of the part this legend row navigates to when clicked. */
   part?: string;
+  /** Every part drawn in this colour, when that is more than `part`. */
+  parts?: string[];
   /** Customizer params applied when navigating (e.g. { piece_i: 1 }). */
   params?: Record<string, ScadValue>;
+}
+
+interface ComponentInstance {
+  id: string;
+  where?: string;
 }
 
 interface ComponentRef {
   part: string;
   qty: number;
+  instances?: ComponentInstance[];
 }
 
 interface Part {
@@ -165,6 +140,8 @@ interface Part {
   legend?: LegendEntry[];
   module?: string;
   components?: ComponentRef[];
+  /** Key of the artifact rendered with default parameters (runtime manifest). */
+  defaultKey?: string;
 }
 
 interface HardwareSource {
@@ -172,10 +149,17 @@ interface HardwareSource {
   vendor?: string;
 }
 
+interface HardwareUse {
+  part: string;
+  /** Per printed piece of `part`. */
+  each: number;
+}
+
 interface HardwareItem {
   qty: number;
   label: string;
   source?: HardwareSource;
+  usedBy?: HardwareUse[];
 }
 
 /** A product the model is designed around rather than built from. */
@@ -190,6 +174,19 @@ interface FilamentEntry {
   material: string;
   color?: string;
   note?: string;
+  /** Printed files this filament is for; without it, every part no other entry names. */
+  parts?: string[];
+}
+
+/** One configuration of a generator model, with its own entries and hardware. */
+interface Build {
+  id: string;
+  label: string;
+  default?: boolean;
+  params: Record<string, ScadValue>;
+  previews?: Part[];
+  parts?: Part[];
+  hardware?: HardwareItem[];
 }
 
 interface Model {
@@ -206,118 +203,14 @@ interface Model {
   hardware?: HardwareItem[];
   worksWith?: CompatibleProduct[];
   filament?: FilamentEntry[];
+  builds?: Build[];
+  /** On a view made by `viewOf`: the build whose entries `previews`, `parts` and `hardware` hold. */
+  build?: Build;
 }
 
 interface Manifest {
   models: Model[];
 }
-
-// Strip include lines from a .scad source (for WASM concatenation with lib)
-function stripIncludes(source: string): string {
-  return source
-    .split("\n")
-    .filter((line) => !line.match(/^\s*include\s*<.*>/))
-    .join("\n");
-}
-
-// Customizable model sources keyed by slug. `previews` is keyed by the
-// artifact target — the manifest file's base name, which is what the forge
-// resolves `previews/<target>.scad` against. That is not always the manifest
-// `module` (et300's preview declares `assembled`).
-const CUSTOMIZABLE_SOURCES: Record<string, { lib: string; previews: Record<string, string> }> = {
-  "collar-tag": {
-    lib: collarTagLib,
-    previews: {
-      multicolor: stripIncludes(collarTagMulticolor),
-    },
-  },
-  "collar-slide-tag": {
-    lib: collarSlideTagLib,
-    previews: {
-      multicolor: stripIncludes(collarSlideTagMulticolor),
-    },
-  },
-  "fi-mini-case": {
-    lib: fiMiniCaseLib,
-    previews: {
-      assembled: stripIncludes(fiMiniCaseAssembled),
-      cap: stripIncludes(fiMiniCaseCap),
-    },
-  },
-  "fi-mini-case-captive": {
-    lib: fiMiniCaseCaptiveLib,
-    previews: {
-      assembled: stripIncludes(fiMiniCaseCaptiveAssembled),
-    },
-  },
-  "ugreen-finder-duo-captive": {
-    lib: ugreenFinderDuoLib,
-    previews: {
-      assembled: stripIncludes(ugreenFinderDuoAssembled),
-    },
-  },
-  "qr-sign": {
-    lib: qrSignLib,
-    previews: {
-      assembled: stripIncludes(qrSignAssembled),
-    },
-  },
-  "qr-leash-tag": {
-    lib: qrLeashTagLib,
-    previews: {
-      tag: stripIncludes(qrLeashTagTag),
-      plate: stripIncludes(qrLeashTagPlate),
-    },
-  },
-  "parametric-qr-case": {
-    lib: parametricQrCaseLib,
-    previews: {
-      case: stripIncludes(parametricQrCaseCase),
-      plate: stripIncludes(parametricQrCasePlate),
-    },
-  },
-  "parametric-shelf": {
-    lib: parametricShelfLib,
-    previews: {},
-  },
-  "ff5m-filament-sensor": {
-    lib: ff5mFilamentSensorLib,
-    previews: {},
-  },
-  "et300-knob-aide-knurled": {
-    // Lib `include`s logo-polygon-data.scad — resolved by openscad CLI, but
-    // the WASM path has no filesystem. Prepend the polygon data and strip
-    // the include so the customizer sees a single self-contained source.
-    lib: et300KnobAideKnurledLogoPolygon + "\n" + stripIncludes(et300KnobAideKnurledLib),
-    previews: {
-      "tactile-aide-multicolor": stripIncludes(et300KnobAideKnurledMulticolor),
-    },
-  },
-  "split-tray-500": {
-    lib: splitTray500Lib,
-    previews: {
-      "assembled-2x2": stripIncludes(splitTray500Assembled2x2),
-      "assembled-3x3": stripIncludes(splitTray500Assembled3x3),
-    },
-  },
-  "under-desk-cord-protector": {
-    lib: underDeskCordProtectorLib,
-    previews: {
-      assembled: stripIncludes(underDeskCordProtectorAssembled),
-      propped: stripIncludes(underDeskCordProtectorPropped),
-      hex: stripIncludes(underDeskCordProtectorHex),
-      plate: stripIncludes(underDeskCordProtectorPlate),
-    },
-  },
-  "scaffold-cube": {
-    lib: scaffoldCubeLib,
-    previews: {
-      "unit-1u": stripIncludes(scaffoldCubeUnit1u),
-      "stack-3x3": stripIncludes(scaffoldCubeStack3x3),
-      closet: stripIncludes(scaffoldCubeCloset),
-    },
-  },
-};
 
 // ── DOM refs ─────────────────────────────────────────────
 
@@ -326,6 +219,7 @@ const sidebarToggle = document.getElementById("sidebar-toggle")!;
 const sidebarBackdrop = document.getElementById("sidebar-backdrop")!;
 const modelListEl = document.getElementById("model-list")!;
 const modelTitleEl = document.getElementById("model-title")!;
+const buildSwitchEl = document.getElementById("build-switch")!;
 const modelDescEl = document.getElementById("model-description")!;
 const partSelect = document.getElementById("part-select") as HTMLSelectElement;
 const mobilePartSelect = document.getElementById("mobile-part-select") as HTMLSelectElement;
@@ -338,8 +232,10 @@ const descTextEl = document.getElementById("description-text")!;
 const descToggle = document.getElementById("description-toggle") as HTMLButtonElement;
 const printedListEl = document.getElementById("printed-list")!;
 const hardwareEl = document.getElementById("hardware-list")!;
+const unlinkedListEl = document.getElementById("unlinked-list")!;
 const worksWithEl = document.getElementById("works-with-list")!;
 const filamentListEl = document.getElementById("filament-list")!;
+const printTimeEl = document.getElementById("print-time")!;
 const infoPanelEl = document.getElementById("info-panel")!;
 const infoPanelEmpty = document.getElementById("info-panel-empty")!;
 const infoBtn = document.getElementById("info-btn") as HTMLButtonElement;
@@ -363,13 +259,17 @@ const viewer = createViewer(viewerContainer);
 // and the key rows drive the same handler so the active state stays
 // consistent no matter the input device.
 interface PartGroup {
-  /** Display colours of every piece belonging to this part, as authored. */
+  /** Display colours of every piece belonging to this part, as authored — each entry's colour, then its shades. */
   colors: string[];
+  /** Drawn by a single key entry — one filament, however many shades — so each piece is one mesh. */
+  oneEntry: boolean;
   /** Those colours snapped onto what the loaded mesh actually carries. */
   meshColors: string[];
   /** How many pieces of this part the assembly contains. */
   qty: number;
-  row: HTMLElement;
+  label: string;
+  /** The floating key's row first, then any parts-list rows naming the same part. */
+  rows: HTMLElement[];
   /** Manifest entry to open on click, when the part resolves to one. */
   target: Part | null;
   params?: Record<string, ScadValue>;
@@ -377,11 +277,35 @@ interface PartGroup {
 
 let partGroups: PartGroup[] = [];
 const partGroupByColor = new Map<string, PartGroup>();
+/** Key groups by every part file they draw — how the parts list finds its swatches. */
+const partGroupsByFile = new Map<string, PartGroup[]>();
+/** Key groups naming no part: reference geometry, or a single part's filaments. */
+let unlinkedGroups: PartGroup[] = [];
+let legendIsPartsKey = false;
 let activeGroup: PartGroup | null = null;
 /** Colour of the piece the leader line points at. */
 let activeColor: string | null = null;
+/** The row under the pointer, when a row (not the mesh) set the active part. */
+let activeRow: HTMLElement | null = null;
 /** Set by renderLegend: only an assembly's key has parts worth pointing at. */
 let leaderEnabled = false;
+
+// Named pieces (B1, W3, …). A colour can hold several parts, so where the
+// viewer can tell a part's pieces apart they light one by one: a part's rows
+// glow just its pieces, and an id lifts its own piece above them.
+/** Part file of every named piece in this view's BOM. */
+const pieceFile = new Map<string, string>();
+/** Parts whose every named piece the viewer has placed. */
+const piecesByFile = new Map<string, string[]>();
+/** Parts-list rows by the part file they count. */
+const rowsByFile = new Map<string, HTMLElement[]>();
+/** Every list element naming a piece, by id. */
+const pieceEls = new Map<string, HTMLElement[]>();
+/** What a bound row lights when the pointer comes back to it off one of its ids. */
+const rowActivators = new WeakMap<HTMLElement, () => void>();
+/** Set while a part is lit piece by piece rather than by colour. */
+let activeFile: string | null = null;
+let activePiece: string | null = null;
 
 function normColor(hex: string): string {
   return hex.toLowerCase();
@@ -393,12 +317,79 @@ function normColor(hex: string): string {
  * piece under the cursor, so it glows the whole group and anchors the leader
  * line (when one is drawn) on the first piece.
  */
-function setActivePart(group: PartGroup | null, hoverColor: string | null) {
+function setActivePart(group: PartGroup | null, hoverColor: string | null, row: HTMLElement | null = null) {
   activeGroup = group;
+  activeRow = row;
   activeColor = hoverColor ?? group?.meshColors[0] ?? null;
-  for (const g of partGroups) g.row.classList.toggle("legend-active", g === group);
+  activeFile = null;
+  activePiece = null;
+  clearActiveClasses();
+  for (const row of group?.rows ?? []) row.classList.add("legend-active");
   viewer.setHighlight({ hover: hoverColor, glow: group?.meshColors ?? [] });
   updateLeaderLine();
+}
+
+function clearActiveClasses() {
+  for (const el of document.querySelectorAll(".legend-active")) el.classList.remove("legend-active");
+  for (const el of document.querySelectorAll(".piece-active")) el.classList.remove("piece-active");
+}
+
+/**
+ * Light one part's pieces, not its whole colour. With `piece`, that one lifts
+ * bright above its glowing siblings, its id lights up in the list, and the
+ * leader runs between the two.
+ */
+function setActivePieces(file: string, piece: string | null, row: HTMLElement | null) {
+  const groups = partGroupsByFile.get(file) ?? [];
+  activeGroup = groups[0] ?? null;
+  activeRow = row;
+  activeColor = null;
+  activeFile = file;
+  activePiece = piece;
+  clearActiveClasses();
+  // The key row stands for the colour, which this part is drawn in.
+  for (const g of groups) g.rows[0]?.classList.add("legend-active");
+  for (const r of rowsByFile.get(file) ?? []) r.classList.add("legend-active");
+  if (piece) for (const el of pieceEls.get(piece) ?? []) el.classList.add("piece-active");
+  viewer.setHighlight({ hoverInstance: piece, glowInstances: piecesByFile.get(file) ?? [] });
+  updateLeaderLine();
+}
+
+/**
+ * Tie this view's named pieces to the loaded mesh. Only a part drawn by one
+ * key entry qualifies — a multicolour part is several meshes per piece, while
+ * an entry's shades only alternate from piece to piece — and only when the
+ * viewer places every piece of it; a part with any piece fused to a neighbour
+ * stays lit by colour, as before.
+ */
+function resolvePieces() {
+  pieceFile.clear();
+  piecesByFile.clear();
+  if (!currentModel || !currentPart) return;
+  const colorsById = new Map<string, string[]>();
+  const idsByFile = new Map<string, string[]>();
+  for (const comp of bomFor(currentModel, currentPart).entries) {
+    const groups = partGroupsByFile.get(comp.part) ?? [];
+    if (groups.length !== 1 || !groups[0].oneEntry || !comp.instances) continue;
+    const colors = groups[0].meshColors;
+    for (const inst of comp.instances) {
+      colorsById.set(inst.id, colors);
+      pieceFile.set(inst.id, comp.part);
+    }
+    idsByFile.set(comp.part, [...(idsByFile.get(comp.part) ?? []), ...comp.instances.map((i) => i.id)]);
+  }
+  const placed = viewer.resolveInstances(colorsById);
+  for (const [file, ids] of idsByFile) {
+    if (ids.every((id) => placed.has(id))) piecesByFile.set(file, ids);
+  }
+  for (const [id, els] of pieceEls) {
+    for (const el of els) el.classList.toggle("piece-live", isPieceLive(id));
+  }
+}
+
+function isPieceLive(id: string): boolean {
+  const file = pieceFile.get(id);
+  return file !== undefined && piecesByFile.has(file);
 }
 
 /**
@@ -439,24 +430,54 @@ function resolvePartColors() {
     });
     for (const color of group.meshColors) partGroupByColor.set(color, group);
   }
+  resolvePieces();
 }
 
 function updateLeaderLine() {
   clearLeader();
-  if (!leaderEnabled || !activeGroup || !activeColor) return;
-  const row = activeGroup.row;
-  const meshPos = viewer.getScreenPositionForColor(activeColor);
-  if (!meshPos) return;
+  if (!leaderEnabled || !activeGroup) return;
+  let row: HTMLElement | undefined;
+  let meshPos: { x: number; y: number } | null;
+  if (activeFile) {
+    // A piece reads its own id; a part row with no piece picked points from its first.
+    const piece = activePiece ?? piecesByFile.get(activeFile)?.[0];
+    if (!piece) return;
+    row = activeRow
+      ?? (activePiece ? pieceEls.get(activePiece)?.find(isRowOnScreen) : undefined)
+      ?? rowsByFile.get(activeFile)?.find(isRowOnScreen)
+      ?? activeGroup.rows.find(isRowOnScreen);
+    meshPos = viewer.getScreenPositionForInstance(piece);
+  } else {
+    if (!activeColor) return;
+    // Desktop hides the floating key behind the docked parts list, so the
+    // leader goes to whichever of the group's rows is actually on screen.
+    row = activeRow ?? activeGroup.rows.find(isRowOnScreen);
+    meshPos = viewer.getScreenPositionForColor(activeColor);
+  }
+  if (!row || !meshPos) return;
 
   // Legend row's midpoint on its left edge — the leader lands where the
   // color swatch sits so the connection reads visually as "this piece →
   // that row."
   const containerRect = viewerContainer.getBoundingClientRect();
   const rowRect = row.getBoundingClientRect();
-  const rowX = rowRect.left - containerRect.left;
-  const rowY = rowRect.top - containerRect.top + rowRect.height / 2;
+  // A parts-list row sits outside the viewer; stop at the viewer's edge,
+  // level with the row, rather than draw across the panel.
+  const rowX = Math.min(rowRect.left - containerRect.left, containerRect.width);
+  const rowY = Math.min(
+    Math.max(rowRect.top - containerRect.top + rowRect.height / 2, 0),
+    containerRect.height,
+  );
 
   drawLeader(meshPos.x, meshPos.y, rowX, rowY);
+}
+
+/** Laid out, and inside whatever scroll box holds it. */
+function isRowOnScreen(row: HTMLElement): boolean {
+  const rect = row.getBoundingClientRect();
+  if (rect.width === 0 && rect.height === 0) return false;
+  const clip = row.closest("#info-panel-body, #viewer-legend")?.getBoundingClientRect();
+  return !clip || (rect.bottom > clip.top && rect.top < clip.bottom);
 }
 
 function clearLeader() {
@@ -489,14 +510,16 @@ viewer.onHover((info) => {
   // brighten under the cursor; they just have no part to glow or link to.
   const group = partGroupByColor.get(col) ?? null;
   viewerContainer.style.cursor = group?.target ? "pointer" : "";
-  setActivePart(group, col);
+  const file = info.instance ? pieceFile.get(info.instance) : undefined;
+  if (file && piecesByFile.has(file)) setActivePieces(file, info.instance, null);
+  else setActivePart(group, col);
   if (group) warmGroup(group);
 });
 
 // Clicking a mesh opens the same part its key row links to — delegated by
 // dispatching the row's own click handler so both entry points share a flow.
 viewer.onClick((hex) => {
-  const row = partGroupByColor.get(normColor(hex))?.row;
+  const row = partGroupByColor.get(normColor(hex))?.rows[0];
   if (row?.classList.contains("legend-clickable")) row.click();
 });
 
@@ -592,6 +615,8 @@ function setError(msg: string | null) {
 
 function setCustomizedBadge(visible: boolean) {
   customizedBadge.hidden = !visible;
+  // Estimates are for the default parameters; a customized render is a different print.
+  printTimeEl.hidden = visible || printTimeEl.childElementCount === 0;
 }
 
 function showLoadingOverlay(status: string) {
@@ -628,9 +653,14 @@ function hideViewerPrompt() {
 // Everything else in the query is a customizer parameter, so the print UI's
 // own route names have to be named here or a `?plate=<id>` deep link would
 // reach the model as a param.
-const ROUTE_PARAMS = new Set(["model", "part", ...PRINT_ROUTE_PARAMS]);
+const ROUTE_PARAMS = new Set(["model", "build", "part", ...PRINT_ROUTE_PARAMS]);
 
-function buildUrl(slug: string, partModule?: string, customValues?: Record<string, ScadValue>): string {
+function buildUrl(
+  slug: string,
+  partModule?: string,
+  customValues?: Record<string, ScadValue>,
+  buildId?: string,
+): string {
   const url = new URL(window.location.href);
   // The query is rebuilt from scratch so a stale customizer param can't
   // survive a model switch — but the print UI's params say which panel is
@@ -643,6 +673,7 @@ function buildUrl(slug: string, partModule?: string, customValues?: Record<strin
   url.search = "";
   for (const [name, value] of open) url.searchParams.set(name, value);
   url.searchParams.set("model", slug);
+  if (buildId) url.searchParams.set("build", buildId);
   if (partModule) url.searchParams.set("part", partModule);
   if (customValues) {
     for (const [k, v] of Object.entries(customValues)) {
@@ -654,23 +685,79 @@ function buildUrl(slug: string, partModule?: string, customValues?: Record<strin
   return url.pathname + url.search;
 }
 
-function pushRoute(slug: string, partModule?: string, customValues?: Record<string, ScadValue>) {
-  const path = buildUrl(slug, partModule, customValues);
+function pushRoute(slug: string, partModule?: string, customValues?: Record<string, ScadValue>, buildId?: string) {
+  const path = buildUrl(slug, partModule, customValues, buildId);
   if (window.location.pathname + window.location.search !== path) {
-    history.pushState({ slug, part: partModule, custom: customValues }, "", path);
+    history.pushState({ slug, build: buildId, part: partModule, custom: customValues }, "", path);
   }
 }
 
-function getRouteFromUrl(): { slug: string; partModule?: string; customValues: Record<string, string> } | null {
+function getRouteFromUrl(): {
+  slug: string;
+  buildId?: string;
+  partModule?: string;
+  customValues: Record<string, string>;
+} | null {
   const params = new URLSearchParams(window.location.search);
   const slug = params.get("model");
   if (!slug) return null;
+  const buildId = params.get("build") ?? undefined;
   const partModule = params.get("part") ?? undefined;
   const customValues: Record<string, string> = {};
   for (const [k, v] of params.entries()) {
     if (!ROUTE_PARAMS.has(k)) customValues[k] = v;
   }
-  return { slug, partModule, customValues };
+  return { slug, buildId, partModule, customValues };
+}
+
+// ── Builds ───────────────────────────────────────────────
+
+/**
+ * The model as one of its builds presents it: that build's entries and
+ * hardware in place of the model's own, so everything downstream of selection
+ * reads `previews`, `parts` and `hardware` without knowing builds exist. A
+ * model without builds is its own view.
+ */
+function viewOf(model: Model, buildId?: string | null): Model {
+  if (!model.builds) return model;
+  const view = selectBuild(model, buildId);
+  return { ...model, previews: view.previews, parts: view.parts, hardware: view.hardware, build: view.build as Build };
+}
+
+/** Where a view's named outputs live under `models/<slug>/`. */
+function partPath(model: Model, part: Part): string {
+  return `${import.meta.env.BASE_URL}models/${model.slug}/${model.build ? `${model.build.id}/` : ""}${part.file}`;
+}
+
+/** What a view's entries render with when nothing is customized. */
+function buildParams(model: Model): Record<string, ScadValue> | undefined {
+  return model.build?.params;
+}
+
+/**
+ * The build switch sits beside the title rather than in the part list: a
+ * build replaces the whole list, BOM and hardware, so it is a choice made
+ * before any part is. Switching keeps the entry on screen when the other build
+ * has it too.
+ */
+function renderBuildSwitch(model: Model) {
+  buildSwitchEl.innerHTML = "";
+  buildSwitchEl.hidden = !model.builds;
+  for (const build of model.builds ?? []) {
+    const tab = document.createElement("button");
+    tab.type = "button";
+    tab.setAttribute("role", "tab");
+    tab.setAttribute("aria-selected", String(build.id === model.build?.id));
+    tab.textContent = build.label;
+    tab.addEventListener("click", () => {
+      if (!currentModel || build.id === currentModel.build?.id) return;
+      const next = viewOf(currentModel, build.id);
+      const file = currentPart?.file;
+      const same = allItemsFor(next).find((i) => i.part.file === file)?.part;
+      selectModel(next, same);
+    });
+    buildSwitchEl.appendChild(tab);
+  }
 }
 
 // ── Artifact client ──────────────────────────────────────
@@ -679,6 +766,10 @@ function getRouteFromUrl(): { slug: string; partModule?: string; customValues: R
 function targetOf(part: Part): string {
   return part.file.replace(/\.\w+$/, "");
 }
+
+// Updated in place on HMR: the WASM renderer holds this object, so an edited
+// .scad reaches it without rebuilding the renderer or reloading the page.
+const customizableSources = { ...INITIAL_SOURCES };
 
 const artifactCache = createIdbCache();
 let artifactClient: ArtifactClient | null = null;
@@ -699,7 +790,7 @@ function buildArtifactClient(manifest: RuntimeManifest): ArtifactClient {
   return createArtifactClient({
     manifest,
     cache: artifactCache,
-    localRenderer: createWasmRenderer(CUSTOMIZABLE_SOURCES, {
+    localRenderer: createWasmRenderer(customizableSources, {
       onLog: (line) => renderProgress?.(line),
     }),
     // Only the dev middleware can answer the `?r=` retry. On a static host it
@@ -774,7 +865,7 @@ async function seedCacheFromLegendClick(model: Model, target: Part, entry: Legen
     const key = await artifactClient.keyFor({
       slug: model.slug,
       target: targetOf(target),
-      params: entry.params,
+      params: { ...buildParams(model), ...entry.params },
     });
     await artifactCache.put(key, meshBytes);
   } catch {
@@ -863,6 +954,11 @@ function renderLegend(model: Model, part: Part) {
   legendEl.innerHTML = "";
   partGroups = [];
   partGroupByColor.clear();
+  partGroupsByFile.clear();
+  unlinkedGroups = [];
+  pieceFile.clear();
+  piecesByFile.clear();
+  legendIsPartsKey = false;
   setActivePart(null, null);
   leaderEnabled = false;
   if (!part.legend || part.legend.length === 0) {
@@ -893,6 +989,7 @@ function renderLegend(model: Model, part: Part) {
   const partRows = rows.filter((r) => r.target).length;
   const bomPieces = (part.components ?? []).reduce((n, c) => n + c.qty, 0);
   const isPartsKey = partRows > 0 && (partRows >= 2 || bomPieces >= 2);
+  legendIsPartsKey = isPartsKey;
   leaderEnabled = partRows >= 2;
   const swatchCount = rows.reduce((n, r) => n + r.entries.length, 0);
 
@@ -903,7 +1000,7 @@ function renderLegend(model: Model, part: Part) {
 
   for (const { entries, target, pieces } of rows) {
     const first = entries[0];
-    const colors = entries.map((e) => normColor(e.color));
+    const colors = entries.flatMap((e) => [e.color, ...(e.shades ?? [])].map(normColor));
 
     const row = document.createElement("div");
     row.className = "legend-row";
@@ -934,17 +1031,22 @@ function renderLegend(model: Model, part: Part) {
 
     const group: PartGroup = {
       colors,
+      oneEntry: entries.length === 1,
       meshColors: colors,
       qty: pieces,
-      row,
+      label: target?.label ?? first.label,
+      rows: [row],
       target,
       params: first.params,
     };
     partGroups.push(group);
     for (const color of colors) partGroupByColor.set(color, group);
+    const files = new Set(entries.flatMap((e) => [e.part, ...(e.parts ?? [])]).filter((f) => f !== undefined));
+    for (const file of files) partGroupsByFile.set(file, [...(partGroupsByFile.get(file) ?? []), group]);
+    if (files.size === 0) unlinkedGroups.push(group);
 
     row.addEventListener("pointerenter", () => {
-      setActivePart(group, null);
+      setActivePart(group, null, row);
       warmGroup(group);
     });
     row.addEventListener("pointerleave", () => setActivePart(null, null));
@@ -982,26 +1084,48 @@ const warmedTargets = new Set<string>();
 function warmGroup(group: PartGroup): void {
   const model = currentModel;
   if (!model || !artifactClient || !group.target || group.params) return;
-  const key = `${model.slug}/${group.target.file}`;
+  const key = partPath(model, group.target);
   if (warmedTargets.has(key)) return;
   warmedTargets.add(key);
   void artifactClient
-    .get({ slug: model.slug, target: targetOf(group.target) })
+    .get({ slug: model.slug, target: targetOf(group.target), params: buildParams(model) })
     .catch(() => warmedTargets.delete(key));
 }
 
 // ── Parts list panel ─────────────────────────────────────
 // One surface answering "what do I need to build this": what you print, what
 // you buy at the hardware store, and the product the print is designed around.
-// A separate screen on mobile, a docked column on desktop.
+// A separate screen on mobile, a docked column on desktop — where it also
+// stands in for the floating key, so its rows carry the key's swatches and
+// drive the same highlight.
+
+interface ListRowOpts {
+  source?: HardwareSource;
+  note?: string;
+  onClick?: () => void;
+  /** Swatch column. Pass `[]` for a blank swatch that keeps the column aligned. */
+  colors?: string[];
+  /** Names of the individual pieces this row counts. */
+  ids?: string[];
+  /** Revealed by the row's disclosure toggle. */
+  details?: HTMLLIElement[];
+}
 
 /** Shared row shape: a quantity, a label, and an optional vendor link. */
-function listRow(
-  qty: number | undefined,
-  label: string,
-  opts: { source?: HardwareSource; note?: string; onClick?: () => void } = {},
-): HTMLLIElement {
+function listRow(qty: number | undefined, label: string, opts: ListRowOpts = {}): HTMLLIElement {
   const li = document.createElement("li");
+
+  if (opts.colors) {
+    const swatches = document.createElement("span");
+    swatches.className = "legend-swatches item-swatches";
+    for (const color of opts.colors.length > 0 ? opts.colors : [null]) {
+      const swatch = document.createElement("span");
+      swatch.className = color ? "legend-swatch" : "legend-swatch item-swatch-empty";
+      if (color) swatch.style.background = color;
+      swatches.appendChild(swatch);
+    }
+    li.appendChild(swatches);
+  }
 
   const qtyEl = document.createElement("span");
   qtyEl.className = "item-qty";
@@ -1030,6 +1154,22 @@ function listRow(
     body.appendChild(text);
   }
 
+  if (opts.ids && opts.ids.length > 0) {
+    const ids = document.createElement("span");
+    ids.className = "item-ids";
+    const shown = summarizeIds(opts.ids);
+    const gap = shown.length < opts.ids.length ? " … " : " · ";
+    shown.forEach((id, i) => {
+      if (i > 0) ids.append(gap);
+      const ref = document.createElement("span");
+      ref.className = "item-id-ref";
+      ref.textContent = id;
+      bindPiece(ref, id);
+      ids.appendChild(ref);
+    });
+    body.appendChild(ids);
+  }
+
   if (opts.note) {
     const note = document.createElement("span");
     note.className = "item-note";
@@ -1047,10 +1187,85 @@ function listRow(
     link.textContent = opts.source.vendor ?? "source";
     li.appendChild(link);
   }
+
+  if (opts.details && opts.details.length > 0) {
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "item-toggle";
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.setAttribute("aria-label", `Show details for ${label}`);
+    const sub = document.createElement("ul");
+    sub.className = "item-details";
+    sub.hidden = true;
+    for (const d of opts.details) sub.appendChild(d);
+    toggle.addEventListener("click", () => {
+      sub.hidden = !sub.hidden;
+      toggle.setAttribute("aria-expanded", String(!sub.hidden));
+    });
+    li.appendChild(toggle);
+    li.appendChild(sub);
+  }
   return li;
 }
 
-function renderSection(el: HTMLElement, title: string, rows: HTMLLIElement[]) {
+/** Few enough ids read inline; a long run shows its ends and leaves the rest to the details. */
+function summarizeIds(ids: string[]): string[] {
+  return ids.length <= 6 ? ids : [ids[0], ids[ids.length - 1]];
+}
+
+/**
+ * Hovering an id lifts that one piece. Leaving it for the rest of its row
+ * hands back to the row, which the pointer never left as far as the row's own
+ * listeners know. A piece the viewer couldn't place does nothing here, so the
+ * row's colour highlight carries on underneath.
+ */
+function bindPiece(el: HTMLElement, id: string) {
+  el.dataset.piece = id;
+  el.classList.toggle("piece-live", isPieceLive(id));
+  pieceEls.set(id, [...(pieceEls.get(id) ?? []), el]);
+  el.addEventListener("pointerenter", () => {
+    const file = pieceFile.get(id);
+    if (file && piecesByFile.has(file)) setActivePieces(file, id, el);
+  });
+  el.addEventListener("pointerleave", (e) => {
+    if (activePiece !== id) return;
+    let row = el.parentElement;
+    while (row && !rowActivators.has(row)) row = row.parentElement;
+    if (row && e.relatedTarget instanceof Node && row.contains(e.relatedTarget)) rowActivators.get(row)!();
+    else setActivePart(null, null);
+  });
+}
+
+/** One piece in a row's details: its id, and where it goes, on one line. */
+function instanceRow(qty: number | undefined, inst: ComponentInstance): HTMLLIElement {
+  const li = document.createElement("li");
+  if (qty !== undefined) {
+    const qtyEl = document.createElement("span");
+    qtyEl.className = "item-qty";
+    qtyEl.textContent = `${qty}×`;
+    li.appendChild(qtyEl);
+  }
+  const body = document.createElement("span");
+  body.className = "item-body";
+  const id = document.createElement("span");
+  id.className = "item-id";
+  id.textContent = inst.id;
+  body.appendChild(id);
+  if (inst.where) body.append(" ", inst.where);
+  li.appendChild(body);
+  bindPiece(li, inst.id);
+  return li;
+}
+
+/** A subheading inside a row's details. */
+function detailHeading(text: string): HTMLLIElement {
+  const li = document.createElement("li");
+  li.className = "item-detail-heading";
+  li.textContent = text;
+  return li;
+}
+
+function renderSection(el: HTMLElement, title: string, rows: HTMLLIElement[], controls?: HTMLElement) {
   el.innerHTML = "";
   if (rows.length === 0) {
     el.hidden = true;
@@ -1058,7 +1273,14 @@ function renderSection(el: HTMLElement, title: string, rows: HTMLLIElement[]) {
   }
   const heading = document.createElement("h3");
   heading.textContent = title;
-  el.appendChild(heading);
+  if (controls) {
+    const header = document.createElement("div");
+    header.className = "section-header";
+    header.append(heading, controls);
+    el.appendChild(header);
+  } else {
+    el.appendChild(heading);
+  }
 
   const ul = document.createElement("ul");
   for (const row of rows) ul.appendChild(row);
@@ -1067,35 +1289,237 @@ function renderSection(el: HTMLElement, title: string, rows: HTMLLIElement[]) {
 }
 
 /**
- * What you print. An assembly names its components with quantities; anything
- * else falls back to the model's own parts, one apiece — either way the screen
- * answers the question for the whole model, not just the mesh on screen.
+ * Hover a parts-list row and the pieces it names glow, exactly as its key row
+ * would. A part can sit under several key rows — one per params set — so a
+ * row naming several glows them all without joining any one of them.
  */
-function printedRows(model: Model, part: Part): HTMLLIElement[] {
-  const modelParts = model.parts ?? [];
-  if (part.components && part.components.length > 0) {
-    return part.components.map((comp) => {
-      const match = modelParts.find((p) => p.file === comp.part);
-      return listRow(comp.qty, match?.label ?? comp.part, {
-        onClick: match ? () => handlePartChange(match.file) : undefined,
-      });
-    });
+function bindKeyRow(row: HTMLElement, groups: PartGroup[], file?: string) {
+  if (groups.length === 0) return;
+  for (const g of groups) g.rows.push(row);
+  if (file) rowsByFile.set(file, [...(rowsByFile.get(file) ?? []), row]);
+  const activate = () => {
+    if (file && piecesByFile.has(file)) {
+      setActivePieces(file, null, row);
+    } else if (groups.length === 1) {
+      setActivePart(groups[0], null, row);
+    } else {
+      setActivePart({
+        colors: groups.flatMap((g) => g.colors),
+        oneEntry: false,
+        meshColors: groups.flatMap((g) => g.meshColors),
+        qty: groups.reduce((n, g) => n + g.qty, 0),
+        label: groups[0].label,
+        rows: [row],
+        target: null,
+      }, null, row);
+    }
+  };
+  rowActivators.set(row, activate);
+  row.addEventListener("pointerenter", () => {
+    activate();
+    for (const g of groups) warmGroup(g);
+  });
+  row.addEventListener("pointerleave", () => setActivePart(null, null));
+}
+
+/** Parts-list rows are rebuilt on every render; forget the ones that left the page. */
+function pruneKeyRows() {
+  for (const g of partGroups) g.rows = g.rows.filter((r) => r.isConnected);
+  for (const els of [rowsByFile, pieceEls]) {
+    for (const [key, list] of els) {
+      const live = list.filter((el) => el.isConnected);
+      if (live.length > 0) els.set(key, live);
+      else els.delete(key);
+    }
   }
-  return modelParts.map((p) =>
-    listRow(1, p.label, { onClick: () => handlePartChange(p.file) }),
-  );
+}
+
+function keyColors(file: string): string[] {
+  return (partGroupsByFile.get(file) ?? []).flatMap((g) => g.colors);
+}
+
+interface Bom {
+  entries: ComponentRef[];
+  /** `where` for every piece the model's main assembly names. */
+  whereById: Map<string, string>;
+  /** Pieces per part in the main assembly — what hardware `each` multiplies. */
+  mainQty: Map<string, number>;
+  mainInstances: Map<string, ComponentInstance[]>;
+}
+
+/**
+ * What you print for this view. An assembly or plate names its own
+ * components; any other view answers for the whole model — the main
+ * assembly's count, then any part it leaves out (tools, alternates) once
+ * apiece — rather than guessing one of everything.
+ */
+function bomFor(model: Model, part: Part): Bom {
+  const main = mainAssembly(model)?.components ?? [];
+  const whereById = new Map<string, string>();
+  const mainQty = new Map<string, number>();
+  const mainInstances = new Map<string, ComponentInstance[]>();
+  for (const comp of main) {
+    mainQty.set(comp.part, (mainQty.get(comp.part) ?? 0) + comp.qty);
+    if (comp.instances) mainInstances.set(comp.part, [...(mainInstances.get(comp.part) ?? []), ...comp.instances]);
+    for (const inst of comp.instances ?? []) if (inst.where) whereById.set(inst.id, inst.where);
+  }
+
+  let entries: ComponentRef[];
+  if (part.components && part.components.length > 0) {
+    entries = part.components;
+  } else if (main.length > 0) {
+    const listed = new Set(main.map((c) => c.part));
+    entries = [
+      ...main,
+      ...(model.parts ?? []).filter((p) => !listed.has(p.file)).map((p) => ({ part: p.file, qty: 1 })),
+    ];
+  } else {
+    entries = (model.parts ?? []).map((p) => ({ part: p.file, qty: 1 }));
+  }
+  return { entries, whereById, mainQty, mainInstances };
+}
+
+function withWhere(bom: Bom, instances: ComponentInstance[] | undefined): ComponentInstance[] {
+  return (instances ?? []).map((i) => ({ id: i.id, where: i.where ?? bom.whereById.get(i.id) }));
+}
+
+function printedRows(model: Model, bom: Bom): HTMLLIElement[] {
+  const modelParts = model.parts ?? [];
+  const hasSwatches = partGroupsByFile.size > 0;
+  const rows = bom.entries.map((comp) => {
+    const match = modelParts.find((p) => p.file === comp.part);
+    const instances = withWhere(bom, comp.instances);
+    const row = listRow(comp.qty, match?.label ?? comp.part, {
+      colors: hasSwatches ? keyColors(comp.part) : undefined,
+      ids: instances.map((i) => i.id),
+      details: instances.map((i) => instanceRow(undefined, i)),
+      onClick: match ? () => handlePartChange(match.file) : undefined,
+    });
+    bindKeyRow(row, partGroupsByFile.get(comp.part) ?? [], comp.part);
+    return row;
+  });
+  return rows;
+}
+
+/** Key rows that name no part, so the printed list above has nowhere to show them. */
+function unlinkedRows(): HTMLLIElement[] {
+  return unlinkedGroups.map((group) => {
+    const row = listRow(undefined, group.label, { colors: group.colors });
+    bindKeyRow(row, [group]);
+    return row;
+  });
+}
+
+// ── Hardware: totals, or broken down by the part each piece goes into ─────
+
+type HardwareView = "total" | "by-part";
+let hardwareView: HardwareView = "total";
+
+/** The item's name, without the " — what it's for" a hardware label usually trails. */
+function shortLabel(label: string): string {
+  return label.split(" — ")[0];
+}
+
+function unattributedQty(item: HardwareItem, bom: Bom): number {
+  const used = (item.usedBy ?? []).reduce((n, u) => n + u.each * (bom.mainQty.get(u.part) ?? 0), 0);
+  return item.qty - used;
+}
+
+/** "Where do all 10 of these go": per part, then per named piece of it. */
+function hardwareTotalRows(model: Model, bom: Bom): HTMLLIElement[] {
+  return (model.hardware ?? []).map((item) => {
+    const details: HTMLLIElement[] = [];
+    for (const use of item.usedBy ?? []) {
+      const part = (model.parts ?? []).find((p) => p.file === use.part);
+      const pieces = bom.mainQty.get(use.part) ?? 0;
+      details.push(detailHeading(`${use.each * pieces}× into ${part?.label ?? use.part}`));
+      const instances = withWhere(bom, bom.mainInstances.get(use.part));
+      for (const inst of instances) details.push(instanceRow(use.each, inst));
+    }
+    const rest = item.usedBy ? unattributedQty(item, bom) : 0;
+    if (rest > 0) details.push(detailHeading(`${rest}× not tied to a printed part`));
+    return listRow(item.qty, item.label, { source: item.source, details });
+  });
+}
+
+/** "What does this part need": each printed part, and the hardware that goes into it. */
+function hardwareByPartRows(model: Model, bom: Bom): HTMLLIElement[] {
+  const hardware = model.hardware ?? [];
+  const hasSwatches = partGroupsByFile.size > 0;
+  const rows: HTMLLIElement[] = [];
+  for (const part of model.parts ?? []) {
+    const uses = hardware.flatMap((item) =>
+      (item.usedBy ?? []).filter((u) => u.part === part.file).map((u) => ({ item, each: u.each })),
+    );
+    if (uses.length === 0) continue;
+    const pieces = bom.mainQty.get(part.file) ?? 0;
+    const instances = withWhere(bom, bom.mainInstances.get(part.file));
+    const details = uses.map(({ item, each }) =>
+      listRow(each * pieces, shortLabel(item.label), {
+        note: pieces > 1 ? `${each} per piece` : undefined,
+      }),
+    );
+    const row = listRow(pieces, part.label, {
+      colors: hasSwatches ? keyColors(part.file) : undefined,
+      ids: instances.map((i) => i.id),
+      details,
+    });
+    bindKeyRow(row, partGroupsByFile.get(part.file) ?? [], part.file);
+    rows.push(row);
+  }
+  const loose = hardware
+    .map((item) => ({ item, rest: item.usedBy ? unattributedQty(item, bom) : item.qty }))
+    .filter(({ rest }) => rest > 0);
+  if (loose.length > 0) {
+    rows.push(listRow(undefined, "Not tied to a printed part", {
+      colors: hasSwatches ? [] : undefined,
+      details: loose.map(({ item, rest }) => listRow(rest, shortLabel(item.label), { source: item.source })),
+    }));
+  }
+  return rows;
+}
+
+function hardwareTabs(onChange: () => void): HTMLElement {
+  const tabs = document.createElement("div");
+  tabs.className = "section-tabs";
+  tabs.setAttribute("role", "tablist");
+  for (const [view, text] of [["total", "Total"], ["by-part", "By part"]] as const) {
+    const tab = document.createElement("button");
+    tab.type = "button";
+    tab.setAttribute("role", "tab");
+    tab.setAttribute("aria-selected", String(hardwareView === view));
+    tab.textContent = text;
+    tab.addEventListener("click", () => {
+      if (hardwareView === view) return;
+      hardwareView = view;
+      onChange();
+    });
+    tabs.appendChild(tab);
+  }
+  return tabs;
+}
+
+function renderHardware(model: Model, bom: Bom) {
+  const attributed = (model.hardware ?? []).some((item) => item.usedBy && item.usedBy.length > 0);
+  if (!attributed) {
+    renderSection(hardwareEl, "Hardware", (model.hardware ?? []).map((item) =>
+      listRow(item.qty, item.label, { source: item.source }),
+    ));
+    return;
+  }
+  const rows = hardwareView === "total" ? hardwareTotalRows(model, bom) : hardwareByPartRows(model, bom);
+  renderSection(hardwareEl, "Hardware", rows, hardwareTabs(() => {
+    renderHardware(model, bom);
+    pruneKeyRows();
+  }));
 }
 
 function renderInfoPanel(model: Model, part: Part) {
-  renderSection(printedListEl, "3D printed parts", printedRows(model, part));
+  const bom = bomFor(model, part);
 
-  renderSection(
-    hardwareEl,
-    "Hardware",
-    (model.hardware ?? []).map((item) =>
-      listRow(item.qty, item.label, { source: item.source }),
-    ),
-  );
+  renderSection(printedListEl, "3D printed parts", printedRows(model, bom));
+  renderSection(unlinkedListEl, legendIsPartsKey ? "Also shown, not printed" : "Colours", unlinkedRows());
+  renderHardware(model, bom);
 
   renderSection(
     worksWithEl,
@@ -1115,14 +1539,186 @@ function renderInfoPanel(model: Model, part: Part) {
     ),
   );
 
+  renderPrintTime(model, part, bom);
+
   const empty =
-    printedListEl.hidden && hardwareEl.hidden && worksWithEl.hidden && filamentListEl.hidden;
+    printedListEl.hidden &&
+    unlinkedListEl.hidden &&
+    hardwareEl.hidden &&
+    worksWithEl.hidden &&
+    filamentListEl.hidden &&
+    printTimeEl.hidden;
   infoPanelEmpty.hidden = !empty;
   // Desktop docks the panel permanently, so an all-empty model would otherwise
   // dock an empty column; hide the whole thing instead.
   infoPanelEl.hidden = empty;
   infoBtn.hidden = empty;
   if (empty) setInfoPanelOpen(false);
+  pruneKeyRows();
+}
+
+// ── Print-time estimates ─────────────────────────────────
+
+/** `print-estimates.json`, written at build time by scripts/estimate-prints.mjs. */
+interface PrintEstimates {
+  settings: {
+    rates: { mmPerS: number; label?: string }[];
+    /** Weight and cost in the estimate are quoted in this filament. */
+    filament: { material: string; density: number; costPerKg: number };
+    /** g/cm³ by material family (the first word of a material, e.g. "TPU" for "TPU 64D"). */
+    densities: Record<string, number>;
+    /** What a piece is assumed to print in when its model doesn't say. */
+    defaultMaterial: string;
+    printer: string;
+    profile: string;
+  };
+  /** By artifact key, so an estimate only ever matches the bytes it was sliced from. */
+  estimates: Record<string, { seconds: Record<string, number>; grams: number; cost: number }>;
+}
+
+let printEstimates: PrintEstimates | null = null;
+
+/** Optional data: a dev checkout that never ran the estimator just shows no print time. */
+async function loadPrintEstimates(): Promise<PrintEstimates | null> {
+  try {
+    const res = await fetch(`${import.meta.env.BASE_URL}models/print-estimates.json`);
+    return res.ok ? ((await res.json()) as PrintEstimates) : null;
+  } catch {
+    return null;
+  }
+}
+
+function formatDuration(seconds: number): string {
+  const minutes = Math.max(1, Math.round(seconds / 60));
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return h === 0 ? `${m}m` : `${h}h ${String(m).padStart(2, "0")}m`;
+}
+
+/**
+ * What this view prints, timed: the parts list's pieces summed (each sliced on
+ * its own, so the total is one-at-a-time), or — for a model whose print *is*
+ * the 3MF — the viewed file itself.
+ */
+function renderPrintTime(model: Model, part: Part, bom: Bom) {
+  // `defaultKey` is addressed at the lib defaults, not a build's params — and
+  // the estimator slices each build at its params — so a build's entries need
+  // their real key, which takes an async hash.
+  if (!model.build) {
+    fillPrintTime(model, part, bom, (p) => p?.defaultKey);
+    return;
+  }
+  renderSection(printTimeEl, "Print time", []);
+  const client = artifactClient;
+  if (!printEstimates || !client) return;
+  const entries = [...(model.previews ?? []), ...(model.parts ?? [])];
+  void Promise.all(
+    entries.map(async (p) => [p.file, await client.keyFor({ slug: model.slug, target: targetOf(p), params: buildParams(model) })] as const),
+  ).then((pairs) => {
+    if (currentPart !== part) return;
+    const keys = new Map(pairs);
+    fillPrintTime(model, part, bom, (p) => (p ? keys.get(p.file) : undefined));
+    printTimeEl.hidden ||= !customizedBadge.hidden;
+  }).catch(() => {
+    // Print time is optional; a view without it is still a working view.
+  });
+}
+
+/** "TPU 64D" → "TPU": what an estimate's rate labels and densities are keyed by. */
+function materialFamily(material: string): string {
+  return material.trim().split(/\s+/)[0].toUpperCase();
+}
+
+/** The filament a printed file is in: the entry naming it, else the entry naming nothing. */
+function filamentFor(model: Model, file: string): FilamentEntry | undefined {
+  const filament = model.filament ?? [];
+  return filament.find((f) => f.parts?.includes(file)) ?? filament.find((f) => !f.parts);
+}
+
+function estimateRow(label: string, body: string, seconds: number, extraClass = ""): HTMLLIElement {
+  const li = document.createElement("li");
+  li.className = `estimate-row ${extraClass}`.trim();
+  const labelEl = document.createElement("span");
+  labelEl.className = "item-qty";
+  labelEl.textContent = label;
+  const bodyEl = document.createElement("span");
+  bodyEl.className = "item-body item-label";
+  bodyEl.textContent = body;
+  const time = document.createElement("span");
+  time.className = "estimate-time";
+  time.textContent = formatDuration(seconds);
+  li.append(labelEl, bodyEl, time);
+  return li;
+}
+
+function fillPrintTime(model: Model, part: Part, bom: Bom, keyOf: (p: Part | undefined) => string | undefined) {
+  const data = printEstimates;
+  const rows: HTMLLIElement[] = [];
+  if (data) {
+    const byFile = new Map([...(model.previews ?? []), ...(model.parts ?? [])].map((p) => [p.file, p]));
+    const lookup = (p: Part | undefined) => {
+      const key = keyOf(p);
+      return key ? data.estimates[key] : undefined;
+    };
+
+    let items = bom.entries.map((e) => ({ file: e.part, qty: e.qty, est: lookup(byFile.get(e.part)) }));
+    if (!items.some((i) => i.est)) items = [{ file: part.file, qty: 1, est: lookup(part) }];
+    const known = items.filter((i) => i.est).map((i) => ({ ...i, est: i.est! }));
+
+    if (known.length > 0) {
+      const pieces = known.reduce((n, i) => n + i.qty, 0);
+      const { filament, densities, printer, profile, rates } = data.settings;
+
+      // Each piece at its own material's flow and density. A piece whose model
+      // names no material — or one the estimate has no rate for — is assumed
+      // to be the default.
+      const rateOf = (material: string) => rates.find((r) => r.label?.toUpperCase() === materialFamily(material));
+      // Listed in the order the model names its filaments; an assumed one has no place there, so it goes last.
+      const listed = (model.filament ?? []).map((f) => f.material);
+      const pieceList = known.map((i) => {
+        const named = filamentFor(model, i.file)?.material;
+        const material = named && rateOf(named) && densities[materialFamily(named)] ? named : data.settings.defaultMaterial;
+        return { ...i, material, assumed: material !== named, rate: rateOf(material), density: densities[materialFamily(material)] };
+      }).sort((a, b) => (a.assumed ? listed.length : listed.indexOf(a.material)) - (b.assumed ? listed.length : listed.indexOf(b.material)));
+
+      if (pieceList.every((i) => i.rate && i.density)) {
+        const materials = [...new Set(pieceList.map((i) => (i.assumed ? `${i.material} (assumed)` : i.material)))];
+        const seconds = pieceList.reduce((t, i) => t + i.qty * (i.est.seconds[i.rate!.mmPerS] ?? 0), 0);
+        rows.push(estimateRow("", materials.join(" + "), seconds, "estimate-specified"));
+      }
+      for (const rate of rates) {
+        rows.push(estimateRow(rate.label ?? "", `${rate.mmPerS} mm³/s`, known.reduce((t, i) => t + i.qty * (i.est.seconds[rate.mmPerS] ?? 0), 0)));
+      }
+
+      // Estimates weigh everything in the quoted filament; re-weigh per material by density.
+      const byMaterial = new Map<string, number>();
+      for (const i of pieceList) {
+        const grams = (i.qty * i.est.grams * (i.density ?? filament.density)) / filament.density;
+        byMaterial.set(i.material, (byMaterial.get(i.material) ?? 0) + grams);
+      }
+      const grams = [...byMaterial.values()].reduce((a, b) => a + b, 0);
+      const split = byMaterial.size > 1
+        ? ` (${[...byMaterial].map(([m, g]) => `${m} ${Math.round(g)} g`).join(" · ")})`
+        : ` ${[...byMaterial.keys()][0]}`;
+      const notes = [
+        `${Math.round(grams)} g${split} · $${((grams * filament.costPerKg) / 1000).toFixed(2)} at $${filament.costPerKg}/kg`,
+        pieces > 1 ? `All ${pieces} printed pieces, sliced one at a time` : "",
+        part.format === "3mf" && items.length === 1 ? "Single filament — colour changes not included" : "",
+        known.length < items.length ? `${items.length - known.length} part(s) not estimated` : "",
+        `${printer} · ${profile}`,
+      ];
+      const li = document.createElement("li");
+      li.className = "estimate-notes";
+      for (const text of notes.filter(Boolean)) {
+        const note = document.createElement("span");
+        note.className = "item-note";
+        note.textContent = text;
+        li.appendChild(note);
+      }
+      rows.push(li);
+    }
+  }
+  renderSection(printTimeEl, "Print time", rows);
 }
 
 function setInfoPanelOpen(open: boolean) {
@@ -1144,6 +1740,7 @@ infoCloseBtn.addEventListener("click", () => setInfoPanelOpen(false));
 interface CustomizerProps {
   params: ScadParam[];
   slug: string;
+  buildId?: string;
   part: Part;
   initialValues?: Record<string, ScadValue>;
   /** When true, fire Generate automatically on first mount (used when
@@ -1162,7 +1759,7 @@ interface CustomizerProps {
   onError: (msg: string) => void;
 }
 
-function Customizer({ params, slug, part, initialValues, autoGenerate, onValuesChange, onStart, onProgress, onFinish, onGenerated, onError }: CustomizerProps) {
+function Customizer({ params, slug, buildId, part, initialValues, autoGenerate, onValuesChange, onStart, onProgress, onFinish, onGenerated, onError }: CustomizerProps) {
   const [values, setValues] = useState<Record<string, ScadValue>>(() => {
     const defaults: Record<string, ScadValue> = {};
     const known = new Map(params.map((p) => [p.name, p]));
@@ -1216,7 +1813,7 @@ function Customizer({ params, slug, part, initialValues, autoGenerate, onValuesC
       // Embed a permalink back to this exact param set into the downloaded
       // file. The cache holds the artifact as addressed, untagged — the
       // permalink is a property of this page, not of the geometry.
-      const sourceUrl = window.location.origin + buildUrl(slug, moduleName, values);
+      const sourceUrl = window.location.origin + buildUrl(slug, moduleName, values, buildId);
       const tagged = embedSourceUrl(bytes, format, sourceUrl);
 
       setOrigin(resolved);
@@ -1322,12 +1919,15 @@ function Customizer({ params, slug, part, initialValues, autoGenerate, onValuesC
 }
 
 function showCustomizer(model: Model, part: Part, initialValues?: Record<string, ScadValue>, autoGenerate = false) {
-  const sources = CUSTOMIZABLE_SOURCES[model.slug];
+  const sources = customizableSources[model.slug];
   if (!sources || !part.module) {
     hideCustomizer();
     return;
   }
-  const params = parseParams(sources.lib);
+  // A build's params stand in for the lib defaults, so the form opens on the
+  // build and an untouched Generate addresses the build's prebuilt artifact.
+  const pinned = buildParams(model) ?? {};
+  const params = parseParams(sources.lib).map((p) => (p.name in pinned ? { ...p, default: pinned[p.name]! } : p));
 
   customizerEl.hidden = false;
   customizeBtn.hidden = false;
@@ -1339,15 +1939,16 @@ function showCustomizer(model: Model, part: Part, initialValues?: Record<string,
       // previous instance's useState (so cell-click params never make
       // it into the form) AND the mount-time autoGenerate useEffect
       // never re-fires on subsequent clicks of a different cell.
-      key: `${model.slug}:${part.module ?? ""}:${JSON.stringify(initialValues ?? null)}`,
+      key: `${model.slug}:${model.build?.id ?? ""}:${part.module ?? ""}:${JSON.stringify(initialValues ?? null)}`,
       params,
       slug: model.slug,
+      buildId: model.build?.id,
       part,
       initialValues,
       autoGenerate,
       onValuesChange: (vals) => {
-        const path = buildUrl(model.slug, part.module, vals);
-        history.replaceState({ slug: model.slug, part: part.module, custom: vals }, "", path);
+        const path = buildUrl(model.slug, part.module, vals, model.build?.id);
+        history.replaceState({ slug: model.slug, build: model.build?.id, part: part.module, custom: vals }, "", path);
       },
       onStart: () => {
         setCustomizerOpen(false);
@@ -1448,7 +2049,7 @@ interface LoadPartOptions {
 async function fetchPartBytes(model: Model, part: Part, url: string): Promise<ArrayBuffer> {
   if (artifactClient) {
     try {
-      const { bytes } = await artifactClient.get({ slug: model.slug, target: targetOf(part) });
+      const { bytes } = await artifactClient.get({ slug: model.slug, target: targetOf(part), params: buildParams(model) });
       return bytes;
     } catch {
       // Fall through — an unaddressable part is still servable by path.
@@ -1459,14 +2060,39 @@ async function fetchPartBytes(model: Model, part: Part, url: string): Promise<Ar
   return res.arrayBuffer();
 }
 
+const VIEW_STASH_KEY = "3dg:dev-view";
+
+interface StashedView {
+  slug: string;
+  file: string;
+  view: ViewState;
+}
+
+/** The camera saved before a dev-server full reload, if it was on this part. One-shot. */
+function takeStashedView(model: Model, part: Part): ViewState | undefined {
+  if (!import.meta.hot) return undefined;
+  let raw: string | null;
+  try {
+    raw = sessionStorage.getItem(VIEW_STASH_KEY);
+    sessionStorage.removeItem(VIEW_STASH_KEY);
+  } catch {
+    return undefined;
+  }
+  if (!raw) return undefined;
+  const stash = JSON.parse(raw) as StashedView;
+  return stash.slug === model.slug && stash.file === part.file ? stash.view : undefined;
+}
+
 async function loadPart(model: Model, part: Part, opts: LoadPartOptions = {}) {
-  const url = `${import.meta.env.BASE_URL}models/${model.slug}/${part.file}`;
+  const url = partPath(model, part);
   const format = formatOf(part.file);
   if (!format) {
     setError(`Unknown file type: ${part.file}`);
     return;
   }
 
+  // Taken up front so a stash can't outlive this load and ambush a later one.
+  const stashedView = takeStashedView(model, part);
   currentPart = part;
   lastCustomizerRequest = null;
   setCustomizedBadge(false);
@@ -1475,12 +2101,12 @@ async function loadPart(model: Model, part: Part, opts: LoadPartOptions = {}) {
   renderInfoPanel(model, part);
 
   if (!opts.skipPush) {
-    pushRoute(model.slug, part.module, opts.initialValues);
+    pushRoute(model.slug, part.module, opts.initialValues, model.build?.id);
   }
 
   const ext = part.file.split(".").pop();
   const baseName = part.file.replace(/\.\w+$/, "");
-  const downloadName = `${model.slug}-${baseName}.${ext}`;
+  const downloadName = `${[model.slug, model.build?.id, baseName].filter(Boolean).join("-")}.${ext}`;
 
   // When we're navigating in with pre-set params (a legend / cell click),
   // the click IS the "Generate" — auto-run WASM instead of showing the
@@ -1519,7 +2145,7 @@ async function loadPart(model: Model, part: Part, opts: LoadPartOptions = {}) {
   try {
     setError(null);
     const buf = await fetchPartBytes(model, part, url);
-    viewer.load(buf, format);
+    viewer.load(buf, format, { view: stashedView });
     resolvePartColors();
   } catch (err) {
     viewer.clear();
@@ -1539,6 +2165,7 @@ function selectModel(model: Model, partOverride?: Part, opts: LoadPartOptions = 
 
   // Title & description
   modelTitleEl.textContent = model.title;
+  renderBuildSwitch(model);
   if (model.description) {
     descTextEl.textContent = model.description;
     modelDescEl.hidden = false;
@@ -1618,19 +2245,19 @@ async function addCurrentPartToPlate(): Promise<void> {
   // A plate item is a render request, so it stores the params the mesh on
   // screen was built from — the customizer's own values when it produced one,
   // otherwise none, which addresses the pre-built default artifact.
-  const params = lastCustomizerRequest?.params;
+  const params = lastCustomizerRequest?.params ?? buildParams(model);
 
   printBtn.disabled = true;
   try {
     const key = lastCustomizerRequest?.key
-      ?? await artifactClient.keyFor({ slug: model.slug, target });
+      ?? await artifactClient.keyFor({ slug: model.slug, target, params });
 
     const { project, plate } = await ensureTargetPlate(model.title);
     await addItemToPlate(plate.id, {
       slug: model.slug,
       target,
       format,
-      label: part.label,
+      label: model.build ? `${part.label} (${model.build.label})` : part.label,
       modelTitle: model.title,
       params,
       key,
@@ -1655,8 +2282,9 @@ let models: Model[] = [];
 
 function navigateToRoute(route: ReturnType<typeof getRouteFromUrl>, skipPush = false) {
   if (!route) return false;
-  const model = models.find((m) => m.slug === route.slug);
-  if (!model) return false;
+  const found = models.find((m) => m.slug === route.slug);
+  if (!found) return false;
+  const model = viewOf(found, route.buildId);
 
   const items = allItemsFor(model);
   let targetPart = route.partModule
@@ -1690,7 +2318,7 @@ function renderSidebar(manifest: Manifest) {
     item.className = "model-item";
     item.dataset.slug = model.slug;
     item.textContent = model.title;
-    item.addEventListener("click", () => selectModel(model));
+    item.addEventListener("click", () => selectModel(viewOf(model)));
     modelListEl.appendChild(item);
   }
 
@@ -1699,7 +2327,7 @@ function renderSidebar(manifest: Manifest) {
   if (route && navigateToRoute(route, true)) return;
 
   const landing = landingModel();
-  if (landing) selectModel(landing, undefined, { skipPush: true });
+  if (landing) selectModel(viewOf(landing), undefined, { skipPush: true });
 }
 
 // Handle browser back/forward
@@ -1709,22 +2337,33 @@ window.addEventListener("popstate", () => {
     navigateToRoute(route, true);
   } else {
     const landing = landingModel();
-    if (landing) selectModel(landing, undefined, { skipPush: true });
+    if (landing) selectModel(viewOf(landing), undefined, { skipPush: true });
   }
 });
 
+/**
+ * Fetch the runtime manifest and install an artifact client for it. Rerun on
+ * every dev-server .scad edit: source digests are part of each artifact key,
+ * so a client built from the old manifest would keep serving the old geometry.
+ */
+async function loadRuntimeManifest(): Promise<RuntimeManifest> {
+  const res = await fetch(`${import.meta.env.BASE_URL}models/manifest.json`);
+  if (!res.ok) throw new Error(`manifest.json: HTTP ${res.status}`);
+  const manifest = (await res.json()) as RuntimeManifest;
+  const client = buildArtifactClient(manifest);
+  // A bundle that hashes differently than the manifest was generated for
+  // would 404 on every artifact forever; fail here instead.
+  client.assertKeySchema(KEY_SCHEMA);
+  artifactClient = client;
+  // Plate resolution shares this client so it inherits the WASM renderer.
+  setPlateArtifactClient(client);
+  return manifest;
+}
+
 async function init() {
   try {
-    const res = await fetch(`${import.meta.env.BASE_URL}models/manifest.json`);
-    if (!res.ok) throw new Error(`manifest.json: HTTP ${res.status}`);
-    const manifest = (await res.json()) as RuntimeManifest;
-    const client = buildArtifactClient(manifest);
-    // A bundle that hashes differently than the manifest was generated for
-    // would 404 on every artifact forever; fail here instead.
-    client.assertKeySchema(KEY_SCHEMA);
-    artifactClient = client;
-    // Plate resolution shares this client so it inherits the WASM renderer.
-    setPlateArtifactClient(client);
+    const [manifest, estimates] = await Promise.all([loadRuntimeManifest(), loadPrintEstimates()]);
+    printEstimates = estimates;
     renderSidebar(manifest);
   } catch (err) {
     modelListEl.textContent = "Failed to load manifest";
@@ -1737,28 +2376,49 @@ async function init() {
 
 init();
 
-// Dev-server HMR: when scripts/build-models.mjs rebuilds a model, the
-// vite plugin sends a `scad-rebuilt` event. Re-fetch the current part
-// (cache-busted) and reload the viewer while preserving camera state.
-// Skipped when the model is customizable and the user is actively
-// customizing — WASM output takes precedence over the file version.
 if (import.meta.hot) {
+  // Spelled out in full: Vite finds HMR boundaries by scanning for the literal
+  // `import.meta.hot.accept(`, so an alias would silently fall back to a reload.
+  import.meta.hot.accept("./customizable-sources", (mod) => {
+    if (mod) Object.assign(customizableSources, mod.CUSTOMIZABLE_SOURCES);
+  });
+
+  // Editors that save in several writes fire several events; only the last
+  // reload may touch the viewer, or an older render could land on top.
+  let reloadSeq = 0;
+
+  // The dev plugin sends this instead of a full reload when a model's .scad
+  // changes. Skipped while the user is customizing — their WASM output takes
+  // precedence over the file version.
   import.meta.hot.on("scad-rebuilt", async (data: { slug: string }) => {
-    if (!currentModel || !currentPart) return;
-    if (currentModel.slug !== data.slug) return;
-    if (currentModel.customizable && !customizedBadge.hidden) return;
-    const url = `${import.meta.env.BASE_URL}models/${currentModel.slug}/${currentPart.file}`;
-    const format = formatOf(currentPart.file);
-    if (!format) return;
+    const seq = ++reloadSeq;
     try {
-      const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const buf = await res.arrayBuffer();
+      await loadRuntimeManifest();
+      const model = currentModel;
+      const part = currentPart;
+      if (seq !== reloadSeq || !model || !part || model.slug !== data.slug) return;
+      if (model.customizable && !customizedBadge.hidden) return;
+      const format = formatOf(part.file);
+      if (!format) return;
+      const buf = await fetchPartBytes(model, part, partPath(model, part));
+      if (seq !== reloadSeq || currentPart !== part) return;
       viewer.load(buf, format, { preserveView: true });
       resolvePartColors();
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
+    }
+  });
+
+  // Manifest and TypeScript edits still reload the page; carry the camera
+  // across so the reload lands where the user was looking.
+  import.meta.hot.on("vite:beforeFullReload", () => {
+    if (!currentModel || !currentPart) return;
+    const stash: StashedView = { slug: currentModel.slug, file: currentPart.file, view: viewer.getView() };
+    try {
+      sessionStorage.setItem(VIEW_STASH_KEY, JSON.stringify(stash));
+    } catch {
+      // Storage blocked: the reload just re-frames the model.
     }
   });
 }

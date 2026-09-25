@@ -38,6 +38,33 @@ hex_wall = 3;
 // angle in the corner. Set to 0 to suppress every brace at once.
 edge_leg = 25;
 
+// Total length of a bowtie key measured across the seam (mm). Half of
+// it lands in each of the two blocks, so keep it under 2 * hex_frame
+// or the pocket breaks out of a lattice wall's solid border.
+join_len = 36;
+
+// Width of a bowtie key at its two flared ends (mm). The flare is
+// what stops the blocks pulling apart; the wider it runs against the
+// waist, the steeper the dovetail.
+join_end = 18;
+
+// Width of a bowtie key at its waist (mm) — the narrow middle that
+// straddles the seam.
+join_waist = 9;
+
+// Depth a bowtie pocket is sunk below the wall's outer surface (mm).
+// Keep it under wall_thickness so the pocket keeps a floor for the
+// key to seat against.
+join_depth = 5;
+
+// Gap between a bowtie key and its pocket, per side (mm). Taken out
+// of the key and never out of the pocket, so two blocks still meet
+// flush no matter how loose the key is.
+join_clearance = 0.2;
+
+// Number of bowtie pockets along each `size`-long span of seam.
+join_count = 3;
+
 // Bottom wall, the Z=0 face.
 wall_bottom = "solid"; // [solid, empty, hexagon, hexagon_x]
 
@@ -94,6 +121,25 @@ edge_top_left = "triangle"; // [none, triangle]
 
 // Top edge where the top and right walls meet.
 edge_top_right = "triangle"; // [none, triangle]
+
+// Bowtie pockets on the bottom wall, the Z=0 face. A wall set to
+// "empty" carries none of them whatever this says.
+join_bottom = "bowtie"; // [none, bowtie]
+
+// Bowtie pockets on the top wall, the Z=size face.
+join_top = "bowtie"; // [none, bowtie]
+
+// Bowtie pockets on the front wall, the Y=0 face.
+join_front = "bowtie"; // [none, bowtie]
+
+// Bowtie pockets on the back wall, the Y=size face.
+join_back = "bowtie"; // [none, bowtie]
+
+// Bowtie pockets on the left wall, the X=0 face.
+join_left = "bowtie"; // [none, bowtie]
+
+// Bowtie pockets on the right wall, the X=size face.
+join_right = "bowtie"; // [none, bowtie]
 // END_PARAMS
 
 _eps = 0.01;
@@ -180,14 +226,28 @@ module _panel(type) {
     }
 }
 
-module _walls(bottom, top, front, back, left, right) {
+// Puts the children in face `i`'s pose, the faces ordered
+// [bottom, top, front, back, left, right]. Both `_walls()` and
+// `_joins()` place through this, so the six transforms live in one
+// table and a wall and its pockets can never drift apart.
+module _on_face(i) {
     t = wall_thickness;
-    _panel(bottom);
-    translate([0, 0, size - t])       _panel(top);
-    translate([0, t, 0])              rotate([90, 0, 0]) _panel(front);
-    translate([0, size, 0])           rotate([90, 0, 0]) _panel(back);
-    translate([0, 0, size])           rotate([0, 90, 0]) _panel(left);
-    translate([size - t, 0, size])    rotate([0, 90, 0]) _panel(right);
+    if (i == 0)      children();
+    else if (i == 1) translate([0, 0, size - t])                       children();
+    else if (i == 2) translate([0, t, 0])           rotate([90, 0, 0]) children();
+    else if (i == 3) translate([0, size, 0])        rotate([90, 0, 0]) children();
+    else if (i == 4) translate([0, 0, size])        rotate([0, 90, 0]) children();
+    else             translate([size - t, 0, size]) rotate([0, 90, 0]) children();
+}
+
+// Which end of the canonical panel slab faces out of the block, per
+// face: 0 = the Z=0 end, 1 = the Z=wall_thickness end. `_on_face()`
+// flips three of the six, and a pocket has to open outward.
+_FACE_OUTER = [0, 1, 1, 0, 0, 1];
+
+// `types` is the six resolved wall types in `_on_face()` order.
+module _walls(types) {
+    for (i = [0 : 5]) _on_face(i) _panel(types[i]);
 }
 
 // One edge brace. `corner` is the cube vertex the edge starts from,
@@ -225,28 +285,95 @@ module _braces(edges = undef) {
     _brace(_edge(edge_top_left, e),     [0, 0, s], _BASE_Y, [0, 90, 0]);
 }
 
+// A butterfly key seen face on: flared to `join_end` at both ends,
+// pinched to `join_waist` at x=0. Laid out about the origin with its
+// long axis on X, so a pocket centred on a seam puts the waist on the
+// seam and one flare in each block.
+function _bowtie_profile() = [
+    [-join_len / 2,  join_end / 2],
+    [            0,  join_waist / 2],
+    [ join_len / 2,  join_end / 2],
+    [ join_len / 2, -join_end / 2],
+    [            0, -join_waist / 2],
+    [-join_len / 2, -join_end / 2],
+];
+
+module _bowtie_prism(h) {
+    linear_extrude(h) polygon(_bowtie_profile());
+}
+
+// The bowtie pockets of one wall, in the canonical panel pose.
+// `outer` picks the side of the slab the pockets open on.
+//
+// Every pocket straddles a panel border, which is a cube edge — so the
+// half that falls outside the block cuts nothing, and an abutting
+// block's matching half completes the cavity. Pockets are cut from the
+// finished block rather than from `_panel()`, because at a border the
+// panel shares its space with the perpendicular wall and that wall's
+// material would otherwise fill the pocket straight back in.
+module _join_field(type, outer) {
+    assert(type == "none" || type == "bowtie",
+           str("scaffold-cube: unknown join type \"", type, "\""));
+    if (type == "bowtie" && join_count > 0 && join_depth > 0) {
+        z = (outer == 0) ? -_eps : wall_thickness - join_depth;
+        h = join_depth + _eps;
+        for (i = [0 : join_count - 1]) {
+            p = size * (i + 0.5) / join_count;
+            translate([0, p, z])    _bowtie_prism(h);
+            translate([size, p, z]) _bowtie_prism(h);
+            translate([p, 0, z])    rotate([0, 0, 90]) _bowtie_prism(h);
+            translate([p, size, z]) rotate([0, 0, 90]) _bowtie_prism(h);
+        }
+    }
+}
+
+// `joins` overrides every wall's join type for this instance at once;
+// undef leaves each on its own `join_*` param. A wall that is not
+// there gets no pockets either way — there would be nothing to key to,
+// and the cut would only gnaw at the walls and braces around it.
+module _joins(types, joins = undef) {
+    j = [join_bottom, join_top, join_front, join_back, join_left, join_right];
+    for (i = [0 : 5])
+        if (types[i] != "empty")
+            _on_face(i) _join_field(is_undef(joins) ? j[i] : joins,
+                                    _FACE_OUTER[i]);
+}
+
 // ── Public ─────────────────────────────────────────────────────────
 
 // One 1U block, occupying X/Y/Z = [0, size].
 //
 // Each wall argument overrides that wall's type for this instance
-// only, and `edges` overrides all twelve edge types at once; leave one
-// undef to use the corresponding `wall_*` / `edge_*` param. That is how
-// an assembly opens a face without disturbing the params the
-// customizer shows, and it is the only supported way to vary a block
-// by position.
+// only; `edges` overrides all twelve edge types at once and `joins`
+// all six join types; leave one undef to use the corresponding
+// `wall_*` / `edge_*` / `join_*` param. That is how an assembly opens
+// a face without disturbing the params the customizer shows, and it is
+// the only supported way to vary a block by position.
 module block(bottom = undef, top = undef, front = undef,
              back = undef, left = undef, right = undef,
-             edges = undef) {
-    union() {
-        _walls(is_undef(bottom) ? wall_bottom : bottom,
-               is_undef(top)    ? wall_top    : top,
-               is_undef(front)  ? wall_front  : front,
-               is_undef(back)   ? wall_back   : back,
-               is_undef(left)   ? wall_left   : left,
-               is_undef(right)  ? wall_right  : right);
-        _braces(edges);
+             edges = undef, joins = undef) {
+    types = [is_undef(bottom) ? wall_bottom : bottom,
+             is_undef(top)    ? wall_top    : top,
+             is_undef(front)  ? wall_front  : front,
+             is_undef(back)   ? wall_back   : back,
+             is_undef(left)   ? wall_left   : left,
+             is_undef(right)  ? wall_right  : right];
+    difference() {
+        union() {
+            _walls(types);
+            _braces(edges);
+        }
+        _joins(types, joins);
     }
+}
+
+// The key that locks two abutting blocks together: one bowtie, printed
+// flat, pushed into the pocket their two half-notches form at the
+// seam. `join_clearance` comes off the key, never off the pocket.
+module bowtie() {
+    linear_extrude(join_depth - join_clearance)
+        offset(delta = -join_clearance)
+            polygon(_bowtie_profile());
 }
 
 // ── Assemblies ─────────────────────────────────────────────────────

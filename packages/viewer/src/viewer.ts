@@ -2,6 +2,8 @@ import * as THREE from "three";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
 import { ThreeMFLoader } from "three/examples/jsm/loaders/3MFLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { unzipSync, strFromU8 } from "fflate";
+import { INSTANCE_ANCHORS_PATH, type InstanceAnchor } from "@3d-gallery/model-core";
 
 export type ModelFormat = "stl" | "3mf";
 
@@ -9,11 +11,22 @@ export interface LoadOptions {
   /** Keep the current camera position + orbit target. Near/far are still
    *  updated so the new geometry doesn't clip. Used for HMR reloads. */
   preserveView?: boolean;
+  /** Frame the model from this camera instead of auto-fitting. Ignored when
+   *  `preserveView` is set. */
+  view?: ViewState;
+}
+
+/** Camera position + orbit target, enough to put the camera back where it was. */
+export interface ViewState {
+  position: [number, number, number];
+  target: [number, number, number];
 }
 
 export interface HoverInfo {
   /** Normalized #rrggbb of the hovered mesh's color, in sRGB (matches the manifest). */
   color: string;
+  /** Id of the named piece under the cursor, once `resolveInstances` has placed it. */
+  instance: string | null;
   /** Container-relative screen position of the hovered mesh's projected center. */
   screenX: number;
   screenY: number;
@@ -24,6 +37,10 @@ export interface HighlightState {
   hover?: string | null;
   /** sRGB hexes of the sibling pieces of the same part. They get the neon glow. */
   glow?: string[];
+  /** A single named piece to lift, when the colour it shares holds others. */
+  hoverInstance?: string | null;
+  /** Named pieces to glow one by one, where a whole colour would take in other parts. */
+  glowInstances?: string[];
 }
 
 export interface Viewer {
@@ -41,12 +58,24 @@ export interface Viewer {
   /** Container-relative projected screen position of the mesh matching `hex`. */
   getScreenPositionForColor(hex: string): { x: number; y: number } | null;
   /**
+   * Tie the loaded 3MF's echoed anchors to the pieces they sit in, so each can
+   * be lit and pointed at alone. `colorsById` names, per id, the colours its
+   * piece may be drawn in — an anchor only ever claims a mesh of those. Returns
+   * the ids that landed on exactly one piece of their own; an id whose piece is
+   * fused to a sibling, or whose anchor lies in no piece, is left out rather
+   * than guessed.
+   */
+  resolveInstances(colorsById: Map<string, string[]>): Set<string>;
+  /** Container-relative projected screen position of a resolved piece. */
+  getScreenPositionForInstance(id: string): { x: number; y: number } | null;
+  /**
    * Serialize the mesh whose sRGB color matches `hex` to a binary STL buffer,
    * with its XY bbox recentered on the origin and its minZ dropped to 0 —
    * ready to drop into a slicer or the local cache as a printable piece.
    * Returns null if no mesh matches.
    */
   getMeshStlByColor(hex: string): ArrayBuffer | null;
+  getView(): ViewState;
 }
 
 const DEFAULT_FACE = 0x00d5ff;
@@ -511,6 +540,99 @@ function splitVertexColoredMesh(mesh: THREE.Mesh): THREE.Mesh[] {
   return out;
 }
 
+/**
+ * Split a mesh's triangles into its separate solids. A colour pass unions every
+ * piece drawn in that colour, but pieces that don't touch stay apart as
+ * separate shells, and that is what lets one of them be lit alone. Vertices are
+ * welded by position, since the split-by-colour geometry is unindexed.
+ */
+export function splitConnectedComponents(geo: THREE.BufferGeometry): THREE.BufferGeometry[] {
+  const pos = geo.getAttribute("position") as THREE.BufferAttribute;
+  const index = geo.getIndex();
+  const cornerCount = index ? index.count : pos.count;
+  const corner = (i: number) => (index ? index.getX(i) : i);
+
+  const weld = new Map<string, number>();
+  const welded = new Int32Array(pos.count);
+  for (let v = 0; v < pos.count; v++) {
+    const key = `${Math.round(pos.getX(v) * 1e4)},${Math.round(pos.getY(v) * 1e4)},${Math.round(pos.getZ(v) * 1e4)}`;
+    let id = weld.get(key);
+    if (id === undefined) {
+      id = weld.size;
+      weld.set(key, id);
+    }
+    welded[v] = id;
+  }
+  const parent = new Int32Array(weld.size).map((_, i) => i);
+  const find = (x: number): number => {
+    while (parent[x] !== x) {
+      parent[x] = parent[parent[x]];
+      x = parent[x];
+    }
+    return x;
+  };
+  for (let c = 0; c < cornerCount; c += 3) {
+    const a = find(welded[corner(c)]);
+    parent[find(welded[corner(c + 1)])] = a;
+    parent[find(welded[corner(c + 2)])] = a;
+  }
+
+  const shells = new Map<number, number[]>();
+  for (let c = 0; c < cornerCount; c += 3) {
+    const root = find(welded[corner(c)]);
+    let out = shells.get(root);
+    if (!out) shells.set(root, (out = []));
+    for (let k = 0; k < 3; k++) {
+      const v = corner(c + k);
+      out.push(pos.getX(v), pos.getY(v), pos.getZ(v));
+    }
+  }
+  return [...shells.values()].map((positions) => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    g.computeVertexNormals();
+    return g;
+  });
+}
+
+/**
+ * Give each anchor the piece it sits in: of the candidate pieces whose bounds
+ * hold the point, the one whose centre is nearest. Two anchors landing on one
+ * piece means that piece is several fused together, so neither gets it.
+ */
+export function assignAnchors<T>(
+  anchors: InstanceAnchor[],
+  candidates: (id: string) => { item: T; box: THREE.Box3 }[],
+): Map<string, T> {
+  const claims = new Map<T, string[]>();
+  const point = new THREE.Vector3();
+  const centre = new THREE.Vector3();
+  for (const anchor of anchors) {
+    point.fromArray(anchor.at);
+    let best: T | null = null;
+    let bestDist = Number.POSITIVE_INFINITY;
+    for (const { item, box } of candidates(anchor.id)) {
+      if (!box.clone().expandByScalar(1e-3).containsPoint(point)) continue;
+      const dist = box.getCenter(centre).distanceTo(point);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = item;
+      }
+    }
+    if (best !== null) claims.set(best, [...(claims.get(best) ?? []), anchor.id]);
+  }
+  const out = new Map<string, T>();
+  for (const [item, ids] of claims) if (ids.length === 1) out.set(ids[0], item);
+  return out;
+}
+
+/** The anchors a 3MF carries, or [] when its preview echoes none. */
+function readInstanceAnchors(data: ArrayBuffer): InstanceAnchor[] {
+  const files = unzipSync(new Uint8Array(data), { filter: (f) => f.name === INSTANCE_ANCHORS_PATH });
+  const json = files[INSTANCE_ANCHORS_PATH];
+  return json ? (JSON.parse(strFromU8(json)) as InstanceAnchor[]) : [];
+}
+
 export function createViewer(container: HTMLElement): Viewer {
   const scene = new THREE.Scene();
   scene.background = makeSunsetTexture();
@@ -558,27 +680,36 @@ export function createViewer(container: HTMLElement): Viewer {
     edgeColor: THREE.Color;
     edgeOpacity: number;
     color: string;
+    /** Set by resolveInstances once this mesh is known to be one named piece. */
+    instance: string | null;
   }
   // A colour can appear in more than one 3MF object, so this is one-to-many.
   const meshesByColor = new Map<string, TrackedMesh[]>();
   const trackedByMesh = new Map<THREE.Mesh, TrackedMesh>();
+  const trackedByInstance = new Map<string, TrackedMesh>();
+  let instanceAnchors: InstanceAnchor[] = [];
+  /** Colours already broken into their separate solids. */
+  const splitColors = new Set<string>();
   let painted: TrackedMesh[] = [];
 
   const hoverListeners = new Set<(info: HoverInfo | null) => void>();
   const clickListeners = new Set<(color: string) => void>();
 
-  function paint(t: TrackedMesh, state: "base" | "glow" | "hover") {
+  // "sibling" is a fainter glow, for the rest of a part while one of its
+  // pieces is lifted: at full glow a neon piece reads the same as the lifted one.
+  function paint(t: TrackedMesh, state: "base" | "glow" | "sibling" | "hover") {
     if (state === "hover") {
       t.material.color.copy(t.baseColor).lerp(HIGHLIGHT_WHITE, 0.38);
       t.material.emissive.copy(t.baseColor).multiplyScalar(0.18);
-    } else if (state === "glow") {
+    } else if (state === "glow" || state === "sibling") {
       t.material.color.copy(t.baseColor);
       // Self-illuminate in the piece's own hue, so a glowing part still reads
       // as the colour its swatch shows. A piece too dark to light itself —
       // black cap bodies, dark grey gaskets — falls back to the shared tint.
-      t.material.emissive.copy(t.baseColor).multiplyScalar(0.5);
+      const strength = state === "glow" ? 1 : 0.4;
+      t.material.emissive.copy(t.baseColor).multiplyScalar(0.5 * strength);
       const lit = t.material.emissive;
-      if (lit.r + lit.g + lit.b < 0.12) lit.copy(GLOW_TINT).multiplyScalar(0.35);
+      if (lit.r + lit.g + lit.b < 0.12 * strength) lit.copy(GLOW_TINT).multiplyScalar(0.35 * strength);
     } else {
       t.material.color.copy(t.baseColor);
       t.material.emissive.copy(t.baseEmissive);
@@ -591,7 +722,7 @@ export function createViewer(container: HTMLElement): Viewer {
       lineMat.opacity = t.edgeOpacity;
     } else {
       lineMat.color.copy(state === "hover" ? HIGHLIGHT_WHITE : GLOW_TINT);
-      lineMat.opacity = 0.9;
+      lineMat.opacity = state === "sibling" ? 0.5 : 0.9;
     }
   }
 
@@ -601,26 +732,32 @@ export function createViewer(container: HTMLElement): Viewer {
     const hover = state.hover ? state.hover.toLowerCase() : null;
     const glow = new Set((state.glow ?? []).map((c) => c.toLowerCase()));
     if (hover) glow.delete(hover);
-    for (const color of glow) {
-      for (const t of meshesByColor.get(color) ?? []) {
-        paint(t, "glow");
+    const glowPieces = (state.glowInstances ?? []).filter((id) => id !== state.hoverInstance);
+    const lit = (ts: Iterable<TrackedMesh | undefined>, how: "glow" | "sibling" | "hover") => {
+      for (const t of ts) {
+        if (!t) continue;
+        paint(t, how);
         painted.push(t);
       }
-    }
-    if (hover) {
-      for (const t of meshesByColor.get(hover) ?? []) {
-        paint(t, "hover");
-        painted.push(t);
-      }
-    }
+    };
+    for (const color of glow) lit(meshesByColor.get(color) ?? [], "glow");
+    lit(glowPieces.map((id) => trackedByInstance.get(id)), state.hoverInstance ? "sibling" : "glow");
+    if (hover) lit(meshesByColor.get(hover) ?? [], "hover");
+    if (state.hoverInstance) lit([trackedByInstance.get(state.hoverInstance)], "hover");
   }
 
-  function projectMeshScreen(mesh: THREE.Mesh): { x: number; y: number } | null {
-    if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+  /** Where the middle of these meshes lands on screen — one piece, or all of a colour. */
+  function projectMeshScreen(...meshes: THREE.Mesh[]): { x: number; y: number } | null {
+    const box = new THREE.Box3();
+    for (const mesh of meshes) {
+      if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+      box.union(mesh.geometry.boundingBox!);
+    }
     const center = new THREE.Vector3();
-    mesh.geometry.boundingBox!.getCenter(center);
-    mesh.updateWorldMatrix(true, false);
-    center.applyMatrix4(mesh.matrixWorld);
+    box.getCenter(center);
+    // Every piece shares one parent transform, so the first carries it.
+    meshes[0].updateWorldMatrix(true, false);
+    center.applyMatrix4(meshes[0].matrixWorld);
     center.project(camera);
     if (center.z < -1 || center.z > 1) return null;
     const canvasRect = renderer.domElement.getBoundingClientRect();
@@ -656,6 +793,7 @@ export function createViewer(container: HTMLElement): Viewer {
     const proj = projectMeshScreen(tracked.mesh);
     const info: HoverInfo = {
       color: tracked.color,
+      instance: tracked.instance,
       screenX: proj?.x ?? 0,
       screenY: proj?.y ?? 0,
     };
@@ -764,12 +902,15 @@ export function createViewer(container: HTMLElement): Viewer {
     }
     meshesByColor.clear();
     trackedByMesh.clear();
+    trackedByInstance.clear();
+    splitColors.clear();
+    instanceAnchors = [];
     painted = [];
   }
 
-  function trackMesh(mesh: THREE.Mesh, edges: THREE.LineSegments | null) {
+  function trackMesh(mesh: THREE.Mesh, edges: THREE.LineSegments | null, byColor = true): TrackedMesh | null {
     const mat = mesh.material as THREE.MeshPhongMaterial;
-    if (!mat || !mat.color) return;
+    if (!mat || !mat.color) return null;
     const hex = toSrgbHex(mat.color);
     const lineMat = edges?.material as THREE.LineBasicMaterial | undefined;
     const tracked: TrackedMesh = {
@@ -781,11 +922,15 @@ export function createViewer(container: HTMLElement): Viewer {
       edgeColor: lineMat ? lineMat.color.clone() : new THREE.Color(),
       edgeOpacity: lineMat?.opacity ?? 0,
       color: hex,
+      instance: null,
     };
-    const existing = meshesByColor.get(hex);
-    if (existing) existing.push(tracked);
-    else meshesByColor.set(hex, [tracked]);
+    if (byColor) {
+      const existing = meshesByColor.get(hex);
+      if (existing) existing.push(tracked);
+      else meshesByColor.set(hex, [tracked]);
+    }
     trackedByMesh.set(mesh, tracked);
+    return tracked;
   }
 
   function load(data: ArrayBuffer, format: ModelFormat, opts: LoadOptions = {}) {
@@ -800,6 +945,7 @@ export function createViewer(container: HTMLElement): Viewer {
       trackMesh(mesh, addEdgeLines(mesh, material.color));
     } else {
       group = new ThreeMFLoader().parse(data) as THREE.Group;
+      instanceAnchors = readInstanceAnchors(data);
 
       // First pass — collect existing meshes.
       const originals: THREE.Mesh[] = [];
@@ -849,12 +995,20 @@ export function createViewer(container: HTMLElement): Viewer {
 
     camera.near = maxDim * 0.001;
     camera.far = maxDim * 100;
-    if (!opts.preserveView) {
+    if (opts.preserveView) {
+      // Keep the camera where it is.
+    } else if (opts.view) {
+      camera.position.fromArray(opts.view.position);
+      controls.target.fromArray(opts.view.target);
+    } else {
       const fitDistance = maxDim / (2 * Math.tan((Math.PI * camera.fov) / 360));
       // Shallow elevation: enough to read the top of a part, low enough that
       // the backdrop's horizon and sun stay in frame.
-      camera.position.set(fitDistance * 1.2, fitDistance * 0.42, fitDistance * 1.2);
-      controls.target.set(0, 0, 0);
+      // Orbit about the middle of the model, not the floor under it, so the
+      // model sits centred in the frame rather than above it.
+      const midY = size.y / 2;
+      camera.position.set(fitDistance * 1.2, midY + fitDistance * 0.42, fitDistance * 1.2);
+      controls.target.set(0, midY, 0);
     }
     camera.updateProjectionMatrix();
     controls.update();
@@ -892,7 +1046,65 @@ export function createViewer(container: HTMLElement): Viewer {
   function getScreenPositionForColor(hex: string): { x: number; y: number } | null {
     const tracked = meshesByColor.get(hex.toLowerCase());
     if (!tracked || tracked.length === 0) return null;
-    return projectMeshScreen(tracked[0].mesh);
+    return projectMeshScreen(...tracked.map((t) => t.mesh));
+  }
+
+  /** Swap each of a colour's meshes for one mesh per separate solid in it. */
+  function splitColor(color: string) {
+    if (splitColors.has(color)) return;
+    splitColors.add(color);
+    const pieces: TrackedMesh[] = [];
+    for (const t of meshesByColor.get(color) ?? []) {
+      const shells = splitConnectedComponents(t.mesh.geometry);
+      if (shells.length < 2) {
+        pieces.push(t);
+        continue;
+      }
+      const parent = t.mesh.parent!;
+      parent.remove(t.mesh);
+      trackedByMesh.delete(t.mesh);
+      t.mesh.geometry.dispose();
+      if (t.edges) {
+        t.edges.geometry.dispose();
+        (t.edges.material as THREE.Material).dispose();
+      }
+      for (const geo of shells) {
+        // Its own material, so lighting one piece leaves its siblings alone.
+        const mesh = new THREE.Mesh(geo, t.material.clone());
+        mesh.position.copy(t.mesh.position);
+        mesh.rotation.copy(t.mesh.rotation);
+        mesh.scale.copy(t.mesh.scale);
+        parent.add(mesh);
+        const piece = trackMesh(mesh, t.edges ? addEdgeLines(mesh, t.baseColor) : null, false);
+        if (piece) pieces.push(piece);
+      }
+      t.material.dispose();
+    }
+    meshesByColor.set(color, pieces);
+  }
+
+  function resolveInstances(colorsById: Map<string, string[]>): Set<string> {
+    setHighlight({});
+    for (const t of trackedByInstance.values()) t.instance = null;
+    trackedByInstance.clear();
+    const anchors = instanceAnchors.filter((a) => colorsById.has(a.id));
+    for (const a of anchors) for (const c of colorsById.get(a.id)!) splitColor(c.toLowerCase());
+    const assigned = assignAnchors(anchors, (id) =>
+      colorsById.get(id)!.flatMap((c) => meshesByColor.get(c.toLowerCase()) ?? []).map((t) => {
+        if (!t.mesh.geometry.boundingBox) t.mesh.geometry.computeBoundingBox();
+        return { item: t, box: t.mesh.geometry.boundingBox! };
+      }),
+    );
+    for (const [id, t] of assigned) {
+      t.instance = id;
+      trackedByInstance.set(id, t);
+    }
+    return new Set(assigned.keys());
+  }
+
+  function getScreenPositionForInstance(id: string): { x: number; y: number } | null {
+    const t = trackedByInstance.get(id);
+    return t ? projectMeshScreen(t.mesh) : null;
   }
 
   function getMeshStlByColor(hex: string): ArrayBuffer | null {
@@ -910,7 +1122,17 @@ export function createViewer(container: HTMLElement): Viewer {
     return meshToBinaryStl(merged);
   }
 
-  return { load, clear, dispose, onHover, onClick, setHighlight, getPartColors, getScreenPositionForColor, getMeshStlByColor };
+  function getView(): ViewState {
+    return {
+      position: camera.position.toArray() as ViewState["position"],
+      target: controls.target.toArray() as ViewState["target"],
+    };
+  }
+
+  return {
+    load, clear, dispose, onHover, onClick, setHighlight, getPartColors, getScreenPositionForColor,
+    resolveInstances, getScreenPositionForInstance, getMeshStlByColor, getView,
+  };
 }
 
 /**

@@ -68,6 +68,13 @@
       "parts": []
     },
     {
+      "slug": "collar-tag-holder",
+      "title": "Collar Tag Holder",
+      "description": "Holds a 32 mm round metal ID tag flat against a 25 mm biothane collar. The tag drops in from the back and seats against a 2 mm lip that leaves a 28 mm window over the engraving; the collar then threads through a channel right behind it and closes the back, so the tag can’t come out while the holder is on the collar. The holder is no bigger than the tag, with every edge rounded, most of all on the side against the dog. Prints face down with no supports.",
+      "filament": [{ "material": "PETG", "color": "any" }],
+      "parts": [{ "file": "holder.stl", "format": "stl", "label": "Holder", "default": true, "module": "holder" }]
+    },
+    {
       "slug": "fi-mini-case",
       "title": "Fi Mini GPS Case",
       "description": "Protective case for the Fi Mini GPS tracker. Supports an optional QR code — enter your phone number or address so anyone who finds your dog can reach you.",
@@ -484,6 +491,27 @@
       ]
     },
     {
+      "slug": "folding-panel-divider",
+      "title": "Folding Panel Divider",
+      "description": "A room divider printed in one piece, already folded. Eight 240 mm panels are joined edge to edge by interlocking knuckle hinges with the pin printed through the bore — the strip comes off the bed hinged, with no assembly and no hardware. Consecutive panels carry their knuckles on opposite faces, so the run zig-zags open accordion-style and folds back down to one panel wide. It prints standing on end, which puts every hinge bore vertical so the bores come out round with no support; a stacking pair is about 118 × 244 mm of bed and 243 mm tall. Snap joiners along the top and bottom edges let a second strip stack on the first for double height. Panel height and width, thickness, panel count, hinge segment count and running clearance are all adjustable.",
+      "customizable": true,
+      "previews": [
+        {
+          "file": "plate.3mf",
+          "format": "3mf",
+          "label": "Print plate: a stacking pair",
+          "default": true,
+          "module": "plate",
+          "legend": [
+            { "color": "#00eaff", "label": "Strip, joiners on the top edge", "part": "strip.stl" },
+            { "color": "#ff6b00", "label": "Strip, joiners on the bottom edge", "part": "strip.stl" }
+          ],
+          "components": [{ "part": "strip.stl", "qty": 2 }]
+        }
+      ],
+      "parts": [{ "file": "strip.stl", "format": "stl", "label": "Folded strip, 8 panels", "module": "strip" }]
+    },
+    {
       "slug": "test-cube-xyz",
       "title": "XYZ Test Cube",
       "description": "30 mm calibration cube with X, Y, Z engraved on the +X, +Y, +Z faces. Quick end-to-end sanity check for slicer + printer coordinate system.",
@@ -521,6 +549,923 @@
       ],
       "parts": [
         { "file": "block.stl", "format": "stl", "label": "1U block", "module": "block" }
+      ]
+    },
+    {
+      "slug": "filament-spool-roller",
+      "title": "Spool Roller Stand (Dry Box)",
+      "description": "A filament spool roller stand for a 300 × 200 × 240 mm dry box interior, sized around the Bambu Lab 200 mm spool — four lanes wide to fill the box, or a single lane on its own. Every lane runs its own pair of rollers on its own pegs, so every spool unwinds independently. The walls between lanes do the supporting: a 608 presses into each end of a roller, one peg through a wall carries both neighbouring rollers at once, and a 0.5 mm shoulder on the peg holds each roller off the flat wall — no pockets, so the walls print flat with nothing to bridge. Each roller flange tapers at 40° from the wall face down to the running surface, filling the 2 mm between spool and wall, so a spool dropped in has one place to go and no edge to perch on. The roller spacing is solved rather than chosen — asking for the spool to sit 8 mm off the floor is what puts the rollers 156.4 mm apart, with the rims meeting them 42.8° off vertical. Filament leaves the bottom of a spool into a PTFE tube whose mouth is held by a clip just behind the spool, clear of it; the tube runs flat through loops in a round-bottomed groove sunk half the tile's thickness, under the back roller to a second clip tucked behind it, and leaves the tile there for a push-fit bulkhead; a drilling template marks a bulkhead hole at each lane centre, and a second marks the tiles' screw-down holes on the box floor. The floor splits into one dovetailed tile per lane, and the walls split into a left, a centre and a right the same way, so every part fits a 220 mm bed; the four-lane templates print in dovetailed halves, the one-lane ones whole. Screw pads through the lattice let the stand be fixed down, and each wall is one crescent-shaped piece — tall at the back, low through the middle, up again at the front. Walls sit on the floor on full-length V ridges, and are screwed down by three M3s up through the floor — front, middle and back — with the two tiles under a centre wall lapping at each. One hex beam per lane, nested end to end, runs through the top back of the walls, clear of the seated spools, and an M3 screw through the back of each wall locks the wall and both beam ends in it together. Spool size, ride height, lane count, roller and bearing dimensions, the PTFE run and the box are all adjustable.",
+      "customizable": true,
+      "devOnly": true,
+      "filament": [
+        {
+          "material": "PETG",
+          "color": "any",
+          "note": "Everything but the pegs. Rollers want a few solid perimeters around the bearing pockets; the spools' weight lands on them."
+        },
+        {
+          "material": "TPU 64D",
+          "color": "any",
+          "note": "The pegs — they have a plate of their own.",
+          "parts": ["peg-inner.stl", "peg-end.stl"]
+        }
+      ],
+      "builds": [
+        {
+          "id": "4x",
+          "label": "4×",
+          "default": true,
+          "params": { "lanes": 4 },
+          "previews": [
+            {
+              "file": "assembled.3mf",
+              "format": "3mf",
+              "label": "Assembly: the four-lane holder with spools seated",
+              "default": true,
+              "module": "stand_tiles",
+              "legend": [
+                {
+                  "color": "#1fedff", "shades": ["#73f3ff"],
+                  "label": "Floor tiles, one per lane",
+                  "parts": ["tile-left.stl", "tile-middle.stl", "tile-right.stl"]
+                },
+                {
+                  "color": "#ffdb27", "shades": ["#ffe878"],
+                  "label": "Walls — carry the pegs and the beams",
+                  "parts": ["wall-left.stl", "wall-center.stl", "wall-right.stl"]
+                },
+                { "color": "#ff7d1f", "shades": ["#ffae73"], "label": "Rollers", "part": "roller.stl" },
+                {
+                  "color": "#ff33ce", "shades": ["#ff7fe0"],
+                  "label": "Pegs — pressed through the walls, carry the bearings",
+                  "part": "peg-inner.stl",
+                  "parts": ["peg-inner.stl", "peg-end.stl"]
+                },
+                { "color": "#c0c4cc", "label": "608 bearings — reference only, not printed" },
+                { "color": "#51ff30", "shades": ["#92ff7e"], "label": "Hex beams, nested wall to wall", "part": "beam.stl" },
+                { "color": "#8a8f98", "label": "Spools — reference only, not printed" }
+              ],
+              "components": [
+                { "part": "tile-left.stl", "qty": 1, "instances": [{"id": "T1", "where": "lane 1, left edge"}] },
+                {
+                  "part": "tile-middle.stl",
+                  "qty": 2,
+                  "instances": [{ "id": "T2", "where": "lane 2" }, { "id": "T3", "where": "lane 3" }]
+                },
+                { "part": "tile-right.stl", "qty": 1, "instances": [{"id": "T4", "where": "lane 4, right edge"}] },
+                { "part": "wall-left.stl", "qty": 1, "instances": [{"id": "W1", "where": "left end, lane 1"}] },
+                {
+                  "part": "wall-center.stl",
+                  "qty": 3,
+                  "instances": [
+                    { "id": "W2", "where": "between lanes 1 and 2" },
+                    { "id": "W3", "where": "between lanes 2 and 3" },
+                    { "id": "W4", "where": "between lanes 3 and 4" }
+                  ]
+                },
+                { "part": "wall-right.stl", "qty": 1, "instances": [{"id": "W5", "where": "right end, lane 4"}] },
+                {
+                  "part": "roller.stl",
+                  "qty": 8,
+                  "instances": [
+                    { "id": "R1F", "where": "lane 1, front" },
+                    { "id": "R1B", "where": "lane 1, back" },
+                    { "id": "R2F", "where": "lane 2, front" },
+                    { "id": "R2B", "where": "lane 2, back" },
+                    { "id": "R3F", "where": "lane 3, front" },
+                    { "id": "R3B", "where": "lane 3, back" },
+                    { "id": "R4F", "where": "lane 4, front" },
+                    { "id": "R4B", "where": "lane 4, back" }
+                  ]
+                },
+                {
+                  "part": "peg-inner.stl",
+                  "qty": 6,
+                  "instances": [
+                    { "id": "P2F", "where": "through W2, front — carries R1F and R2F" },
+                    { "id": "P2B", "where": "through W2, back — carries R1B and R2B" },
+                    { "id": "P3F", "where": "through W3, front — carries R2F and R3F" },
+                    { "id": "P3B", "where": "through W3, back — carries R2B and R3B" },
+                    { "id": "P4F", "where": "through W4, front — carries R3F and R4F" },
+                    { "id": "P4B", "where": "through W4, back — carries R3B and R4B" }
+                  ]
+                },
+                {
+                  "part": "peg-end.stl",
+                  "qty": 4,
+                  "instances": [
+                    { "id": "P1F", "where": "through W1, front — carries R1F" },
+                    { "id": "P1B", "where": "through W1, back — carries R1B" },
+                    { "id": "P5F", "where": "through W5, front — carries R4F" },
+                    { "id": "P5B", "where": "through W5, back — carries R4B" }
+                  ]
+                },
+                {
+                  "part": "beam.stl",
+                  "qty": 4,
+                  "instances": [
+                    { "id": "B1", "where": "lane 1, W1 to W2" },
+                    { "id": "B2", "where": "lane 2, W2 to W3" },
+                    { "id": "B3", "where": "lane 3, W3 to W4" },
+                    { "id": "B4", "where": "lane 4, W4 to W5" }
+                  ]
+                }
+              ]
+            },
+            {
+              "file": "box.3mf",
+              "format": "3mf",
+              "label": "Reference: four spools in the dry box",
+              "module": "box",
+              "legend": [
+                {
+                  "color": "#1fedff", "shades": ["#73f3ff"],
+                  "label": "Floor tiles",
+                  "parts": ["tile-left.stl", "tile-middle.stl", "tile-right.stl"]
+                },
+                {
+                  "color": "#ffdb27", "shades": ["#ffe878"],
+                  "label": "Walls",
+                  "parts": ["wall-left.stl", "wall-center.stl", "wall-right.stl"]
+                },
+                { "color": "#ff7d1f", "shades": ["#ffae73"], "label": "Rollers", "part": "roller.stl" },
+                { "color": "#51ff30", "shades": ["#92ff7e"], "label": "Hex beams", "part": "beam.stl" },
+                { "color": "#8a8f98", "label": "Spools — reference only, not printed" },
+                { "color": "#3a3f48", "label": "Box — reference only, not printed" }
+              ]
+            },
+            {
+              "file": "lane-left.3mf",
+              "format": "3mf",
+              "label": "Bay: left lane",
+              "module": "tile_left",
+              "legend": [
+                { "color": "#00eaff", "label": "Tile, left edge", "part": "tile-left.stl" },
+                { "color": "#ffd60a", "label": "Walls, left end and centre", "part": "wall-left.stl" },
+                { "color": "#ff6b00", "label": "Rollers", "part": "roller.stl" }
+              ]
+            },
+            {
+              "file": "lane-mid.3mf",
+              "format": "3mf",
+              "label": "Bay: middle lane",
+              "module": "tile_middle",
+              "legend": [
+                { "color": "#00eaff", "label": "Tile, middle", "part": "tile-middle.stl" },
+                { "color": "#ffd60a", "label": "Walls", "part": "wall-center.stl" },
+                { "color": "#ff6b00", "label": "Rollers", "part": "roller.stl" }
+              ]
+            },
+            {
+              "file": "lane-right.3mf",
+              "format": "3mf",
+              "label": "Bay: right lane",
+              "module": "tile_right",
+              "legend": [
+                { "color": "#00eaff", "label": "Tile, right edge", "part": "tile-right.stl" },
+                { "color": "#ffd60a", "label": "Walls, centre and right end", "part": "wall-right.stl" },
+                { "color": "#ff6b00", "label": "Rollers", "part": "roller.stl" }
+              ]
+            },
+            {
+              "file": "plate-1.3mf",
+              "format": "3mf",
+              "label": "Print plate 1: the left wall",
+              "module": "plate_wall",
+              "legend": [{ "color": "#ffd60a", "label": "Wall, flat", "part": "wall-left.stl" }],
+              "components": [{ "part": "wall-left.stl", "qty": 1, "instances": [{ "id": "W1" }] }]
+            },
+            {
+              "file": "plate-2.3mf",
+              "format": "3mf",
+              "label": "Print plate 2: a centre wall",
+              "module": "plate_wall",
+              "legend": [{ "color": "#ffd60a", "label": "Wall, flat", "part": "wall-center.stl" }],
+              "components": [{ "part": "wall-center.stl", "qty": 1, "instances": [{ "id": "W2" }] }]
+            },
+            {
+              "file": "plate-3.3mf",
+              "format": "3mf",
+              "label": "Print plate 3: a centre wall",
+              "module": "plate_wall",
+              "legend": [{ "color": "#ffd60a", "label": "Wall, flat", "part": "wall-center.stl" }],
+              "components": [{ "part": "wall-center.stl", "qty": 1, "instances": [{ "id": "W3" }] }]
+            },
+            {
+              "file": "plate-4.3mf",
+              "format": "3mf",
+              "label": "Print plate 4: a centre wall",
+              "module": "plate_wall",
+              "legend": [{ "color": "#ffd60a", "label": "Wall, flat", "part": "wall-center.stl" }],
+              "components": [{ "part": "wall-center.stl", "qty": 1, "instances": [{ "id": "W4" }] }]
+            },
+            {
+              "file": "plate-5.3mf",
+              "format": "3mf",
+              "label": "Print plate 5: the right wall",
+              "module": "plate_wall",
+              "legend": [{ "color": "#ffd60a", "label": "Wall, flat", "part": "wall-right.stl" }],
+              "components": [{ "part": "wall-right.stl", "qty": 1, "instances": [{ "id": "W5" }] }]
+            },
+            {
+              "file": "plate-6.3mf",
+              "format": "3mf",
+              "label": "Print plate 6: every roller and beam",
+              "module": "plate_rollers",
+              "legend": [
+                { "color": "#ff6b00", "label": "Rollers, on end", "part": "roller.stl" },
+                { "color": "#39ff14", "label": "Beams, on their flange ends", "part": "beam.stl" }
+              ],
+              "components": [{ "part": "roller.stl", "qty": 8 }, { "part": "beam.stl", "qty": 4 }]
+            },
+            {
+              "file": "plate-7.3mf",
+              "format": "3mf",
+              "label": "Print plate 7: every peg — print in TPU",
+              "module": "plate_pegs",
+              "legend": [
+                {
+                  "color": "#ff17c7",
+                  "label": "Pegs, lying on their flats — TPU",
+                  "part": "peg-inner.stl",
+                  "parts": ["peg-inner.stl", "peg-end.stl"]
+                }
+              ],
+              "components": [{ "part": "peg-inner.stl", "qty": 6 }, { "part": "peg-end.stl", "qty": 4 }]
+            },
+            {
+              "file": "plate-8.3mf",
+              "format": "3mf",
+              "label": "Print plate 8: floor tiles 1 and 2",
+              "module": "plate_tile",
+              "legend": [
+                { "color": "#00eaff", "label": "Tile 1", "part": "tile-left.stl" },
+                { "color": "#ff17c7", "label": "Tile 2", "part": "tile-middle.stl" }
+              ],
+              "components": [
+                { "part": "tile-left.stl", "qty": 1, "instances": [{"id": "T1"}] },
+                { "part": "tile-middle.stl", "qty": 1, "instances": [{"id": "T2"}] }
+              ]
+            },
+            {
+              "file": "plate-9.3mf",
+              "format": "3mf",
+              "label": "Print plate 9: floor tiles 3 and 4",
+              "module": "plate_tile",
+              "legend": [
+                { "color": "#00eaff", "label": "Tile 3", "part": "tile-middle.stl" },
+                { "color": "#ff17c7", "label": "Tile 4", "part": "tile-right.stl" }
+              ],
+              "components": [
+                { "part": "tile-middle.stl", "qty": 1, "instances": [{"id": "T3"}] },
+                { "part": "tile-right.stl", "qty": 1, "instances": [{"id": "T4"}] }
+              ]
+            },
+            {
+              "file": "plate-10.3mf",
+              "format": "3mf",
+              "label": "Print plate 10: the bulkhead drilling template",
+              "module": "plate_template",
+              "legend": [
+                { "color": "#00eaff", "label": "Bulkhead template, left half", "part": "template-left.stl" },
+                { "color": "#ff17c7", "label": "Bulkhead template, right half", "part": "template-right.stl" }
+              ],
+              "components": [
+                { "part": "template-left.stl", "qty": 1 },
+                { "part": "template-right.stl", "qty": 1 }
+              ]
+            },
+            {
+              "file": "plate-11.3mf",
+              "format": "3mf",
+              "label": "Print plate 11: the floor drilling template, left half",
+              "module": "plate_floor_template",
+              "legend": [{ "color": "#00eaff", "label": "Left half", "part": "floor-template-left.stl" }],
+              "components": [{ "part": "floor-template-left.stl", "qty": 1 }]
+            },
+            {
+              "file": "plate-12.3mf",
+              "format": "3mf",
+              "label": "Print plate 12: the floor drilling template, right half",
+              "module": "plate_floor_template",
+              "legend": [{ "color": "#ff17c7", "label": "Right half", "part": "floor-template-right.stl" }],
+              "components": [{ "part": "floor-template-right.stl", "qty": 1 }]
+            },
+            {
+              "file": "plate-fit.3mf",
+              "format": "3mf",
+              "label": "Fit test: every joint at full size, to print and throw away",
+              "module": "plate_fit_walls",
+              "legend": [
+                { "color": "#ffd60a", "label": "Wall coupons — beam socket and peg hole" },
+                { "color": "#ff6b00", "label": "Short roller — both bearing pockets" },
+                { "color": "#39ff14", "label": "Beam ends — socket and spigot thirds" },
+                { "color": "#c0c4cc", "label": "Lock pin" },
+                { "color": "#ff17c7", "label": "Inner peg — TPU like the real ones, or anything to check the fit" },
+                { "color": "#00eaff", "label": "Tile dovetail — tail and socket" }
+              ]
+            }
+          ],
+          "parts": [
+            { "file": "tile-left.stl", "format": "stl", "label": "Floor tile, left edge", "module": "tile_left" },
+            { "file": "tile-middle.stl", "format": "stl", "label": "Floor tile, middle", "module": "tile_middle" },
+            {
+              "file": "tile-right.stl",
+              "format": "stl",
+              "label": "Floor tile, right edge",
+              "module": "tile_right"
+            },
+            { "file": "wall-left.stl", "format": "stl", "label": "Support wall, left end", "module": "wall_left" },
+            {
+              "file": "wall-center.stl",
+              "format": "stl",
+              "label": "Support wall, between lanes",
+              "module": "wall_center"
+            },
+            {
+              "file": "wall-right.stl",
+              "format": "stl",
+              "label": "Support wall, right end",
+              "module": "wall_right"
+            },
+            { "file": "roller.stl", "format": "stl", "label": "Roller — prints on end", "module": "roller" },
+            {
+              "file": "peg-inner.stl",
+              "format": "stl",
+              "label": "Peg, through an inner wall",
+              "module": "peg_inner"
+            },
+            { "file": "peg-end.stl", "format": "stl", "label": "Peg, through an end wall", "module": "peg_end" },
+            {
+              "file": "beam.stl",
+              "format": "stl",
+              "label": "Hex beam — prints standing on its flange end",
+              "module": "beam"
+            },
+            {
+              "file": "lock-pin.stl",
+              "format": "stl",
+              "label": "Lock pin — printed stand-in for an M3 screw",
+              "module": "lock_pin"
+            },
+            {
+              "file": "template-left.stl",
+              "format": "stl",
+              "label": "Bulkhead drilling template, left half",
+              "module": "template_left"
+            },
+            {
+              "file": "template-right.stl",
+              "format": "stl",
+              "label": "Bulkhead drilling template, right half",
+              "module": "template_right"
+            },
+            {
+              "file": "floor-template-left.stl",
+              "format": "stl",
+              "label": "Floor drilling template, left half — marks the tile screw holes",
+              "module": "floor_template_left"
+            },
+            {
+              "file": "floor-template-right.stl",
+              "format": "stl",
+              "label": "Floor drilling template, right half",
+              "module": "floor_template_right"
+            }
+          ],
+          "hardware": [
+            {
+              "qty": 16,
+              "label": "608ZZ bearing, 8 × 22 × 7 mm — two per roller",
+              "source": { "url": "https://www.amazon.com/s?k=608zz+bearing", "vendor": "Amazon" },
+              "usedBy": [{ "part": "roller.stl", "each": 2 }]
+            },
+            {
+              "qty": 4,
+              "label": "PTFE tube, 4 mm OD × 2 mm ID — one per lane",
+              "source": { "url": "https://www.amazon.com/s?k=ptfe+tube+4mm+2mm", "vendor": "Amazon" },
+              "usedBy": [
+                { "part": "tile-left.stl", "each": 1 },
+                { "part": "tile-middle.stl", "each": 1 },
+                { "part": "tile-right.stl", "each": 1 }
+              ]
+            },
+            {
+              "qty": 4,
+              "label": "Push-fit PTFE bulkhead connector for 4 mm tube",
+              "source": { "url": "https://www.amazon.com/s?k=pc4-m10+bulkhead+ptfe", "vendor": "Amazon" }
+            },
+            {
+              "qty": 5,
+              "label": "M3 × 25 socket-head cap screw — locks each wall to the beams in it (or print lock pins)",
+              "usedBy": [
+                { "part": "wall-left.stl", "each": 1 },
+                { "part": "wall-center.stl", "each": 1 },
+                { "part": "wall-right.stl", "each": 1 }
+              ]
+            },
+            {
+              "qty": 15,
+              "label": "M3 × 8 socket-head cap screw — up through the floor into each wall, front, middle and back",
+              "usedBy": [
+                { "part": "wall-left.stl", "each": 3 },
+                { "part": "wall-center.stl", "each": 3 },
+                { "part": "wall-right.stl", "each": 3 }
+              ]
+            },
+            {
+              "qty": 16,
+              "label": "M4 screw to fix the tiles down (optional)",
+              "usedBy": [
+                { "part": "tile-left.stl", "each": 4 },
+                { "part": "tile-middle.stl", "each": 4 },
+                { "part": "tile-right.stl", "each": 4 }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "1x",
+          "label": "1×",
+          "params": {
+            "lanes": 1
+          },
+          "previews": [
+            {
+              "file": "assembled.3mf",
+              "format": "3mf",
+              "label": "Assembly: the one-lane holder with a spool seated",
+              "default": true,
+              "module": "stand_tiles",
+              "legend": [
+                {
+                  "color": "#1fedff", "shades": ["#73f3ff"],
+                  "label": "Floor tile",
+                  "part": "tile-single.stl"
+                },
+                {
+                  "color": "#ffdb27", "shades": ["#ffe878"],
+                  "label": "Walls — carry the pegs and the beam",
+                  "parts": [
+                    "wall-left.stl",
+                    "wall-right.stl"
+                  ]
+                },
+                {
+                  "color": "#ff7d1f", "shades": ["#ffae73"],
+                  "label": "Rollers",
+                  "part": "roller.stl"
+                },
+                {
+                  "color": "#ff33ce", "shades": ["#ff7fe0"],
+                  "label": "Pegs — pressed through the walls, carry the bearings",
+                  "part": "peg-end.stl"
+                },
+                {
+                  "color": "#c0c4cc",
+                  "label": "608 bearings — reference only, not printed"
+                },
+                {
+                  "color": "#51ff30", "shades": ["#92ff7e"],
+                  "label": "Hex beam, wall to wall",
+                  "part": "beam.stl"
+                },
+                {
+                  "color": "#8a8f98",
+                  "label": "Spool — reference only, not printed"
+                }
+              ],
+              "components": [
+                {
+                  "part": "tile-single.stl",
+                  "qty": 1,
+                  "instances": [
+                    {
+                      "id": "T1",
+                      "where": "under the lane"
+                    }
+                  ]
+                },
+                {
+                  "part": "wall-left.stl",
+                  "qty": 1,
+                  "instances": [
+                    {
+                      "id": "W1",
+                      "where": "left end"
+                    }
+                  ]
+                },
+                {
+                  "part": "wall-right.stl",
+                  "qty": 1,
+                  "instances": [
+                    {
+                      "id": "W2",
+                      "where": "right end"
+                    }
+                  ]
+                },
+                {
+                  "part": "roller.stl",
+                  "qty": 2,
+                  "instances": [
+                    {
+                      "id": "R1F",
+                      "where": "front"
+                    },
+                    {
+                      "id": "R1B",
+                      "where": "back"
+                    }
+                  ]
+                },
+                {
+                  "part": "peg-end.stl",
+                  "qty": 4,
+                  "instances": [
+                    {
+                      "id": "P1F",
+                      "where": "through W1, front — carries R1F"
+                    },
+                    {
+                      "id": "P1B",
+                      "where": "through W1, back — carries R1B"
+                    },
+                    {
+                      "id": "P2F",
+                      "where": "through W2, front — carries R1F"
+                    },
+                    {
+                      "id": "P2B",
+                      "where": "through W2, back — carries R1B"
+                    }
+                  ]
+                },
+                {
+                  "part": "beam.stl",
+                  "qty": 1,
+                  "instances": [
+                    {
+                      "id": "B1",
+                      "where": "W1 to W2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "file": "box.3mf",
+              "format": "3mf",
+              "label": "Reference: one spool in the dry box",
+              "module": "box",
+              "legend": [
+                {
+                  "color": "#1fedff", "shades": ["#73f3ff"],
+                  "label": "Floor tile",
+                  "part": "tile-single.stl"
+                },
+                {
+                  "color": "#ffdb27", "shades": ["#ffe878"],
+                  "label": "Walls",
+                  "parts": [
+                    "wall-left.stl",
+                    "wall-right.stl"
+                  ]
+                },
+                {
+                  "color": "#ff7d1f", "shades": ["#ffae73"],
+                  "label": "Rollers",
+                  "part": "roller.stl"
+                },
+                {
+                  "color": "#51ff30", "shades": ["#92ff7e"],
+                  "label": "Hex beam",
+                  "part": "beam.stl"
+                },
+                {
+                  "color": "#8a8f98",
+                  "label": "Spool — reference only, not printed"
+                },
+                {
+                  "color": "#3a3f48",
+                  "label": "Box — reference only, not printed"
+                }
+              ]
+            },
+            {
+              "file": "plate-1x-1.3mf",
+              "format": "3mf",
+              "label": "Print plate 1: the left wall",
+              "module": "plate-1x-1",
+              "legend": [
+                {
+                  "color": "#ffd60a",
+                  "label": "Wall, flat",
+                  "part": "wall-left.stl"
+                }
+              ],
+              "components": [
+                {
+                  "part": "wall-left.stl",
+                  "qty": 1,
+                  "instances": [
+                    {
+                      "id": "W1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "file": "plate-1x-2.3mf",
+              "format": "3mf",
+              "label": "Print plate 2: the right wall",
+              "module": "plate-1x-2",
+              "legend": [
+                {
+                  "color": "#ffd60a",
+                  "label": "Wall, flat",
+                  "part": "wall-right.stl"
+                }
+              ],
+              "components": [
+                {
+                  "part": "wall-right.stl",
+                  "qty": 1,
+                  "instances": [
+                    {
+                      "id": "W2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "file": "plate-1x-3.3mf",
+              "format": "3mf",
+              "label": "Print plate 3: both rollers and the beam",
+              "module": "plate-1x-3",
+              "legend": [
+                {
+                  "color": "#ff6b00",
+                  "label": "Rollers, on end",
+                  "part": "roller.stl"
+                },
+                {
+                  "color": "#39ff14",
+                  "label": "Beam, on its flange end",
+                  "part": "beam.stl"
+                }
+              ],
+              "components": [
+                {
+                  "part": "roller.stl",
+                  "qty": 2
+                },
+                {
+                  "part": "beam.stl",
+                  "qty": 1
+                }
+              ]
+            },
+            {
+              "file": "plate-1x-4.3mf",
+              "format": "3mf",
+              "label": "Print plate 4: every peg — print in TPU",
+              "module": "plate-1x-4",
+              "legend": [
+                {
+                  "color": "#ff17c7",
+                  "label": "Pegs, lying on their flats — TPU",
+                  "part": "peg-end.stl"
+                }
+              ],
+              "components": [
+                {
+                  "part": "peg-end.stl",
+                  "qty": 4
+                }
+              ]
+            },
+            {
+              "file": "plate-1x-5.3mf",
+              "format": "3mf",
+              "label": "Print plate 5: the floor tile",
+              "module": "plate-1x-5",
+              "legend": [
+                {
+                  "color": "#00eaff",
+                  "label": "Tile",
+                  "part": "tile-single.stl"
+                }
+              ],
+              "components": [
+                {
+                  "part": "tile-single.stl",
+                  "qty": 1,
+                  "instances": [
+                    {
+                      "id": "T1"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "file": "plate-1x-6.3mf",
+              "format": "3mf",
+              "label": "Print plate 6: both drilling templates",
+              "module": "plate-1x-6",
+              "legend": [
+                {
+                  "color": "#00eaff",
+                  "label": "Floor template — marks the tile screw holes",
+                  "part": "floor-template.stl"
+                },
+                {
+                  "color": "#ff17c7",
+                  "label": "Bulkhead template",
+                  "part": "template.stl"
+                }
+              ],
+              "components": [
+                {
+                  "part": "floor-template.stl",
+                  "qty": 1
+                },
+                {
+                  "part": "template.stl",
+                  "qty": 1
+                }
+              ]
+            },
+            {
+              "file": "plate-fit.3mf",
+              "format": "3mf",
+              "label": "Fit test: every joint at full size, to print and throw away",
+              "module": "plate_fit_walls",
+              "legend": [
+                {
+                  "color": "#ffd60a",
+                  "label": "Wall coupons — beam socket and peg hole"
+                },
+                {
+                  "color": "#ff6b00",
+                  "label": "Short roller — both bearing pockets"
+                },
+                {
+                  "color": "#39ff14",
+                  "label": "Beam ends — socket and spigot thirds"
+                },
+                {
+                  "color": "#c0c4cc",
+                  "label": "Lock pin"
+                },
+                {
+                  "color": "#ff17c7",
+                  "label": "Inner peg — TPU like the real ones, or anything to check the fit"
+                },
+                {
+                  "color": "#00eaff",
+                  "label": "Tile dovetail — tail and socket"
+                }
+              ]
+            }
+          ],
+          "parts": [
+            {
+              "file": "tile-single.stl",
+              "format": "stl",
+              "label": "Floor tile",
+              "module": "tile_single"
+            },
+            {
+              "file": "wall-left.stl",
+              "format": "stl",
+              "label": "Support wall, left end",
+              "module": "wall_left"
+            },
+            {
+              "file": "wall-right.stl",
+              "format": "stl",
+              "label": "Support wall, right end",
+              "module": "wall_right"
+            },
+            {
+              "file": "roller.stl",
+              "format": "stl",
+              "label": "Roller — prints on end",
+              "module": "roller"
+            },
+            {
+              "file": "peg-end.stl",
+              "format": "stl",
+              "label": "Peg, through an end wall",
+              "module": "peg_end"
+            },
+            {
+              "file": "beam.stl",
+              "format": "stl",
+              "label": "Hex beam — prints standing on its flange end",
+              "module": "beam"
+            },
+            {
+              "file": "lock-pin.stl",
+              "format": "stl",
+              "label": "Lock pin — printed stand-in for an M3 screw",
+              "module": "lock_pin"
+            },
+            {
+              "file": "template.stl",
+              "format": "stl",
+              "label": "Bulkhead drilling template",
+              "module": "template"
+            },
+            {
+              "file": "floor-template.stl",
+              "format": "stl",
+              "label": "Floor drilling template — marks the tile screw holes",
+              "module": "floor_template"
+            }
+          ],
+          "hardware": [
+            {
+              "qty": 4,
+              "label": "608ZZ bearing, 8 × 22 × 7 mm — two per roller",
+              "source": {
+                "url": "https://www.amazon.com/s?k=608zz+bearing",
+                "vendor": "Amazon"
+              },
+              "usedBy": [
+                {
+                  "part": "roller.stl",
+                  "each": 2
+                }
+              ]
+            },
+            {
+              "qty": 1,
+              "label": "PTFE tube, 4 mm OD × 2 mm ID",
+              "source": {
+                "url": "https://www.amazon.com/s?k=ptfe+tube+4mm+2mm",
+                "vendor": "Amazon"
+              },
+              "usedBy": [
+                {
+                  "part": "tile-single.stl",
+                  "each": 1
+                }
+              ]
+            },
+            {
+              "qty": 1,
+              "label": "Push-fit PTFE bulkhead connector for 4 mm tube",
+              "source": {
+                "url": "https://www.amazon.com/s?k=pc4-m10+bulkhead+ptfe",
+                "vendor": "Amazon"
+              }
+            },
+            {
+              "qty": 2,
+              "label": "M3 × 25 socket-head cap screw — locks each wall to the beam (or print lock pins)",
+              "usedBy": [
+                {
+                  "part": "wall-left.stl",
+                  "each": 1
+                },
+                {
+                  "part": "wall-right.stl",
+                  "each": 1
+                }
+              ]
+            },
+            {
+              "qty": 6,
+              "label": "M3 × 8 socket-head cap screw — up through the floor into each wall, front, middle and back",
+              "usedBy": [
+                {
+                  "part": "wall-left.stl",
+                  "each": 3
+                },
+                {
+                  "part": "wall-right.stl",
+                  "each": 3
+                }
+              ]
+            },
+            {
+              "qty": 4,
+              "label": "M4 screw to fix the tile down (optional)",
+              "usedBy": [
+                {
+                  "part": "tile-single.stl",
+                  "each": 4
+                }
+              ]
+            }
+          ]
+        }
       ]
     }
   ]

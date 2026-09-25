@@ -228,6 +228,20 @@ body.sidebar-open #sidebar-backdrop {
   }
 }
 
+#build-switch {
+  flex-shrink: 0;
+}
+
+#build-switch[hidden] {
+  display: none;
+}
+
+#build-switch button {
+  padding: 4px 10px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
 #part-select {
   padding: 4px 8px;
   border: 1px solid #ccc;
@@ -617,10 +631,136 @@ body.sidebar-open #sidebar-backdrop {
 
 #info-panel-body li {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   gap: 8px;
-  padding: 5px 0;
+  padding: 5px 4px;
+  margin: 0 -4px;
+  border-radius: 3px;
   font-size: 13px;
+  transition: background 120ms ease;
+}
+
+#info-panel-body li.legend-active {
+  background: rgba(43, 108, 176, 0.12);
+}
+
+/* Swatches sit on the label's first line, not the row's baseline. */
+.item-swatches {
+  align-self: flex-start;
+  margin-top: 3px;
+}
+
+.item-swatch-empty {
+  visibility: hidden;
+}
+
+.item-ids {
+  display: block;
+  font-size: 11px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: #666;
+  margin-top: 2px;
+}
+
+.item-id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+/* An id the viewer has placed, so pointing at it lights that one piece. */
+.item-id-ref.piece-live {
+  cursor: pointer;
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+.item-id-ref.piece-live.piece-active,
+#info-panel-body .item-details li.piece-active {
+  background: #2b6cb0;
+  color: #fff;
+}
+
+.item-toggle {
+  flex-shrink: 0;
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0 2px;
+  font-size: 11px;
+  line-height: 18px;
+  color: #666;
+  cursor: pointer;
+}
+
+.item-toggle::before {
+  content: "▸";
+  display: inline-block;
+  transition: transform 120ms ease;
+}
+
+.item-toggle[aria-expanded="true"]::before {
+  transform: rotate(90deg);
+}
+
+/* Details drop under the row, indented past the swatch and count columns. */
+#info-panel-body .item-details {
+  flex-basis: 100%;
+  margin: 2px 0 2px 34px;
+  padding-left: 8px;
+  border-left: 1px solid #e0e0e0;
+}
+
+#info-panel-body .item-details li {
+  padding: 2px 4px;
+  font-size: 12px;
+}
+
+#info-panel-body .item-detail-heading {
+  display: block;
+  padding-top: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #555;
+}
+
+#info-panel-body .item-detail-heading:first-child {
+  padding-top: 2px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+#info-panel-body .section-header h3 {
+  margin: 0;
+}
+
+.section-tabs {
+  display: inline-flex;
+  border: 1px solid #cfe0f5;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.section-tabs button {
+  background: none;
+  border: none;
+  padding: 2px 8px;
+  font-size: 11px;
+  color: #2b6cb0;
+  cursor: pointer;
+}
+
+.section-tabs button[aria-selected="true"] {
+  background: #2b6cb0;
+  color: #fff;
 }
 
 #info-panel-empty {
@@ -645,6 +785,18 @@ body.sidebar-open #sidebar-backdrop {
 
 .item-label {
   color: #222;
+}
+
+.estimate-time {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* The notes under the estimate read as one block, not as list rows. */
+#info-panel-body li.estimate-notes {
+  display: block;
+  padding-top: 8px;
 }
 
 /* The note explains the row, so it drops to its own line rather than
@@ -1019,6 +1171,12 @@ body.info-open #info-btn {
     flex-shrink: 0;
     height: 100vh;
     border-left: 1px solid #e0e0e0;
+  }
+
+  /* The docked parts list carries the key's swatches and hover, so the
+     floating copy would only cover the model. */
+  body:has(#info-panel:not([hidden])) #viewer-legend {
+    display: none;
   }
 
   #viewer-legend {
@@ -1593,6 +1751,23 @@ body.info-open #info-btn {
 .print-settings-warnings ul {
   margin: 4px 0 0;
   padding-left: 18px;
+}
+
+.print-settings-server {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.print-settings-server h4 {
+  margin: 0 0 6px;
+}
+
+.print-settings-server-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .print-settings-item-compat {
@@ -3079,6 +3254,73 @@ html, body {
   background: transparent;
 }
 
+#info-panel-body li.legend-active {
+  background: rgba(255, 46, 110, 0.15);
+}
+
+#info-panel-body li.legend-active > .item-body > .part-link,
+#info-panel-body li.legend-active > .item-body > .item-label {
+  color: var(--rw-pink);
+}
+
+#info-panel-body li.legend-active > .item-swatches .legend-swatch {
+  box-shadow: 0 0 6px rgba(255, 23, 199, 0.75);
+  border-color: var(--rw-magenta);
+}
+
+.item-ids,
+.item-toggle {
+  color: var(--rw-text-muted);
+}
+
+.item-id {
+  color: var(--rw-cyan);
+}
+
+.item-id-ref.piece-live:hover {
+  color: var(--rw-pink);
+}
+
+.item-id-ref.piece-live.piece-active,
+#info-panel-body .item-details li.piece-active {
+  background: var(--rw-pink);
+  color: #000;
+  box-shadow: 0 0 8px rgba(255, 46, 110, 0.75);
+}
+
+#info-panel-body .item-details li.piece-active .item-id {
+  color: #000;
+}
+
+#info-panel-body .item-details li {
+  color: var(--rw-text);
+}
+
+.item-toggle:hover {
+  color: var(--rw-pink);
+}
+
+#info-panel-body .item-details {
+  border-left-color: var(--rw-border);
+}
+
+#info-panel-body .item-detail-heading {
+  color: var(--rw-cyan);
+}
+
+.section-tabs {
+  border-color: var(--rw-cyan-dim);
+}
+
+.section-tabs button {
+  color: var(--rw-cyan);
+}
+
+.section-tabs button[aria-selected="true"] {
+  background: var(--rw-cyan);
+  color: var(--rw-surface);
+}
+
 #description-toggle {
   color: var(--rw-cyan);
 }
@@ -4478,4 +4720,96 @@ input.project-row-name:focus {
 .pd-object-remove:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+/* ================================================================
+ * Split layout — the plate and its print setup on one screen.
+ *
+ * From `SPLIT_QUERY` in PrintDialog.tsx up, the dialog stops being two
+ * screens: the stage keeps the left, the setup cards dock right. Below
+ * it the component renders the separate-screen branches instead, so
+ * nothing here needs a mobile fallback — keep the breakpoint in step
+ * with the constant.
+ *
+ * Appended after the bleed-modal sizing rule on purpose: both selectors
+ * weigh the same, so source order is what lets the split card be wider.
+ * ================================================================ */
+
+@media (min-width: 1100px) {
+  .print-modal:has(> .print-modal-body > .pd-split) {
+    width: min(1560px, calc(100vw - 48px));
+    height: min(920px, calc(100vh - 48px));
+    max-height: calc(100vh - 48px);
+  }
+}
+
+/* Positioned so the setup sheets dock against the dialog's right edge
+   rather than escaping to the backdrop. */
+.pd-split {
+  position: relative;
+  display: flex;
+  height: 100%;
+  min-height: 0;
+}
+
+.pd-split-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  /* Both needed: a flex item defaults to min-size auto, which would let the
+     canvas and the notice list push the column past the card. */
+  min-width: 0;
+  min-height: 0;
+}
+
+.pd-split-side {
+  flex: 0 0 420px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-left: 1px solid var(--rw-border);
+  background: var(--rw-surface);
+}
+
+.pd-split-side-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 14px 16px;
+}
+
+.pd-split-side .pd-setup {
+  gap: 10px;
+  font-size: 14px;
+}
+
+/* The shared actions bar is written to stick to the bottom of a scrolling
+   modal body. Here it is a flex row of the column instead, so the sticky
+   offsets and the gradient that faded it into the page both come off. */
+.pd-split-side .print-dialog-actions {
+  flex: 0 0 auto;
+  position: static;
+  margin: 0;
+  background: var(--rw-surface-2);
+  border-top: 1px solid var(--rw-border);
+}
+
+/* Matched to `.pd-rail` so the two columns' bottom bars read as one. */
+.pd-split-side .print-dialog-actions,
+.pd-split-main .pd-rail {
+  padding: 8px 12px calc(env(safe-area-inset-bottom, 0px) + 10px);
+}
+
+.pd-split-side .print-dialog-actions .btn-primary {
+  flex: 1 1 auto;
+  min-height: 48px;
+  font-size: 15px;
+}
+
+/* The row for the materials the model is actually printed in leads the section. */
+#info-panel-body li.estimate-specified {
+  font-weight: 600;
+  border-bottom: 1px solid var(--rw-cyan-dim, #cfe0f5);
+  margin-bottom: 4px;
 }

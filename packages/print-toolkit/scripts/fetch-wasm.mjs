@@ -53,9 +53,10 @@ const WASM64_OPTIONAL = [
 ];
 
 async function fetchJSON(url) {
-  const res = await fetch(url, {
-    headers: { 'Accept': 'application/vnd.github+json' },
-  });
+  const headers = { 'Accept': 'application/vnd.github+json' };
+  // Unauthenticated API calls share a 60/hour limit per IP, which CI runners exhaust.
+  if (process.env.GITHUB_TOKEN) headers['Authorization'] = `Bearer ${process.env.GITHUB_TOKEN}`;
+  const res = await fetch(url, { headers });
   if (!res.ok) throw new Error(`GitHub API error: ${res.status} ${res.statusText}`);
   return res.json();
 }

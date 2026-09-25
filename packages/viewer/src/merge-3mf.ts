@@ -1,4 +1,5 @@
 import { zipSync, unzipSync } from 'fflate';
+import { INSTANCE_ANCHORS_PATH, type InstanceAnchor } from '@3d-gallery/model-core';
 
 export interface ColorGroup {
   index: number;
@@ -187,7 +188,8 @@ function extractMeshFromSTL(data: Uint8Array): Mesh {
   return { vertices, triangles };
 }
 
-export function merge3mf(inputs: ColoredModel[]): Uint8Array {
+/** `instances`: the preview's echoed per-piece anchors (see model-core instances.ts). */
+export function merge3mf(inputs: ColoredModel[], instances: InstanceAnchor[] | null = null): Uint8Array {
   if (inputs.length === 0) throw new Error('No inputs to merge');
 
   let nextId = 1;
@@ -271,6 +273,7 @@ export function merge3mf(inputs: ColoredModel[]): Uint8Array {
     '  <Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml" />',
     '  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />',
     '  <Default Extension="config" ContentType="application/vnd.openxmlformats-package.relationships+xml" />',
+    ...(instances ? ['  <Default Extension="json" ContentType="application/json" />'] : []),
     '</Types>',
   ].join('\n');
 
@@ -286,6 +289,9 @@ export function merge3mf(inputs: ColoredModel[]): Uint8Array {
     '[Content_Types].xml': enc.encode(contentTypes),
     '_rels': { '.rels': enc.encode(rels) },
     '3D': { '3dmodel.model': enc.encode(modelXml) },
-    'Metadata': { 'model_settings.config': enc.encode(metaLines.join('\n')) },
+    'Metadata': {
+      'model_settings.config': enc.encode(metaLines.join('\n')),
+      ...(instances ? { [INSTANCE_ANCHORS_PATH.split('/')[1]]: enc.encode(JSON.stringify(instances)) } : {}),
+    },
   });
 }
