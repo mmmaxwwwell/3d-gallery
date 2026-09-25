@@ -67,8 +67,11 @@ jobs:
         run: nix develop --command npm run test:build
 
       # npm ci skips the toolkit's postinstall under CI, so fetch the slicer here.
+      # Not a gate: without a slicer release the site ships without print
+      # estimates or in-browser slicing rather than not shipping at all.
       - name: Fetch slicer WASM
         run: nix develop --command npm run fetch-wasm -w @3d-gallery/print-toolkit -- --no-wasm64
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
