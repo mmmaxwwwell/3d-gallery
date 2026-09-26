@@ -72,17 +72,17 @@
   },
   "collar-tag-holder/holder.stl": {
     "format": "stl",
-    "triangleCount": 3540,
+    "triangleCount": 3144,
     "bbox": [
       [
-        -18.15,
+        -22.15,
         -18.15,
         0
       ],
       [
+        22.15,
         18.15,
-        18.15,
-        7.9
+        7.1
       ]
     ]
   },

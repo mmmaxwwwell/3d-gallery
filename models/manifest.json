@@ -70,8 +70,8 @@
     {
       "slug": "collar-tag-holder",
       "title": "Collar Tag Holder",
-      "description": "Holds a 32 mm round metal ID tag flat against a 25 mm biothane collar. The tag drops in from the back and seats against a 2 mm lip that leaves a 28 mm window over the engraving; the collar then threads through a channel right behind it and closes the back, so the tag can’t come out while the holder is on the collar. The holder is no bigger than the tag, with every edge rounded, most of all on the side against the dog. Prints face down with no supports.",
-      "filament": [{ "material": "PETG", "color": "any" }],
+      "description": "Holds a 32 mm round metal ID tag flat against a 25 mm biothane collar. The collar runs in a channel along the back, enclosed at both ends. The tag presses in through a round opening in the back 1 mm smaller than it all round and seats flat against a 2 mm lip that leaves a 28 mm window over the engraving; the collar pressed in behind it holds it there. Every edge is rounded, most of all on the side against the dog. Print in TPU, face down, with no supports.",
+      "filament": [{ "material": "TPU 64D", "color": "any", "note": "The back opening is an interference fit on the tag, so it has to flex" }],
       "parts": [{ "file": "holder.stl", "format": "stl", "label": "Holder", "default": true, "module": "holder" }]
     },
     {
