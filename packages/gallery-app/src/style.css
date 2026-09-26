@@ -177,6 +177,46 @@ body.sidebar-open #sidebar-backdrop {
   border-left-color: #5b9bd5;
 }
 
+#model-list:not(.show-dev) .model-item.dev-only {
+  display: none;
+}
+
+.model-item.dev-only {
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.dev-badge {
+  margin-left: 8px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  vertical-align: 1px;
+  border: 1px dashed currentColor;
+  border-radius: 4px;
+}
+
+/* Meant to be found, not noticed: nearly the sidebar's own colour until hovered. */
+.dev-toggle {
+  display: block;
+  margin: 4px 8px;
+  padding: 4px 8px;
+  font: inherit;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.14);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.dev-toggle:hover,
+.dev-toggle:focus-visible {
+  color: rgba(255, 255, 255, 0.55);
+}
+
 /* ── Viewer pane ───────────────────────────────────────── */
 
 #viewer-pane {
@@ -339,10 +379,29 @@ body.sidebar-open #sidebar-backdrop {
   display: block;
 }
 
-#customized-badge {
+#viewer-badges {
   position: absolute;
   top: 8px;
   left: 8px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  pointer-events: none;
+}
+
+#stale-badge {
+  background: #b7791f;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+#customized-badge {
   background: #2b6cb0;
   color: #fff;
   font-size: 11px;
@@ -351,7 +410,6 @@ body.sidebar-open #sidebar-backdrop {
   letter-spacing: 0.5px;
   padding: 4px 10px;
   border-radius: 4px;
-  z-index: 10;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
@@ -435,8 +493,8 @@ body.sidebar-open #sidebar-backdrop {
 
 .legend-swatch {
   display: inline-block;
-  width: 12px;
-  height: 12px;
+  width: 16px;
+  height: 16px;
   border-radius: 3px;
   border: 1px solid rgba(0, 0, 0, 0.2);
   flex-shrink: 0;
@@ -645,6 +703,15 @@ body.sidebar-open #sidebar-backdrop {
   background: rgba(43, 108, 176, 0.12);
 }
 
+/* A key entry drawing several parts heads them; its parts sit indented under it. */
+#info-panel-body li.item-group .item-label {
+  font-weight: 600;
+}
+
+#info-panel-body li.item-variant {
+  padding-left: 22px;
+}
+
 /* Swatches sit on the label's first line, not the row's baseline. */
 .item-swatches {
   align-self: flex-start;
@@ -732,10 +799,20 @@ body.sidebar-open #sidebar-backdrop {
 
 .section-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   margin-bottom: 8px;
+}
+
+/* A switch too wide to share the heading's line drops under it, whole. */
+.section-header .section-tabs {
+  flex-shrink: 0;
+}
+
+.section-header .section-tabs button {
+  white-space: nowrap;
 }
 
 #info-panel-body .section-header h3 {
@@ -986,10 +1063,63 @@ body.sidebar-open #sidebar-backdrop {
   resize: vertical;
 }
 
+.param-field.is-changed {
+  border-color: #d69e2e;
+  box-shadow: inset 3px 0 0 #d69e2e;
+}
+
+.param-changed-tag {
+  margin-left: 6px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: #d69e2e;
+  color: #1a1000;
+  font-family: system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  vertical-align: middle;
+  display: inline-block;
+  white-space: nowrap;
+  cursor: help;
+}
+
+.customizer-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 220px;
+  min-width: 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #555;
+}
+
+.customizer-status-dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #999;
+}
+
+.customizer-status.is-synced .customizer-status-dot { background: #2f9e44; }
+.customizer-status.is-stale .customizer-status-dot { background: #d69e2e; }
+.customizer-status.is-stale { color: #8a5a00; font-weight: 600; }
+.customizer-status.is-busy .customizer-status-dot {
+  background: #2b6cb0;
+  animation: customizer-pulse 1s ease-in-out infinite;
+}
+
+@keyframes customizer-pulse {
+  50% { opacity: 0.25; }
+}
+
 /* Sticky action bar — always visible at the bottom of the customizer
    even when the param grid scrolls. */
 .customizer-actions {
   display: flex;
+  align-items: center;
   gap: 8px;
   flex-wrap: wrap;
   padding: 10px 14px;
@@ -1097,14 +1227,12 @@ body.info-open #info-btn {
   border-color: #888;
 }
 
-/* ── Desktop (≥768px) ──────────────────────────────────── */
+/* ── Docked sidebar (≥1280px) ──────────────────────────── */
+/* A half-screen window is still desktop, but the viewer and the docked parts
+   list need the width more than the model list does — it stays a drawer
+   until the window is wide enough to dock all three. */
 
-@media (min-width: 768px) {
-  #app {
-    flex-direction: row;
-  }
-
-  #mobile-part-row,
+@media (min-width: 1280px) {
   #sidebar-toggle,
   #sidebar-backdrop,
   body.sidebar-open #sidebar-backdrop {
@@ -1115,9 +1243,24 @@ body.info-open #info-btn {
     position: static;
     transform: none;
     transition: none;
-    width: 240px;
     flex-shrink: 0;
     height: 100vh;
+  }
+}
+
+/* ── Desktop (≥768px) ──────────────────────────────────── */
+
+@media (min-width: 768px) {
+  #app {
+    flex-direction: row;
+  }
+
+  #mobile-part-row {
+    display: none;
+  }
+
+  #sidebar {
+    width: 240px;
     border-bottom: none;
     border-right: 1px solid #2d3340;
     padding: 16px 0;
@@ -1199,8 +1342,8 @@ body.info-open #info-btn {
   }
 
   .legend-swatch {
-    width: 14px;
-    height: 14px;
+    width: 18px;
+    height: 18px;
   }
 
   .param-input input[type="text"],
@@ -1898,6 +2041,230 @@ body.info-open #info-btn {
 .print-settings-new-template-grid button {
   grid-column: 1 / -1;
   justify-self: flex-end;
+}
+
+/* ── Preset editor ──────────────────────────────────── */
+
+.print-preset-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+.print-preset-editor-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.print-preset-editor-title h4 {
+  margin: 0 0 2px;
+  font-size: 15px;
+}
+.print-preset-editor-toolbar {
+  flex-wrap: wrap;
+}
+.print-preset-editor-toolbar select {
+  padding: 4px 6px;
+}
+.print-preset-editor-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+.print-preset-editor-body {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: 12px;
+  min-height: 0;
+}
+.print-preset-editor-pages {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.print-preset-editor-page {
+  text-align: left;
+  padding: 6px 8px;
+  border: 0;
+  border-left: 2px solid transparent;
+  background: transparent;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+.print-preset-editor-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.print-preset-group {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 6px 10px 10px;
+  margin: 0;
+}
+.print-preset-group legend {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 4px;
+}
+.print-preset-field {
+  display: grid;
+  grid-template-columns: minmax(140px, 32%) minmax(0, 1fr);
+  gap: 4px 12px;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px dashed #eee;
+  font-size: 12px;
+}
+.print-preset-field:last-child {
+  border-bottom: 0;
+}
+.print-preset-field-label {
+  cursor: help;
+  overflow-wrap: anywhere;
+}
+.print-preset-field-input {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.print-preset-field-input input[type="text"],
+.print-preset-field-input select,
+.print-preset-field-input textarea {
+  font: inherit;
+  padding: 3px 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  min-width: 0;
+}
+.print-preset-field-input textarea {
+  width: 100%;
+  resize: vertical;
+}
+.print-preset-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace !important;
+  font-size: 11px !important;
+}
+.print-preset-number {
+  width: 7em;
+}
+.print-preset-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.print-preset-field-input:has(textarea) .print-preset-cell {
+  flex: 1 1 100%;
+}
+.print-preset-cell-label,
+.print-preset-field-unit {
+  font-size: 11px;
+}
+.print-preset-nullable,
+.print-preset-color {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.print-preset-color input[type="color"] {
+  width: 28px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.print-preset-field-head {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.print-preset-field-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.print-preset-field-origin {
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.print-preset-field-reset {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 2px;
+}
+.print-preset-field-error {
+  grid-column: 2;
+  font-size: 11px;
+}
+.print-preset-editor-changes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.print-preset-editor-changes li {
+  display: grid;
+  grid-template-columns: minmax(120px, 200px) minmax(0, 1fr) auto auto;
+  gap: 10px;
+  align-items: center;
+  font-size: 12px;
+}
+.print-preset-editor-change {
+  overflow-wrap: anywhere;
+}
+.print-preset-editor-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e0e0e0;
+}
+.print-preset-editor-status {
+  margin-right: auto;
+  font-size: 12px;
+}
+
+@media (max-width: 719px) {
+  .print-preset-editor-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .print-preset-editor-pages {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+  .print-preset-editor-page {
+    border-left: 0;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+  }
+  .print-preset-field,
+  .print-preset-editor-changes li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .print-preset-field-error {
+    grid-column: 1;
+  }
+  .print-preset-editor-fields {
+    max-height: none;
+  }
 }
 
 .print-dialog-save-template {
@@ -2941,6 +3308,82 @@ body {
   color: var(--rw-text-muted);
 }
 
+.print-preset-editor-page {
+  color: var(--rw-text-muted);
+}
+.print-preset-editor-page:hover:not(.active) {
+  color: var(--rw-cyan);
+}
+.print-preset-editor-page.active {
+  color: var(--rw-pink);
+  border-color: var(--rw-pink);
+  background: var(--rw-surface-2);
+}
+.print-preset-group,
+.print-preset-editor-foot {
+  border-color: var(--rw-border);
+}
+.print-preset-group {
+  background: var(--rw-surface);
+}
+.print-preset-group legend {
+  color: var(--rw-cyan);
+}
+.print-preset-field {
+  border-bottom-color: var(--rw-surface-3);
+}
+.print-preset-field-label {
+  color: var(--rw-text);
+}
+.print-preset-field-input input[type="text"],
+.print-preset-field-input select,
+.print-preset-field-input textarea,
+.print-preset-editor-toolbar select {
+  background: var(--rw-surface-2);
+  color: var(--rw-text);
+  border-color: var(--rw-border);
+}
+.print-preset-field-input input[type="text"]:focus,
+.print-preset-field-input select:focus,
+.print-preset-field-input textarea:focus {
+  border-color: var(--rw-magenta);
+  outline: none;
+  box-shadow: 0 0 0 1px var(--rw-pink);
+}
+.print-preset-cell-label,
+.print-preset-field-unit,
+.print-preset-field-origin,
+.print-preset-editor-status {
+  color: var(--rw-text-dim);
+}
+/* An edited field reads at a glance: magenta rail, and the "was" line lit. */
+.print-preset-field.is-edited {
+  box-shadow: inset 2px 0 0 var(--rw-magenta);
+  padding-left: 8px;
+}
+.print-preset-field-origin.is-edited {
+  color: var(--rw-magenta-bright);
+}
+.print-preset-field-reset {
+  color: var(--rw-cyan);
+}
+.print-preset-field.is-invalid input,
+.print-preset-field.is-invalid textarea {
+  border-color: var(--rw-danger);
+}
+.print-preset-field-error {
+  color: var(--rw-danger-text);
+}
+.print-preset-editor-change s {
+  color: var(--rw-text-dim);
+}
+.print-preset-editor-change strong {
+  color: var(--rw-magenta-bright);
+}
+.print-preset-editor-toggle {
+  color: var(--rw-text-muted);
+}
+
 /* Main app chrome — subtle so gallery imagery stays the star. */
 #sidebar,
 .model-sidebar,
@@ -3177,6 +3620,48 @@ html, body {
   background: linear-gradient(135deg, var(--rw-violet), var(--rw-magenta));
   color: #1a0016;
   box-shadow: 0 0 12px rgba(255, 23, 199, 0.45);
+}
+
+#stale-badge {
+  background: var(--rw-warn);
+  color: #1a1000;
+  box-shadow: 0 0 12px rgba(255, 214, 10, 0.45);
+}
+
+.param-field.is-changed {
+  border-color: var(--rw-warn);
+  box-shadow: inset 3px 0 0 var(--rw-warn);
+}
+
+.param-changed-tag {
+  background: var(--rw-warn);
+}
+
+.customizer-status {
+  color: var(--rw-text-muted);
+}
+
+.customizer-status-dot {
+  background: var(--rw-text-dim);
+}
+
+.customizer-status.is-synced .customizer-status-dot {
+  background: var(--rw-ok);
+  box-shadow: 0 0 6px var(--rw-ok);
+}
+
+.customizer-status.is-stale {
+  color: var(--rw-warn);
+}
+
+.customizer-status.is-stale .customizer-status-dot {
+  background: var(--rw-warn);
+  box-shadow: 0 0 6px var(--rw-warn);
+}
+
+.customizer-status.is-busy .customizer-status-dot {
+  background: var(--rw-cyan);
+  box-shadow: 0 0 6px var(--rw-cyan);
 }
 
 /* Parts list panel */
@@ -4812,4 +5297,362 @@ input.project-row-name:focus {
   font-weight: 600;
   border-bottom: 1px solid var(--rw-cyan-dim, #cfe0f5);
   margin-bottom: 4px;
+}
+
+/* ── Print it: a build's plates → a project ─────────────── */
+
+.project-actions-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.project-actions-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+#info-panel-body li.reference-note {
+  display: block;
+}
+
+#info-panel-body li.filament-summary {
+  display: block;
+}
+
+.filament-summary table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.filament-summary th,
+.filament-summary td {
+  padding: 3px 0 3px 8px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.filament-summary th:first-child,
+.filament-summary td:first-child {
+  padding-left: 0;
+  text-align: left;
+  white-space: normal;
+}
+
+.filament-summary th {
+  font-weight: 600;
+  font-size: 12px;
+  color: #666;
+}
+
+.filament-summary tr.is-total td {
+  font-weight: 600;
+  border-top: 1px solid var(--rw-cyan-dim, #cfe0f5);
+}
+
+.plates-pane-plan {
+  margin-left: 10px;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* ── Project planner ────────────────────────────────────── */
+
+.planner {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.planner-section h4 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--rw-text-muted);
+}
+
+.planner-headline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 24px;
+  color: var(--rw-text-muted);
+  font-size: 13px;
+}
+
+.planner-big {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--rw-text);
+}
+
+.planner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.planner-objective,
+.planner-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--rw-text-muted);
+}
+
+.planner-objective select,
+.planner-inline select,
+.planner-inline input,
+.planner-away input {
+  font: inherit;
+  color: var(--rw-text);
+  background: var(--rw-surface-2);
+  border: 1px solid var(--rw-border);
+  border-radius: 6px;
+  padding: 4px 6px;
+}
+
+.planner-inline input[type="number"] {
+  width: 4em;
+}
+
+.planner-note,
+.planner-muted {
+  font-size: 12px;
+  color: var(--rw-text-muted);
+}
+
+.planner-note {
+  margin: 8px 0 0;
+  line-height: 1.45;
+}
+
+.planner-busy {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--rw-cyan);
+}
+
+.planner-log {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: var(--rw-text-muted);
+}
+
+.planner-plates,
+.planner-printers,
+.planner-visits {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.planner-plate,
+.planner-printer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  font-size: 13px;
+}
+
+.planner-printer.is-off {
+  opacity: 0.55;
+}
+
+.planner-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--rw-text);
+  background: var(--rw-surface-3);
+  border: 1px solid var(--rw-border);
+}
+
+.planner-chip-remove {
+  font: inherit;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--rw-text-muted);
+  cursor: pointer;
+}
+
+.planner-filaments,
+.planner-operator,
+.planner-away {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+
+.planner-away {
+  margin-top: 10px;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--rw-text-muted);
+}
+
+.planner-visit {
+  display: grid;
+  grid-template-columns: 7.5em minmax(0, 1fr);
+  gap: 10px;
+  font-size: 13px;
+  padding: 6px 0;
+  border-top: 1px solid var(--rw-border);
+}
+
+.planner-visit ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.planner-visit-when {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.planner-visit-num {
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 11px;
+  color: var(--rw-bg);
+  background: var(--rw-magenta);
+}
+
+.planner-visit code {
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.planner-swap {
+  color: var(--rw-warn);
+}
+
+/* The chart scrolls inside itself; the page never scrolls sideways. */
+.gantt {
+  overflow-x: auto;
+  font-size: 11px;
+}
+
+.gantt-axis,
+.gantt-row {
+  display: grid;
+  grid-template-columns: 7em minmax(560px, 1fr);
+}
+
+.gantt-axis .gantt-track {
+  height: 30px;
+}
+
+.gantt-label {
+  align-self: center;
+  padding-right: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--rw-text-muted);
+}
+
+.gantt-track {
+  position: relative;
+  height: 34px;
+  border-bottom: 1px solid var(--rw-border);
+}
+
+.gantt-tick {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  color: var(--rw-text-muted);
+}
+
+.gantt-visit-flag {
+  position: absolute;
+  bottom: 0;
+  transform: translateX(-50%);
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  font-weight: 700;
+  color: var(--rw-bg);
+  background: var(--rw-magenta);
+}
+
+.gantt-away {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(135deg, transparent 0 6px, rgba(127, 127, 160, 0.16) 6px 12px);
+}
+
+.gantt-visit {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 1px dashed var(--rw-magenta);
+  opacity: 0.7;
+}
+
+.gantt-bar {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  min-width: 2px;
+  overflow: hidden;
+  padding: 0 6px;
+  display: flex;
+  align-items: center;
+  border-radius: 5px;
+  color: var(--rw-bg);
+  background: var(--rw-cyan);
+  white-space: nowrap;
+}
+
+.gantt-bar span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gantt-bar.is-tpu {
+  background: var(--rw-pink);
+}
+
+.gantt-bar.is-pla {
+  background: var(--rw-ok);
+}
+
+.gantt-bar.has-swap {
+  box-shadow: inset 4px 0 0 var(--rw-warn);
 }

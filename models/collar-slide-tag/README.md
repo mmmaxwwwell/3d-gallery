@@ -38,19 +38,16 @@ Parameters
 - **collar_width** / **collar_thickness** — your strap, in mm
   (25 / 3 default). These set the tag's face height and total
   thickness; you don't set those directly.
-- **wall_thickness** — material each side of the slot, in mm (3
-  default). Doubles as the end margin around the name.
-- **top_thickness** / **bottom_thickness** — material above and below
-  the slot, in mm (1.6 / 1.6 default). The top is the face the name is
-  cut into, so keep it thicker than `text_thickness`.
+- **wall_thickness** — material wrapped around the slot, in mm (3
+  default), the same on every side. The slot's edges are fully rounded
+  to match a strap with round edges (biothane), and the tag's rounded
+  edges follow them. The top is the face the name is cut into, so keep
+  it thicker than `text_thickness`.
 - **text_thickness** — how deep the name is recessed, in mm (0.6
   default). On the multicolor version this is also the inlay height,
   so keep it a whole multiple of your layer height.
-- **edge_rounding** — diameter of the rounded edges, in mm (3
-  default) — a CSS border-radius, applied to every edge of the tag.
-  Clamped to whatever the tag's smallest dimension can take.
 
-At the defaults the tag comes out 62.3 x 31.6 x 6.8 mm. Only the
+At the defaults the tag comes out 65.2 x 31.6 x 9.6 mm. Only the
 length changes with the name and font; the other two are set by your
 strap.
 

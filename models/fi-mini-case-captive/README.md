@@ -2,7 +2,7 @@
 
 A one-piece cover for the Fi Mini GPS tracker. No cap, no screws.
 
-The collar runs in a channel along the underside. For 6mm at each end the
+The collar runs in a channel along the underside. For 12mm at each end the
 underside is **solid** — the strap is fully enclosed there, which is what holds
 the collar on. Along the middle the underside is open as a slot, and that slot
 is narrower than the strap (22.2mm under a 25.4mm biothane) so a lip down each
@@ -13,6 +13,15 @@ that same slot; there is no other opening in the case.
 **Print this in TPU.** The slot is 22.2mm and the tracker is 31mm, so it has to
 be worked past the lip — roll one long edge in, then stretch the other side over
 it, the way a phone case goes on.
+
+## Where the QR comes from
+
+These cases go with two products. The
+[Fi Mini tracker](https://www.amazon.com/dp/B0FMGRT8YK) (GPS, Wi-Fi, Bluetooth,
+LTE) rides inside the case. The
+[Wagtopia Smart Tag](https://www.wagtopia.com/smarttag) is only a source for its
+QR code: scan it, put that link in `qr_code_text`, and throw the tag away.
+Wagtopia hosts the page the code opens; the case just carries the code.
 
 ## How it stacks up
 
@@ -41,8 +50,8 @@ The underside, looking up at it:
 ```
    ┌──────────────────────────────────────────────────────┐
    │        │                              │              │
-   │ solid  │      slot, 22.2 x 43.8       │    solid     │
-   │  6mm   │                              │     6mm      │
+   │ solid  │      slot, 22.2 x 31.8       │    solid     │
+   │ 12mm   │                              │    12mm      │
    │        │                              │              │
    └──────────────────────────────────────────────────────┘
      strap fully              lip either side       strap fully
@@ -90,6 +99,15 @@ strap's width only.
 `capture_length` (default 6mm) is the solid strip at each end. This is what
 actually holds the collar on; the lip along the middle only keeps it seated.
 Longer grips better and resists twisting, shorter makes the case smaller.
+
+The slot runs the full length of the tracker's cavity, so the tracker slides
+straight up through it; only the lip along the sides has to be worked past.
+
+The QR is 33mm and sits 4mm from one end of the top, so it runs over the
+rounded edges and the case's rounded corners just clip two of its corners.
+Test that it scans before you rely on it. The other end carries text
+(`top_text`) — as many lines as fit, centered as one block — with a choice of
+font and size.
 
 `strap_lip_width` (default 2mm) is how far the lip reaches in from each side of
 the slot. It is the only thing holding either part in: 1.6mm of interference a

@@ -12,8 +12,20 @@
 //   pull  — "use the server's values"      upserts into IndexedDB, deletes nothing
 // Pull never deletes, so adopting server values can't silently destroy a preset
 // someone imported locally.
+//
+// The automatic pull on page load is newer-wins per record: a preset edited in
+// this browser after the server copy was written is left alone, or every
+// reload would undo the edit. The explicit "Use server values" button forces.
 
-import { listPresets, savePreset, type PresetKind, type OrcaJson, type OrcaParent } from './print-storage.js';
+import {
+  getPreset,
+  listPresets,
+  savePreset,
+  type OrcaJson,
+  type OrcaParent,
+  type PresetKind,
+  type PresetSource,
+} from './print-storage.js';
 
 /** Tri-state, stored as '1' (sync) / '0' (don't) / absent (undecided).
  *
@@ -31,9 +43,13 @@ interface ServerPreset {
   name: string;
   raw: OrcaJson;
   parents: OrcaParent[];
+  overrides?: OrcaJson;
   address?: string;
   compatiblePrinters?: string[];
-  source?: { kind: string; presetName?: string; chain?: string[] };
+  source?: PresetSource;
+  /** When the server copy was written. Absent on records from before it was
+   *  tracked, which count as older than anything local. */
+  updatedAt?: number;
 }
 
 export interface ServerStoreStatus {
@@ -84,24 +100,36 @@ export async function probeServerStore(): Promise<ServerStoreStatus> {
   }
 }
 
-/** Copy the server's records into IndexedDB. Additive — never deletes. */
-export async function pullFromServer(): Promise<{ imported: number }> {
+/** Copy the server's records into IndexedDB. Additive — never deletes.
+ *  Without `force`, a record changed locally since the server wrote it is
+ *  skipped (see the header). */
+export async function pullFromServer(
+  { force = false }: { force?: boolean } = {},
+): Promise<{ imported: number; skipped: number }> {
   const res = await fetch(endpoint(), { headers: { Accept: 'application/json' } });
   if (!res.ok) throw new Error(`Server store returned ${res.status}.`);
   const body = await res.json() as { presets?: ServerPreset[] };
   const presets = body.presets ?? [];
+  let imported = 0;
   for (const preset of presets) {
+    if (!force) {
+      const local = await getPreset(`${preset.kind}:${preset.name}`);
+      if (local && local.updatedAt >= (preset.updatedAt ?? 0)) continue;
+    }
     await savePreset({
       kind: preset.kind,
       name: preset.name,
       raw: preset.raw,
       parents: preset.parents ?? [],
+      overrides: preset.overrides,
+      source: preset.source,
       address: preset.address,
       compatiblePrinters: preset.compatiblePrinters,
     });
+    imported++;
   }
   setOptedIn(true);
-  return { imported: presets.length };
+  return { imported, skipped: presets.length - imported };
 }
 
 /** Replace the server's set with everything in IndexedDB. */
@@ -112,8 +140,11 @@ export async function pushToServer(): Promise<{ exported: number }> {
     name: p.name,
     raw: p.raw,
     parents: p.parents,
+    overrides: p.overrides,
+    source: p.source,
     address: p.address,
     compatiblePrinters: p.compatiblePrinters,
+    updatedAt: p.updatedAt,
   }));
   const res = await fetch(endpoint(), {
     method: 'PUT',

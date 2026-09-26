@@ -63,17 +63,42 @@ function validate(value: unknown, index: number): GalleryPreset {
     throw new Error(`presets[${index}].raw must be an object.`);
   }
   const parents = row['parents'];
+  const overrides = row['overrides'];
+  if (overrides !== undefined && (!overrides || typeof overrides !== 'object' || Array.isArray(overrides))) {
+    throw new Error(`presets[${index}].overrides must be an object.`);
+  }
   const address = row['address'];
   const compatible = row['compatiblePrinters'];
+  const updatedAt = row['updatedAt'];
   return {
     kind: kind as PresetKind,
     name: name.trim(),
     raw: raw as Record<string, unknown>,
     parents: Array.isArray(parents) ? (parents as GalleryPreset['parents']) : [],
+    overrides: overrides as Record<string, unknown> | undefined,
     address: typeof address === 'string' && address.trim() ? address.trim() : undefined,
     compatiblePrinters: Array.isArray(compatible) ? compatible.map(String) : undefined,
-    source: { kind: 'manual' },
+    source: validSource(row['source']),
+    updatedAt: typeof updatedAt === 'number' && Number.isFinite(updatedAt) ? updatedAt : undefined,
   };
+}
+
+/** Keep a pushed record's provenance when it has a shape we know; anything
+ *  else is recorded as a manual entry rather than stored unchecked. */
+function validSource(value: unknown): GalleryPreset['source'] {
+  const s = (value ?? {}) as Record<string, unknown>;
+  const str = (k: string) => typeof s[k] === 'string' ? s[k] as string : undefined;
+  const at = typeof s['importedAt'] === 'number' ? s['importedAt'] as number : undefined;
+  if (s['kind'] === 'orca-preset' && str('presetName') && Array.isArray(s['chain'])) {
+    return { kind: 'orca-preset', presetName: str('presetName')!, chain: (s['chain'] as unknown[]).map(String) };
+  }
+  if (s['kind'] === 'orca-file' && str('fileName') && at !== undefined) {
+    return { kind: 'orca-file', fileName: str('fileName')!, importedAt: at };
+  }
+  if (s['kind'] === 'orca-config' && str('path') && at !== undefined) {
+    return { kind: 'orca-config', path: str('path')!, importedAt: at };
+  }
+  return { kind: 'manual' };
 }
 
 export function createDevStoreMiddleware(repoRoot: string) {

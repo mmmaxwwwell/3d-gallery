@@ -6,14 +6,15 @@
 import type { OrcaJson, OrcaValue, PrintPreset } from './print-storage.js';
 
 /** Merge inheritance chain into a single JSON object. Root parent first,
- *  child overrides win. Drops the `inherits` marker since it's meaningless
- *  once resolved. */
+ *  then the preset's own file, then gallery edits — each layer wins over the
+ *  ones before it. Drops the `inherits` marker since it's meaningless once
+ *  resolved. */
 export function mergeInheritance(preset: PrintPreset): OrcaJson {
   const merged: OrcaJson = {};
   for (let i = preset.parents.length - 1; i >= 0; i--) {
     Object.assign(merged, preset.parents[i].raw);
   }
-  Object.assign(merged, preset.raw);
+  Object.assign(merged, preset.raw, preset.overrides);
   delete merged['inherits'];
   return merged;
 }
@@ -39,11 +40,12 @@ export function flattenPresetForSlicer(preset: PrintPreset): Record<string, stri
   return out;
 }
 
-/** Serialize the user's raw JSON for export — matches what Orca produced.
- *  Round-trip: reopen in Orca as long as the referenced parent exists in
- *  the user's Orca install. */
+/** Serialize the user's own fields for export: the imported file with the
+ *  gallery's edits applied — what Orca would have saved had the edits been
+ *  made there. Round-trip: reopen in Orca as long as the referenced parent
+ *  exists in the user's Orca install. */
 export function exportRawJson(preset: PrintPreset): string {
-  return JSON.stringify(preset.raw, null, 2);
+  return JSON.stringify({ ...preset.raw, ...preset.overrides }, null, 2);
 }
 
 /** Serialize the merged (inheritance-resolved) JSON — self-contained,

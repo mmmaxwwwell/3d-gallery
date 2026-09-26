@@ -26,8 +26,8 @@ previews/
   assembled.scad                   the whole stand with spools seated
   box.scad                         reference: spools inside the dry box
   lane-{left,mid,right}.scad       one bay each
-  plate-{1..12}.scad               the four-lane print plates, one per bed
-  plate-1x-{1..6}.scad             the one-lane print plates
+  plate-{1..10}.scad               the four-lane print plates, one per bed
+  plate-1x-{1..4}.scad             the one-lane print plates
   plate-fit.scad                   throwaway fit-test coupons
 ```
 
@@ -45,8 +45,9 @@ with it. The gallery shows a `4× | 1×` switch beside the title.
   and module in both builds (validation enforces it).
 - The plate files are **not** shared: each build has its own numbered set,
   because a plate hard-codes which wall or tile it holds. The one-lane plates
-  use `plate_wall(lanes)` for the right wall and `plate_templates(s)` to put
-  both whole templates on one bed.
+  use `plate_wall(lanes)` for the right wall, `plate_wall_template(0)` for
+  the whole bulkhead template, and `plate_tile_floor_template(s)` to put
+  the tile and the whole floor template on one bed.
 - Another lane count is another build: its own plate files, its own
   instance ids from `stand_instances()` at that count, and its own hardware
   quantities. Nothing is derived from `lanes` in the manifest.
@@ -164,8 +165,7 @@ either module.
   so the two can't drift apart. Split and dovetailed like the bulkhead one.
 - **`template(half)`** — the drilling template; four lanes wide it is wider
   than a bed, so `template_left/right` dovetail together. One lane prints
-  both templates whole, side by side, via `plate_templates(s)`, which asserts
-  they fit.
+  it whole.
 - **`stand_*()` / `bay_*()`** — assembly modules the previews call. Previews
   never re-implement a placement loop.
 - **`spools()` / `box()`** — reference geometry, not printed. `box()` draws an
@@ -315,21 +315,47 @@ z = base_height, and neighbouring tiles only on their seams.
 
 ## Print plates
 
-`plate-1` … `plate-12` are one print job each, laid out for a `print_bed`
-cube: one per wall (`plate_wall(k)`), every roller and beam
-(`plate_rollers()`, `plate_beams()`), every peg (`plate_pegs()`) — the user
-prints pegs in **TPU**, so they stay on a plate of their own — the tiles two to
-a plate (`plate_tile(p, s)`), the bulkhead template (`plate_template(s)`),
-and the floor template halves (`plate_floor_template(half)`).
-`plate-1x-1` … `plate-1x-6` are the one-lane set: the two end walls, both
-rollers and the beam, the four pegs, the tile, and both whole templates.
+`plate-1` … `plate-10` are one print job each, laid out for a `print_bed`
+cube with `_plate_edge` (5 mm) clear of its rim and `_plate_gap` (6 mm)
+between pieces. The count is the point — the user wants as few bed swaps as
+the bed allows — so nothing smaller than a wall gets a bed to itself:
+
+- **One wall per plate** (`plate_wall(k)`). Two don't nest in any turn: each
+  wall is an L whose two arms (the floor edge and the back horn) both run
+  the bed's width. Its crescent leaves the bed's back corner free, and that
+  corner takes the bulkhead template (`plate_wall_template(half)`, hard
+  against both bed edges) and, below it, one lane's two rollers and beam in
+  a row (`plate_lane_rollers()`, `plate_lane_beam()`). Plate k carries lane
+  k; the end walls' plates carry the template halves.
+- **Tiles two to a plate** (`plate_tile(p, s)`), and nothing else fits
+  beside them but rollers, which the walls already hold.
+- **Floor template halves one to a plate** (`plate_floor_template(half)`) —
+  each is 196 mm by half the stand wide, too big to share. At one lane the
+  whole floor template is narrow enough to share the tile's bed
+  (`plate_tile_floor_template(s)`, which asserts it fits).
+- **The pegs are TPU** (`plate_pegs()`), the rest PETG, and a plate is one
+  material, so the pegs stay on a plate of their own — last, so the PETG
+  runs back to back.
+
+`plate-1x-1` … `plate-1x-4` are the one-lane set: the left wall with both
+rollers and the beam, the right wall with the whole bulkhead template, the
+tile with the whole floor template, and the four pegs.
+
+Every plate entry in the manifest carries `"plate": true`; the fit test
+doesn't, as it isn't part of the stand.
+
+The trough layout is placed from the bed's corner, not solved against the
+wall's curve, so a param change that fattens the back horn or raises the
+trough can run a template or roller into the wall. Re-run the per-plate
+check below after changing the spool, the stand depth or the wall shape.
 
 - **The plates between them must print exactly one stand.** Sum the plates'
   `components` in the manifest and compare with the assembly's plus the
   template — they must match part for part.
 - Checks per plate: its bbox must sit inside ±`print_bed`/2 in X and Y and
-  under `print_bed` in Z, and every pair of parts on it, each grown by 1 mm
-  in projection, must not intersect (≥ 2 mm apart). OpenSCAD reports a small
+  under `print_bed` in Z, keeping `_plate_edge` from the rim, and every pair
+  of parts on it, each grown by 2.5 mm in projection, must not intersect
+  (≥ 5 mm apart). OpenSCAD reports a small
   non-empty 3D result as "Triangles", not "Facets" — test for "empty".
 - Every part is also its own STL in `parts/`, in its print pose, for
   printing one at a time — keep those in step with the plates.

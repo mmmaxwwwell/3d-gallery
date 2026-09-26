@@ -32,6 +32,29 @@ import {
 } from "@3d-gallery/print-toolkit";
 ```
 
+## Orca option schema
+
+`@3d-gallery/print-toolkit/orca-schema-data` is libslic3r's own table of printer
+and filament settings — type (`floats`, `enum`, `percent`, …), label, tooltip,
+units, bounds, enum choices, default — plus the pages and groups Orca's settings
+tabs lay them out in. It is **generated** from an OrcaSlicer source tree, never
+hand-edited:
+
+```bash
+git clone --depth 1 -b v2.3.2 https://github.com/SoftFever/OrcaSlicer /tmp/orca
+npm run gen:orca-schema -w @3d-gallery/print-toolkit -- /tmp/orca
+```
+
+The generator reads `PrintConfigDef` (PrintConfig.cpp), the per-kind key lists
+(Preset.cpp) and the tab layout (Tab.cpp, PhysicalPrinterDialog.cpp). Keys the
+tabs never place land on an "Other" page by category, so every key of a kind is
+reachable. The committed file records the Orca version it came from.
+
+`@3d-gallery/print-toolkit/orca-schema` has the types and the value rules:
+`toCells` / `fromCells` between Orca's on-disk shapes and editable cells,
+`validateCell` for type and bounds, `describeValue` for display. The data file
+is ~100 kB, so import it lazily.
+
 ## WASM assets
 
 `libslic3r.js` + `libslic3r.wasm` are fetched into `assets/` by `scripts/fetch-wasm.mjs` from the OrcaSlicer-WASM GitHub releases. Consumers must serve these at `${BASE_URL}/wasm/` in production; a Vite plugin is provided (`@3d-gallery/print-toolkit/vite-plugin`) that copies them into the consumer's build automatically.

@@ -22,7 +22,6 @@ The shelf is a single union of:
 - **Round plate** (`base()`) — `shelf_diameter` × `shelf_thickness` disk.
 - **Back wall plate** — rectangular strip along `−Y` of the disk, same thickness, that the struts brace against.
 - **Two diagonal truss struts** (`strut()`) — at the top and bottom of the plate, each a 45° beam plus a vertical back leg.
-- **One bottom support strut** — a third strut positioned below the plate for extra rigidity under load.
 
 Everything below the base plane is trimmed by a final `difference()` so the part sits flat on the bed.
 

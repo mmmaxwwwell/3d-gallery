@@ -5,7 +5,7 @@ import { mkdtempSync, mkdirSync, rmSync, existsSync, writeFileSync } from 'node:
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createServer, type Server } from 'node:http';
-import { readStore, storePath, clearStore } from '../src/store.ts';
+import { readStore, storePath, clearStore, type GalleryPreset } from '../src/store.ts';
 import { createDevStoreMiddleware } from '../src/devstore.ts';
 import { handleMcpBody } from '../src/mcp.ts';
 import { makeFixture, type Fixture } from './fixture.ts';
@@ -20,6 +20,11 @@ beforeEach(() => { repoRoot = mkdtempSync(join(tmpdir(), 'orca-repo-')); });
 afterEach(() => { rmSync(repoRoot, { recursive: true, force: true }); });
 
 type RpcEnvelope = { result?: Record<string, unknown>; error?: { code: number } };
+
+/** What the slicer would see: root parent first, then the file, then edits. */
+function effective(p: GalleryPreset): Record<string, unknown> {
+  return Object.assign({}, ...[...p.parents].reverse().map((x) => x.raw), p.raw, p.overrides ?? {});
+}
 
 async function call(name: string, args: Record<string, unknown> = {}) {
   const { body } = await handleMcpBody(
@@ -47,7 +52,7 @@ describe('store file', () => {
 });
 
 describe('gallery_add_printer', () => {
-  it('copies an Orca preset in flattened, with provenance', async () => {
+  it('copies an Orca preset in with its chain and provenance', async () => {
     const result = await call('gallery_add_printer', { name: 'Test Printer Left' });
     expect(result.isError).toBeFalsy();
     expect(result.structuredContent).toMatchObject({
@@ -58,10 +63,14 @@ describe('gallery_add_printer', () => {
     });
 
     const [saved] = readStore(repoRoot).presets;
-    // Flattened: inherited values are present and `parents` is empty, so the
-    // record does not depend on the vendor presets existing.
-    expect(saved.raw['gcode_flavor']).toBe('klipper');
-    expect(saved.parents).toEqual([]);
+    // The file is kept verbatim and each parent is snapshotted, so the record
+    // does not depend on the vendor presets existing — and still knows which
+    // layer every value came from.
+    expect(saved.raw['inherits']).toBe('Test Printer 0.4 Nozzle');
+    expect(saved.parents.map((p) => p.name)).toEqual(['Test Printer 0.4 Nozzle', 'fdm_common']);
+    expect(effective(saved)['gcode_flavor']).toBe('klipper');
+    expect(saved.overrides).toBeUndefined();
+    expect(saved.updatedAt).toBeTypeOf('number');
     expect(saved.source).toEqual({
       kind: 'orca-preset',
       presetName: 'Test Printer Left',
@@ -83,13 +92,18 @@ describe('gallery_add_printer', () => {
     });
 
     const [saved] = readStore(repoRoot).presets;
-    expect(saved.raw['print_host']).toBe('10.0.0.71:7125');
-    // The name has to travel into the config too, or Orca round-trips it back
-    // under the original identity.
-    expect(saved.raw['name']).toBe('Test Printer Center');
-    expect(saved.raw['printer_settings_id']).toBe('Test Printer Center');
+    // A duplicate is the source file plus gallery overrides, so what changed
+    // stays visible against what it was copied from.
+    expect(saved.raw['print_host']).toBe('10.0.0.11:7125');
+    expect(saved.overrides).toEqual({
+      print_host: '10.0.0.71:7125',
+      // The name has to travel into the config too, or Orca round-trips it
+      // back under the original identity.
+      name: 'Test Printer Center',
+      printer_settings_id: 'Test Printer Center',
+    });
     // Untouched fields still come from the source preset.
-    expect(saved.raw['machine_start_gcode']).toBe('START_PRINT');
+    expect(effective(saved)['machine_start_gcode']).toBe('START_PRINT');
   });
 
   it('rewrites a derived web-UI link so it cannot point at the source machine', async () => {
@@ -104,7 +118,7 @@ describe('gallery_add_printer', () => {
     const saved = readStore(repoRoot).presets.find((p) => p.name === 'Derived')!;
     // The fixture's presets have no webui field, so it must stay absent rather
     // than being invented.
-    expect(saved.raw['print_host_webui']).toBeUndefined();
+    expect(effective(saved)['print_host_webui']).toBeUndefined();
   });
 
   it('reports the second write as an update, not a create', async () => {
@@ -211,6 +225,28 @@ describe('devstore http', () => {
     // A merge would resurrect B, which the user deleted locally.
     const got = await (await fetch(url)).json() as { presets: Array<{ name: string }> };
     expect(got.presets.map((p) => p.name)).toEqual(['A']);
+  });
+
+  it('keeps overrides, provenance and write time through a push', async () => {
+    const source = { kind: 'orca-config', path: 'user/default/machine/A.json', importedAt: 5 };
+    await fetch(url, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ presets: [{ ...row('A', '10.0.0.1:7125'), overrides: { z_offset: '0.1' }, source, updatedAt: 42 }] }),
+    });
+    const [saved] = readStore(repoRoot).presets;
+    expect(saved.overrides).toEqual({ z_offset: '0.1' });
+    expect(saved.source).toEqual(source);
+    expect(saved.updatedAt).toBe(42);
+  });
+
+  it('records an unrecognised source as manual rather than storing it unchecked', async () => {
+    await fetch(url, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ presets: [{ ...row('A', '10.0.0.1:7125'), source: { kind: 'orca-file' } }] }),
+    });
+    expect(readStore(repoRoot).presets[0].source).toEqual({ kind: 'manual' });
   });
 
   it('rejects a malformed record with a reason', async () => {

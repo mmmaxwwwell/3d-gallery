@@ -1,6 +1,7 @@
 export * from './types.ts';
 export * from './errors.ts';
 export * from './manifest.ts';
+export * from './print-profile.ts';
 export { parseParams, parseValue, coerceToParamType } from './params.ts';
 export { injectParameters, formatScadValue, isValidParamName } from './inject.ts';
 export { canonicalizeParams, canonicalParamsJson, scadValuesEqual } from './canonical.ts';

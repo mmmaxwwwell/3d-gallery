@@ -80,7 +80,12 @@
       "description": "Protective case for the Fi Mini GPS tracker. Supports an optional QR code — enter your phone number or address so anyone who finds your dog can reach you.",
       "customizable": true,
       "previews": [
-        { "file": "assembled.3mf", "format": "3mf", "label": "Assembly preview", "default": true, "module": "assembled",
+        {
+          "file": "assembled.3mf",
+          "format": "3mf",
+          "label": "Assembly preview",
+          "default": true,
+          "module": "assembled",
           "legend": [
             { "color": "#000000", "label": "Cap body", "part": "cap.3mf" },
             { "color": "#ffffff", "label": "QR code", "part": "cap.3mf" },
@@ -89,7 +94,11 @@
         }
       ],
       "parts": [
-        { "file": "cap.3mf", "format": "3mf", "label": "Cap (top half)", "module": "cap",
+        {
+          "file": "cap.3mf",
+          "format": "3mf",
+          "label": "Cap (top half)",
+          "module": "cap",
           "legend": [
             { "color": "#000000", "label": "Body (black)" },
             { "color": "#ffffff", "label": "QR code" }
@@ -98,14 +107,17 @@
         { "file": "base.stl", "format": "stl", "label": "Base (bottom half)", "module": "base" }
       ],
       "hardware": [
-        {
-          "qty": 6,
-          "label": "M3x6 socket head cap screw"
-        }
+        { "qty": 6, "label": "M3x6 socket head cap screw" }
       ],
       "worksWith": [
         {
-          "label": "Fi Mini Smart Tag",
+          "label": "Fi Mini GPS tracker",
+          "note": "GPS, Wi-Fi, Bluetooth and LTE. This is what rides inside the case.",
+          "source": { "url": "https://www.amazon.com/dp/B0FMGRT8YK", "vendor": "Amazon" }
+        },
+        {
+          "label": "Wagtopia Smart Tag",
+          "note": "Only for its QR code. Scan the tag, put that link in qr_code_text, and throw the tag away. Wagtopia hosts the page the code opens.",
           "source": { "url": "https://www.wagtopia.com/smarttag", "vendor": "Wagtopia" }
         }
       ]
@@ -113,17 +125,33 @@
     {
       "slug": "fi-mini-case-captive",
       "title": "Fi Mini GPS Case (Captive Collar)",
-      "description": "One-piece Fi Mini cover \u2014 no cap, no screws. The collar threads through a channel along the underside, enclosed at both ends and held by a lip down the middle, and the tracker presses up through that same slot. Supports an optional QR code.",
+      "description": "One-piece Fi Mini cover \u2014 no cap, no screws. The collar threads through a channel along the underside, enclosed at both ends and held by a lip down the middle, and the tracker presses up through that same slot. Supports an optional QR code and multiline text.",
       "customizable": true,
       "filament": [
-        { "material": "TPU", "color": "black", "note": "Case body \u2014 the slot is an interference fit, so it has to flex" },
-        { "material": "TPU", "color": "white", "note": "QR modules" }
+        {
+          "material": "TPU 64D",
+          "color": "black",
+          "note": "Case body \u2014 the slot is an interference fit, so it has to flex",
+          "source": { "url": "https://www.amazon.com/Siraya-Tech-Flex-TPU-64D/dp/B0DZCCY21Y", "vendor": "Siraya Tech" }
+        },
+        {
+          "material": "TPU 64D",
+          "color": "white",
+          "note": "QR code and text",
+          "source": { "url": "https://www.amazon.com/Siraya-Tech-Flex-TPU-64D/dp/B0FF4T877L", "vendor": "Siraya Tech" }
+        }
       ],
+      "printProfile": { "supports": "tree", "supportsOnBuildPlateOnly": true },
       "previews": [
-        { "file": "assembled.3mf", "format": "3mf", "label": "Assembly preview", "default": true, "module": "assembled",
+        {
+          "file": "assembled.3mf",
+          "format": "3mf",
+          "label": "Assembly preview",
+          "default": true,
+          "module": "assembled",
           "legend": [
             { "color": "#000000", "label": "Case body", "part": "case.stl" },
-            { "color": "#ffffff", "label": "QR code", "part": "case.stl" }
+            { "color": "#ffffff", "label": "QR code and text", "part": "case.stl" }
           ]
         }
       ],
@@ -132,7 +160,13 @@
       ],
       "worksWith": [
         {
-          "label": "Fi Mini Smart Tag",
+          "label": "Fi Mini GPS tracker",
+          "note": "GPS, Wi-Fi, Bluetooth and LTE. This is what rides inside the case.",
+          "source": { "url": "https://www.amazon.com/dp/B0FMGRT8YK", "vendor": "Amazon" }
+        },
+        {
+          "label": "Wagtopia Smart Tag",
+          "note": "Only for its QR code. Scan the tag, put that link in qr_code_text, and throw the tag away. Wagtopia hosts the page the code opens.",
           "source": { "url": "https://www.wagtopia.com/smarttag", "vendor": "Wagtopia" }
         }
       ]
@@ -140,17 +174,33 @@
     {
       "slug": "ugreen-finder-duo-captive",
       "title": "UGREEN Finder Duo Air Case (Captive Collar)",
-      "description": "The captive-collar cover re-sized for the UGREEN Finder Duo Air. One piece, no cap, no screws: the collar threads through a channel along the underside and the tracker presses up through the same slot. Supports an optional QR code.",
+      "description": "The captive-collar cover re-sized for the UGREEN Finder Duo Air. One piece, no cap, no screws: the collar threads through a channel along the underside and the tracker presses up through the same slot. Supports an optional QR code and multiline text.",
       "customizable": true,
       "filament": [
-        { "material": "TPU", "color": "black", "note": "Case body \u2014 soft (85A); the square tracker is a 62% stretch across the lip" },
-        { "material": "TPU", "color": "white", "note": "QR modules" }
+        {
+          "material": "TPU 64D",
+          "color": "black",
+          "note": "Case body \u2014 the square tracker is a 62% stretch across the lip",
+          "source": { "url": "https://www.amazon.com/Siraya-Tech-Flex-TPU-64D/dp/B0DZCCY21Y", "vendor": "Siraya Tech" }
+        },
+        {
+          "material": "TPU 64D",
+          "color": "white",
+          "note": "QR code and text",
+          "source": { "url": "https://www.amazon.com/Siraya-Tech-Flex-TPU-64D/dp/B0FF4T877L", "vendor": "Siraya Tech" }
+        }
       ],
+      "printProfile": { "supports": "tree", "supportsOnBuildPlateOnly": true },
       "previews": [
-        { "file": "assembled.3mf", "format": "3mf", "label": "Assembly preview", "default": true, "module": "assembled",
+        {
+          "file": "assembled.3mf",
+          "format": "3mf",
+          "label": "Assembly preview",
+          "default": true,
+          "module": "assembled",
           "legend": [
             { "color": "#000000", "label": "Case body", "part": "case.stl" },
-            { "color": "#ffffff", "label": "QR code", "part": "case.stl" }
+            { "color": "#ffffff", "label": "QR code and text", "part": "case.stl" }
           ]
         }
       ],
@@ -162,22 +212,76 @@
       ]
     },
     {
+      "slug": "pebblebee-air-captive",
+      "title": "Pebblebee Air Case (Captive Collar)",
+      "description": "The captive-collar cover sized for the Pebblebee Air. One piece, no cap, no screws: the collar threads through a channel along the underside and the tracker presses up through the same slot, long side along the strap. Supports multiline text on the top.",
+      "customizable": true,
+      "filament": [
+        {
+          "material": "TPU 64D",
+          "color": "black",
+          "note": "Case body — the slot is an interference fit, so it has to flex",
+          "source": { "url": "https://www.amazon.com/Siraya-Tech-Flex-TPU-64D/dp/B0DZCCY21Y", "vendor": "Siraya Tech" }
+        },
+        {
+          "material": "TPU 64D",
+          "color": "white",
+          "note": "Text",
+          "source": { "url": "https://www.amazon.com/Siraya-Tech-Flex-TPU-64D/dp/B0FF4T877L", "vendor": "Siraya Tech" }
+        }
+      ],
+      "printProfile": { "supports": "tree", "supportsOnBuildPlateOnly": true },
+      "previews": [
+        {
+          "file": "assembled.3mf",
+          "format": "3mf",
+          "label": "Assembly preview",
+          "default": true,
+          "module": "assembled",
+          "legend": [
+            { "color": "#000000", "label": "Case body", "part": "case.stl" },
+            { "color": "#ffffff", "label": "Text", "part": "case.stl" }
+          ]
+        }
+      ],
+      "parts": [
+        { "file": "case.stl", "format": "stl", "label": "Case (one piece)", "module": "case" }
+      ],
+      "worksWith": [
+        { "label": "Pebblebee Air tracker" }
+      ]
+    },
+    {
       "slug": "qr-leash-tag",
       "title": "QR Leash Tag",
       "description": "A QR code that slides onto a leash \u2014 one piece, two filaments, no hardware. The webbing threads through a slot across the middle and the code fills the whole 29mm face. Set your leash's width and thickness and the tag wraps itself around it. Prints face down so the code comes out flat and crisp.",
       "customizable": true,
       "filament": [
         { "material": "PLA", "color": "black", "note": "Tag body" },
-        { "material": "PLA", "color": "white", "note": "QR modules \u2014 the swap lands in the 1mm band against the build plate" }
+        {
+          "material": "PLA",
+          "color": "white",
+          "note": "QR modules \u2014 the swap lands in the 1mm band against the build plate"
+        }
       ],
       "previews": [
-        { "file": "tag.3mf", "format": "3mf", "label": "QR side up", "default": true, "module": "tag",
+        {
+          "file": "tag.3mf",
+          "format": "3mf",
+          "label": "QR side up",
+          "default": true,
+          "module": "tag",
           "legend": [
             { "color": "#000000", "label": "Tag body (dark filament)" },
             { "color": "#ffffff", "label": "QR modules (light filament)" }
           ]
         },
-        { "file": "plate.3mf", "format": "3mf", "label": "Print orientation \u2014 QR on the plate", "module": "plate",
+        {
+          "file": "plate.3mf",
+          "format": "3mf",
+          "label": "Print orientation \u2014 QR on the plate",
+          "module": "plate",
+          "plate": true,
           "legend": [
             { "color": "#000000", "label": "Tag body (dark filament)" },
             { "color": "#ffffff", "label": "QR modules (light filament)" }
@@ -193,16 +297,30 @@
       "customizable": true,
       "filament": [
         { "material": "PLA", "color": "black", "note": "Case body" },
-        { "material": "PLA", "color": "white", "note": "QR modules \u2014 the swap lands in the 1mm band against the build plate" }
+        {
+          "material": "PLA",
+          "color": "white",
+          "note": "QR modules \u2014 the swap lands in the 1mm band against the build plate"
+        }
       ],
       "previews": [
-        { "file": "case.3mf", "format": "3mf", "label": "QR side up", "default": true, "module": "case",
+        {
+          "file": "case.3mf",
+          "format": "3mf",
+          "label": "QR side up",
+          "default": true,
+          "module": "case",
           "legend": [
             { "color": "#000000", "label": "Case body (dark filament)" },
             { "color": "#ffffff", "label": "QR modules (light filament)" }
           ]
         },
-        { "file": "plate.3mf", "format": "3mf", "label": "Print orientation \u2014 QR on the plate, pocket up", "module": "plate",
+        {
+          "file": "plate.3mf",
+          "format": "3mf",
+          "label": "Print orientation \u2014 QR on the plate, pocket up",
+          "module": "plate",
+          "plate": true,
           "legend": [
             { "color": "#000000", "label": "Case body (dark filament)" },
             { "color": "#ffffff", "label": "QR modules (light filament)" }
@@ -376,23 +494,6 @@
       ]
     },
     {
-      "slug": "vrig-camera-mount-retention-guard",
-      "title": "VRIG Camera Mount Retention Guard",
-      "description": "Rectangular 64D TPU sleeve that slides over the VRIG AC-91 magnetic quick-release adapter at the camera-to-mount interface. Open top and bottom; the four walls physically constrain the joint so a side impact can't shear the magnetic connection.",
-      "filament": [
-        { "material": "TPU 64D", "color": "any", "note": "Flex is required so the sleeve stretches over the joint and grips by friction" }
-      ],
-      "parts": [
-        { "file": "guard.stl", "format": "stl", "label": "Retention guard sleeve" }
-      ],
-      "worksWith": [
-        {
-          "label": "VRIG Magnetic Quick Release Adapter (AC-91)",
-          "source": { "url": "https://www.amazon.com/dp/B0FL2GD2MN", "vendor": "Amazon" }
-        }
-      ]
-    },
-    {
       "slug": "split-tray-500",
       "title": "Parametric Split Tray",
       "description": "Parametric parts tray with bullnose walls and vertical sliding dovetail seams. Adjust length, width, wall diameter, wall height, base thickness (0 = open frame), and split factor (2×2 or 3×3). Each seam is a trapezoidal tongue on one piece + blind pocket on the mate — every piece is pressed straight DOWN to seat and pulled straight UP to release, no drop-in keys. Front lip auto-caps at 25 mm for easy reach-in. Default 500 × 500 mm with 25 mm bullnose walls splits into four 250 × 250 mm quadrants that fit on a ~250 mm bed (Qidi Q2 class).",
@@ -429,7 +530,11 @@
       "description": "Modular cord cradle that screws to the underside of a desk. The profile drops 3 in straight down, then wraps the outside of a 6 in circle for 135° (90 + 45) so cords leaving the desk are supported through the bend instead of kinked over an edge. 8 mm thick throughout. Each 150 mm segment interlocks with the next through a rib-and-groove joint that follows the whole profile — print as many as your desk is wide. Three screws per segment pass through the vertical wall itself — an angled round recess bored in from the cord side takes a #6 × 5/8 in pan-head screw driven straight up into the desktop, with its head bearing on the 2 mm of plastic left below the desk face, so the outside face stays solid and nothing protrudes into the cord channel. An optional prop finishes the half circle at the cradle's tip and runs straight up to the desk — a narrow beam, a solid full-width panel, or a hex screen — closing the tube and taking the sag out of a long run. It bolts onto the shell with M5 × 8 button heads driven into the plastic, in a half-lap that keeps the joint the same thickness as the rest of the tube, so it goes on after the cords are laid in, and takes the desk screws the same way the wall does — recessed and angled, here toward the outside of the tube so a driver can still reach them once it is closed. Prints standing on the grooved end with no supports.",
       "customizable": true,
       "previews": [
-        { "file": "assembled.3mf", "format": "3mf", "label": "Three segments", "module": "assembled",
+        {
+          "file": "assembled.3mf",
+          "format": "3mf",
+          "label": "Three segments",
+          "module": "assembled",
           "legend": [
             { "color": "#00eaff", "label": "Segment 1", "part": "segment.stl" },
             { "color": "#39ff14", "label": "Segment 2", "part": "segment.stl" },
@@ -439,7 +544,12 @@
             { "part": "segment.stl", "qty": 3 }
           ]
         },
-        { "file": "plate.3mf", "format": "3mf", "label": "Print plate", "module": "plate",
+        {
+          "file": "plate.3mf",
+          "format": "3mf",
+          "label": "Print plate",
+          "module": "plate",
+          "plate": true,
           "legend": [
             { "color": "#00eaff", "label": "Segment, hex", "part": "segment-screen.stl" },
             { "color": "#39ff14", "label": "Prop panel, hex", "part": "prop-screen.stl" }
@@ -449,7 +559,11 @@
             { "part": "prop-screen.stl", "qty": 1 }
           ]
         },
-        { "file": "hex.3mf", "format": "3mf", "label": "Hex tube", "module": "hex",
+        {
+          "file": "hex.3mf",
+          "format": "3mf",
+          "label": "Hex tube",
+          "module": "hex",
           "legend": [
             { "color": "#2b5cff", "label": "Segment, hex", "part": "segment-screen.stl" },
             { "color": "#39ff14", "label": "Prop panel, hex", "part": "prop-screen.stl" }
@@ -459,7 +573,12 @@
             { "part": "prop-screen.stl", "qty": 2 }
           ]
         },
-        { "file": "propped.3mf", "format": "3mf", "label": "Segments with props", "default": true, "module": "propped",
+        {
+          "file": "propped.3mf",
+          "format": "3mf",
+          "label": "Segments with props",
+          "default": true,
+          "module": "propped",
           "legend": [
             { "color": "#00eaff", "label": "Segments", "part": "segment.stl" },
             { "color": "#2b5cff", "label": "Segment with hex openings", "part": "segment-screen.stl" },
@@ -485,7 +604,10 @@
       ],
       "hardware": [
         { "qty": 3, "label": "#6 × 5/8 in pan-head wood screw, per segment" },
-        { "qty": 3, "label": "#6 × 5/8 in pan-head wood screw into the desk, per full-width prop (1 per narrow beam)" },
+        {
+          "qty": 3,
+          "label": "#6 × 5/8 in pan-head wood screw into the desk, per full-width prop (1 per narrow beam)"
+        },
         { "qty": 3, "label": "M5 × 8 button-head cap screw into the cradle, per full-width prop (1 per narrow beam)" }
       ]
     },
@@ -501,14 +623,19 @@
           "label": "Print plate: a stacking pair",
           "default": true,
           "module": "plate",
+          "plate": true,
           "legend": [
             { "color": "#00eaff", "label": "Strip, joiners on the top edge", "part": "strip.stl" },
             { "color": "#ff6b00", "label": "Strip, joiners on the bottom edge", "part": "strip.stl" }
           ],
-          "components": [{ "part": "strip.stl", "qty": 2 }]
+          "components": [
+            { "part": "strip.stl", "qty": 2 }
+          ]
         }
       ],
-      "parts": [{ "file": "strip.stl", "format": "stl", "label": "Folded strip, 8 panels", "module": "strip" }]
+      "parts": [
+        { "file": "strip.stl", "format": "stl", "label": "Folded strip, 8 panels", "module": "strip" }
+      ]
     },
     {
       "slug": "test-cube-xyz",
@@ -585,35 +712,68 @@
               "module": "stand_tiles",
               "legend": [
                 {
-                  "color": "#1fedff", "shades": ["#73f3ff"],
-                  "label": "Floor tiles, one per lane",
+                  "color": "#1fedff",
+                  "shades": ["#73f3ff"],
+                  "label": "Floor tiles",
+                  "note": "One per lane",
                   "parts": ["tile-left.stl", "tile-middle.stl", "tile-right.stl"]
                 },
                 {
-                  "color": "#ffdb27", "shades": ["#ffe878"],
-                  "label": "Walls — carry the pegs and the beams",
+                  "color": "#ffdb27",
+                  "shades": ["#ffe878"],
+                  "label": "Walls",
+                  "note": "Carry the pegs and the beams",
                   "parts": ["wall-left.stl", "wall-center.stl", "wall-right.stl"]
                 },
                 { "color": "#ff7d1f", "shades": ["#ffae73"], "label": "Rollers", "part": "roller.stl" },
                 {
-                  "color": "#ff33ce", "shades": ["#ff7fe0"],
-                  "label": "Pegs — pressed through the walls, carry the bearings",
+                  "color": "#ff33ce",
+                  "shades": ["#ff7fe0"],
+                  "label": "Pegs",
+                  "note": "Pressed through the walls, carry the bearings",
                   "part": "peg-inner.stl",
                   "parts": ["peg-inner.stl", "peg-end.stl"]
                 },
-                { "color": "#c0c4cc", "label": "608 bearings — reference only, not printed" },
-                { "color": "#51ff30", "shades": ["#92ff7e"], "label": "Hex beams, nested wall to wall", "part": "beam.stl" },
-                { "color": "#8a8f98", "label": "Spools — reference only, not printed" }
+                { "color": "#c0c4cc", "label": "608 bearings", "note": "Reference only, not printed" },
+                {
+                  "color": "#51ff30",
+                  "shades": ["#92ff7e"],
+                  "label": "Hex beams",
+                  "note": "Nested wall to wall",
+                  "part": "beam.stl"
+                },
+                { "color": "#8a8f98", "label": "Spools", "note": "Reference only, not printed" }
               ],
               "components": [
-                { "part": "tile-left.stl", "qty": 1, "instances": [{"id": "T1", "where": "lane 1, left edge"}] },
+                {
+                  "part": "tile-left.stl",
+                  "qty": 1,
+                  "instances": [
+                    { "id": "T1", "where": "lane 1, left edge" }
+                  ]
+                },
                 {
                   "part": "tile-middle.stl",
                   "qty": 2,
-                  "instances": [{ "id": "T2", "where": "lane 2" }, { "id": "T3", "where": "lane 3" }]
+                  "instances": [
+                    { "id": "T2", "where": "lane 2" },
+                    { "id": "T3", "where": "lane 3" }
+                  ]
                 },
-                { "part": "tile-right.stl", "qty": 1, "instances": [{"id": "T4", "where": "lane 4, right edge"}] },
-                { "part": "wall-left.stl", "qty": 1, "instances": [{"id": "W1", "where": "left end, lane 1"}] },
+                {
+                  "part": "tile-right.stl",
+                  "qty": 1,
+                  "instances": [
+                    { "id": "T4", "where": "lane 4, right edge" }
+                  ]
+                },
+                {
+                  "part": "wall-left.stl",
+                  "qty": 1,
+                  "instances": [
+                    { "id": "W1", "where": "left end, lane 1" }
+                  ]
+                },
                 {
                   "part": "wall-center.stl",
                   "qty": 3,
@@ -623,7 +783,13 @@
                     { "id": "W4", "where": "between lanes 3 and 4" }
                   ]
                 },
-                { "part": "wall-right.stl", "qty": 1, "instances": [{"id": "W5", "where": "right end, lane 4"}] },
+                {
+                  "part": "wall-right.stl",
+                  "qty": 1,
+                  "instances": [
+                    { "id": "W5", "where": "right end, lane 4" }
+                  ]
+                },
                 {
                   "part": "roller.stl",
                   "qty": 8,
@@ -679,19 +845,21 @@
               "module": "box",
               "legend": [
                 {
-                  "color": "#1fedff", "shades": ["#73f3ff"],
+                  "color": "#1fedff",
+                  "shades": ["#73f3ff"],
                   "label": "Floor tiles",
                   "parts": ["tile-left.stl", "tile-middle.stl", "tile-right.stl"]
                 },
                 {
-                  "color": "#ffdb27", "shades": ["#ffe878"],
+                  "color": "#ffdb27",
+                  "shades": ["#ffe878"],
                   "label": "Walls",
                   "parts": ["wall-left.stl", "wall-center.stl", "wall-right.stl"]
                 },
                 { "color": "#ff7d1f", "shades": ["#ffae73"], "label": "Rollers", "part": "roller.stl" },
                 { "color": "#51ff30", "shades": ["#92ff7e"], "label": "Hex beams", "part": "beam.stl" },
-                { "color": "#8a8f98", "label": "Spools — reference only, not printed" },
-                { "color": "#3a3f48", "label": "Box — reference only, not printed" }
+                { "color": "#8a8f98", "label": "Spools", "note": "Reference only, not printed" },
+                { "color": "#3a3f48", "label": "Box", "note": "Reference only, not printed" }
               ]
             },
             {
@@ -730,126 +898,217 @@
             {
               "file": "plate-1.3mf",
               "format": "3mf",
-              "label": "Print plate 1: the left wall",
+              "label": "Print plate 1: the left wall, lane 1's rollers and beam, and the bulkhead template's left half",
               "module": "plate_wall",
-              "legend": [{ "color": "#ffd60a", "label": "Wall, flat", "part": "wall-left.stl" }],
-              "components": [{ "part": "wall-left.stl", "qty": 1, "instances": [{ "id": "W1" }] }]
+              "plate": true,
+              "legend": [
+                { "color": "#ffd60a", "label": "Wall, flat", "part": "wall-left.stl" },
+                { "color": "#00eaff", "label": "Bulkhead template, left half", "part": "template-left.stl" },
+                { "color": "#ff6b00", "label": "Rollers, on end", "part": "roller.stl" },
+                { "color": "#39ff14", "label": "Beam, on its flange end", "part": "beam.stl" }
+              ],
+              "components": [
+                {
+                  "part": "wall-left.stl",
+                  "qty": 1,
+                  "instances": [
+                    { "id": "W1" }
+                  ]
+                },
+                { "part": "template-left.stl", "qty": 1 },
+                { "part": "roller.stl", "qty": 2 },
+                { "part": "beam.stl", "qty": 1 }
+              ]
             },
             {
               "file": "plate-2.3mf",
               "format": "3mf",
-              "label": "Print plate 2: a centre wall",
+              "label": "Print plate 2: a centre wall, and lane 2's rollers and beam",
               "module": "plate_wall",
-              "legend": [{ "color": "#ffd60a", "label": "Wall, flat", "part": "wall-center.stl" }],
-              "components": [{ "part": "wall-center.stl", "qty": 1, "instances": [{ "id": "W2" }] }]
+              "plate": true,
+              "legend": [
+                { "color": "#ffd60a", "label": "Wall, flat", "part": "wall-center.stl" },
+                { "color": "#ff6b00", "label": "Rollers, on end", "part": "roller.stl" },
+                { "color": "#39ff14", "label": "Beam, on its flange end", "part": "beam.stl" }
+              ],
+              "components": [
+                {
+                  "part": "wall-center.stl",
+                  "qty": 1,
+                  "instances": [
+                    { "id": "W2" }
+                  ]
+                },
+                { "part": "roller.stl", "qty": 2 },
+                { "part": "beam.stl", "qty": 1 }
+              ]
             },
             {
               "file": "plate-3.3mf",
               "format": "3mf",
-              "label": "Print plate 3: a centre wall",
+              "label": "Print plate 3: a centre wall, and lane 3's rollers and beam",
               "module": "plate_wall",
-              "legend": [{ "color": "#ffd60a", "label": "Wall, flat", "part": "wall-center.stl" }],
-              "components": [{ "part": "wall-center.stl", "qty": 1, "instances": [{ "id": "W3" }] }]
+              "plate": true,
+              "legend": [
+                { "color": "#ffd60a", "label": "Wall, flat", "part": "wall-center.stl" },
+                { "color": "#ff6b00", "label": "Rollers, on end", "part": "roller.stl" },
+                { "color": "#39ff14", "label": "Beam, on its flange end", "part": "beam.stl" }
+              ],
+              "components": [
+                {
+                  "part": "wall-center.stl",
+                  "qty": 1,
+                  "instances": [
+                    { "id": "W3" }
+                  ]
+                },
+                { "part": "roller.stl", "qty": 2 },
+                { "part": "beam.stl", "qty": 1 }
+              ]
             },
             {
               "file": "plate-4.3mf",
               "format": "3mf",
-              "label": "Print plate 4: a centre wall",
+              "label": "Print plate 4: a centre wall, and lane 4's rollers and beam",
               "module": "plate_wall",
-              "legend": [{ "color": "#ffd60a", "label": "Wall, flat", "part": "wall-center.stl" }],
-              "components": [{ "part": "wall-center.stl", "qty": 1, "instances": [{ "id": "W4" }] }]
+              "plate": true,
+              "legend": [
+                { "color": "#ffd60a", "label": "Wall, flat", "part": "wall-center.stl" },
+                { "color": "#ff6b00", "label": "Rollers, on end", "part": "roller.stl" },
+                { "color": "#39ff14", "label": "Beam, on its flange end", "part": "beam.stl" }
+              ],
+              "components": [
+                {
+                  "part": "wall-center.stl",
+                  "qty": 1,
+                  "instances": [
+                    { "id": "W4" }
+                  ]
+                },
+                { "part": "roller.stl", "qty": 2 },
+                { "part": "beam.stl", "qty": 1 }
+              ]
             },
             {
               "file": "plate-5.3mf",
               "format": "3mf",
-              "label": "Print plate 5: the right wall",
+              "label": "Print plate 5: the right wall and the bulkhead template's right half",
               "module": "plate_wall",
-              "legend": [{ "color": "#ffd60a", "label": "Wall, flat", "part": "wall-right.stl" }],
-              "components": [{ "part": "wall-right.stl", "qty": 1, "instances": [{ "id": "W5" }] }]
+              "plate": true,
+              "legend": [
+                { "color": "#ffd60a", "label": "Wall, flat", "part": "wall-right.stl" },
+                { "color": "#00eaff", "label": "Bulkhead template, right half", "part": "template-right.stl" }
+              ],
+              "components": [
+                {
+                  "part": "wall-right.stl",
+                  "qty": 1,
+                  "instances": [
+                    { "id": "W5" }
+                  ]
+                },
+                { "part": "template-right.stl", "qty": 1 }
+              ]
             },
             {
               "file": "plate-6.3mf",
               "format": "3mf",
-              "label": "Print plate 6: every roller and beam",
-              "module": "plate_rollers",
-              "legend": [
-                { "color": "#ff6b00", "label": "Rollers, on end", "part": "roller.stl" },
-                { "color": "#39ff14", "label": "Beams, on their flange ends", "part": "beam.stl" }
-              ],
-              "components": [{ "part": "roller.stl", "qty": 8 }, { "part": "beam.stl", "qty": 4 }]
-            },
-            {
-              "file": "plate-7.3mf",
-              "format": "3mf",
-              "label": "Print plate 7: every peg — print in TPU",
-              "module": "plate_pegs",
-              "legend": [
-                {
-                  "color": "#ff17c7",
-                  "label": "Pegs, lying on their flats — TPU",
-                  "part": "peg-inner.stl",
-                  "parts": ["peg-inner.stl", "peg-end.stl"]
-                }
-              ],
-              "components": [{ "part": "peg-inner.stl", "qty": 6 }, { "part": "peg-end.stl", "qty": 4 }]
-            },
-            {
-              "file": "plate-8.3mf",
-              "format": "3mf",
-              "label": "Print plate 8: floor tiles 1 and 2",
+              "label": "Print plate 6: floor tiles 1 and 2",
               "module": "plate_tile",
+              "plate": true,
               "legend": [
                 { "color": "#00eaff", "label": "Tile 1", "part": "tile-left.stl" },
                 { "color": "#ff17c7", "label": "Tile 2", "part": "tile-middle.stl" }
               ],
               "components": [
-                { "part": "tile-left.stl", "qty": 1, "instances": [{"id": "T1"}] },
-                { "part": "tile-middle.stl", "qty": 1, "instances": [{"id": "T2"}] }
+                {
+                  "part": "tile-left.stl",
+                  "qty": 1,
+                  "instances": [
+                    { "id": "T1" }
+                  ]
+                },
+                {
+                  "part": "tile-middle.stl",
+                  "qty": 1,
+                  "instances": [
+                    { "id": "T2" }
+                  ]
+                }
               ]
             },
             {
-              "file": "plate-9.3mf",
+              "file": "plate-7.3mf",
               "format": "3mf",
-              "label": "Print plate 9: floor tiles 3 and 4",
+              "label": "Print plate 7: floor tiles 3 and 4",
               "module": "plate_tile",
+              "plate": true,
               "legend": [
                 { "color": "#00eaff", "label": "Tile 3", "part": "tile-middle.stl" },
                 { "color": "#ff17c7", "label": "Tile 4", "part": "tile-right.stl" }
               ],
               "components": [
-                { "part": "tile-middle.stl", "qty": 1, "instances": [{"id": "T3"}] },
-                { "part": "tile-right.stl", "qty": 1, "instances": [{"id": "T4"}] }
+                {
+                  "part": "tile-middle.stl",
+                  "qty": 1,
+                  "instances": [
+                    { "id": "T3" }
+                  ]
+                },
+                {
+                  "part": "tile-right.stl",
+                  "qty": 1,
+                  "instances": [
+                    { "id": "T4" }
+                  ]
+                }
+              ]
+            },
+            {
+              "file": "plate-8.3mf",
+              "format": "3mf",
+              "label": "Print plate 8: the floor drilling template, left half",
+              "module": "plate_floor_template",
+              "plate": true,
+              "legend": [
+                { "color": "#00eaff", "label": "Left half", "part": "floor-template-left.stl" }
+              ],
+              "components": [
+                { "part": "floor-template-left.stl", "qty": 1 }
+              ]
+            },
+            {
+              "file": "plate-9.3mf",
+              "format": "3mf",
+              "label": "Print plate 9: the floor drilling template, right half",
+              "module": "plate_floor_template",
+              "plate": true,
+              "legend": [
+                { "color": "#ff17c7", "label": "Right half", "part": "floor-template-right.stl" }
+              ],
+              "components": [
+                { "part": "floor-template-right.stl", "qty": 1 }
               ]
             },
             {
               "file": "plate-10.3mf",
               "format": "3mf",
-              "label": "Print plate 10: the bulkhead drilling template",
-              "module": "plate_template",
+              "label": "Print plate 10: every peg — print in TPU",
+              "module": "plate_pegs",
+              "plate": true,
               "legend": [
-                { "color": "#00eaff", "label": "Bulkhead template, left half", "part": "template-left.stl" },
-                { "color": "#ff17c7", "label": "Bulkhead template, right half", "part": "template-right.stl" }
+                {
+                  "color": "#ff17c7",
+                  "label": "Pegs, lying on their flats",
+                  "note": "TPU",
+                  "part": "peg-inner.stl",
+                  "parts": ["peg-inner.stl", "peg-end.stl"]
+                }
               ],
               "components": [
-                { "part": "template-left.stl", "qty": 1 },
-                { "part": "template-right.stl", "qty": 1 }
+                { "part": "peg-inner.stl", "qty": 6 },
+                { "part": "peg-end.stl", "qty": 4 }
               ]
-            },
-            {
-              "file": "plate-11.3mf",
-              "format": "3mf",
-              "label": "Print plate 11: the floor drilling template, left half",
-              "module": "plate_floor_template",
-              "legend": [{ "color": "#00eaff", "label": "Left half", "part": "floor-template-left.stl" }],
-              "components": [{ "part": "floor-template-left.stl", "qty": 1 }]
-            },
-            {
-              "file": "plate-12.3mf",
-              "format": "3mf",
-              "label": "Print plate 12: the floor drilling template, right half",
-              "module": "plate_floor_template",
-              "legend": [{ "color": "#ff17c7", "label": "Right half", "part": "floor-template-right.stl" }],
-              "components": [{ "part": "floor-template-right.stl", "qty": 1 }]
             },
             {
               "file": "plate-fit.3mf",
@@ -857,24 +1116,23 @@
               "label": "Fit test: every joint at full size, to print and throw away",
               "module": "plate_fit_walls",
               "legend": [
-                { "color": "#ffd60a", "label": "Wall coupons — beam socket and peg hole" },
-                { "color": "#ff6b00", "label": "Short roller — both bearing pockets" },
-                { "color": "#39ff14", "label": "Beam ends — socket and spigot thirds" },
+                { "color": "#ffd60a", "label": "Wall coupons", "note": "Beam socket and peg hole" },
+                { "color": "#ff6b00", "label": "Short roller", "note": "Both bearing pockets" },
+                { "color": "#39ff14", "label": "Beam ends", "note": "Socket and spigot thirds" },
                 { "color": "#c0c4cc", "label": "Lock pin" },
-                { "color": "#ff17c7", "label": "Inner peg — TPU like the real ones, or anything to check the fit" },
-                { "color": "#00eaff", "label": "Tile dovetail — tail and socket" }
+                {
+                  "color": "#ff17c7",
+                  "label": "Inner peg",
+                  "note": "TPU like the real ones, or anything to check the fit"
+                },
+                { "color": "#00eaff", "label": "Tile dovetail", "note": "Tail and socket" }
               ]
             }
           ],
           "parts": [
             { "file": "tile-left.stl", "format": "stl", "label": "Floor tile, left edge", "module": "tile_left" },
             { "file": "tile-middle.stl", "format": "stl", "label": "Floor tile, middle", "module": "tile_middle" },
-            {
-              "file": "tile-right.stl",
-              "format": "stl",
-              "label": "Floor tile, right edge",
-              "module": "tile_right"
-            },
+            { "file": "tile-right.stl", "format": "stl", "label": "Floor tile, right edge", "module": "tile_right" },
             { "file": "wall-left.stl", "format": "stl", "label": "Support wall, left end", "module": "wall_left" },
             {
               "file": "wall-center.stl",
@@ -882,30 +1140,22 @@
               "label": "Support wall, between lanes",
               "module": "wall_center"
             },
-            {
-              "file": "wall-right.stl",
-              "format": "stl",
-              "label": "Support wall, right end",
-              "module": "wall_right"
-            },
-            { "file": "roller.stl", "format": "stl", "label": "Roller — prints on end", "module": "roller" },
-            {
-              "file": "peg-inner.stl",
-              "format": "stl",
-              "label": "Peg, through an inner wall",
-              "module": "peg_inner"
-            },
+            { "file": "wall-right.stl", "format": "stl", "label": "Support wall, right end", "module": "wall_right" },
+            { "file": "roller.stl", "format": "stl", "label": "Roller", "note": "Prints on end", "module": "roller" },
+            { "file": "peg-inner.stl", "format": "stl", "label": "Peg, through an inner wall", "module": "peg_inner" },
             { "file": "peg-end.stl", "format": "stl", "label": "Peg, through an end wall", "module": "peg_end" },
             {
               "file": "beam.stl",
               "format": "stl",
-              "label": "Hex beam — prints standing on its flange end",
+              "label": "Hex beam",
+              "note": "Prints standing on its flange end",
               "module": "beam"
             },
             {
               "file": "lock-pin.stl",
               "format": "stl",
-              "label": "Lock pin — printed stand-in for an M3 screw",
+              "label": "Lock pin",
+              "note": "Printed stand-in for an M3 screw",
               "module": "lock_pin"
             },
             {
@@ -923,7 +1173,8 @@
             {
               "file": "floor-template-left.stl",
               "format": "stl",
-              "label": "Floor drilling template, left half — marks the tile screw holes",
+              "label": "Floor drilling template, left half",
+              "note": "Marks the tile screw holes",
               "module": "floor_template_left"
             },
             {
@@ -938,7 +1189,9 @@
               "qty": 16,
               "label": "608ZZ bearing, 8 × 22 × 7 mm — two per roller",
               "source": { "url": "https://www.amazon.com/s?k=608zz+bearing", "vendor": "Amazon" },
-              "usedBy": [{ "part": "roller.stl", "each": 2 }]
+              "usedBy": [
+                { "part": "roller.stl", "each": 2 }
+              ]
             },
             {
               "qty": 4,
@@ -987,9 +1240,7 @@
         {
           "id": "1x",
           "label": "1×",
-          "params": {
-            "lanes": 1
-          },
+          "params": { "lanes": 1 },
           "previews": [
             {
               "file": "assembled.3mf",
@@ -998,118 +1249,71 @@
               "default": true,
               "module": "stand_tiles",
               "legend": [
+                { "color": "#1fedff", "shades": ["#73f3ff"], "label": "Floor tile", "part": "tile-single.stl" },
                 {
-                  "color": "#1fedff", "shades": ["#73f3ff"],
-                  "label": "Floor tile",
-                  "part": "tile-single.stl"
+                  "color": "#ffdb27",
+                  "shades": ["#ffe878"],
+                  "label": "Walls",
+                  "note": "Carry the pegs and the beam",
+                  "parts": ["wall-left.stl", "wall-right.stl"]
                 },
+                { "color": "#ff7d1f", "shades": ["#ffae73"], "label": "Rollers", "part": "roller.stl" },
                 {
-                  "color": "#ffdb27", "shades": ["#ffe878"],
-                  "label": "Walls — carry the pegs and the beam",
-                  "parts": [
-                    "wall-left.stl",
-                    "wall-right.stl"
-                  ]
-                },
-                {
-                  "color": "#ff7d1f", "shades": ["#ffae73"],
-                  "label": "Rollers",
-                  "part": "roller.stl"
-                },
-                {
-                  "color": "#ff33ce", "shades": ["#ff7fe0"],
-                  "label": "Pegs — pressed through the walls, carry the bearings",
+                  "color": "#ff33ce",
+                  "shades": ["#ff7fe0"],
+                  "label": "Pegs",
+                  "note": "Pressed through the walls, carry the bearings",
                   "part": "peg-end.stl"
                 },
-                {
-                  "color": "#c0c4cc",
-                  "label": "608 bearings — reference only, not printed"
-                },
-                {
-                  "color": "#51ff30", "shades": ["#92ff7e"],
-                  "label": "Hex beam, wall to wall",
-                  "part": "beam.stl"
-                },
-                {
-                  "color": "#8a8f98",
-                  "label": "Spool — reference only, not printed"
-                }
+                { "color": "#c0c4cc", "label": "608 bearings", "note": "Reference only, not printed" },
+                { "color": "#51ff30", "shades": ["#92ff7e"], "label": "Hex beam, wall to wall", "part": "beam.stl" },
+                { "color": "#8a8f98", "label": "Spool", "note": "Reference only, not printed" }
               ],
               "components": [
                 {
                   "part": "tile-single.stl",
                   "qty": 1,
                   "instances": [
-                    {
-                      "id": "T1",
-                      "where": "under the lane"
-                    }
+                    { "id": "T1", "where": "under the lane" }
                   ]
                 },
                 {
                   "part": "wall-left.stl",
                   "qty": 1,
                   "instances": [
-                    {
-                      "id": "W1",
-                      "where": "left end"
-                    }
+                    { "id": "W1", "where": "left end" }
                   ]
                 },
                 {
                   "part": "wall-right.stl",
                   "qty": 1,
                   "instances": [
-                    {
-                      "id": "W2",
-                      "where": "right end"
-                    }
+                    { "id": "W2", "where": "right end" }
                   ]
                 },
                 {
                   "part": "roller.stl",
                   "qty": 2,
                   "instances": [
-                    {
-                      "id": "R1F",
-                      "where": "front"
-                    },
-                    {
-                      "id": "R1B",
-                      "where": "back"
-                    }
+                    { "id": "R1F", "where": "front" },
+                    { "id": "R1B", "where": "back" }
                   ]
                 },
                 {
                   "part": "peg-end.stl",
                   "qty": 4,
                   "instances": [
-                    {
-                      "id": "P1F",
-                      "where": "through W1, front — carries R1F"
-                    },
-                    {
-                      "id": "P1B",
-                      "where": "through W1, back — carries R1B"
-                    },
-                    {
-                      "id": "P2F",
-                      "where": "through W2, front — carries R1F"
-                    },
-                    {
-                      "id": "P2B",
-                      "where": "through W2, back — carries R1B"
-                    }
+                    { "id": "P1F", "where": "through W1, front — carries R1F" },
+                    { "id": "P1B", "where": "through W1, back — carries R1B" },
+                    { "id": "P2F", "where": "through W2, front — carries R1F" },
+                    { "id": "P2B", "where": "through W2, back — carries R1B" }
                   ]
                 },
                 {
                   "part": "beam.stl",
                   "qty": 1,
                   "instances": [
-                    {
-                      "id": "B1",
-                      "where": "W1 to W2"
-                    }
+                    { "id": "B1", "where": "W1 to W2" }
                   ]
                 }
               ]
@@ -1120,144 +1324,76 @@
               "label": "Reference: one spool in the dry box",
               "module": "box",
               "legend": [
+                { "color": "#1fedff", "shades": ["#73f3ff"], "label": "Floor tile", "part": "tile-single.stl" },
                 {
-                  "color": "#1fedff", "shades": ["#73f3ff"],
-                  "label": "Floor tile",
-                  "part": "tile-single.stl"
-                },
-                {
-                  "color": "#ffdb27", "shades": ["#ffe878"],
+                  "color": "#ffdb27",
+                  "shades": ["#ffe878"],
                   "label": "Walls",
-                  "parts": [
-                    "wall-left.stl",
-                    "wall-right.stl"
-                  ]
+                  "parts": ["wall-left.stl", "wall-right.stl"]
                 },
-                {
-                  "color": "#ff7d1f", "shades": ["#ffae73"],
-                  "label": "Rollers",
-                  "part": "roller.stl"
-                },
-                {
-                  "color": "#51ff30", "shades": ["#92ff7e"],
-                  "label": "Hex beam",
-                  "part": "beam.stl"
-                },
-                {
-                  "color": "#8a8f98",
-                  "label": "Spool — reference only, not printed"
-                },
-                {
-                  "color": "#3a3f48",
-                  "label": "Box — reference only, not printed"
-                }
+                { "color": "#ff7d1f", "shades": ["#ffae73"], "label": "Rollers", "part": "roller.stl" },
+                { "color": "#51ff30", "shades": ["#92ff7e"], "label": "Hex beam", "part": "beam.stl" },
+                { "color": "#8a8f98", "label": "Spool", "note": "Reference only, not printed" },
+                { "color": "#3a3f48", "label": "Box", "note": "Reference only, not printed" }
               ]
             },
             {
               "file": "plate-1x-1.3mf",
               "format": "3mf",
-              "label": "Print plate 1: the left wall",
+              "label": "Print plate 1: the left wall, both rollers and the beam",
               "module": "plate-1x-1",
+              "plate": true,
               "legend": [
-                {
-                  "color": "#ffd60a",
-                  "label": "Wall, flat",
-                  "part": "wall-left.stl"
-                }
+                { "color": "#ffd60a", "label": "Wall, flat", "part": "wall-left.stl" },
+                { "color": "#ff6b00", "label": "Rollers, on end", "part": "roller.stl" },
+                { "color": "#39ff14", "label": "Beam, on its flange end", "part": "beam.stl" }
               ],
               "components": [
                 {
                   "part": "wall-left.stl",
                   "qty": 1,
                   "instances": [
-                    {
-                      "id": "W1"
-                    }
+                    { "id": "W1" }
                   ]
-                }
+                },
+                { "part": "roller.stl", "qty": 2 },
+                { "part": "beam.stl", "qty": 1 }
               ]
             },
             {
               "file": "plate-1x-2.3mf",
               "format": "3mf",
-              "label": "Print plate 2: the right wall",
+              "label": "Print plate 2: the right wall and the bulkhead template",
               "module": "plate-1x-2",
+              "plate": true,
               "legend": [
-                {
-                  "color": "#ffd60a",
-                  "label": "Wall, flat",
-                  "part": "wall-right.stl"
-                }
+                { "color": "#ffd60a", "label": "Wall, flat", "part": "wall-right.stl" },
+                { "color": "#00eaff", "label": "Bulkhead template", "part": "template.stl" }
               ],
               "components": [
                 {
                   "part": "wall-right.stl",
                   "qty": 1,
                   "instances": [
-                    {
-                      "id": "W2"
-                    }
+                    { "id": "W2" }
                   ]
-                }
+                },
+                { "part": "template.stl", "qty": 1 }
               ]
             },
             {
               "file": "plate-1x-3.3mf",
               "format": "3mf",
-              "label": "Print plate 3: both rollers and the beam",
+              "label": "Print plate 3: the floor tile and the floor drilling template",
               "module": "plate-1x-3",
+              "plate": true,
               "legend": [
-                {
-                  "color": "#ff6b00",
-                  "label": "Rollers, on end",
-                  "part": "roller.stl"
-                },
-                {
-                  "color": "#39ff14",
-                  "label": "Beam, on its flange end",
-                  "part": "beam.stl"
-                }
-              ],
-              "components": [
-                {
-                  "part": "roller.stl",
-                  "qty": 2
-                },
-                {
-                  "part": "beam.stl",
-                  "qty": 1
-                }
-              ]
-            },
-            {
-              "file": "plate-1x-4.3mf",
-              "format": "3mf",
-              "label": "Print plate 4: every peg — print in TPU",
-              "module": "plate-1x-4",
-              "legend": [
+                { "color": "#00eaff", "label": "Tile", "part": "tile-single.stl" },
                 {
                   "color": "#ff17c7",
-                  "label": "Pegs, lying on their flats — TPU",
-                  "part": "peg-end.stl"
-                }
-              ],
-              "components": [
-                {
-                  "part": "peg-end.stl",
-                  "qty": 4
-                }
-              ]
-            },
-            {
-              "file": "plate-1x-5.3mf",
-              "format": "3mf",
-              "label": "Print plate 5: the floor tile",
-              "module": "plate-1x-5",
-              "legend": [
-                {
-                  "color": "#00eaff",
-                  "label": "Tile",
-                  "part": "tile-single.stl"
+                  "label": "Floor template",
+                  "note": "Marks the tile screw holes",
+                  "part": "floor-template.stl"
                 }
               ],
               "components": [
@@ -1265,39 +1401,23 @@
                   "part": "tile-single.stl",
                   "qty": 1,
                   "instances": [
-                    {
-                      "id": "T1"
-                    }
+                    { "id": "T1" }
                   ]
-                }
+                },
+                { "part": "floor-template.stl", "qty": 1 }
               ]
             },
             {
-              "file": "plate-1x-6.3mf",
+              "file": "plate-1x-4.3mf",
               "format": "3mf",
-              "label": "Print plate 6: both drilling templates",
-              "module": "plate-1x-6",
+              "label": "Print plate 4: every peg — print in TPU",
+              "module": "plate-1x-4",
+              "plate": true,
               "legend": [
-                {
-                  "color": "#00eaff",
-                  "label": "Floor template — marks the tile screw holes",
-                  "part": "floor-template.stl"
-                },
-                {
-                  "color": "#ff17c7",
-                  "label": "Bulkhead template",
-                  "part": "template.stl"
-                }
+                { "color": "#ff17c7", "label": "Pegs, lying on their flats", "note": "TPU", "part": "peg-end.stl" }
               ],
               "components": [
-                {
-                  "part": "floor-template.stl",
-                  "qty": 1
-                },
-                {
-                  "part": "template.stl",
-                  "qty": 1
-                }
+                { "part": "peg-end.stl", "qty": 4 }
               ]
             },
             {
@@ -1306,86 +1426,45 @@
               "label": "Fit test: every joint at full size, to print and throw away",
               "module": "plate_fit_walls",
               "legend": [
-                {
-                  "color": "#ffd60a",
-                  "label": "Wall coupons — beam socket and peg hole"
-                },
-                {
-                  "color": "#ff6b00",
-                  "label": "Short roller — both bearing pockets"
-                },
-                {
-                  "color": "#39ff14",
-                  "label": "Beam ends — socket and spigot thirds"
-                },
-                {
-                  "color": "#c0c4cc",
-                  "label": "Lock pin"
-                },
+                { "color": "#ffd60a", "label": "Wall coupons", "note": "Beam socket and peg hole" },
+                { "color": "#ff6b00", "label": "Short roller", "note": "Both bearing pockets" },
+                { "color": "#39ff14", "label": "Beam ends", "note": "Socket and spigot thirds" },
+                { "color": "#c0c4cc", "label": "Lock pin" },
                 {
                   "color": "#ff17c7",
-                  "label": "Inner peg — TPU like the real ones, or anything to check the fit"
+                  "label": "Inner peg",
+                  "note": "TPU like the real ones, or anything to check the fit"
                 },
-                {
-                  "color": "#00eaff",
-                  "label": "Tile dovetail — tail and socket"
-                }
+                { "color": "#00eaff", "label": "Tile dovetail", "note": "Tail and socket" }
               ]
             }
           ],
           "parts": [
-            {
-              "file": "tile-single.stl",
-              "format": "stl",
-              "label": "Floor tile",
-              "module": "tile_single"
-            },
-            {
-              "file": "wall-left.stl",
-              "format": "stl",
-              "label": "Support wall, left end",
-              "module": "wall_left"
-            },
-            {
-              "file": "wall-right.stl",
-              "format": "stl",
-              "label": "Support wall, right end",
-              "module": "wall_right"
-            },
-            {
-              "file": "roller.stl",
-              "format": "stl",
-              "label": "Roller — prints on end",
-              "module": "roller"
-            },
-            {
-              "file": "peg-end.stl",
-              "format": "stl",
-              "label": "Peg, through an end wall",
-              "module": "peg_end"
-            },
+            { "file": "tile-single.stl", "format": "stl", "label": "Floor tile", "module": "tile_single" },
+            { "file": "wall-left.stl", "format": "stl", "label": "Support wall, left end", "module": "wall_left" },
+            { "file": "wall-right.stl", "format": "stl", "label": "Support wall, right end", "module": "wall_right" },
+            { "file": "roller.stl", "format": "stl", "label": "Roller", "note": "Prints on end", "module": "roller" },
+            { "file": "peg-end.stl", "format": "stl", "label": "Peg, through an end wall", "module": "peg_end" },
             {
               "file": "beam.stl",
               "format": "stl",
-              "label": "Hex beam — prints standing on its flange end",
+              "label": "Hex beam",
+              "note": "Prints standing on its flange end",
               "module": "beam"
             },
             {
               "file": "lock-pin.stl",
               "format": "stl",
-              "label": "Lock pin — printed stand-in for an M3 screw",
+              "label": "Lock pin",
+              "note": "Printed stand-in for an M3 screw",
               "module": "lock_pin"
             },
-            {
-              "file": "template.stl",
-              "format": "stl",
-              "label": "Bulkhead drilling template",
-              "module": "template"
-            },
+            { "file": "template.stl", "format": "stl", "label": "Bulkhead drilling template", "module": "template" },
             {
               "file": "floor-template.stl",
               "format": "stl",
-              "label": "Floor drilling template — marks the tile screw holes",
+              "label": "Floor drilling template",
+              "note": "Marks the tile screw holes",
               "module": "floor_template"
             }
           ],
@@ -1393,77 +1472,168 @@
             {
               "qty": 4,
               "label": "608ZZ bearing, 8 × 22 × 7 mm — two per roller",
-              "source": {
-                "url": "https://www.amazon.com/s?k=608zz+bearing",
-                "vendor": "Amazon"
-              },
+              "source": { "url": "https://www.amazon.com/s?k=608zz+bearing", "vendor": "Amazon" },
               "usedBy": [
-                {
-                  "part": "roller.stl",
-                  "each": 2
-                }
+                { "part": "roller.stl", "each": 2 }
               ]
             },
             {
               "qty": 1,
               "label": "PTFE tube, 4 mm OD × 2 mm ID",
-              "source": {
-                "url": "https://www.amazon.com/s?k=ptfe+tube+4mm+2mm",
-                "vendor": "Amazon"
-              },
+              "source": { "url": "https://www.amazon.com/s?k=ptfe+tube+4mm+2mm", "vendor": "Amazon" },
               "usedBy": [
-                {
-                  "part": "tile-single.stl",
-                  "each": 1
-                }
+                { "part": "tile-single.stl", "each": 1 }
               ]
             },
             {
               "qty": 1,
               "label": "Push-fit PTFE bulkhead connector for 4 mm tube",
-              "source": {
-                "url": "https://www.amazon.com/s?k=pc4-m10+bulkhead+ptfe",
-                "vendor": "Amazon"
-              }
+              "source": { "url": "https://www.amazon.com/s?k=pc4-m10+bulkhead+ptfe", "vendor": "Amazon" }
             },
             {
               "qty": 2,
               "label": "M3 × 25 socket-head cap screw — locks each wall to the beam (or print lock pins)",
               "usedBy": [
-                {
-                  "part": "wall-left.stl",
-                  "each": 1
-                },
-                {
-                  "part": "wall-right.stl",
-                  "each": 1
-                }
+                { "part": "wall-left.stl", "each": 1 },
+                { "part": "wall-right.stl", "each": 1 }
               ]
             },
             {
               "qty": 6,
               "label": "M3 × 8 socket-head cap screw — up through the floor into each wall, front, middle and back",
               "usedBy": [
-                {
-                  "part": "wall-left.stl",
-                  "each": 3
-                },
-                {
-                  "part": "wall-right.stl",
-                  "each": 3
-                }
+                { "part": "wall-left.stl", "each": 3 },
+                { "part": "wall-right.stl", "each": 3 }
               ]
             },
             {
               "qty": 4,
               "label": "M4 screw to fix the tile down (optional)",
               "usedBy": [
-                {
-                  "part": "tile-single.stl",
-                  "each": 4
-                }
+                { "part": "tile-single.stl", "each": 4 }
               ]
             }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "spool-drybox",
+      "title": "Spool Dry Box Module",
+      "description": "A sealed dry box for one 200 mm spool, printed in pieces on a Snapmaker U1 with 75A TPU gaskets printed in place. Two round side walls, the spool's diameter plus 2 mm clearance and 3 mm wall each side, with curved 3 mm panels between them. Going round from the top: the hold-down spring module, the lid, the front panel, the front roller module, the underneath panel, the rear roller module and the back panel. Every panel edge flares out to a ridge that presses into a TPU bead in a groove on a rib round the inside of each wall, and M3 cap screws run through the wall, straight down the middle of the TPU channel, into a boss in the panel's edge. Where a panel meets a module or another panel, a TPU strip printed into its end presses on its neighbour. Work in progress: the spring and roller modules, which bolt between the walls, aren't drawn yet, so their places are gaps.",
+      "devOnly": true,
+      "filament": [
+        { "material": "PETG", "color": "any", "note": "Walls and panels." },
+        {
+          "material": "TPU 75A",
+          "color": "any",
+          "note": "The gaskets, printed in place with the part that holds them.",
+          "parts": [
+            "wall-left-gasket.stl", "wall-right-gasket.stl", "panel-lid-gasket.stl",
+            "panel-front-gasket.stl", "panel-under-gasket.stl", "panel-back-gasket.stl"
+          ]
+        }
+      ],
+      "previews": [
+        {
+          "file": "assembled.3mf",
+          "format": "3mf",
+          "label": "Assembly: one module, lid lifted, spool seated",
+          "default": true,
+          "legend": [
+            { "color": "#ffdb27", "label": "Walls", "parts": ["wall-left.stl", "wall-right.stl"] },
+            {
+              "color": "#51ff30",
+              "label": "Panels",
+              "note": "Lid lifted clear; the gaps are for the spring and roller modules",
+              "parts": ["panel-lid.stl", "panel-front.stl", "panel-under.stl", "panel-back.stl"]
+            },
+            {
+              "color": "#ff33ce",
+              "label": "Wall gaskets",
+              "parts": ["wall-left-gasket.stl", "wall-right-gasket.stl"]
+            },
+            {
+              "color": "#ff7fe0",
+              "label": "Seam gaskets",
+              "parts": ["panel-lid-gasket.stl", "panel-front-gasket.stl", "panel-under-gasket.stl", "panel-back-gasket.stl"]
+            },
+            { "color": "#8a8f98", "label": "Spool", "note": "Reference only, not printed" }
+          ],
+          "components": [
+            { "part": "wall-left.stl", "qty": 1 },
+            { "part": "wall-left-gasket.stl", "qty": 1 },
+            { "part": "wall-right.stl", "qty": 1 },
+            { "part": "wall-right-gasket.stl", "qty": 1 },
+            { "part": "panel-lid.stl", "qty": 1 },
+            { "part": "panel-lid-gasket.stl", "qty": 1 },
+            { "part": "panel-front.stl", "qty": 1 },
+            { "part": "panel-front-gasket.stl", "qty": 1 },
+            { "part": "panel-under.stl", "qty": 1 },
+            { "part": "panel-under-gasket.stl", "qty": 1 },
+            { "part": "panel-back.stl", "qty": 1 },
+            { "part": "panel-back-gasket.stl", "qty": 1 }
+          ]
+        },
+        {
+          "file": "plate-1.3mf",
+          "format": "3mf",
+          "label": "U1 plate 1: left wall with its gasket",
+          "legend": [
+            { "color": "#ffdb27", "label": "Wall, on its outside face", "part": "wall-left.stl" },
+            { "color": "#ff33ce", "label": "Gasket, TPU 75A", "part": "wall-left-gasket.stl" }
+          ]
+        },
+        {
+          "file": "plate-2.3mf",
+          "format": "3mf",
+          "label": "U1 plate 2: right wall with its gasket",
+          "legend": [
+            { "color": "#ffdb27", "label": "Wall, on its outside face", "part": "wall-right.stl" },
+            { "color": "#ff33ce", "label": "Gasket, TPU 75A", "part": "wall-right-gasket.stl" }
+          ]
+        },
+        {
+          "file": "plate-3.3mf",
+          "format": "3mf",
+          "label": "U1 plate 3: all four panels standing on end, seam gaskets in",
+          "legend": [
+            {
+              "color": "#51ff30",
+              "label": "Panels, nested",
+              "parts": ["panel-lid.stl", "panel-front.stl", "panel-under.stl", "panel-back.stl"]
+            },
+            {
+              "color": "#ff7fe0",
+              "label": "Seam gaskets, TPU 75A",
+              "parts": ["panel-lid-gasket.stl", "panel-front-gasket.stl", "panel-under-gasket.stl", "panel-back-gasket.stl"]
+            }
+          ]
+        }
+      ],
+      "parts": [
+        { "file": "wall-left.stl", "format": "stl", "label": "Left wall (on its outside face)" },
+        { "file": "wall-left-gasket.stl", "format": "stl", "label": "Left wall gasket (TPU 75A, same frame as the wall)" },
+        { "file": "wall-right.stl", "format": "stl", "label": "Right wall (on its outside face)" },
+        { "file": "wall-right-gasket.stl", "format": "stl", "label": "Right wall gasket (TPU 75A)" },
+        { "file": "panel-lid.stl", "format": "stl", "label": "Lid (standing on end)" },
+        { "file": "panel-lid-gasket.stl", "format": "stl", "label": "Lid seam gasket (TPU 75A)" },
+        { "file": "panel-front.stl", "format": "stl", "label": "Front panel (standing on end)" },
+        { "file": "panel-front-gasket.stl", "format": "stl", "label": "Front panel seam gaskets (TPU 75A)" },
+        { "file": "panel-under.stl", "format": "stl", "label": "Underneath panel (standing on end)" },
+        { "file": "panel-under-gasket.stl", "format": "stl", "label": "Underneath panel seam gaskets (TPU 75A)" },
+        { "file": "panel-back.stl", "format": "stl", "label": "Back panel (standing on end)" },
+        { "file": "panel-back-gasket.stl", "format": "stl", "label": "Back panel seam gaskets (TPU 75A)" }
+      ],
+      "hardware": [
+        {
+          "qty": 36,
+          "label": "M3 × 12 socket-head cap screw — through the walls into the panels' edges, down the middle of the seal",
+          "usedBy": [
+            { "part": "panel-lid.stl", "each": 10 },
+            { "part": "panel-front.stl", "each": 6 },
+            { "part": "panel-under.stl", "each": 8 },
+            { "part": "panel-back.stl", "each": 12 }
           ]
         }
       ]

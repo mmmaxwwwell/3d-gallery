@@ -30,6 +30,8 @@ export interface PlatesPanelProps {
   onClose: () => void;
   /** Opens the print dialog for a plate. */
   onOpenPlate: (plateId: string) => void;
+  /** Opens the planner that slices, schedules and sends a project's plates. */
+  onOpenProject: (projectId: string) => void;
   /** Opens the OrcaSlicer preset panel; closing it returns here. */
   onOpenSettings: () => void;
 }
@@ -75,7 +77,7 @@ async function computeFit(plate: Plate, printers: PrintPreset[]): Promise<FitSta
   }
 }
 
-export function PlatesPanel({ onClose, onOpenPlate, onOpenSettings }: PlatesPanelProps) {
+export function PlatesPanel({ onClose, onOpenPlate, onOpenProject, onOpenSettings }: PlatesPanelProps) {
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [projectId, setProjectId] = useState<string | null>(getActiveProjectId());
   const [plates, setPlates] = useState<Plate[]>([]);
@@ -299,6 +301,11 @@ export function PlatesPanel({ onClose, onOpenPlate, onOpenSettings }: PlatesPane
         <section class="plates-pane">
           <div class="plates-pane-title">
             Plates{selected ? ` — ${selected.name}` : ''}
+            {selected && plates.length > 0 && (
+              <button type="button" class="btn btn-primary plates-pane-plan" onClick={() => onOpenProject(selected.id)}>
+                Plan &amp; print
+              </button>
+            )}
           </div>
 
           {!selected ? (

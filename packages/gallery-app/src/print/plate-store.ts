@@ -16,7 +16,7 @@
 // cache. Nothing here holds geometry.
 
 import { openDB, type IDBPDatabase } from 'idb';
-import type { ScadValue } from '@3d-gallery/model-core';
+import type { RecommendedProfile, ScadValue } from '@3d-gallery/model-core';
 import { IDENTITY_QUAT, type Quat } from './mesh-bounds.js';
 import type { SupportStyle } from './process-templates.js';
 
@@ -51,9 +51,12 @@ const DB_NAME = '3dg:print:plates';
 // v4: the plate owns one arrangement instead of a pinned layout per printer.
 // The old per-printer positions are dropped — they were bed coordinates for a
 // specific machine, which plate space has no way to mean.
-const DB_VERSION = 4;
+// v5: sliced G-code is kept per plate and printer, so a project can be sliced
+// once and sent later.
+const DB_VERSION = 5;
 const PLATES_STORE = 'plates';
 const PROJECTS_STORE = 'projects';
+const GCODE_STORE = 'gcode';
 const MESHES_STORE = 'meshes';
 const LS_ACTIVE_PLATE = '3dg:print:active-plate';
 const LS_ACTIVE_PROJECT = '3dg:print:active-project';
@@ -136,8 +139,27 @@ export interface Plate {
    *  entry — or a missing field within one — means "whatever the process
    *  says", so an untouched plate adds no per-object config at all. */
   overrides?: Record<string, ObjectOverrides>;
+  /** Material family, for a plate made from one of a model's print plates. */
+  material?: string;
+  /** The model's recommended profile, for a plate made from its print plates. */
+  profile?: RecommendedProfile;
   createdAt: number;
   updatedAt: number;
+}
+
+/** A plate sliced for one printer, kept until the plate changes. */
+export interface SlicedGcode {
+  /** `<plateId>|<printerId>` */
+  id: string;
+  plateId: string;
+  printerId: string;
+  filamentId: string;
+  /** `plateSignature` at slice time; any other value means the G-code is stale. */
+  signature: string;
+  gcode: string;
+  seconds?: number;
+  grams?: number;
+  slicedAt: number;
 }
 
 function getDb(): Promise<IDBPDatabase> {
@@ -152,6 +174,9 @@ function getDb(): Promise<IDBPDatabase> {
       }
       if (!db.objectStoreNames.contains(PROJECTS_STORE)) {
         db.createObjectStore(PROJECTS_STORE, { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains(GCODE_STORE)) {
+        db.createObjectStore(GCODE_STORE, { keyPath: 'id' }).createIndex('byPlate', 'plateId');
       }
       // Pre-v3 plates have no owning project. Adopt them all into one rather
       // than dropping them — unlike v1, these rows are still readable.
@@ -215,11 +240,14 @@ export async function createProject(name: string): Promise<Project> {
 /** Deleting a project takes its plates with it — a plate has no other home. */
 export async function deleteProject(id: string): Promise<void> {
   const db = await getDb();
-  const tx = db.transaction([PROJECTS_STORE, PLATES_STORE], 'readwrite');
-  const plates: Plate[] = await tx.objectStore(PLATES_STORE).getAll();
+  const tx = db.transaction([PROJECTS_STORE, PLATES_STORE, GCODE_STORE], 'readwrite');
+  const plates: Plate[] = (await tx.objectStore(PLATES_STORE).getAll()).filter((p: Plate) => p.projectId === id);
+  const gcodeIndex = tx.objectStore(GCODE_STORE).index('byPlate');
+  const gcodeKeys = (await Promise.all(plates.map((p) => gcodeIndex.getAllKeys(p.id)))).flat();
   await Promise.all([
     tx.objectStore(PROJECTS_STORE).delete(id),
-    ...plates.filter((p) => p.projectId === id).map((p) => tx.objectStore(PLATES_STORE).delete(p.id)),
+    ...plates.map((p) => tx.objectStore(PLATES_STORE).delete(p.id)),
+    ...gcodeKeys.map((key) => tx.objectStore(GCODE_STORE).delete(key)),
   ]);
   await tx.done;
 }
@@ -266,7 +294,78 @@ export async function savePlate(plate: Plate): Promise<Plate> {
 
 export async function deletePlate(id: string): Promise<void> {
   const db = await getDb();
-  await db.delete(PLATES_STORE, id);
+  const tx = db.transaction([PLATES_STORE, GCODE_STORE], 'readwrite');
+  const gcodeKeys = await tx.objectStore(GCODE_STORE).index('byPlate').getAllKeys(id);
+  await Promise.all([
+    tx.objectStore(PLATES_STORE).delete(id),
+    ...gcodeKeys.map((key) => tx.objectStore(GCODE_STORE).delete(key)),
+  ]);
+  await tx.done;
+}
+
+/** What a slice depends on. A rename leaves it alone; a move or a qty change does not. */
+export function plateSignature(plate: Plate): string {
+  return JSON.stringify({
+    items: plate.items.map((i) => [i.id, i.key, i.qty]),
+    transforms: plate.transforms ?? {},
+    overrides: plate.overrides ?? {},
+  });
+}
+
+export function gcodeId(plateId: string, printerId: string): string {
+  return `${plateId}|${printerId}`;
+}
+
+export async function putSlicedGcode(entry: Omit<SlicedGcode, 'id'>): Promise<SlicedGcode> {
+  const db = await getDb();
+  const record: SlicedGcode = { ...entry, id: gcodeId(entry.plateId, entry.printerId) };
+  await db.put(GCODE_STORE, record);
+  return record;
+}
+
+export async function getSlicedGcode(plateId: string, printerId: string): Promise<SlicedGcode | undefined> {
+  const db = await getDb();
+  return db.get(GCODE_STORE, gcodeId(plateId, printerId));
+}
+
+/** Every slice kept for a plate, whichever printer it was for. */
+export async function listSlicedGcode(plateId: string): Promise<SlicedGcode[]> {
+  const db = await getDb();
+  return db.getAllFromIndex(GCODE_STORE, 'byPlate', plateId);
+}
+
+/**
+ * Make one plate per entry, each already holding its single item at the plate
+ * origin. For a model's print plates, which arrive laid out: the plate 3MF is
+ * the arrangement, so there is nothing for the editor to place.
+ */
+export async function createPlatesWithItems(
+  projectId: string,
+  entries: Array<{ name: string; item: Omit<PlateItem, 'id'>; material?: string; profile?: RecommendedProfile }>,
+): Promise<Plate[]> {
+  const db = await getDb();
+  const tx = db.transaction(PLATES_STORE, 'readwrite');
+  const now = Date.now();
+  const plates = entries.map((entry, i): Plate => {
+    const item: PlateItem = { ...entry.item, id: newId() };
+    return {
+      id: newId(),
+      projectId,
+      name: entry.name,
+      items: [item],
+      transforms: Object.fromEntries(
+        Array.from({ length: item.qty }, (_, copy) => [instanceId(item.id, copy), DEFAULT_TRANSFORM]),
+      ),
+      material: entry.material,
+      profile: entry.profile,
+      createdAt: now,
+      // Oldest first reads top to bottom in plate order, since lists sort newest first.
+      updatedAt: now - i,
+    };
+  });
+  await Promise.all(plates.map((p) => tx.store.put(p)));
+  await tx.done;
+  return plates;
 }
 
 export async function createPlate(name: string, projectId: string): Promise<Plate> {

@@ -7,7 +7,7 @@
 // at slice time (in preset-flatten.ts) so we don't lose type info (arrays,
 // nested objects, unknown fields) that Orca's format actually uses.
 
-import type { OrcaJson, OrcaParent, OrcaValue, PresetKind } from './print-storage.js';
+import type { OrcaJson, OrcaParent, OrcaValue, PresetKind, PresetSource } from './print-storage.js';
 
 export interface ParsedPreset {
   kind: PresetKind;
@@ -16,6 +16,7 @@ export interface ParsedPreset {
   parents: OrcaParent[];
   compatiblePrinters?: string[];
   address?: string;
+  source: PresetSource;
 }
 
 const KIND_BY_EXT: Record<string, PresetKind> = {
@@ -107,6 +108,7 @@ export function parseOrcaPresetFile(filename: string, text: string): ParsedPrese
     parents: [],
     compatiblePrinters: readCompatiblePrinters(raw),
     address: kind === 'printer' ? readPrintHost(raw) : undefined,
+    source: { kind: 'orca-file', fileName: filename, importedAt: Date.now() },
   };
 }
 
@@ -261,7 +263,10 @@ export async function parseOrcaConfigTree(files: FileList | File[]): Promise<Tre
     const compatiblePrinters = readCompatiblePrinters(merged);
     const address = r.kind === 'printer' ? readPrintHost(merged) : undefined;
 
-    presets.push({ kind: r.kind, name: r.name, raw: r.raw, parents, compatiblePrinters, address });
+    presets.push({
+      kind: r.kind, name: r.name, raw: r.raw, parents, compatiblePrinters, address,
+      source: { kind: 'orca-config', path: r.path, importedAt: Date.now() },
+    });
   }
 
   // Helpful diagnostics for the common failure modes.

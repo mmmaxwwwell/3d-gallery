@@ -268,6 +268,7 @@ export function galleryList(repoRoot: string) {
       name: p.name,
       address: p.address,
       fieldCount: Object.keys(p.raw).length,
+      overrideCount: Object.keys(p.overrides ?? {}).length,
       source: p.source,
     })),
   };
@@ -284,11 +285,14 @@ export interface GalleryAddInput {
 }
 
 /**
- * Copy an Orca preset into the gallery store, flattened.
+ * Copy an Orca preset into the gallery store.
  *
- * Resolution happens here rather than in the browser so the record is
- * self-contained: the full inheritance chain is merged down and `parents` is
- * left empty, which is what makes it survive without the vendor presets.
+ * The record carries the preset file verbatim as `raw` and snapshots of its
+ * inheritance chain as `parents` — the same shape a folder import in the
+ * browser produces. That keeps it self-contained (the vendor presets need not
+ * exist anywhere) without flattening away which layer each value came from.
+ * Duplicating onto another machine (`as` / `address`) is expressed as gallery
+ * overrides over the untouched file, so the editor shows what was changed.
  */
 export function galleryAddFromOrca(paths: OrcaPaths, repoRoot: string, input: GalleryAddInput) {
   const index = indexPresets(paths, [input.kind]);
@@ -302,30 +306,36 @@ export function galleryAddFromOrca(paths: OrcaPaths, repoRoot: string, input: Ga
 
   const resolved = resolvePreset(paths, ref, index);
   const name = input.as?.trim() || ref.name;
-  const raw: Record<string, unknown> = { ...resolved.merged, name };
+  const overrides: Record<string, unknown> = {};
 
   if (input.address !== undefined) {
     if (input.kind !== 'printer') {
       throw new OrcaQueryError('An address only applies to a printer preset.');
     }
-    raw['print_host'] = input.address;
+    overrides['print_host'] = input.address;
     // Orca's web-UI link is derived from the host, so a stale one would point
     // at the machine this was copied from.
-    if (typeof raw['print_host_webui'] === 'string') {
-      raw['print_host_webui'] = `http://${input.address.replace(/:\d+$/, '')}/mainsail`;
+    if (typeof resolved.merged['print_host_webui'] === 'string') {
+      overrides['print_host_webui'] = `http://${input.address.replace(/:\d+$/, '')}/mainsail`;
     }
   }
-  if (input.kind === 'printer') raw['printer_settings_id'] = name;
+  // The name has to travel into the config too, or Orca round-trips a
+  // duplicate back under the original identity.
+  if (name !== resolved.merged['name']) overrides['name'] = name;
+  if (input.kind === 'printer' && resolved.merged['printer_settings_id'] !== name) {
+    overrides['printer_settings_id'] = name;
+  }
 
-  const address = typeof raw['print_host'] === 'string' ? raw['print_host'] : undefined;
-  const compatible = raw['compatible_printers'];
+  const effective = { ...resolved.merged, ...overrides };
+  const address = typeof effective['print_host'] === 'string' ? effective['print_host'] : undefined;
+  const compatible = effective['compatible_printers'];
 
   const { replaced } = upsertPreset(repoRoot, {
     kind: input.kind,
     name,
-    raw,
-    // Flattened on purpose — see above.
-    parents: [],
+    raw: resolved.raw,
+    parents: resolved.chain.map((c, i) => ({ name: c.name, raw: resolved.parentRaws[i] })),
+    overrides: Object.keys(overrides).length ? overrides : undefined,
     address,
     compatiblePrinters: Array.isArray(compatible) ? compatible.map(String) : undefined,
     source: {
@@ -333,6 +343,7 @@ export function galleryAddFromOrca(paths: OrcaPaths, repoRoot: string, input: Ga
       presetName: ref.name,
       chain: resolved.chain.map((c) => c.name),
     },
+    updatedAt: Date.now(),
   });
 
   return {
@@ -343,7 +354,8 @@ export function galleryAddFromOrca(paths: OrcaPaths, repoRoot: string, input: Ga
     kind: input.kind,
     address,
     copiedFrom: ref.name,
-    fieldCount: Object.keys(raw).length,
+    fieldCount: Object.keys(effective).length,
+    overrides,
     storePath: storePath(repoRoot),
     note: 'Saved server-side. The browser upserts it into IndexedDB on next load '
       + 'of the gallery in dev — reload the page to see it in the printer list.',

@@ -9,6 +9,8 @@ import fiMiniCaseCaptiveLib from "../../../models/fi-mini-case-captive/lib/fi-mi
 import fiMiniCaseCaptiveAssembled from "../../../models/fi-mini-case-captive/previews/assembled.scad?raw";
 import ugreenFinderDuoLib from "../../../models/ugreen-finder-duo-captive/lib/ugreen-finder-duo-captive-lib.scad?raw";
 import ugreenFinderDuoAssembled from "../../../models/ugreen-finder-duo-captive/previews/assembled.scad?raw";
+import pebblebeeAirLib from "../../../models/pebblebee-air-captive/lib/pebblebee-air-captive-lib.scad?raw";
+import pebblebeeAirAssembled from "../../../models/pebblebee-air-captive/previews/assembled.scad?raw";
 import qrSignLib from "../../../models/qr-sign/lib/qr-sign-lib.scad?raw";
 import qrSignAssembled from "../../../models/qr-sign/previews/assembled.scad?raw";
 import qrLeashTagLib from "../../../models/qr-leash-tag/lib/qr-leash-tag-lib.scad?raw";
@@ -48,15 +50,11 @@ import fsrPlate7 from "../../../models/filament-spool-roller/previews/plate-7.sc
 import fsrPlate8 from "../../../models/filament-spool-roller/previews/plate-8.scad?raw";
 import fsrPlate9 from "../../../models/filament-spool-roller/previews/plate-9.scad?raw";
 import fsrPlate10 from "../../../models/filament-spool-roller/previews/plate-10.scad?raw";
-import fsrPlate11 from "../../../models/filament-spool-roller/previews/plate-11.scad?raw";
-import fsrPlate12 from "../../../models/filament-spool-roller/previews/plate-12.scad?raw";
 import fsrPlateFit from "../../../models/filament-spool-roller/previews/plate-fit.scad?raw";
 import fsrPlate1x1 from "../../../models/filament-spool-roller/previews/plate-1x-1.scad?raw";
 import fsrPlate1x2 from "../../../models/filament-spool-roller/previews/plate-1x-2.scad?raw";
 import fsrPlate1x3 from "../../../models/filament-spool-roller/previews/plate-1x-3.scad?raw";
 import fsrPlate1x4 from "../../../models/filament-spool-roller/previews/plate-1x-4.scad?raw";
-import fsrPlate1x5 from "../../../models/filament-spool-roller/previews/plate-1x-5.scad?raw";
-import fsrPlate1x6 from "../../../models/filament-spool-roller/previews/plate-1x-6.scad?raw";
 import scaffoldCubeLib from "../../../models/scaffold-cube/lib/scaffold-cube-lib.scad?raw";
 import scaffoldCubeUnit1u from "../../../models/scaffold-cube/previews/unit-1u.scad?raw";
 import scaffoldCubeStack3x3 from "../../../models/scaffold-cube/previews/stack-3x3.scad?raw";
@@ -104,6 +102,12 @@ export const CUSTOMIZABLE_SOURCES: Record<string, { lib: string; previews: Recor
     lib: ugreenFinderDuoLib,
     previews: {
       assembled: stripIncludes(ugreenFinderDuoAssembled),
+    },
+  },
+  "pebblebee-air-captive": {
+    lib: pebblebeeAirLib,
+    previews: {
+      assembled: stripIncludes(pebblebeeAirAssembled),
     },
   },
   "qr-sign": {
@@ -183,15 +187,11 @@ export const CUSTOMIZABLE_SOURCES: Record<string, { lib: string; previews: Recor
       "plate-8": stripIncludes(fsrPlate8),
       "plate-9": stripIncludes(fsrPlate9),
       "plate-10": stripIncludes(fsrPlate10),
-      "plate-11": stripIncludes(fsrPlate11),
-      "plate-12": stripIncludes(fsrPlate12),
       "plate-fit": stripIncludes(fsrPlateFit),
       "plate-1x-1": stripIncludes(fsrPlate1x1),
       "plate-1x-2": stripIncludes(fsrPlate1x2),
       "plate-1x-3": stripIncludes(fsrPlate1x3),
       "plate-1x-4": stripIncludes(fsrPlate1x4),
-      "plate-1x-5": stripIncludes(fsrPlate1x5),
-      "plate-1x-6": stripIncludes(fsrPlate1x6),
     },
   },
   "scaffold-cube": {

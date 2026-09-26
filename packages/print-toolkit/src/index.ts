@@ -73,6 +73,7 @@ export { convertKlipperGcode } from './slicer-settings.js';
 export {
   parseGcodeStats,
   parseGCode,
+  filamentByType,
   MOVE_TYPE_COLORS,
   type MoveType,
   type GCodeSegment,
@@ -122,7 +123,25 @@ export {
   extractGcodeSection,
   startPrint,
   uploadGcode,
+  fetchPrintStatus,
+  type PrintStatus,
 } from './moonraker-api.js';
+
+// ─── Print scheduling ───────────────────────────────────────────────────────
+export {
+  planSchedule,
+  simulate,
+  dailyBlocks,
+  nextAvailable,
+  type ScheduleJob,
+  type SchedulePrinter,
+  type OperatorBlock,
+  type ScheduleObjective,
+  type ScheduleOptions,
+  type ScheduledJob,
+  type Visit,
+  type Schedule,
+} from './print-schedule.js';
 
 // ─── Storage ────────────────────────────────────────────────────────────────
 export { createStorage } from './storage.js';

@@ -3,13 +3,20 @@
 The captive-collar cover sized for the UGREEN Finder Duo Air. One piece, no cap,
 no screws.
 
-The collar runs in a channel along the underside. For 6mm at each end the
+The collar runs in a channel along the underside. For 12mm at each end the
 underside is **solid** — the strap is fully enclosed there, which is what holds
 the collar on. Along the middle the underside is open as a slot, and that slot
 is narrower than the strap (22.2mm under a 25.4mm biothane) so a lip down each
 side keeps the strap seated. Directly above the channel, sitting on it rather
 than cut into it, is the cavity for the tracker. The tracker goes in through
 that same slot; there is no other opening in the case.
+
+The QR is 32.3mm and sits 4.5mm from one end of the top, just inside the
+flat top and clear of the case's rounded corners. The text follows it along
+the rest of the top.
+Test that it scans before you rely on it. The other end carries text
+(`top_text`) — as many lines as fit, centered as one block — with a choice of
+font and size.
 
 **Print this in TPU, soft.** See the warning under Fit — this tracker is 36mm
 square and the slot is 22.2mm, which is a much bigger stretch than on the Fi
@@ -41,8 +48,8 @@ The underside, looking up at it:
 ```
    ┌──────────────────────────────────────────────────────┐
    │        │                              │              │
-   │ solid  │      slot, 22.2 x 36.8       │    solid     │
-   │  6mm   │                              │     6mm      │
+   │ solid  │      slot, 22.2 x 24.8       │    solid     │
+   │  12mm  │                              │     12mm     │
    └──────────────────────────────────────────────────────┘
      strap fully              lip either side       strap fully
      enclosed                 of the slot           enclosed
@@ -73,12 +80,14 @@ to adjust.
 
 `capture_length` (default 6mm) is the solid strip at each end. This is what
 actually holds the collar on; the lip along the middle only keeps it seated.
+The slot runs the full length of the tracker's cavity, so the tracker slides
+straight up through it; only the lip along the sides has to be worked past.
 
 The USB-C cutout is on the **-Y side face**. The tracker is square, so the only
 real choice is a side or an end, and an end would have to be bored through a
 `capture_length` strip — the one part of the case that has a job to do. It is
-7mm tall rather than the Fi Mini case's 8mm, which keeps 1.4mm of wall between
-it and the cavity floor on a tracker that is 1.7mm thinner.
+7mm tall rather than the Fi Mini case's 8mm, and sits 1.25mm below the tracker's
+mid-height.
 
 > **`strap_lip_width` is the awkward one on this model.** The slot width is set
 > by the strap, but the part squeezed through it is a 36mm square tracker —

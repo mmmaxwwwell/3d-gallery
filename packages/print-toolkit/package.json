@@ -12,7 +12,9 @@
     "./worker": "./src/slicer-worker.ts",
     "./vite-plugin": "./src/vite-plugin.ts",
     "./node": "./src/node-slicer.ts",
-    "./types": "./src/types.ts"
+    "./types": "./src/types.ts",
+    "./orca-schema": "./src/orca-schema.ts",
+    "./orca-schema-data": "./src/orca-schema.generated.ts"
   },
   "files": [
     "src",
@@ -23,7 +25,8 @@
     "fetch-wasm": "node scripts/fetch-wasm.mjs",
     "postinstall": "node scripts/fetch-wasm.mjs",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "gen:orca-schema": "node scripts/gen-orca-schema.mjs"
   },
   "dependencies": {
     "fflate": "^0.8.2",

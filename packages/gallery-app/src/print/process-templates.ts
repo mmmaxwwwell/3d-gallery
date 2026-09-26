@@ -17,6 +17,7 @@ export interface ProcessSettings {
   infillDensity: string;      // percentage, no "%" suffix ("15")
   infillPattern: string;      // Orca sparse_infill_pattern value
   supportStyle: SupportStyle; // 'none' | normal(auto) | tree(auto)
+  supportOnBuildPlateOnly: boolean; // supports start on the bed only, never on the part
   brim: boolean;              // print an outer brim for first-layer adhesion
   skirt: boolean;             // print skirt loops (nozzle prime + bed-level check)
   adaptiveLayerHeight: boolean; // vary layer height per region (Orca "Adaptive layer height")
@@ -48,31 +49,31 @@ const BUILT_IN: ProcessTemplate[] = [
     id: 'builtin:light',
     name: 'Light — 2 walls, no supports',
     builtIn: true,
-    settings: { wallLoops: '2', topShells: '3', bottomShells: '3', infillDensity: '10', infillPattern: 'gyroid', supportStyle: 'none', brim: false, skirt: false, adaptiveLayerHeight: true },
+    settings: { wallLoops: '2', topShells: '3', bottomShells: '3', infillDensity: '10', infillPattern: 'gyroid', supportStyle: 'none', supportOnBuildPlateOnly: false, brim: false, skirt: false, adaptiveLayerHeight: true },
   },
   {
     id: 'builtin:standard',
     name: 'Standard — 3 walls',
     builtIn: true,
-    settings: { wallLoops: '3', topShells: '3', bottomShells: '3', infillDensity: '15', infillPattern: 'gyroid', supportStyle: 'none', brim: false, skirt: false, adaptiveLayerHeight: true },
+    settings: { wallLoops: '3', topShells: '3', bottomShells: '3', infillDensity: '15', infillPattern: 'gyroid', supportStyle: 'none', supportOnBuildPlateOnly: false, brim: false, skirt: false, adaptiveLayerHeight: true },
   },
   {
     id: 'builtin:sturdy',
     name: 'Sturdy — 4 walls, no supports',
     builtIn: true,
-    settings: { wallLoops: '4', topShells: '3', bottomShells: '3', infillDensity: '20', infillPattern: 'gyroid', supportStyle: 'none', brim: false, skirt: false, adaptiveLayerHeight: true },
+    settings: { wallLoops: '4', topShells: '3', bottomShells: '3', infillDensity: '20', infillPattern: 'gyroid', supportStyle: 'none', supportOnBuildPlateOnly: false, brim: false, skirt: false, adaptiveLayerHeight: true },
   },
   {
     id: 'builtin:tree',
     name: 'Tree supports — 3 walls',
     builtIn: true,
-    settings: { wallLoops: '3', topShells: '3', bottomShells: '3', infillDensity: '15', infillPattern: 'gyroid', supportStyle: 'tree', brim: false, skirt: false, adaptiveLayerHeight: true },
+    settings: { wallLoops: '3', topShells: '3', bottomShells: '3', infillDensity: '15', infillPattern: 'gyroid', supportStyle: 'tree', supportOnBuildPlateOnly: false, brim: false, skirt: false, adaptiveLayerHeight: true },
   },
   {
     id: 'builtin:normal-supports',
     name: 'Normal supports — 3 walls',
     builtIn: true,
-    settings: { wallLoops: '3', topShells: '3', bottomShells: '3', infillDensity: '15', infillPattern: 'gyroid', supportStyle: 'normal', brim: false, skirt: false, adaptiveLayerHeight: true },
+    settings: { wallLoops: '3', topShells: '3', bottomShells: '3', infillDensity: '15', infillPattern: 'gyroid', supportStyle: 'normal', supportOnBuildPlateOnly: false, brim: false, skirt: false, adaptiveLayerHeight: true },
   },
 ];
 
@@ -83,7 +84,10 @@ function loadUserTemplates(): ProcessTemplate[] {
     const raw = localStorage.getItem(LS_USER_TEMPLATES);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as ProcessTemplate[];
-    return Array.isArray(parsed) ? parsed : [];
+    // Templates saved before the build-plate-only option existed lack it.
+    return Array.isArray(parsed)
+      ? parsed.map((t) => ({ ...t, settings: { ...t.settings, supportOnBuildPlateOnly: t.settings.supportOnBuildPlateOnly ?? false } }))
+      : [];
   } catch { return []; }
 }
 
@@ -146,5 +150,6 @@ export function buildProcessConfig(s: ProcessSettings, layerHeight: string): Rec
     sparse_infill_density: `${s.infillDensity}%`,
     sparse_infill_pattern: s.infillPattern,
     ...supportConfig(s.supportStyle),
+    support_on_build_plate_only: s.supportOnBuildPlateOnly ? '1' : '0',
   };
 }

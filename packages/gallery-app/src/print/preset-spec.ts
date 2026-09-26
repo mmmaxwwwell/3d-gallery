@@ -167,6 +167,7 @@ export function processSpecs(
     infillDensity: string;
     infillPattern: string;
     supportStyle: string;
+    supportOnBuildPlateOnly: boolean;
     brim: boolean;
     skirt: boolean;
     adaptiveLayerHeight: boolean;
@@ -184,7 +185,7 @@ export function processSpecs(
     {
       label: 'Supports',
       value: proc.supportStyle === 'none' ? 'off'
-        : proc.supportStyle === 'tree' ? 'tree (auto)' : 'normal (auto)',
+        : `${proc.supportStyle === 'tree' ? 'tree (auto)' : 'normal (auto)'}${proc.supportOnBuildPlateOnly ? ' · build plate only' : ''}`,
     },
     { label: 'Brim', value: proc.brim ? 'on · 5 mm outer' : 'off' },
     { label: 'Skirt', value: proc.skirt ? 'on · 1 loop' : 'off' },

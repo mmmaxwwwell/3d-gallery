@@ -3,26 +3,18 @@
 import type { JSX } from 'preact';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import {
-  buildProvenanceComment,
   createSlicerBackend,
   evaluateAuthoredPlateFit,
   excludeAreaBboxes,
   findPlateOverlaps,
-  forceStripBedExcludeArea,
-  hashConfig,
   isDegenerateExcludeArea,
-  parseGcodeMetadata,
-  postProcessGcode,
   printerBedFromConfig,
-  sanitizeBedExcludeArea,
   startPrint,
   uploadGcode,
   type AuthoredFitResult,
   type PlateFootprint,
   type PostProcessReport,
   type PrinterBed,
-  type Provenance,
-  type ProvenancePart,
   type SlicerBackend,
 } from '@3d-gallery/print-toolkit';
 import { Modal } from './Modal.js';
@@ -36,7 +28,6 @@ import { flattenPresetForSlicer } from './preset-flatten.js';
 import {
   filamentSlotCount,
   filamentSpecs,
-  firstValue,
   nozzleSpec,
   processSpecs,
   speedSpecs,
@@ -54,7 +45,6 @@ import {
 } from './plate-store.js';
 import {
   arrangeInstances,
-  bakeInstance,
   buildInstances,
   instanceSize,
   toFootprints,
@@ -63,13 +53,19 @@ import {
 } from './plate-geometry.js';
 import { resolvePlate, type ResolveReport, type ResolvedPlateObject } from './plate-resolve.js';
 import {
+  BED_SURFACES,
+  DEFAULT_BED_SURFACE,
+  bedSurfaceTempKey,
+  processFromProfile,
+  sliceInstances,
+  type BedSurface,
+} from './plate-slice.js';
+import {
   INFILL_PATTERNS,
   LAYER_HEIGHTS,
   buildProcessConfig,
   listTemplates,
   upsertUserTemplate,
-  brimConfig,
-  supportConfig,
   type ProcessSettings,
   type ProcessTemplate,
   type SupportStyle,
@@ -82,7 +78,6 @@ import {
   type SlicePreset,
 } from './slice-presets.js';
 import type { Quat } from './mesh-bounds.js';
-import type { ScadValue } from '@3d-gallery/model-core';
 
 interface PrintDialogProps {
   plateId: string;
@@ -108,23 +103,6 @@ const LS_LAST_SELECTIONS = '3dg:print:last-selections';
 const STANDARD_TEMPLATE_ID = 'builtin:standard';
 const DEFAULT_LAYER_HEIGHT = '0.20';
 
-// Orca stores five bed-surface-specific temperatures per filament, keyed by
-// the plate the user has installed. `curr_bed_type` picks which one — if
-// unset, the slicer defaults to `cool_plate_temp` (60 °C), which is why
-// PETG was heating the bed to 60 instead of 85. Send an explicit value.
-const BED_SURFACES = [
-  { value: 'Hot Plate', label: 'Hot Plate (hot_plate_temp)', tempKey: 'hot_plate_temp' },
-  { value: 'Textured PEI Plate', label: 'Textured PEI (textured_plate_temp)', tempKey: 'textured_plate_temp' },
-  { value: 'Cool Plate', label: 'Cool Plate (cool_plate_temp)', tempKey: 'cool_plate_temp' },
-  { value: 'Supertack Plate', label: 'Supertack (supertack_plate_temp)', tempKey: 'supertack_plate_temp' },
-  { value: 'Engineering Plate', label: 'Engineering (eng_plate_temp)', tempKey: 'eng_plate_temp' },
-] as const;
-const DEFAULT_BED_SURFACE = 'Hot Plate';
-type BedSurface = (typeof BED_SURFACES)[number]['value'];
-
-function bedSurfaceTempKey(surface: BedSurface): string {
-  return BED_SURFACES.find((s) => s.value === surface)?.tempKey ?? 'hot_plate_temp';
-}
 
 /** Provenance keys copies the same way the plate does. */
 function objectKey(o: ResolvedPlateObject): string {
@@ -153,15 +131,6 @@ function mm(value: number): string {
   return String(Math.round(value * 10) / 10);
 }
 
-/** Provenance records params as text; ScadValue also covers booleans and
- *  vectors, which have no numeric form. */
-function provenanceParams(params: Record<string, ScadValue>): Record<string, string | number> {
-  const out: Record<string, string | number> = {};
-  for (const [k, v] of Object.entries(params)) {
-    out[k] = typeof v === 'number' || typeof v === 'string' ? v : String(v);
-  }
-  return out;
-}
 
 function fitSummary(fit: AuthoredFitResult): string {
   if (fit.status === 'fits') return 'fits';
@@ -186,7 +155,7 @@ function gcodeFileName(plateName: string): string {
 // default, not a choice. Bumped once, on read.
 const SELECTIONS_VERSION = 2;
 
-interface LastSelections {
+export interface LastSelections {
   v?: number;
   printerId?: string;
   filamentId?: string;
@@ -200,7 +169,7 @@ interface LastSelections {
   clearExclusionZones?: boolean;
 }
 
-function loadLastSelections(): LastSelections {
+export function loadLastSelections(): LastSelections {
   try {
     const raw = localStorage.getItem(LS_LAST_SELECTIONS);
     if (!raw) return {};
@@ -319,6 +288,9 @@ export function PrintDialog({ plateId, onClose, onOpenSettings }: PrintDialogPro
         if (!p) { setPlateError(`Plate not found: ${plateId}`); return; }
         setPlate(p);
         setDirty(false);
+        // A plate made from a model's print plates carries the model's
+        // recommended profile; that, not the last plate's tweaks, is the start.
+        if (p.profile) setProc(processFromProfile(p.profile));
         const project = await getProject(p.projectId);
         if (!cancelled) setProjectName(project?.name ?? '');
       } catch (err) {
@@ -677,142 +649,23 @@ export function PrintDialog({ plateId, onClose, onOpenSettings }: PrintDialogPro
     setCancelling(false);
     setBusySince(Date.now());
     try {
-      // One slicer object per copy. The pose is baked into the bytes, so the
-      // job carries no rotation and no scale — there is nothing left for the
-      // slicer to interpret differently from the editor. Position is the
-      // plate-space spot plus the rigid offset that put the plate on this bed.
       const offset = fit?.offset;
       if (!offset) throw new Error('This plate does not fit the selected printer’s bed.');
-      const sliceObjects = instances.map((inst) => {
-        const baked = bakeInstance(inst);
-        if (!baked) {
-          throw new Error(`Could not apply the rotation and scale on “${inst.label}” to its mesh.`);
-        }
-        // A part carries only the settings it overrides; one that agrees with
-        // the process carries no per-object config at all.
-        const o = plate.overrides?.[inst.id];
-        const objectConfig: Record<string, string> = {
-          ...(o?.supports !== undefined && o.supports !== proc.supportStyle
-            ? supportConfig(o.supports) : {}),
-          ...(o?.brim !== undefined && o.brim !== proc.brim ? brimConfig(o.brim) : {}),
-        };
-        return {
-          data: baked.data,
-          format: baked.format,
-          posX: baked.x + offset.dx,
-          posY: baked.y + offset.dy,
-          rotZ: 0,
-          scaleX: 1,
-          scaleY: 1,
-          scaleZ: 1,
-          config: Object.keys(objectConfig).length > 0 ? objectConfig : undefined,
-        };
-      });
-
-      // `printerFlat` / `filamentFlat` are the flattened presets (inheritance
-      // chain walked, arrays preserved as `;`-joined strings). Merge
-      // printer → filament → inline process.
-      // Printer contributes acceleration, speed limits, kinematics, start/end
-      // gcode. Filament contributes temps, cooling, flow. Process contributes
-      // only the user-facing knobs.
-      // Tell the slicer which bed surface is installed. Without this, it
-      // reads `cool_plate_temp` (usually 60) for every filament regardless.
-      const bedSurfaceConfig: Record<string, string> = {
-        curr_bed_type: bedSurface,
-        // Also mirror the effective bed temp into the "generic" fields Orca
-        // uses when substituting placeholders in machine_start_gcode. If
-        // the placeholder resolves to the wrong bed-type-specific field
-        // (some builds do this), these aliases guarantee the correct number.
-        first_layer_bed_temperature:
-          firstValue(filamentFlat[bedSurfaceTempKey(bedSurface)]) ?? '',
-        bed_temperature_initial_layer_single:
-          firstValue(filamentFlat[bedSurfaceTempKey(bedSurface)]) ?? '',
-      };
-      // Merge everything, then strip degenerate `bed_exclude_area` values
-      // (`["0x0"]` placeholder from fdm_qidi_common etc.) that the slicer
-      // combines with `extruder_clearance_radius` and turns into a bogus
-      // ~47 mm keepout circle at the corner.
-      const mergedConfig: Record<string, string> = {
-        ...printerFlat,
-        ...filamentFlat,
-        ...bedSurfaceConfig,
-        ...buildProcessConfig(proc, layerHeight),
-      };
-      // Sanitize the placeholder ["0x0"] exclusion; if the user opted to
-      // ignore even real exclusion zones (their setup lets them print in
-      // the corner), force-strip everything.
-      const config = clearExclusionZones
-        ? forceStripBedExcludeArea(mergedConfig)
-        : sanitizeBedExcludeArea(mergedConfig);
 
       backend = createSlicerBackend();
       backendRef.current = backend;
       setStatus('slicing');
       setProgress({ stage: 'slicing', pct: 0, message: `Slicing with ${backend.engineName}…` });
-      const sliceResult = await backend.slicePlate(
-        sliceObjects,
-        config,
-        undefined,
+      const sliced = await sliceInstances(
+        backend,
+        plate,
+        instances,
+        offset,
+        { printer, filament, proc, layerHeight, bedSurface, preheat, centerOnBed, clearExclusionZones },
         (stage, pct, message) => setProgress({ stage, pct, message }),
       );
-
-      const nozzleTemp = firstValue(filamentFlat['nozzle_temperature_initial_layer']) ??
-        firstValue(filamentFlat['nozzle_temperature']);
-      // Read the bed temp for the surface the user actually has installed —
-      // not the generic (60 °C) cool-plate default.
-      const initialKey = `${bedSurfaceTempKey(bedSurface)}_initial_layer`;
-      const bedTemp = firstValue(filamentFlat[initialKey]) ??
-        firstValue(filamentFlat[bedSurfaceTempKey(bedSurface)]);
-      const report = postProcessGcode(sliceResult.gcode, {
-        printableArea: printerFlat['printable_area'],
-        nozzleTemp,
-        bedTemp,
-        preheat,
-        centerOnBed,
-      });
-
-      // Build the provenance comment block: full lineage of the print so
-      // this .gcode file is self-describing. Prepended to the top so it's
-      // visible even if the file is opened as text.
-      const meta = parseGcodeMetadata(report.gcode);
-      const [printerConfigHash, filamentConfigHash] = await Promise.all([
-        hashConfig(printerFlat).catch(() => undefined),
-        hashConfig(filamentFlat).catch(() => undefined),
-      ]);
-      const supportsLabel =
-        proc.supportStyle === 'tree' ? 'tree supports' :
-        proc.supportStyle === 'normal' ? 'normal supports' : 'no supports';
-      const parts: ProvenancePart[] = plate.items.map((i) => ({
-        file: `${i.target}.${i.format}`,
-        label: i.label,
-        qty: i.qty,
-        params: i.params && provenanceParams(i.params),
-      }));
-      // Model-level lineage only means something when every part on the
-      // plate came from the same model.
-      const slugs = [...new Set(plate.items.map((i) => i.slug))];
-      const singleSlug = slugs.length === 1 ? slugs[0] : undefined;
-      const provenance: Provenance = {
-        timestamp: new Date().toISOString(),
-        slicerName: meta.slicerName && meta.slicerVersion ? `${meta.slicerName} ${meta.slicerVersion}` : undefined,
-        modelSlug: singleSlug,
-        modelTitle: singleSlug ? plate.items[0].modelTitle : undefined,
-        modelUrl: singleSlug ? window.location.href : undefined,
-        modelSourceUrl: singleSlug
-          ? `https://github.com/mmmaxwwwell/3d-gallery/tree/main/models/${singleSlug}`
-          : undefined,
-        plateName: plate.name,
-        parts,
-        printerName: printer.name,
-        filamentName: filament.name,
-        bedSurface,
-        bedTempC: bedTemp !== undefined ? Number(bedTemp) : undefined,
-        nozzleTempC: nozzleTemp !== undefined ? Number(nozzleTemp) : undefined,
-        processDescription: `${proc.wallLoops} walls, ${proc.infillPattern} ${proc.infillDensity}%, ${layerHeight}mm layer, ${supportsLabel}${proc.brim ? ', brim' : ''}${proc.skirt ? ', skirt' : ''}`,
-        printerConfigHash,
-        filamentConfigHash,
-      };
-      const gcodeWithProvenance = buildProvenanceComment(provenance) + report.gcode;
+      const report = sliced.report;
+      const gcodeWithProvenance = sliced.gcode;
 
       setSlicedGcode(gcodeWithProvenance);
       setPostReport(report);
@@ -1149,7 +1002,8 @@ export function PrintDialog({ plateId, onClose, onOpenSettings }: PrintDialogPro
     { label: proc.infillPattern, value: `${proc.infillDensity}%` },
     {
       label: 'Supports',
-      value: proc.supportStyle === 'none' ? 'off' : proc.supportStyle === 'tree' ? 'tree' : 'normal',
+      value: proc.supportStyle === 'none' ? 'off'
+        : `${proc.supportStyle === 'tree' ? 'tree' : 'normal'}${proc.supportOnBuildPlateOnly ? ' · plate only' : ''}`,
     },
   ];
 
@@ -1373,6 +1227,16 @@ export function PrintDialog({ plateId, onClose, onOpenSettings }: PrintDialogPro
             ))}
           </div>
         </div>
+        {proc.supportStyle !== 'none' && (
+          <label class="print-dialog-row print-dialog-checkbox">
+            <input
+              type="checkbox"
+              checked={proc.supportOnBuildPlateOnly}
+              onChange={(e) => updateProc('supportOnBuildPlateOnly', (e.target as HTMLInputElement).checked)}
+            />
+            <span>On build plate only (supports never start on the part)</span>
+          </label>
+        )}
         <label class="print-dialog-row print-dialog-checkbox">
           <input
             type="checkbox"

@@ -25,33 +25,21 @@ font_style = "Sans Bold";  // [Sans Bold, Sans, Serif Bold, Serif, Mono Bold, Mo
 collar_width = 25;
 
 // Thickness of your collar strap, in mm. 3 mm suits a thick nylon or
-// biothane strap; thin webbing is closer to 1.5 mm.
+// biothane strap; thin webbing is closer to 1.5 mm. The slot's edges are
+// fully rounded to this thickness, matching a biothane strap's profile.
 collar_thickness = 3;
 
-// Material left on each side of the strap slot, in mm. The tag's face
-// height is the strap width plus two of these, so a thicker wall means a
-// chunkier tag sitting on the collar.
+// Material wrapped around the strap slot, in mm — the same on every side,
+// since the tag's rounded edges are concentric with the slot's. The top
+// is the face the name is cut into, so keep this comfortably thicker than
+// text_thickness, or the letters break through into the slot.
 wall_thickness = 3;
-
-// Material above the strap slot, in mm. This is the face the name is cut
-// into, so keep it comfortably thicker than text_thickness — otherwise
-// the letters break through into the slot.
-top_thickness = 1.6;
-
-// Material below the strap slot, in mm — the side that rides against the
-// dog.
-bottom_thickness = 1.6;
 
 // How deep the name is recessed into the top face, in mm. On the
 // multicolor version this is also the height of the accent inlay, so keep
 // it a whole multiple of your layer height (0.6 mm = 3 layers at 0.2 mm)
 // and the color swap lands on a clean layer boundary.
 text_thickness = 0.6;
-
-// Diameter of the rounded edges, in mm — a CSS border-radius, but applied
-// to every edge of the tag so no corner digs into fur. Clamped to what
-// the tag's smallest dimension can actually take.
-edge_rounding = 3;
 // END_PARAMS
 
 // ============================================================
@@ -74,9 +62,17 @@ text_height_frac = 0.45;
 // slicer closes it.
 inlay_clearance = 0.15;
 
-// Facets on the corner spheres that generate the edge rounding. 48 is
-// smooth at tag scale and keeps the hull cheap.
+// Facets on the corner spheres and slot ends. 48 is smooth at tag scale
+// and keeps the hulls cheap.
 rounding_fn = 48;
+
+// Radius of the fillet where the slot breaks out through each rounded end,
+// as a fraction of wall_thickness. Must stay under 0.5, where the fillet
+// becomes a full bullnose with no end left to blend into.
+mouth_fillet_frac = 0.4;
+
+// Slices in each mouth fillet's hulled sweep.
+mouth_fillet_steps = 12;
 
 // The six faces offered by `font_style`, in enum order.
 font_names = [
@@ -234,10 +230,16 @@ glyph_adv = glyph_adv_by_font[font_index];
 slot_w = collar_width + slot_clearance;
 slot_h = collar_thickness + slot_clearance;
 
-// Face height (Y) and total height (Z) are fully determined by the strap —
-// the tag is a shell wrapped around the slot.
+// The tag is a shell of wall_thickness wrapped around the slot, so face
+// height (Y) and total height (Z) are fully determined by the strap.
 tag_w = slot_w + 2 * wall_thickness;
-tag_h = bottom_thickness + slot_h + top_thickness;
+tag_h = slot_h + 2 * wall_thickness;
+
+// The tag is the hull of four spheres whose diameter is the tag's height;
+// the slot's rounded ends share their centers (in Y-Z), which is what keeps
+// the wall uniform around the slot's curve.
+rounding = tag_h / 2;
+edge_y = slot_w / 2 - slot_h / 2;
 
 text_size = tag_w * text_height_frac / font_cap[font_index];
 
@@ -248,43 +250,87 @@ function name_adv(i = 0) =
                    : glyph_adv[max(0, min(len(glyph_adv) - 1, ord(name[i]) - 32))]
                      + name_adv(i + 1);
 
-// Length (X) is the one free dimension, so it sizes itself to the name;
-// wall_thickness doubles as the end margin. Floored at the strap width so
-// a one-letter name still leaves a tag with some body to it.
-tag_l = max(name_adv() * text_size + 2 * wall_thickness, collar_width);
-
-// Rounding radius, clamped so the corner spheres always fit inside the
-// smallest dimension (Z, for any sane parameter set) and never degenerate.
-rounding = max(min(edge_rounding / 2,
-                   min(tag_l, tag_w, tag_h) / 2 - 0.01),
-               0.01);
+// Length (X) is the one free dimension, so it sizes itself to the name.
+// The end margin is the sphere radius, which keeps the letters on the flat
+// top rather than running down the rounded ends. Floored at the strap width
+// so a one-letter name still leaves a tag with some body to it.
+tag_l = max(name_adv() * text_size + 2 * rounding, collar_width);
 
 // ============================================================
 // Geometry — z = 0 is the bottom of the tag, which prints face down.
 // ============================================================
 
-// Outer shell with every edge rounded: the hull of eight spheres inset
-// from the corners of the bounding box.
 module blank() {
     translate([0, 0, tag_h / 2])
         hull()
-            for (x = [-1, 1], y = [-1, 1], z = [-1, 1])
-                translate([x * (tag_l / 2 - rounding),
-                           y * (tag_w / 2 - rounding),
-                           z * (tag_h / 2 - rounding)])
+            for (x = [-1, 1], y = [-1, 1])
+                translate([x * (tag_l / 2 - rounding), y * edge_y, 0])
                     sphere(r = rounding, $fn = rounding_fn);
 }
 
-// The strap channel — a through-cut along X, overshooting both ends.
+// The strap channel — a stadium through-cut along X, overshooting both
+// ends, shaped like a strap with fully rounded edges.
 module slot() {
-    translate([0, 0, bottom_thickness + slot_h / 2])
-        cube([tag_l + 2, slot_w, slot_h], center = true);
+    translate([0, 0, tag_h / 2])
+        hull()
+            for (y = [-1, 1])
+                translate([0, y * edge_y, 0])
+                    rotate([0, 90, 0])
+                        cylinder(r = slot_h / 2, h = tag_l + 2,
+                                 center = true, $fn = rounding_fn);
+}
+
+// A stadium section concentric with the slot, of radius r, at distance x
+// along the strap. The blank and slot share these centers, so growing r is
+// how every section here widens without changing shape.
+module stadium_slice(x, r) {
+    translate([x, 0, tag_h / 2])
+        rotate([0, 90, 0])
+            linear_extrude(0.01, center = true)
+                hull()
+                    for (y = [-1, 1])
+                        translate([0, y * edge_y])
+                            circle(r = r, $fn = rounding_fn);
+}
+
+// Without this the slot wall meets the rounded end in a knife edge. In any
+// section through the slot's axis that end is a circle of radius `rounding`
+// and the wall is a line slot_h / 2 off it; the fillet is the circle of
+// radius mouth_mf tangent to both, centred mouth_xc past the sphere centre.
+// The lip ends in a rounded nose along that circle: its near half carves
+// the slot side from mouth_xc, and its far half replaces the end past
+// mouth_xt, where it touches the blank.
+mouth_mf = mouth_fillet_frac * wall_thickness;
+mouth_xc = sqrt(pow(rounding - mouth_mf, 2) - pow(slot_h / 2 + mouth_mf, 2));
+mouth_xt = mouth_xc * rounding / (rounding - mouth_mf);
+
+// Hulled slices rather than offset_sweep(), so the WASM customizer's CGAL
+// can take it. Stepped by angle so the slices bunch up where the nose turns.
+module mouth_sweep(sign) {
+    end_x = tag_l / 2 - rounding;
+    for (i = [0 : mouth_fillet_steps - 1])
+        hull()
+            for (a = [i, i + 1] * 90 / mouth_fillet_steps)
+                stadium_slice(end_x + mouth_xc + mouth_mf * sin(a),
+                              slot_h / 2 + mouth_mf + sign * mouth_mf * cos(a));
+}
+
+module both_ends() {
+    for (m = [0, 1]) mirror([m, 0, 0]) children();
 }
 
 module shell() {
     difference() {
-        blank();
+        intersection() {
+            blank();
+            union() {
+                cube([2 * (tag_l / 2 - rounding + mouth_xt), 2 * tag_w, 3 * tag_h],
+                     center = true);
+                both_ends() mouth_sweep(1);
+            }
+        }
         slot();
+        both_ends() mouth_sweep(-1);
     }
 }
 

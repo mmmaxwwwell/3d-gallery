@@ -1515,36 +1515,47 @@ module box() {
 // --- print plates ---
 //
 // One plate per print job, every part in its print pose, laid out on a
-// print_bed square centred on the origin. A wall has a plate to itself;
-// the rollers and beams share one; the pegs, printed in TPU, get their
-// own; and the tiles go two to a plate.
+// print_bed square centred on the origin and kept _plate_edge in from
+// its rim. A wall fills a bed, and two won't nest — each is an L whose
+// arms both run the bed's width — but its crescent leaves the bed's back
+// corner free, so a lane's rollers and beam, and the bulkhead template,
+// ride on the wall plates. The tiles go two to a plate. The pegs are
+// TPU, so they stay on a plate of their own.
 
 _plate_gap = 6;
+_plate_edge = 5;
+_plate_max = print_bed / 2 - _plate_edge;
 
 module plate_wall(k) {
     translate([0, -(wall_back_top - base_height) / 2, 0])
         wall_support(k > 0, k < lanes);
 }
 
-// The rollers on end in two rows, the beams on their flange ends in a row
-// in front of them.
-_plate_roller_pitch = flange_diameter + _plate_gap;
-_plate_beam_pitch = 2 * _hex_r(beam_flange_af) + _plate_gap;
-_plate_roller_cols = ceil(2 * lanes / 2);
-_plate_roller_row_y = [_plate_roller_pitch / 2, 1.5 * _plate_roller_pitch];
-_plate_beam_row_y = -_plate_beam_pitch;
-
-module plate_rollers() {
-    for (k = [0 : 2 * lanes - 1])
-        translate([(k % _plate_roller_cols - (_plate_roller_cols - 1) / 2) * _plate_roller_pitch,
-                   _plate_roller_row_y[floor(k / _plate_roller_cols)], 0])
-            roller();
+// The bulkhead template (half -1 or 1, or 0 for the whole thing) in the
+// back corner of a wall plate, hard against both edges.
+module plate_wall_template(half) {
+    right = half < 0 ? dovetail_length : stand_width / 2;
+    width = right + (half > 0 ? 0 : stand_width / 2);
+    assert(width <= 2 * _plate_max,
+           "filament-spool-roller: the bulkhead template is too wide for the bed");
+    translate([_plate_max - right, _plate_max - template_height, 0])
+        template(half);
 }
 
-module plate_beams() {
-    for (k = [0 : lanes - 1])
-        translate([(k - (lanes - 1) / 2) * _plate_beam_pitch, _plate_beam_row_y, 0])
-            beam();
+// One lane's rollers on end and its beam on its flange, in a row across
+// the same corner, below where the template goes.
+_plate_lane_y = _plate_max - template_height - template_lip - _plate_gap - flange_r;
+_plate_roller_x = [for (j = [0, 1])
+                       _plate_max - flange_r - j * (flange_diameter + _plate_gap)];
+_plate_beam_x = _plate_roller_x[1] - flange_r - _plate_gap - _hex_r(beam_flange_af);
+
+module plate_lane_rollers() {
+    for (x = _plate_roller_x)
+        translate([x, _plate_lane_y, 0]) roller();
+}
+
+module plate_lane_beam() {
+    translate([_plate_beam_x, _plate_lane_y, 0]) beam();
 }
 
 // Every peg, lying on its flat side by side: the inner ones, then the
@@ -1577,15 +1588,6 @@ module plate_tile(p, s) {
             tile(share_minus = i > 0, share_plus = i < lanes - 1);
 }
 
-// The two template halves, one above the other, each slid toward the
-// middle of the bed.
-module plate_template(s) {
-    if (s == 0)
-        translate([stand_width / 4, _plate_gap / 2 + template_lip, 0]) template_left();
-    else
-        translate([-stand_width / 4, -_plate_gap / 2 - template_height, 0]) template_right();
-}
-
 // A floor template half on its own plate, slid to the middle of the bed.
 module plate_floor_template(half) {
     if (half < 0)
@@ -1594,18 +1596,17 @@ module plate_floor_template(half) {
         translate([0, -stand_width / 4, 0]) floor_template_right();
 }
 
-// Both templates whole, stacked across one bed: the floor template
-// (s = 0), then the bulkhead template (s = 1) with its lip toward it.
-// Only a stand narrow enough not to split them fits.
-_plate_templates_h = stand_width + _plate_gap + template_lip + template_height;
-module plate_templates(s) {
-    assert(base_depth <= print_bed && _plate_templates_h <= print_bed,
-           "filament-spool-roller: the templates are too wide to print whole — use the halves");
-    floor_y = (stand_width - _plate_templates_h) / 2;
+// One lane: the tile (s = 0) and the whole floor template (s = 1)
+// stacked across one bed. Only a stand narrow enough not to split the
+// template fits.
+_plate_tile_floor_h = tile_w(0) + _plate_gap + stand_width;
+module plate_tile_floor_template(s) {
+    assert(lanes == 1 && _plate_tile_floor_h <= 2 * _plate_max,
+           "filament-spool-roller: the tile and floor template only share a bed at one lane");
     if (s == 0)
-        translate([0, floor_y, 0]) floor_template();
+        translate([0, -_plate_tile_floor_h / 2 - _tile_lo(0), 0]) tile_single();
     else
-        translate([0, floor_y + stand_width / 2 + _plate_gap + template_lip, 0]) template();
+        translate([0, _plate_tile_floor_h / 2 - stand_width / 2, 0]) floor_template();
 }
 
 // --- fit test ---

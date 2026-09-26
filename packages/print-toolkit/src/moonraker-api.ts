@@ -136,6 +136,51 @@ export async function fetchRawPrinterCfg(address: string): Promise<string> {
   return res.text();
 }
 
+/** What a printer is doing, and how long until its bed is free. */
+export interface PrintStatus {
+  /** Klipper `print_stats.state`: standby, printing, paused, complete, cancelled, error. */
+  state: string;
+  filename: string;
+  /** Seconds left on the current print; 0 when nothing is running. */
+  remainingSec: number;
+}
+
+interface MoonrakerPrintStatsResponse {
+  result: {
+    status: {
+      print_stats: { state: string; filename: string; print_duration: number };
+      virtual_sdcard: { progress: number };
+    };
+  };
+}
+
+/**
+ * Current job and time left on it. Time left comes from the slicer's estimate
+ * in the file's metadata when Moonraker has it, else from progress so far.
+ */
+export async function fetchPrintStatus(address: string): Promise<PrintStatus> {
+  const data = await moonrakerGet<MoonrakerPrintStatsResponse>(
+    address,
+    '/printer/objects/query?print_stats&virtual_sdcard',
+  );
+  const { print_stats: stats, virtual_sdcard: sd } = data.result.status;
+  const running = stats.state === 'printing' || stats.state === 'paused';
+  if (!running) return { state: stats.state, filename: stats.filename, remainingSec: 0 };
+
+  let remainingSec = sd.progress > 0 ? stats.print_duration / sd.progress - stats.print_duration : 0;
+  try {
+    const meta = await moonrakerGet<{ result: { estimated_time?: number } }>(
+      address,
+      `/server/files/metadata?filename=${encodeURIComponent(stats.filename)}`,
+    );
+    const estimated = meta.result.estimated_time;
+    if (typeof estimated === 'number' && estimated > 0) remainingSec = estimated - stats.print_duration;
+  } catch {
+    // Metadata is a refinement; the progress-based figure stands without it.
+  }
+  return { state: stats.state, filename: stats.filename, remainingSec: Math.max(0, remainingSec) };
+}
+
 /** Start printing a file that has already been uploaded. */
 export async function startPrint(address: string, fileName: string): Promise<void> {
   await moonrakerPost(address, `/printer/print/start?filename=${encodeURIComponent(fileName)}`);

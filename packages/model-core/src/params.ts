@@ -63,7 +63,10 @@ export function parseValue(raw: string): { value: ScadValue; type: ScadParamType
   if (trimmed === 'true') return { value: true, type: 'boolean' };
   if (trimmed === 'false') return { value: false, type: 'boolean' };
   if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
-    return { value: trimmed.slice(1, -1), type: 'string' };
+    // Inverse of formatScadValue, so a default carrying `\n` reaches the
+    // customizer as a real line break and round-trips unchanged.
+    const value = trimmed.slice(1, -1).replace(/\\(.)/g, (_, c) => (c === 'n' ? '\n' : c));
+    return { value, type: 'string' };
   }
   if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
     const inner = trimmed.slice(1, -1);

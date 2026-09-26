@@ -43,6 +43,9 @@ export interface HighlightState {
   glowInstances?: string[];
 }
 
+/** How a colour's meshes are drawn: as they are, faint and see-through, or not at all. */
+export type ColorDisplay = "solid" | "ghost" | "hidden";
+
 export interface Viewer {
   load(data: ArrayBuffer, format: ModelFormat, opts?: LoadOptions): void;
   clear(): void;
@@ -75,8 +78,16 @@ export interface Viewer {
    * Returns null if no mesh matches.
    */
   getMeshStlByColor(hex: string): ArrayBuffer | null;
+  /**
+   * Draw these colours ghosted or hidden; every other colour is solid. Kept
+   * across loads, so a reload of the same view keeps it. A ghosted or hidden
+   * mesh no longer takes the pointer, so what's behind it can be hovered.
+   */
+  setColorDisplay(display: Record<string, ColorDisplay>): void;
   getView(): ViewState;
 }
+
+const GHOST_OPACITY = 0.2;
 
 const DEFAULT_FACE = 0x00d5ff;
 
@@ -691,6 +702,31 @@ export function createViewer(container: HTMLElement): Viewer {
   /** Colours already broken into their separate solids. */
   const splitColors = new Set<string>();
   let painted: TrackedMesh[] = [];
+  let colorDisplay = new Map<string, ColorDisplay>();
+
+  function applyDisplay(t: TrackedMesh) {
+    const mode = colorDisplay.get(t.color) ?? "solid";
+    t.mesh.visible = mode !== "hidden";
+    t.material.transparent = mode === "ghost";
+    t.material.opacity = mode === "ghost" ? GHOST_OPACITY : 1;
+    // A ghost mustn't hide what's behind it from the depth test.
+    t.material.depthWrite = mode !== "ghost";
+    t.material.needsUpdate = true;
+  }
+
+  function setColorDisplay(display: Record<string, ColorDisplay>) {
+    colorDisplay = new Map(Object.entries(display).map(([hex, mode]) => [hex.toLowerCase(), mode]));
+    for (const t of trackedByMesh.values()) applyDisplay(t);
+  }
+
+  /** Meshes the pointer can land on: ghosted and hidden ones are looked through. */
+  function pointerTargets(): THREE.Mesh[] {
+    const targets: THREE.Mesh[] = [];
+    currentGroup?.traverse((c) => {
+      if (c instanceof THREE.Mesh && (colorDisplay.get(trackedByMesh.get(c)?.color ?? "") ?? "solid") === "solid") targets.push(c);
+    });
+    return targets;
+  }
 
   const hoverListeners = new Set<(info: HoverInfo | null) => void>();
   const clickListeners = new Set<(color: string) => void>();
@@ -777,11 +813,7 @@ export function createViewer(container: HTMLElement): Viewer {
       return;
     }
     raycaster.setFromCamera(pointer, camera);
-    const targets: THREE.Mesh[] = [];
-    currentGroup.traverse((c) => {
-      if (c instanceof THREE.Mesh) targets.push(c);
-    });
-    const hits = raycaster.intersectObjects(targets, false);
+    const hits = raycaster.intersectObjects(pointerTargets(), false);
     const hitMesh = hits.length > 0 ? (hits[0].object as THREE.Mesh) : null;
     // Keyed off the mesh, not its current material colour — highlighting
     // mutates that colour, and the lookup has to survive it.
@@ -847,11 +879,7 @@ export function createViewer(container: HTMLElement): Viewer {
     pointer.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
     pointer.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
     raycaster.setFromCamera(pointer, camera);
-    const targets: THREE.Mesh[] = [];
-    currentGroup.traverse((c) => {
-      if (c instanceof THREE.Mesh) targets.push(c);
-    });
-    const hits = raycaster.intersectObjects(targets, false);
+    const hits = raycaster.intersectObjects(pointerTargets(), false);
     if (hits.length === 0) return;
     const tracked = trackedByMesh.get(hits[0].object as THREE.Mesh);
     if (!tracked) return;
@@ -930,6 +958,7 @@ export function createViewer(container: HTMLElement): Viewer {
       else meshesByColor.set(hex, [tracked]);
     }
     trackedByMesh.set(mesh, tracked);
+    applyDisplay(tracked);
     return tracked;
   }
 
@@ -1131,7 +1160,7 @@ export function createViewer(container: HTMLElement): Viewer {
 
   return {
     load, clear, dispose, onHover, onClick, setHighlight, getPartColors, getScreenPositionForColor,
-    resolveInstances, getScreenPositionForInstance, getMeshStlByColor, getView,
+    resolveInstances, getScreenPositionForInstance, getMeshStlByColor, setColorDisplay, getView,
   };
 }
 

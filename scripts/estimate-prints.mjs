@@ -4,12 +4,17 @@
 // Writes public/models/print-estimates.json, keyed by artifact key, so an
 // estimate can only ever be matched to the exact bytes it was sliced from.
 //
-// What counts as printable: every STL, plus the 3MF previews of a model that
-// ships no STL parts — there the 3MF is the print. Any other 3MF is an assembly
-// render (pieces in their assembled positions) and slicing it means nothing.
+// What counts as printable: every STL, every print plate (`plate: true`), plus
+// the 3MF previews of a model that ships no STL parts — there the 3MF is the
+// print. Any other 3MF is an assembly render (pieces in their assembled
+// positions) and slicing it means nothing.
+//
+// Each model is sliced at its recommended profile (walls, infill, supports,
+// brim — `printProfile` in the manifest over model-core's default), the same
+// profile the print planner slices with in the browser.
 //
 // Run after build:models. Results are cached in .cache/print-estimates/ under
-// the artifact key, the settings below and the slicer binary, so an unchanged
+// the artifact key, the slice config and the slicer binary, so an unchanged
 // part is never re-sliced.
 //
 // Usage:  node scripts/estimate-prints.mjs [--published] [slug...]
@@ -27,7 +32,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { isMainThread, parentPort, Worker } from "node:worker_threads";
 
-import { buildViews } from "../packages/model-core/src/index.ts";
+import { buildViews, describeProfile, recommendedProfile } from "../packages/model-core/src/index.ts";
 import { createForge, targetOf } from "../packages/model-forge/src/index.ts";
 
 // print-toolkit writes its relative imports as `.js` for tsc; Node's type
@@ -45,6 +50,7 @@ registerHooks({
 const { createNodeSlicerEngine, slicerWasmPath } = await import("../packages/print-toolkit/src/node-slicer.ts");
 const { buildOrcaConfig } = await import("../packages/print-toolkit/src/orca-slicer-settings.ts");
 const { DEFAULT_PRINT_PROFILE } = await import("../packages/print-toolkit/src/print-profile.ts");
+const { filamentByType } = await import("../packages/print-toolkit/src/gcode-parser.ts");
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const OUT = join(ROOT, "public", "models", "print-estimates.json");
@@ -67,13 +73,22 @@ const FILAMENT = { material: "PLA", density: 1.24, costPerKg: 10 };
  */
 const DENSITIES = { PLA: 1.24, PETG: 1.27, TPU: 1.21 };
 
-const PROFILE = {
-  ...DEFAULT_PRINT_PROFILE,
-  wallLoops: 2,
-  sparseInfillDensity: 15,
-  sparseInfillPattern: "gyroid",
-  supportEnabled: false,
-};
+/** A model's recommended profile, as the toolkit's full process profile. */
+function processProfile(recommended) {
+  return {
+    ...DEFAULT_PRINT_PROFILE,
+    wallLoops: recommended.walls,
+    sparseInfillDensity: recommended.infillDensity,
+    sparseInfillPattern: recommended.infillPattern,
+    supportEnabled: recommended.supports !== "none",
+    supportType: recommended.supports === "tree" ? "tree_auto" : "normal_auto",
+    supportStyle: recommended.supports === "tree" ? "organic" : "default",
+    supportOnBuildPlateOnly: recommended.supportsOnBuildPlateOnly,
+    adhesionType: recommended.brim ? "brim" : "none",
+    brimType: "outer_only",
+    brimWidth: 5,
+  };
+}
 
 const FILAMENT_SETTINGS = {
   nozzleTemp: 220,
@@ -149,9 +164,9 @@ const PRINTER = {
   },
 };
 
-function baseConfig() {
+function sliceConfig(recommended) {
   return {
-    ...buildOrcaConfig(PROFILE, FILAMENT_SETTINGS, PRINTER.settings, null, 1),
+    ...buildOrcaConfig(processProfile(recommended), FILAMENT_SETTINGS, PRINTER.settings, null, 1),
     ...PRINTER.limits,
     filament_density: String(FILAMENT.density),
     filament_cost: String(FILAMENT.costPerKg),
@@ -159,18 +174,22 @@ function baseConfig() {
 }
 
 /**
- * Artifacts worth slicing: every STL, and the 3MFs of a model with no STL parts.
- * A model with builds is sliced once per build, with that build's params.
+ * Artifacts worth slicing: every STL, every print plate, and the 3MFs of a
+ * model with no STL parts. A model with builds is sliced once per build, with
+ * that build's params.
  */
 function printableRequests(forge) {
   const out = [];
   for (const model of forge.manifest.models) {
+    const recommended = recommendedProfile(model);
+    const config = sliceConfig(recommended);
+    const profile = describeProfile(recommended);
     for (const view of buildViews(model)) {
       const params = Object.keys(view.params).length > 0 ? { params: view.params } : {};
       const build = view.build ? ` (${view.build.label ?? view.build.id})` : "";
       for (const part of [...view.previews, ...view.parts]) {
-        if (part.format === "3mf" && (view.parts.length > 0 || part.components?.length)) continue;
-        out.push({ slug: model.slug, target: targetOf(part), format: part.format, file: `${part.file}${build}`, ...params });
+        if (part.format === "3mf" && !part.plate && (view.parts.length > 0 || part.components?.length)) continue;
+        out.push({ slug: model.slug, target: targetOf(part), format: part.format, file: `${part.file}${build}`, config, profile, ...params });
       }
     }
   }
@@ -189,28 +208,36 @@ async function sliceAt(bytes, format, config) {
     try { engine.slice(); } finally { console.log = log; }
     // The print-time estimate is filled in by the G-code processor, which only
     // runs on export.
-    engine.exportGCode();
+    const gcode = engine.exportGCode();
     const stats = engine.getSliceStats();
     if (!stats?.printTime) throw new Error("slicer returned no print time");
-    return stats;
+    return { stats, gcode };
   } finally {
     engine.destroy();
   }
 }
 
-async function estimate(bytes, format, config) {
+async function estimate(bytes, format, config, profile) {
   const seconds = {};
-  let stats;
+  let sliced;
   for (const rate of RATES) {
-    stats = await sliceAt(bytes, format, { ...config, filament_max_volumetric_speed: String(rate.mmPerS) });
-    seconds[rate.mmPerS] = stats.printTime;
+    sliced = await sliceAt(bytes, format, { ...config, filament_max_volumetric_speed: String(rate.mmPerS) });
+    seconds[rate.mmPerS] = sliced.stats.printTime;
   }
+  const { stats, gcode } = sliced;
   const grams = (stats.totalFilamentMm3 / 1000) * FILAMENT.density;
+  // The slicer's total is the authority; the G-code tally only splits it.
+  const byType = filamentByType(gcode);
+  const fed = Object.values(byType).reduce((a, b) => a + b, 0);
+  const share = (type) => (fed > 0 ? Math.round((grams * (byType[type] ?? 0) / fed) * 10) / 10 : 0);
   return {
     seconds,
     layers: stats.layerCount,
     grams: Math.round(grams * 10) / 10,
+    supportGrams: share("support"),
+    purgeGrams: share("purge-tower"),
     cost: Math.round(grams * FILAMENT.costPerKg) / 1000,
+    profile,
   };
 }
 
@@ -219,10 +246,10 @@ async function main() {
   const forge = createForge({ root: ROOT, includeDevOnly: !args.includes("--published") });
   const only = args.filter((a) => !a.startsWith("--"));
   const requests = printableRequests(forge).filter((req) => only.length === 0 || only.includes(req.slug));
-  const config = baseConfig();
-  const settings = { rates: RATES, filament: FILAMENT, densities: DENSITIES, defaultMaterial: "PETG", printer: PRINTER.name, profile: "2 walls, 15% gyroid, no supports, 0.2 mm layers" };
+  const settings = { rates: RATES, filament: FILAMENT, densities: DENSITIES, defaultMaterial: "PETG", printer: PRINTER.name, profile: "0.2 mm layers" };
   const salt = createHash("sha256")
-    .update(JSON.stringify(config))
+    // Bumped when an entry gains a field, so cached entries are re-sliced to carry it.
+    .update("entry-v2")
     .update(JSON.stringify(RATES))
     .update(readFileSync(slicerWasmPath()))
     .digest("hex");
@@ -233,11 +260,12 @@ async function main() {
   const started = Date.now();
 
   const misses = [];
-  for (const { file, ...req } of requests) {
+  for (const { file, config, profile, ...req } of requests) {
     const result = await forge.ensure(req);
-    const cachePath = join(CACHE_DIR, `${createHash("sha256").update(`${salt}\0${result.key}`).digest("hex")}.json`);
+    const cacheKey = createHash("sha256").update(`${salt}\0${JSON.stringify(config)}\0${profile}\0${result.key}`).digest("hex");
+    const cachePath = join(CACHE_DIR, `${cacheKey}.json`);
     if (existsSync(cachePath)) estimates[result.key] = JSON.parse(readFileSync(cachePath, "utf8"));
-    else misses.push({ name: `${req.slug}/${file}`, key: result.key, format: req.format, bytes: result.bytes, cachePath });
+    else misses.push({ name: `${req.slug}/${file}`, key: result.key, format: req.format, bytes: result.bytes, cachePath, config, profile });
   }
   console.log(`${requests.length - misses.length} cached, ${misses.length} to slice`);
 
@@ -256,7 +284,7 @@ async function main() {
           const onMessage = settle(resolve);
           const onError = settle(reject);
           worker.on("message", onMessage).on("error", onError);
-          worker.postMessage({ bytes: job.bytes, format: job.format, config });
+          worker.postMessage({ bytes: job.bytes, format: job.format, config: job.config, profile: job.profile });
         });
         if (reply.error) {
           // An estimate is information, not a gate: report it and ship without one.
@@ -281,9 +309,9 @@ async function main() {
 if (isMainThread) {
   await main();
 } else {
-  parentPort.on("message", async ({ bytes, format, config }) => {
+  parentPort.on("message", async ({ bytes, format, config, profile }) => {
     try {
-      parentPort.postMessage({ entry: await estimate(bytes, format, config) });
+      parentPort.postMessage({ entry: await estimate(bytes, format, config, profile) });
     } catch (err) {
       parentPort.postMessage({ error: err.message });
     }

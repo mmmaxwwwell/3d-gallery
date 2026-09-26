@@ -115,10 +115,22 @@ export function createArtifactClient(options: ArtifactClientOptions) {
     });
   }
 
-  async function get(req: ArtifactRequest, init: { signal?: AbortSignal } = {}): Promise<ArtifactResult> {
+  /**
+   * `force` skips the cache and the server and renders locally, replacing the
+   * cached copy: the way out when a cached artifact is suspect.
+   */
+  async function get(req: ArtifactRequest, init: { signal?: AbortSignal; force?: boolean } = {}): Promise<ArtifactResult> {
     const part = partFor(req);
     const format = part.format;
     const key = await keyFor(req);
+
+    if (init.force) {
+      if (!options.localRenderer) throw new ArtifactUnavailableError(key, 'a forced render needs a local renderer');
+      log(`local render ${req.slug}/${req.target} (forced)`);
+      const bytes = await options.localRenderer.render({ ...req, format, part });
+      await cache?.put(key, bytes);
+      return { key, format, bytes, source: 'local' };
+    }
 
     const cached = await cache?.get(key);
     if (cached) {
@@ -130,9 +142,11 @@ export function createArtifactClient(options: ArtifactClientOptions) {
 
     // Asked without a query string first: on a hit that's a clean, immutable,
     // CDN-friendly URL, which is the overwhelmingly common case.
+    log(`fetch ${req.slug}/${req.target}`);
     let response = await doFetch(url, { signal: init.signal }).catch(() => null);
 
     if (!response?.ok && allowServerRender) {
+      log(`server render ${req.slug}/${req.target}`);
       const payload = encodeRenderRequest({ slug: req.slug, target: req.target, format, params: req.params });
       response = await doFetch(`${url}?r=${payload}`, { signal: init.signal }).catch(() => null);
     }

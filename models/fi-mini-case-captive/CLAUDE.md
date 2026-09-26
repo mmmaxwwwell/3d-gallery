@@ -71,14 +71,26 @@ An earlier revision had a single pocket that ran from `lip_height` all the way
 up at full width, swallowing the channel. That left no shoulders at all and the
 tracker hung on the strap alone. Don't merge them back.
 
+**The channel's edges follow the strap's.** A biothane strap has a round on
+each long edge (`strap_edge_d`, 2.5mm across), so all four of the channel's
+long edges take that radius (`channel_rounding`). Under the cavity, the top two
+leave a fillet along each shoulder, flush with the cavity floor, that cradles
+the strap's top corners. The shell's `edge_rounding` is derived as
+`channel_rounding + lip_height`, which makes it concentric with the channel's
+bottom rounds, so the lip wraps the strap's edge at an even thickness. Where
+the channel leaves each end face, `flared_edge()` flares it out at the same
+radius.
+
 ## X regions
 
 - `|x| < cavity_l/2` — the cavity, open downward onto the channel.
 - `|x| > cavity_l/2` — the two end strips, `capture_length` long, with the
   channel bored through them and a solid `lip_height` floor underneath. This is
-  what holds the collar on: `strap_slot()` is bounded to `slot_l = cavity_l`, so
-  it never reaches them. An earlier revision ran the slot the full length of the
-  case and nothing enclosed the strap at all.
+  what holds the collar on: `strap_slot()` is bounded to
+  `slot_l = cavity_l`, so it never reaches them. It runs the cavity's full
+  length so the tracker's ends clear it; an earlier revision stopped it 6mm short
+  of each end and the tracker had to be forced past the floor there. A still earlier one ran the slot the full length
+  of the case and nothing enclosed the strap at all.
 
 ## The lip does two different jobs
 
@@ -137,6 +149,18 @@ Two rules follow, and they are cheap to honour:
 
 - **Don't redefine lib parameters in consumer files.** Change values in the lib.
 - **Don't add geometry in consumer files.** They stay 3-line entry points.
+- **The QR runs off the flat top, on purpose.** It is 33mm on a 35.8mm-wide
+  case (flat top 31.8mm), `qr_end_margin` (4mm) from the -X end, so its sides
+  wrap onto the rounded edges and the rounded corners just clip its two -X
+  corners. The
+  user chose size over a clean quiet zone knowing it may not scan.
+  `qr_dark_modules()` intersects with `case_shell()` so the white inlay never
+  stands proud of the case. Don't pull it back onto the flat without asking.
+- **Text fills the +X end** (`top_text`, `font_style`, `text_size`).
+  `top_text` is multiline: it is split on `\n` with BOSL2's `str_split` and
+  the lines are centered as one block in `text_room` — what the QR leaves of
+  the flat top. An assert rejects a `text_size` that would run into the QR.
+  QR and text are inlaid together by `top_inlay()`, one colour.
 - **The QR is not mirrored.** `fi-mini-case` wraps its `qr()` in
   `mirror([0, 1, 0])`, which flips the code so it will not scan. This model
   deliberately omits that. Verify with `projection() qr_dark_modules()` from
@@ -147,18 +171,27 @@ Two rules follow, and they are cheap to honour:
 
   ```
   vertical, z crossed at:
-    (25.0,  0.0)  END STRIP    0.02, 1.20, 4.20, 18.28   ← floor AND roof: enclosed
-    ( 0.0,  0.0)  mid of slot  16.10, 18.28              open floor to ceiling
-    ( 0.0, 12.0)  strap lip     0.02, 1.20, 16.10, 18.28 lip present
-    ( 0.0, 14.5)  SHOULDER      0.02, 4.20, 16.10, 18.28 ← carries the tracker
-    ( 0.0, 15.4)  under Fi edge 0.02, 4.20, 16.10, 18.28 ← 15.5 is the Fi's edge
-    (21.0,  0.0)  inside slot  16.10, 18.28              slot still open here
+    (25.0,  0.0)  END STRIP    0.03, 1.20, 4.20, 18.27   ← floor AND roof: enclosed
+    ( 0.0,  0.0)  mid of slot  16.10, 16.91              open floor to ceiling
+    ( 0.0, 12.0)  strap lip     0.03, 1.22, 4.18, 16.10, 18.27 lip present; 1.22 and 4.18
+                                                        are the channel's edge rounds
+    ( 0.0, 14.5)  SHOULDER      0.03, 4.20, 16.10, 18.27 ← carries the tracker
+    ( 0.0, 15.4)  under Fi edge 0.03, 4.20, 16.10, 18.27 ← 15.5 is the Fi's edge
+    (14.0,  0.0)  inside slot  16.10, 16.91              slot still open here
 
   horizontal across Y, y crossed at:
-    z= 2.70 x=  0.0  channel, middle  ±13.10, ±17.88  channel_w; shoulders solid to the wall
+    z= 2.70 x=  0.0  channel, middle  ±13.10, ±17.87  channel_w; shoulders solid to the wall
     z= 2.70 x= 25.0  channel, strip   ±13.10, ±14.26  channel bored through the strip
-    z= 0.60 x=  0.0  slot, middle     ±11.21, ±17.32  slot_w + the lead-in chamfer
-    z= 0.60 x= 25.0  slot, strip      ±13.42         SOLID — no slot under the strip
+    z= 0.60 x=  0.0  slot, middle     ±11.10, ±17.02  slot_w; the edge rounding stops at lip_rounding
+    z= 0.05 x=  0.0  slot, underside  ±11.49, ±15.89  rounded dog-facing edge flares out
+    z= 0.60 x= 25.0  slot, strip      ±12.95         SOLID — no slot under the strip
+
+  horizontal along X, x crossed at:
+    z= 0.60 y=  0.0  slot, centreline ±21.90, ±27.02  full cavity length
+    z= 0.60 y= 10.5  slot, corner     ±21.33, ±26.33  slot_corner_r (2mm) rounds the corners in plan
+    z=12.10 y=-16.5  usbc, in wall    ±7.00, ±22.16    usbc_width
+    x=0.0   y=-16.5  usbc, vertical   0.25, 8.10, 16.10, 16.91   top edge flush with the cavity ceiling (16.10)
+    z=12.10 y=-17.85 usbc, at face    ±7.39, ±17.15    usbc_entry_rounding flares the outside edge
   ```
 
   The END STRIP line and the last horizontal are what catch a slot that has
@@ -172,5 +205,4 @@ openscad -o build/case.stl parts/case.scad
 ```
 
 `assembled.3mf` is built by the gallery's `build-multicolor-3mf.mjs` via
-`build-models.mjs` — but this model is `devOnly` in the manifest, so the
-publishing build skips it. Flip that flag to ship it.
+`build-models.mjs`.

@@ -138,6 +138,7 @@ function prusaTypeToMoveType(type: string): MoveType {
     // OrcaSlicer support types
     case 'Support':
     case 'Support interface':
+    case 'Support transition':
       return 'support';
     case 'Skirt':
     case 'Skirt/Brim':
@@ -148,6 +149,42 @@ function prusaTypeToMoveType(type: string): MoveType {
     default:
       return 'other';
   }
+}
+
+/**
+ * Filament fed per move type, in mm of filament. Counts only extruding moves
+ * that travel in XY, so a retraction and its unretract — which can straddle a
+ * feature change — never move filament from one type to another.
+ */
+export function filamentByType(gcode: string): Partial<Record<MoveType, number>> {
+  const out: Partial<Record<MoveType, number>> = {};
+  let type: MoveType = 'other';
+  let relative = true;
+  let e = 0;
+  for (const raw of gcode.split('\n')) {
+    const line = raw.trim();
+    if (line.startsWith(';')) {
+      const m = /^;TYPE:(.+)$/.exec(line);
+      if (m) type = prusaTypeToMoveType(m[1]);
+      continue;
+    }
+    const words = line.split(';')[0].trim().split(/\s+/);
+    const code = words[0].toUpperCase();
+    if (code === 'M82') relative = false;
+    else if (code === 'M83') relative = true;
+    else if (code === 'G92') {
+      const w = words.find((x) => /^E/i.test(x));
+      if (w) e = parseFloat(w.substring(1)) || 0;
+    } else if (code === 'G1' || code === 'G2' || code === 'G3') {
+      const w = words.find((x) => /^E/i.test(x));
+      if (!w) continue;
+      const value = parseFloat(w.substring(1)) || 0;
+      const delta = relative ? value : value - e;
+      e = relative ? e + value : value;
+      if (delta > 0 && words.some((x) => /^[XY]/i.test(x))) out[type] = (out[type] ?? 0) + delta;
+    }
+  }
+  return out;
 }
 
 /**

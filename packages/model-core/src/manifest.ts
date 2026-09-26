@@ -1,6 +1,7 @@
 import { ManifestError } from './errors.ts';
 import { isValidParamName } from './inject.ts';
 import { ARTIFACT_FORMATS, type ArtifactFormat, type ScadParam, type ScadValue } from './types.ts';
+import { checkPrintProfile, type PrintProfileHint } from './print-profile.ts';
 
 export interface SourceRef {
   url: string;
@@ -15,6 +16,8 @@ export interface LegendEntry {
    */
   shades?: string[];
   label: string;
+  /** A line under the label: what the entry is for, or how it prints. */
+  note?: string;
   /** The part a click on this row opens. */
   part?: string;
   /** Every part drawn in this colour, when it is more than the one `part` opens. */
@@ -49,6 +52,8 @@ export interface ManifestPart {
   file: string;
   format: ArtifactFormat;
   label: string;
+  /** A line under the label in the parts list, so the label can stay a name. */
+  note?: string;
   default?: boolean;
   /** Lib module to render. Required for anything the customizer can re-render. */
   module?: string;
@@ -56,6 +61,12 @@ export interface ManifestPart {
   legend?: LegendEntry[];
   components?: ComponentEntry[];
   variants?: VariantEntry[];
+  /**
+   * A preview laid out as one bed's worth of pieces in print orientation. A
+   * build's plates are what "Add to project" turns into print jobs, and what
+   * the estimator slices.
+   */
+  plate?: boolean;
 }
 
 export interface FilamentHint {
@@ -68,6 +79,8 @@ export interface FilamentHint {
    * piece at its own material's flow.
    */
   parts?: string[];
+  /** Where to buy this exact filament. */
+  source?: SourceRef;
 }
 
 /** How many of a hardware item go into every printed piece of `part`. */
@@ -131,6 +144,8 @@ export interface ManifestModel {
    */
   devOnly?: boolean;
   filament?: FilamentHint[];
+  /** Overrides fields of `DEFAULT_PRINT_PROFILE` for every piece of this model. */
+  printProfile?: PrintProfileHint;
   previews?: ManifestPart[];
   parts?: ManifestPart[];
   hardware?: HardwareEntry[];
@@ -225,6 +240,9 @@ function checkPart(
   if (typeof part.label !== 'string' || part.label.length === 0) {
     issues.push(`${where}: "label" must be a non-empty string`);
   }
+  if (part.note !== undefined && (typeof part.note !== 'string' || part.note.length === 0)) {
+    issues.push(`${where}: "note" must be a non-empty string`);
+  }
 
   // Source discovery matches the file's base name against parts/ then previews/,
   // so two entries sharing a base name would resolve to the same .scad.
@@ -240,7 +258,7 @@ function checkPart(
   }
 
   checkComponents(part, where, issues);
-  checkLegendShades(part, where, issues);
+  checkLegend(part, where, issues);
 
   if (part.variants !== undefined) {
     if (!Array.isArray(part.variants)) {
@@ -291,10 +309,14 @@ function instancesOf(comp: ComponentEntry): ComponentInstance[] {
 
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
 
-function checkLegendShades(part: Record<string, unknown>, where: string, issues: string[]): void {
+function checkLegend(part: Record<string, unknown>, where: string, issues: string[]): void {
   if (!Array.isArray(part.legend)) return;
   part.legend.forEach((entry, i) => {
-    if (!isObject(entry) || entry.shades === undefined) return;
+    if (!isObject(entry)) return;
+    if (entry.note !== undefined && (typeof entry.note !== 'string' || entry.note.length === 0)) {
+      issues.push(`${where}.legend[${i}]: "note" must be a non-empty string`);
+    }
+    if (entry.shades === undefined) return;
     const shades = entry.shades;
     if (!Array.isArray(shades) || shades.length === 0 || !shades.every((c) => typeof c === 'string' && HEX_COLOR_RE.test(c))) {
       issues.push(`${where}.legend[${i}]: "shades" must be a non-empty array of #rrggbb colours`);
@@ -599,6 +621,7 @@ export function validateManifest(raw: unknown): Manifest {
     if (model.builds === undefined) checkEntries(model, label, issues);
     else checkBuilds(model, label, issues);
     checkFilament(model, label, issues);
+    checkPrintProfile(model, label, issues);
   });
 
   if (defaultModels > 1) {

@@ -1,6 +1,6 @@
 # collar-slide-tag
 
-A slide-on pet nameplate: a rounded rectangular block with a
+A slide-on pet nameplate: the hull of four spheres with a stadium
 through-slot that the collar strap threads into. The name is recessed
 into the top face. Distinct from `collar-tag`, which is the *dangling*
 split-ring tag — these two share no geometry.
@@ -32,8 +32,8 @@ Two of the three outer dimensions are fully derived:
 
 ```
 tag_w = collar_width + slot_clearance + 2 * wall_thickness
-tag_h = bottom_thickness + collar_thickness + slot_clearance + top_thickness
-tag_l = max(name_adv() * text_size + 2 * wall_thickness, collar_width)
+tag_h = collar_thickness + slot_clearance + 2 * wall_thickness
+tag_l = max(name_adv() * text_size + 2 * rounding, collar_width)
 ```
 
 There is deliberately **no `tag_length` / `tag_width` / `tag_height`
@@ -43,8 +43,9 @@ explicit size param you have to decide what happens when it conflicts
 with the slot, and every combination that loses that fight renders a
 severed tag.
 
-`wall_thickness` does double duty: side material beside the slot *and*
-the end margin around the name. That's why X uses it too.
+`wall_thickness` is the material on every side of the slot — top,
+bottom and edges alike. The end margin around the name is `rounding`
+(half of `tag_h`), which keeps the letters on the flat top.
 
 ## Text width is baked, not measured
 
@@ -105,19 +106,43 @@ it would float above the crown at the edges.
 otherwise coincident, which makes OpenSCAD drop faces. A multi-material
 slicer closes the gap. Same rationale as `property-sign`.
 
-## Edge rounding
+## Four spheres, concentric with the slot
 
-`edge_rounding` is a **diameter** (CSS border-radius framing, as
-requested) — the lib halves it into `rounding`. The blank is the hull
-of eight spheres inset from the bounding-box corners, so all twelve
-edges round and the outer dimensions stay exact. No BOSL2, no
-`minkowski()` (which would grow the part).
+The blank is the hull of **four** spheres of diameter `tag_h`
+(`2 * wall_thickness + slot_h`), at the corners of the flat top, so the
+tag's height is the sphere diameter and its whole outline is rounded.
+The slot is a stadium: the hull of two cylinders of radius `slot_h / 2`
+along X. Both sit at `y = ±edge_y`, so in the Y–Z section the tag's
+rounded edges are **concentric with the slot's**, and the wall is
+`wall_thickness` all the way round.
 
-`rounding` is clamped to `[0.01, min(tag_l, tag_w, tag_h)/2 - 0.01]`.
-Both ends matter: `sphere(r = 0)` is degenerate, and anything past half
-the smallest dimension inverts the hull. The spheres carry their own
-`$fn = rounding_fn` so the previews' global `$fn = 72` doesn't make the
-hull expensive.
+That's why the slot is round-edged rather than a box. The strap it was
+drawn for is biothane (25 × 2.5 mm, fully round edges). A box slot inside
+these edges leaves only about `wall_thickness - 0.2 * slot_h` at its
+corners, 0.45 mm at a 1.2 mm wall. A square-edged strap of the same
+size binds at its corners, by about 0.2 mm at 2.5 mm thick.
+
+There are no top/bottom thickness or edge-rounding params. The sphere
+diameter fixes all three, so a separate param could only fight it.
+The spheres and cylinders carry their own `$fn = rounding_fn`, so the
+previews' global `$fn = 72` doesn't make the hull expensive.
+
+## Rounded slot mouths
+
+Where the slot breaks out through each rounded end, the wall would
+otherwise finish in a knife edge. `shell()` rounds the lip into a
+nose: in any section through the slot axis, the end is a circle of radius `rounding` and the wall a line
+`slot_h / 2` off it, and the fillet is the circle of radius
+`mouth_fillet_frac * wall_thickness` tangent to both. Its near half
+carves the slot side from `mouth_xc`; past `mouth_xt` (where it touches
+the blank) its far half replaces the end. The nose eats the protruding
+lip, so the tag is shorter than `tag_l` — about 1.25 mm per end at the
+default 3 mm wall.
+
+- `mouth_fillet_frac` must stay under 0.5; at 0.5 the circle spans the
+  whole wall and `mouth_xc` collapses.
+- The sweeps are hulled `stadium_slice()`s stepped by angle, not
+  `offset_sweep()`, so the WASM customizer's CGAL renders them.
 
 ## No external dependencies
 
@@ -138,7 +163,7 @@ scope, and no top-level render calls, so `include` is safe.
 - **Don't `translate()` in the previews.** `body()` and `inlay()` are
   already registered against each other and sit on `z = 0`.
 - **Don't add an explicit tag-size parameter** — see above.
-- **`text_thickness > top_thickness` breaks the letters through into
+- **`text_thickness > wall_thickness` breaks the letters through into
   the slot.** This is documented in the param comment rather than
   clamped, so the user sees what they asked for. If you clamp it, say
   so in the UI.

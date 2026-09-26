@@ -291,6 +291,23 @@ describe('validateManifest — legend shades', () => {
   });
 });
 
+describe('validateManifest — notes', () => {
+  it('accepts a note on a part and on a legend entry', () => {
+    const preview = part({ file: 'asm.3mf', format: '3mf', legend: [{ color: '#39ff14', label: 'Beams', note: 'Nested wall to wall' }] });
+    expect(issuesOf({ models: [model({ previews: [preview], parts: [part({ note: 'Prints on end' })] })] })).toEqual([]);
+  });
+
+  it('rejects an empty or non-string note', () => {
+    for (const note of ['', 3]) {
+      const preview = part({ file: 'asm.3mf', format: '3mf', legend: [{ color: '#39ff14', label: 'Beams', note }] });
+      expect(issuesOf({ models: [model({ previews: [preview], parts: [part({ note })] })] })).toEqual([
+        'thing.previews[0].legend[0]: "note" must be a non-empty string',
+        'thing.parts[0]: "note" must be a non-empty string',
+      ]);
+    }
+  });
+});
+
 describe('validateManifest — filament parts', () => {
   const withFilament = (filament: unknown[]) =>
     model({ parts: [part({ file: 'peg.stl' }), part({ file: 'wall.stl' })], filament });

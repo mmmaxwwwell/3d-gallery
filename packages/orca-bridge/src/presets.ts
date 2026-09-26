@@ -58,6 +58,8 @@ export interface ResolvedPreset {
   overrides: FieldDiff[];
   /** Named parents that could not be found on disk. */
   missingParents: string[];
+  /** Each chain entry's JSON, verbatim — immediate parent first, like `chain`. */
+  parentRaws: PresetJson[];
 }
 
 /** Bookkeeping keys that say nothing about how a thing prints. Excluded from
@@ -273,6 +275,7 @@ export function resolvePreset(
     // so `removed` diffs here would just be the rest of the parent restated.
     overrides: diffFields(inheritedBase, raw).filter((d) => d.kind !== 'removed'),
     missingParents,
+    parentRaws: layers.slice(1),
   };
 }
 

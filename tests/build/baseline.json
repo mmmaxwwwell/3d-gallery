@@ -4,12 +4,12 @@
     "colors": [
       "#00EAFFFF"
     ],
-    "triangleCount": 2346,
+    "triangleCount": 1876,
     "bbox": [
       [
         -115,
         -115,
-        -215
+        0
       ],
       [
         125,
@@ -20,12 +20,12 @@
   },
   "air-purifier-shelf/shelf.stl": {
     "format": "stl",
-    "triangleCount": 2342,
+    "triangleCount": 1876,
     "bbox": [
       [
         -115,
         -115,
-        -215
+        0
       ],
       [
         125,
@@ -40,33 +40,33 @@
       "#00EAFFFF",
       "#FF17C7FF"
     ],
-    "triangleCount": 10938,
+    "triangleCount": 15656,
     "bbox": [
       [
-        -31.144,
-        -15.797,
-        0.003
+        -31.342,
+        -15.79,
+        0.01
       ],
       [
-        31.144,
-        15.797,
-        6.797
+        31.342,
+        15.79,
+        9.59
       ]
     ]
   },
   "collar-slide-tag/single.stl": {
     "format": "stl",
-    "triangleCount": 5168,
+    "triangleCount": 9856,
     "bbox": [
       [
-        -31.144,
-        -15.797,
-        0.003
+        -31.343,
+        -15.79,
+        0.01
       ],
       [
-        31.144,
-        15.797,
-        6.797
+        31.343,
+        15.79,
+        9.59
       ]
     ]
   },
@@ -395,33 +395,33 @@
       "#000000FF",
       "#FFFFFFFF"
     ],
-    "triangleCount": 6134,
+    "triangleCount": 13738,
     "bbox": [
       [
-        -27.875,
-        -17.875,
-        0.025
+        -27.87,
+        -17.87,
+        0.03
       ],
       [
-        27.875,
-        17.875,
-        18.31
+        27.87,
+        17.87,
+        18.27
       ]
     ]
   },
   "fi-mini-case-captive/case.stl": {
     "format": "stl",
-    "triangleCount": 3916,
+    "triangleCount": 8650,
     "bbox": [
       [
-        -27.875,
-        -17.875,
-        0.025
+        -27.87,
+        -17.87,
+        0.03
       ],
       [
-        27.875,
-        17.875,
-        18.275
+        27.87,
+        17.87,
+        18.27
       ]
     ]
   },
@@ -603,9 +603,11 @@
   "filament-spool-roller/1x/plate-1x-1.3mf": {
     "format": "3mf",
     "colors": [
+      "#39FF14FF",
+      "#FF6B00FF",
       "#FFD60AFF"
     ],
-    "triangleCount": 4592,
+    "triangleCount": 8138,
     "bbox": [
       [
         -98,
@@ -613,18 +615,19 @@
         0
       ],
       [
-        98,
+        105,
         100.971,
-        8
+        80
       ]
     ]
   },
   "filament-spool-roller/1x/plate-1x-2.3mf": {
     "format": "3mf",
     "colors": [
+      "#00EAFFFF",
       "#FFD60AFF"
     ],
-    "triangleCount": 4594,
+    "triangleCount": 4798,
     "bbox": [
       [
         -98,
@@ -632,8 +635,8 @@
         0
       ],
       [
-        98,
-        100.971,
+        105,
+        105,
         8
       ]
     ]
@@ -641,20 +644,20 @@
   "filament-spool-roller/1x/plate-1x-3.3mf": {
     "format": "3mf",
     "colors": [
-      "#39FF14FF",
-      "#FF6B00FF"
+      "#00EAFFFF",
+      "#FF17C7FF"
     ],
-    "triangleCount": 3546,
+    "triangleCount": 6886,
     "bbox": [
       [
-        -15.923,
-        -45.949,
+        -98,
+        -83,
         0
       ],
       [
-        15.923,
-        72.692,
-        80
+        98,
+        83,
+        9.011
       ]
     ]
   },
@@ -674,45 +677,6 @@
         31,
         7.75,
         8.293
-      ]
-    ]
-  },
-  "filament-spool-roller/1x/plate-1x-5.3mf": {
-    "format": "3mf",
-    "colors": [
-      "#00EAFFFF"
-    ],
-    "triangleCount": 6218,
-    "bbox": [
-      [
-        -98,
-        -40,
-        0
-      ],
-      [
-        98,
-        40,
-        9.011
-      ]
-    ]
-  },
-  "filament-spool-roller/1x/plate-1x-6.3mf": {
-    "format": "3mf",
-    "colors": [
-      "#00EAFFFF",
-      "#FF17C7FF"
-    ],
-    "triangleCount": 872,
-    "bbox": [
-      [
-        -98,
-        -74,
-        0
-      ],
-      [
-        98,
-        74,
-        0.5
       ]
     ]
   },
@@ -1040,177 +1004,26 @@
   "filament-spool-roller/4x/plate-1.3mf": {
     "format": "3mf",
     "colors": [
-      "#FFD60AFF"
-    ],
-    "triangleCount": 4592,
-    "bbox": [
-      [
-        -98,
-        -97.19,
-        0
-      ],
-      [
-        98,
-        100.971,
-        8
-      ]
-    ]
-  },
-  "filament-spool-roller/4x/plate-10.3mf": {
-    "format": "3mf",
-    "colors": [
       "#00EAFFFF",
-      "#FF17C7FF"
-    ],
-    "triangleCount": 822,
-    "bbox": [
-      [
-        -74,
-        -65,
-        0
-      ],
-      [
-        82,
-        65,
-        0.5
-      ]
-    ]
-  },
-  "filament-spool-roller/4x/plate-11.3mf": {
-    "format": "3mf",
-    "colors": [
-      "#00EAFFFF"
-    ],
-    "triangleCount": 1360,
-    "bbox": [
-      [
-        -98,
-        -78,
-        0
-      ],
-      [
-        98,
-        78,
-        0.5
-      ]
-    ]
-  },
-  "filament-spool-roller/4x/plate-12.3mf": {
-    "format": "3mf",
-    "colors": [
-      "#FF17C7FF"
-    ],
-    "triangleCount": 1356,
-    "bbox": [
-      [
-        -98,
-        -74,
-        0
-      ],
-      [
-        98,
-        74,
-        0.5
-      ]
-    ]
-  },
-  "filament-spool-roller/4x/plate-2.3mf": {
-    "format": "3mf",
-    "colors": [
-      "#FFD60AFF"
-    ],
-    "triangleCount": 4606,
-    "bbox": [
-      [
-        -98,
-        -97.19,
-        0
-      ],
-      [
-        98,
-        100.971,
-        8
-      ]
-    ]
-  },
-  "filament-spool-roller/4x/plate-3.3mf": {
-    "format": "3mf",
-    "colors": [
-      "#FFD60AFF"
-    ],
-    "triangleCount": 4606,
-    "bbox": [
-      [
-        -98,
-        -97.19,
-        0
-      ],
-      [
-        98,
-        100.971,
-        8
-      ]
-    ]
-  },
-  "filament-spool-roller/4x/plate-4.3mf": {
-    "format": "3mf",
-    "colors": [
-      "#FFD60AFF"
-    ],
-    "triangleCount": 4606,
-    "bbox": [
-      [
-        -98,
-        -97.19,
-        0
-      ],
-      [
-        98,
-        100.971,
-        8
-      ]
-    ]
-  },
-  "filament-spool-roller/4x/plate-5.3mf": {
-    "format": "3mf",
-    "colors": [
-      "#FFD60AFF"
-    ],
-    "triangleCount": 4594,
-    "bbox": [
-      [
-        -98,
-        -97.19,
-        0
-      ],
-      [
-        98,
-        100.971,
-        8
-      ]
-    ]
-  },
-  "filament-spool-roller/4x/plate-6.3mf": {
-    "format": "3mf",
-    "colors": [
       "#39FF14FF",
-      "#FF6B00FF"
+      "#FF6B00FF",
+      "#FFD60AFF"
     ],
-    "triangleCount": 14184,
+    "triangleCount": 8556,
     "bbox": [
       [
-        -72.692,
-        -45.949,
+        -98,
+        -97.19,
         0
       ],
       [
-        72.692,
-        72.692,
+        105,
+        105,
         80
       ]
     ]
   },
-  "filament-spool-roller/4x/plate-7.3mf": {
+  "filament-spool-roller/4x/plate-10.3mf": {
     "format": "3mf",
     "colors": [
       "#FF17C7FF"
@@ -1229,7 +1042,90 @@
       ]
     ]
   },
-  "filament-spool-roller/4x/plate-8.3mf": {
+  "filament-spool-roller/4x/plate-2.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#39FF14FF",
+      "#FF6B00FF",
+      "#FFD60AFF"
+    ],
+    "triangleCount": 8152,
+    "bbox": [
+      [
+        -98,
+        -97.19,
+        0
+      ],
+      [
+        105,
+        100.971,
+        80
+      ]
+    ]
+  },
+  "filament-spool-roller/4x/plate-3.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#39FF14FF",
+      "#FF6B00FF",
+      "#FFD60AFF"
+    ],
+    "triangleCount": 8152,
+    "bbox": [
+      [
+        -98,
+        -97.19,
+        0
+      ],
+      [
+        105,
+        100.971,
+        80
+      ]
+    ]
+  },
+  "filament-spool-roller/4x/plate-4.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#39FF14FF",
+      "#FF6B00FF",
+      "#FFD60AFF"
+    ],
+    "triangleCount": 8152,
+    "bbox": [
+      [
+        -98,
+        -97.19,
+        0
+      ],
+      [
+        105,
+        100.971,
+        80
+      ]
+    ]
+  },
+  "filament-spool-roller/4x/plate-5.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#00EAFFFF",
+      "#FFD60AFF"
+    ],
+    "triangleCount": 4998,
+    "bbox": [
+      [
+        -98,
+        -97.19,
+        0
+      ],
+      [
+        105,
+        105,
+        8
+      ]
+    ]
+  },
+  "filament-spool-roller/4x/plate-6.3mf": {
     "format": "3mf",
     "colors": [
       "#00EAFFFF",
@@ -1249,7 +1145,7 @@
       ]
     ]
   },
-  "filament-spool-roller/4x/plate-9.3mf": {
+  "filament-spool-roller/4x/plate-7.3mf": {
     "format": "3mf",
     "colors": [
       "#00EAFFFF",
@@ -1266,6 +1162,44 @@
         98,
         83.5,
         9.011
+      ]
+    ]
+  },
+  "filament-spool-roller/4x/plate-8.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#00EAFFFF"
+    ],
+    "triangleCount": 1360,
+    "bbox": [
+      [
+        -98,
+        -78,
+        0
+      ],
+      [
+        98,
+        78,
+        0.5
+      ]
+    ]
+  },
+  "filament-spool-roller/4x/plate-9.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#FF17C7FF"
+    ],
+    "triangleCount": 1356,
+    "bbox": [
+      [
+        -98,
+        -74,
+        0
+      ],
+      [
+        98,
+        74,
+        0.5
       ]
     ]
   },
@@ -1529,6 +1463,42 @@
       ]
     ]
   },
+  "pebblebee-air-captive/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#000000FF",
+      "#FFFFFFFF"
+    ],
+    "triangleCount": 15790,
+    "bbox": [
+      [
+        -26.915,
+        -14.965,
+        0.035
+      ],
+      [
+        26.915,
+        14.965,
+        11.165
+      ]
+    ]
+  },
+  "pebblebee-air-captive/case.stl": {
+    "format": "stl",
+    "triangleCount": 10952,
+    "bbox": [
+      [
+        -26.915,
+        -14.965,
+        0.035
+      ],
+      [
+        26.915,
+        14.965,
+        11.165
+      ]
+    ]
+  },
   "qr-leash-tag/plate.3mf": {
     "format": "3mf",
     "colors": [
@@ -1659,33 +1629,33 @@
       "#000000FF",
       "#FFFFFFFF"
     ],
-    "triangleCount": 6102,
+    "triangleCount": 13624,
     "bbox": [
       [
-        -24.375,
-        -20.375,
-        0.025
+        -24.37,
+        -19.97,
+        0.03
       ],
       [
-        24.375,
-        20.375,
-        16.61
+        24.37,
+        19.97,
+        16.57
       ]
     ]
   },
   "ugreen-finder-duo-captive/case.stl": {
     "format": "stl",
-    "triangleCount": 3856,
+    "triangleCount": 8770,
     "bbox": [
       [
-        -24.375,
-        -20.375,
-        0.025
+        -24.37,
+        -19.97,
+        0.03
       ],
       [
-        24.375,
-        20.375,
-        16.575
+        24.37,
+        19.97,
+        16.57
       ]
     ]
   },
@@ -1850,22 +1820,6 @@
         132.05,
         160.4,
         154
-      ]
-    ]
-  },
-  "vrig-camera-mount-retention-guard/guard.stl": {
-    "format": "stl",
-    "triangleCount": 462,
-    "bbox": [
-      [
-        -24,
-        -10.45,
-        -5.25
-      ],
-      [
-        24,
-        10.45,
-        5.25
       ]
     ]
   }

@@ -16,18 +16,28 @@ import { dirname, join } from 'node:path';
 
 export type PresetKind = 'printer' | 'filament' | 'process';
 
-/** Mirrors the gallery's `PrintPreset` minus the fields the browser owns
- *  (`id`, `updatedAt`). Records are stored flattened — `parents: []` — so they
- *  are self-contained and do not depend on a parent preset existing anywhere. */
+/** Mirrors the gallery's `PrintPreset` minus `id`, which is derived. `raw` is
+ *  the preset file as Orca wrote it and `parents` are snapshots of its chain,
+ *  so a record is self-contained — it does not need the parent presets to
+ *  exist anywhere — and still says which layer every value came from. */
 export interface GalleryPreset {
   kind: PresetKind;
   name: string;
   raw: Record<string, unknown>;
   parents: Array<{ name: string; raw: Record<string, unknown> }>;
+  /** Gallery edits over `raw`; see `PrintPreset.overrides` in the browser. */
+  overrides?: Record<string, unknown>;
   address?: string;
   compatiblePrinters?: string[];
   /** Where this record came from, for provenance in the UI and in diffs. */
-  source: { kind: 'orca-preset'; presetName: string; chain: string[] } | { kind: 'manual' };
+  source:
+    | { kind: 'orca-preset'; presetName: string; chain: string[] }
+    | { kind: 'orca-file'; fileName: string; importedAt: number }
+    | { kind: 'orca-config'; path: string; importedAt: number }
+    | { kind: 'manual' };
+  /** When this copy was written — the browser's newer-wins sync compares it
+   *  against its own record. */
+  updatedAt?: number;
 }
 
 export interface GalleryStore {

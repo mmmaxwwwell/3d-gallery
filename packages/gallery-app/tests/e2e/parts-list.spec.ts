@@ -133,3 +133,41 @@ test("a piece id points at that one piece, and the piece points back at its id",
   await expect(s1).not.toHaveClass(/piece-active/);
   await expect(segment).toHaveClass(/legend-active/);
 });
+
+test("a key entry drawing several parts heads them, and points at every piece", async ({ page }) => {
+  await loadModel(page, "filament-spool-roller");
+
+  const rows = page.locator("#printed-list > ul > li");
+  const tiles = rows.filter({ has: page.locator(".item-label", { hasText: /^Floor tiles$/ }) });
+  await expect(tiles).toHaveClass(/item-group/);
+  await expect(tiles.locator(".item-qty")).toHaveText("4×");
+  await expect(tiles.locator(".item-note")).toHaveText("One per lane");
+  await expect(rows.nth(1)).toHaveClass(/item-variant/);
+  await expect(rows.nth(1).locator(".part-link")).toHaveText("Floor tile, left edge");
+
+  const t1 = page.locator('#printed-list .item-id-ref[data-piece="T1"]');
+  await expect(t1).toHaveClass(/piece-live/);
+
+  await tiles.hover();
+  await expect(page.locator("#viewer-leader line")).toHaveCount(4);
+  await t1.hover();
+  await expect(page.locator("#viewer-leader line")).toHaveCount(1);
+});
+
+test("reference-only pieces say so, and can be drawn solid, see-through or hidden", async ({ page }) => {
+  await loadModel(page, "filament-spool-roller");
+  const section = page.locator("#unlinked-list");
+  await expect(section.locator("h3")).toHaveText("For reference — not printed");
+  await expect(section.locator(".reference-note")).toContainText("none of it is printed or added to a project");
+  await expect(section.locator("li", { hasText: "Spools" })).toBeVisible();
+
+  const tab = (name: string) => section.getByRole("tab", { name });
+  await expect(tab("Solid")).toHaveAttribute("aria-selected", "true");
+  await tab("Hidden").click();
+  await expect(tab("Hidden")).toHaveAttribute("aria-selected", "true");
+  await expect(tab("Solid")).toHaveAttribute("aria-selected", "false");
+  // The rows stay, so a hidden piece can still be found and brought back.
+  await expect(section.locator("li", { hasText: "Spools" })).toBeVisible();
+  await tab("See-through").click();
+  await expect(tab("See-through")).toHaveAttribute("aria-selected", "true");
+});

@@ -163,6 +163,30 @@ describe('get', () => {
     expect(render).toHaveBeenCalledOnce();
   });
 
+  it('renders afresh when forced, skipping the cache and the server, and replaces the cached copy', async () => {
+    const cache = createMemoryCache();
+    const client0 = createArtifactClient({ manifest, cache: null, fetchImpl: vi.fn() });
+    const key = await client0.keyFor({ ...req, params: { size: 12 } });
+    await cache.put(key, bytes(8));
+    const fetchImpl = vi.fn();
+    const render = vi.fn().mockResolvedValue(bytes(16));
+    const client = createArtifactClient({ manifest, cache, fetchImpl, localRenderer: { render } });
+
+    const result = await client.get({ ...req, params: { size: 12 } }, { force: true });
+
+    expect(result.source).toBe('local');
+    expect(result.bytes.byteLength).toBe(16);
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect((await cache.get(key))?.byteLength).toBe(16);
+  });
+
+  it('refuses to force without a renderer rather than quietly serving the cache', async () => {
+    const cache = createMemoryCache();
+    await cache.put(DEFAULT_KEY, bytes(8));
+    const client = createArtifactClient({ manifest, cache, fetchImpl: vi.fn() });
+    await expect(client.get(req, { force: true })).rejects.toThrow(ArtifactUnavailableError);
+  });
+
   it('reports an unavailable artifact when there is no renderer to fall back to', async () => {
     const client = createArtifactClient({
       manifest, cache: null, fetchImpl: vi.fn().mockResolvedValue(notFound),

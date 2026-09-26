@@ -5,18 +5,22 @@ import { Modal } from './Modal.js';
 import {
   deletePreset,
   deletePresetsByKind,
+  importPreset,
   listPresets,
   savePreset,
   type PrintPreset,
   type PresetKind,
 } from './print-storage.js';
-import { parseOrcaPresetFile, parseOrcaConfigTree } from './orca-import.js';
+import { parseOrcaPresetFile, parseOrcaConfigTree, type ParsedPreset } from './orca-import.js';
+import { PresetEditor } from './PresetEditor.js';
+import { setOverride } from './preset-edit.js';
 import { exportFilename, exportMergedJson, exportRawJson } from './preset-flatten.js';
 import {
   clearServerAndUseLocal,
   probeServerStore,
   pullFromServer,
   pushToServer,
+  syncFromServerOnce,
   type ServerStoreStatus,
 } from './server-store.js';
 import {
@@ -63,6 +67,8 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
   const [serverBusy, setServerBusy] = useState<boolean>(false);
   const [serverNotice, setServerNotice] = useState<string>('');
   const [serverError, setServerError] = useState<string>('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editorDirty, setEditorDirty] = useState<boolean>(false);
   const folderInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -75,7 +81,9 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
   }, []);
 
   const refresh = async () => setPresets(await listPresets());
-  useEffect(() => { void refresh(); }, []);
+  // The page-load sync may still be pulling server records (an agent's newly
+  // added printer, say) when the panel opens; list again once it lands.
+  useEffect(() => { void refresh(); void syncFromServerOnce().then(refresh); }, []);
 
   const refreshServer = async () => setServer(await probeServerStore());
   useEffect(() => { void refreshServer(); }, []);
@@ -95,22 +103,9 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
     }
   };
 
-  const savePresetFromParsed = async (parsed: {
-    kind: PresetKind;
-    name: string;
-    raw: import('./print-storage.js').OrcaJson;
-    parents: import('./print-storage.js').OrcaParent[];
-    compatiblePrinters?: string[];
-    address?: string;
-  }) => {
-    await savePreset({
-      kind: parsed.kind,
-      name: parsed.name,
-      raw: parsed.raw,
-      parents: parsed.parents,
-      address: parsed.address,
-      compatiblePrinters: parsed.compatiblePrinters,
-    });
+  // Re-importing refreshes the file and its chain but keeps gallery edits.
+  const savePresetFromParsed = async (parsed: ParsedPreset) => {
+    await importPreset(parsed);
   };
 
   const handleFiles = async (files: FileList | null) => {
@@ -177,14 +172,13 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
   const handleAddressSave = async (preset: PrintPreset) => {
     const draft = addressDrafts[preset.id];
     if (draft === undefined) return;
+    const address = draft.trim() || undefined;
     await savePreset({
-      id: preset.id,
-      kind: preset.kind,
-      name: preset.name,
-      raw: preset.raw,
-      parents: preset.parents,
-      address: draft.trim() || undefined,
-      compatiblePrinters: preset.compatiblePrinters,
+      ...preset,
+      // The address is the preset's `print_host`, so it's recorded as an edit
+      // of that field — the editor then shows what it was imported as.
+      overrides: setOverride(preset, preset.overrides ?? {}, 'print_host', address ?? '', undefined),
+      address,
     });
     setAddressDrafts((prev) => { const next = { ...prev }; delete next[preset.id]; return next; });
     await refresh();
@@ -192,12 +186,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
 
   const toggleUniversalCompat = async (preset: PrintPreset, universal: boolean) => {
     await savePreset({
-      id: preset.id,
-      kind: preset.kind,
-      name: preset.name,
-      raw: preset.raw,
-      parents: preset.parents,
-      address: preset.address,
+      ...preset,
       compatiblePrinters: universal ? [] : preset.compatiblePrinters?.length ? preset.compatiblePrinters : ['(none)'],
     });
     await refresh();
@@ -206,15 +195,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
   const printerNames = useMemo(() => presets.filter((p) => p.kind === 'printer').map((p) => p.name), [presets]);
 
   const setCompatPrinters = async (preset: PrintPreset, names: string[]) => {
-    await savePreset({
-      id: preset.id,
-      kind: preset.kind,
-      name: preset.name,
-      raw: preset.raw,
-      parents: preset.parents,
-      address: preset.address,
-      compatiblePrinters: names,
-    });
+    await savePreset({ ...preset, compatiblePrinters: names });
     await refresh();
   };
 
@@ -243,6 +224,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
       infillDensity: newTemplateInfillDensity,
       infillPattern: newTemplateInfillPattern,
       supportStyle: newTemplateSupports,
+      supportOnBuildPlateOnly: false,
       brim: newTemplateBrim,
       skirt: newTemplateSkirt,
       adaptiveLayerHeight: newTemplateAdaptiveLH,
@@ -256,6 +238,26 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
     deleteUserTemplate(id);
     refreshTemplates();
   };
+
+  const editing = presets.find((p) => p.id === editingId);
+  const guardedClose = () => {
+    if (editorDirty && !confirm('Discard unsaved preset changes?')) return;
+    onClose();
+  };
+
+  if (editing && (editing.kind === 'printer' || editing.kind === 'filament')) {
+    return (
+      <Modal title={`Edit ${editing.kind}`} onClose={guardedClose}>
+        <PresetEditor
+          key={editing.id}
+          preset={editing as PrintPreset & { kind: 'printer' | 'filament' }}
+          onBack={() => { setEditorDirty(false); setEditingId(null); }}
+          onDirtyChange={setEditorDirty}
+          onSaved={() => void refresh()}
+        />
+      </Modal>
+    );
+  }
 
   return (
     <Modal title="Print settings" onClose={onClose}>
@@ -342,7 +344,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                     disabled={serverBusy || server.count === 0}
                     title="Copy the server's presets into this browser. Never deletes local presets."
                     onClick={() => void runServerAction('Sync', async () => {
-                      const { imported } = await pullFromServer();
+                      const { imported } = await pullFromServer({ force: true });
                       return `Using server values — ${imported} preset${imported === 1 ? '' : 's'} synced in.`;
                     })}
                   >
@@ -524,12 +526,24 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                           {' '}(inherits · {preset.parents.length})
                         </span>
                       )}
+                      {preset.overrides && (
+                        <em class="print-settings-badge" title="Settings changed in the gallery, over the imported file">
+                          {Object.keys(preset.overrides).length} edited
+                        </em>
+                      )}
                     </span>
                     <div class="print-settings-item-actions">
                       <button
                         type="button"
+                        class="btn btn-secondary"
+                        onClick={() => setEditingId(preset.id)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
                         class="btn btn-secondary print-settings-export"
-                        title="Download raw JSON (user overrides only — Orca can re-open if the parent preset is installed)"
+                        title="Download this preset's own fields with gallery edits applied (Orca can re-open it if the parent preset is installed)"
                         onClick={() => handleExport(preset, 'raw')}
                       >
                         Export

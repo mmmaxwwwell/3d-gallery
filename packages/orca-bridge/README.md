@@ -93,7 +93,7 @@ while still prompting before anything is written.
 | Write tool | Purpose |
 |------------|---------|
 | `gallery_list_presets` | What the gallery store holds (read-only). |
-| `gallery_add_printer` | Copy an Orca preset in, flattened. `as` + `address` duplicate it onto another machine. |
+| `gallery_add_printer` | Copy an Orca preset in with its inheritance chain. `as` + `address` duplicate it onto another machine, as overrides. |
 | `gallery_remove_preset` | Drop a record from the store. |
 
 A failed read — unknown preset name, missing file — comes back as a tool result
@@ -154,9 +154,17 @@ gap is what this store closes.
 
 `store.ts` keeps records at `.cache/orca-bridge/gallery-presets.json` in exactly
 the shape `print-storage.ts` persists, so the browser upserts them verbatim.
-Records are stored **flattened** (`parents: []`) with the full chain merged down,
-which is what lets them survive without the vendor presets. Each carries its
-provenance — which Orca preset it came from and the chain that was collapsed.
+A record keeps the preset file verbatim as `raw` and a snapshot of each parent
+in its chain as `parents`, which lets it survive without the vendor presets
+while still saying which layer every value came from. Gallery edits live in a
+separate `overrides` object over `raw` — a duplicate made with `as` / `address`
+is just the source file plus overrides for `print_host`, `name` and
+`printer_settings_id`. Each record carries its provenance (`source`) and the
+time it was written (`updatedAt`).
+
+The browser's automatic pull on page load is **newer-wins per record**: a
+preset edited in the browser after the server copy was written is left alone,
+so a reload can't undo an edit. **Use server values** forces the pull.
 
 ### Local-first, server optional
 

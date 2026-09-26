@@ -27,6 +27,18 @@ include <qr.scad>
 // Leave empty for no QR code.
 qr_code_text = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 
+// Text on the top at the opposite end from the QR code. // multiline
+// Each line break starts a new line; the lines are centered as one block.
+// Leave empty for none.
+top_text = "IF FOUND\nSCAN ME";
+
+// Font for the text. The WASM customizer ships with the
+// Liberation family only.
+font_style = "Sans Bold";  // [Sans Bold, Sans, Serif Bold, Serif, Mono Bold, Mono]
+
+// Height of the text, in mm. Every line shares it.
+text_size = 3;
+
 // Width of your collar strap, in mm. 25.4 mm (1 in) is the common
 // large-dog biothane size. Measure the strap, not the buckle.
 strap_width = 25.4;
@@ -73,17 +85,25 @@ tag_clearance = 0.4;      // mm - slip fit around the tracker
 // ============================================================
 // Case Parameters
 // ============================================================
-wall_thickness   = 2;    // mm - wall thickness on every side. No screws pass
+wall_thickness   = 1.6;  // mm - wall thickness on every side. No screws pass
                          //      through it, so it carries nothing but itself.
 qr_backing       = 0.8;  // mm - solid plastic left under the QR recess
-edge_rounding    = 2;    // mm - rounding on the outer edges
 strap_clearance  = 0.4;  // mm - slip fit on the strap's width only
 lip_height       = 1.2;  // mm - thickness of the lip under the strap
-lip_rounding     = 0.4;  // mm - chamfered lead-in at the bottom slot
-channel_rounding = 1;    // mm - round on the strap channel's bottom edges
+lip_rounding     = 0.6;  // mm - rounding on the bottom slot's dog-facing edges
+slot_corner_r    = 2;    // mm - plan-view radius on the bottom slot's corners,
+                         //      so the lip has no sharp corner to tear from
+strap_edge_d     = 2.5;  // mm - diameter of the round on the strap's edges
+// The channel's long edges take the strap's own round, so the strap fills its
+// corners. Capped at half the channel height for a strap too thin to carry it.
+channel_rounding = min(strap_edge_d / 2, strap_thickness / 2);
+// Concentric with the channel's bottom edges, so the lip under the strap
+// wraps its edge at an even thickness.
+edge_rounding    = channel_rounding + lip_height;
 cut_overlap      = 1;    // mm - how far one cut runs into the next. Adjacent
                          //      cuts must never stop on a shared plane; see
                          //      CLAUDE.md for the 8-micron film this prevents.
+qr_end_margin    = 4.5;  // mm - from the case's -X end to the QR's edge
 
 // ============================================================
 // USB-C Port Cutout Parameters
@@ -95,6 +115,7 @@ usbc_width  = 14;
 usbc_height = 7;
 usbc_depth  = 10;
 usbc_rounding = 2;
+usbc_offset   = -1.25;  // mm - from the tracker's mid-height, positive is up
 
 // ============================================================
 // Derived Dimensions
@@ -115,9 +136,9 @@ channel_h = strap_thickness;
 shoulder_w = (cavity_w - channel_w) / 2;
 
 slot_w = channel_w - 2 * strap_lip_width;
-// The slot stops where the cavity does, so each end strip is solid underneath
-// for its full capture_length. It stays as long as the cavity because the
-// tracker has to come through it.
+// As long as the cavity, so the tracker slides straight up through it with no
+// floor under its ends to be worked past. The end strips still close the
+// underside beyond it.
 slot_l = cavity_l;
 
 // The QR is recessed into the top face, so the top wall has to carry it plus a
@@ -133,12 +154,45 @@ z_channel = lip_height;              // strap rests on the lip
 z_cavity  = z_channel + channel_h;   // tracker rests on the shoulders + strap
 case_height = z_cavity + tag_height + tag_clearance + top_thickness;
 
-qr_size = 32;
-usbc_z  = z_cavity + tag_height / 2;
+// Just inside the flat top across Y, and toward the -X end: its -X edge stops
+// about 2.5mm short of the rounded end and its -X corners clear the
+// rounded corners in plan. Tight on quiet zone; qr_dark_modules() still clips
+// it to the shell if it grows.
+qr_size = 32.3;
+qr_x = -(case_length / 2 - qr_end_margin - qr_size / 2);
+
+// The text follows the QR at a fixed gap rather than centering in what is
+// left, so the two move as one when qr_end_margin changes. At the defaults the
+// block's +X edge stops about 1.5mm short of the rounded end; top_text_block()
+// still clips it to the shell for larger text.
+text_thickness = qr_thickness;
+text_line_gap  = 1.4 * text_size;
+text_gap       = 0.8;  // mm - between the QR's +X edge and the text
+text_font =
+    font_style == "Sans Bold"  ? "Liberation Sans:style=Bold"  :
+    font_style == "Sans"       ? "Liberation Sans"             :
+    font_style == "Serif Bold" ? "Liberation Serif:style=Bold" :
+    font_style == "Serif"      ? "Liberation Serif"            :
+    font_style == "Mono Bold"  ? "Liberation Mono:style=Bold"  :
+    font_style == "Mono"       ? "Liberation Mono"             :
+    "Liberation Sans:style=Bold";
+has_inlay = qr_code_text != "" || top_text != "";
+text_lines   = top_text == "" ? [] : str_split(top_text, "\n");
+text_lines_n = len(text_lines);
+text_block   = text_lines_n == 0 ? 0 : text_size + (text_lines_n - 1) * text_line_gap;
+text_x       = qr_x + qr_size / 2 + text_gap + text_block / 2;
+usbc_z  = z_cavity + tag_height / 2 + usbc_offset;
+
+assert(text_x + text_block / 2 < case_length / 2,
+       str("text_size of ", text_size, " mm runs the text off the end of the case; at most ",
+           (case_length / 2 - (qr_x + qr_size / 2) - text_gap) / (1 + 1.4 * (text_lines_n - 1)), " mm"));
 
 assert(shoulder_w > 0,
        str("strap_width of ", strap_width, " mm leaves the tracker no shoulder to rest on; max is ",
            cavity_w - 2 * strap_clearance, " mm"));
+
+assert(slot_corner_r >= 0 && slot_corner_r <= slot_w / 2,
+       str("slot_corner_r of ", slot_corner_r, " mm must be between 0 and ", slot_w / 2, " mm"));
 
 assert(strap_lip_width > strap_clearance && slot_w > 2 * lip_rounding,
        str("strap_lip_width of ", strap_lip_width, " mm does not hold the strap; it must be over ",
@@ -170,12 +224,32 @@ module case_shell() {
 // so any slack added here shows up as a loose strap slot on the end of the case.
 // The overlap with the cavity above is tag_cavity()'s job instead.
 module strap_channel() {
-    // Rounded along the bottom two edges only, to ease the strap over the lip.
-    // Rounding the top two would take a bite out of the strap's top corners:
-    // there is no clearance up there, the tracker sits on that face.
     translate([0, 0, z_channel + channel_h / 2])
         cuboid([case_length + 2, channel_w, channel_h],
-               rounding = channel_rounding, edges = [BOT + FWD, BOT + BACK], $fn = 20);
+               rounding = channel_rounding, edges = "X", $fn = 20);
+    // Where the channel leaves each end face, the same round flares it out so
+    // the strap never bends over a square edge.
+    for (s = [0, 1])
+        mirror([s, 0, 0])
+            translate([case_length / 2, 0, z_channel + channel_h / 2])
+                rotate([0, -90, 0])
+                    flared_edge(rect([channel_h, channel_w], rounding = channel_rounding, $fn = 20),
+                                channel_rounding, $fn = 20);
+}
+
+// A cut's outline, flared out by r where it meets the face at z = 0 and back to
+// the outline itself by z = r: a negative-radius round on the cut's edge. Built
+// from hulls of thin slices rather than offset_sweep(), because OpenSCAD-WASM
+// (the customizer) renders with CGAL, which crashes on offset_sweep's mesh.
+module flared_edge(outline, r, steps = 8) {
+    function slice_d(j) = r - r * sin(90 * j / steps);
+    function slice_z(j) = r - r * cos(90 * j / steps);
+    module slice(d, z) {
+        translate([0, 0, z]) linear_extrude(0.01) offset(r = d) polygon(outline);
+    }
+    hull() { slice(r, -cut_overlap); slice(r, 0); }
+    for (j = [0 : steps - 1])
+        hull() { slice(slice_d(j), slice_z(j)); slice(slice_d(j + 1), slice_z(j + 1)); }
 }
 
 // The slot in the underside both parts are pressed through, narrower than the
@@ -184,16 +258,13 @@ module strap_channel() {
 module strap_slot() {
     z0 = -1;
     z1 = z_channel + cut_overlap;
-    translate([0, 0, (z0 + z1) / 2])
-        cube([slot_l, slot_w, z1 - z0], center = true);
-    // Chamfered lead-in, so there is a ramp to start against rather than a
-    // square edge.
-    hull() {
-        translate([0, 0, z_channel])
-            cube([slot_l, slot_w, 0.01], center = true);
-        translate([0, 0, z0])
-            cube([slot_l, slot_w + 2 * lip_rounding, 0.01], center = true);
-    }
+    outline = rect([slot_l, slot_w], rounding = slot_corner_r, $fn = 32);
+    translate([0, 0, z0])
+        linear_extrude(z1 - z0)
+            polygon(outline);
+    // A negative radius flares the cut outward at the underside, rounding the
+    // dog-facing edge all the way round and giving the strap a lead-in.
+    flared_edge(outline, lip_rounding, $fn = 32);
 }
 
 // Sits on top of the strap channel, adjacent to it and never cut into it. Its
@@ -229,9 +300,32 @@ module usbc_cutout() {
 }
 
 module qr_dark_modules() {
-    translate([0, 0, case_height - qr_thickness + 0.01])
-        qr(qr_code_text, error_correction = "L",
-           width = qr_size, height = qr_size, thickness = qr_thickness, center = true);
+    intersection() {
+        case_shell();
+        translate([qr_x, 0, case_height - qr_thickness + 0.01])
+            qr(qr_code_text, error_correction = "L",
+               width = qr_size, height = qr_size, thickness = qr_thickness, center = true);
+    }
+}
+
+// Reads with the +X end at the top, so the lines run across the case.
+module top_text_block() {
+    intersection() {
+        case_shell();
+        translate([text_x, 0, case_height - text_thickness + 0.01])
+            rotate([0, 0, -90])
+                for (i = [0 : text_lines_n - 1])
+                    translate([0, ((text_lines_n - 1) / 2 - i) * text_line_gap, 0])
+                        linear_extrude(text_thickness)
+                            text(text_lines[i], size = text_size, font = text_font,
+                                 halign = "center", valign = "center");
+    }
+}
+
+// Everything inlaid in the top face, in the second colour.
+module top_inlay() {
+    if (qr_code_text != "") qr_dark_modules();
+    if (text_lines_n > 0) top_text_block();
 }
 
 // ============================================================
@@ -246,6 +340,6 @@ module case() {
         strap_channel();
         strap_slot();
         usbc_cutout();
-        if (qr_code_text != "") qr_dark_modules();
+        if (has_inlay) top_inlay();
     }
 }

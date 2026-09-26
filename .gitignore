@@ -30,3 +30,6 @@ playwright-report/
 
 # Build cache — content-hashed openscad artifacts (safe to delete anytime)
 .cache/
+
+# Per-dog tag builds (names, microchip IDs, addresses) — local only
+/dogs/

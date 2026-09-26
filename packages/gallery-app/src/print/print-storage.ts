@@ -28,6 +28,18 @@ export interface OrcaParent {
   raw: OrcaJson;
 }
 
+/** Where a preset's `raw` came from. Kept so the editor can say what a value
+ *  started as and who put it there. Absent on records saved before provenance
+ *  was tracked. */
+export type PresetSource =
+  /** A single `.orca_*` / `.json` file picked in the Import tab. */
+  | { kind: 'orca-file'; fileName: string; importedAt: number }
+  /** A preset found while walking a picked OrcaSlicer config folder. */
+  | { kind: 'orca-config'; path: string; importedAt: number }
+  /** Copied in by the orca-bridge (MCP / CLI) from the local Orca install. */
+  | { kind: 'orca-preset'; presetName: string; chain: string[] }
+  | { kind: 'manual' };
+
 export interface PrintPreset {
   /** Stable identifier: `${kind}:${name}`. */
   id: string;
@@ -39,6 +51,12 @@ export interface PrintPreset {
   /** Inheritance chain: immediate parent first, root last. Snapshotted at
    *  import time — parents are never re-fetched from disk. */
   parents: OrcaParent[];
+  /** Edits made in the gallery, layered over `raw`. `raw` itself is never
+   *  edited, so it stays the file as imported and every override can say what
+   *  it replaced. Values keep Orca's on-disk shape (strings, string arrays).
+   *  Absent or empty: the preset is exactly as imported. */
+  overrides?: OrcaJson;
+  source?: PresetSource;
   /** Extracted for the "Send to printer" dropdown (from `print_host`). */
   address?: string;
   /** Extracted for compat filtering. Empty or absent → universal. */
@@ -86,12 +104,27 @@ export async function savePreset(
     name: preset.name,
     raw: preset.raw,
     parents: preset.parents,
+    overrides: preset.overrides && Object.keys(preset.overrides).length ? preset.overrides : undefined,
+    source: preset.source,
     address: preset.address,
     compatiblePrinters: preset.compatiblePrinters,
     updatedAt: Date.now(),
   };
   await db.put(PRESETS_STORE, record);
   return record;
+}
+
+/**
+ * Save a freshly imported (or synced) preset without losing the gallery edits
+ * already made to it. Re-importing refreshes `raw` and the parent chain — the
+ * file may have changed in Orca — but overrides are the user's own work and
+ * outlive any number of re-imports. Pass `overrides` to replace them instead.
+ */
+export async function importPreset(
+  preset: Omit<PrintPreset, 'id' | 'updatedAt'>,
+): Promise<PrintPreset> {
+  const existing = await getPreset(`${preset.kind}:${preset.name}`);
+  return savePreset({ ...preset, overrides: preset.overrides ?? existing?.overrides });
 }
 
 export async function deletePresetsByKind(kind: PresetKind): Promise<number> {

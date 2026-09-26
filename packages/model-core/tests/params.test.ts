@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { parseParams, parseValue, coerceToParamType } from '../src/params.ts';
+import { formatScadValue } from '../src/inject.ts';
 
 const LIB = `
 // BEGIN_PARAMS
@@ -59,6 +60,12 @@ describe('parseValue', () => {
     expect(parseValue('"hi"')).toEqual({ value: 'hi', type: 'string' });
     expect(parseValue('[1, 2]')).toEqual({ value: [1, 2], type: 'vector' });
     expect(parseValue('3.5')).toEqual({ value: 3.5, type: 'number' });
+  });
+
+  it('unescapes string literals, inverting formatScadValue', () => {
+    const raw = formatScadValue('IF FOUND\nsay "hi" \\o/');
+    expect(parseValue(raw)).toEqual({ value: 'IF FOUND\nsay "hi" \\o/', type: 'string' });
+    expect(parseValue('"A\\nB"').value).toBe('A\nB');
   });
 });
 

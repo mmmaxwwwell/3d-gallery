@@ -29,19 +29,23 @@ the one-lane stand **80 × 196 mm**.
 
 ### Print plates
 
-Twelve plates, each laid out for a 220 × 220 × 220 mm bed, print one of
-everything above. The optional lock pins aren't on them.
+Ten plates, each laid out for a 220 × 220 × 220 mm bed with 5 mm clear of
+its edges, print one of everything above. The optional lock pins aren't on
+them. A wall fills a bed on its own — two won't nest — but each leaves its
+back corner free, and a lane's rollers and beam and the bulkhead template
+ride there. Plates 1–9 are PETG; plate 10 is the TPU one, kept apart so no
+plate mixes materials.
 
 | Plate | What's on it |
 |-------|--------------|
-| 1–5 | One wall each — left, three centre, right |
-| 6 | All 8 rollers, on end, and all 4 beams, on their flange ends |
-| 7 | All 10 pegs, lying on their flats — **print these in TPU** |
-| 8 | Floor tiles 1 and 2 |
-| 9 | Floor tiles 3 and 4 |
-| 10 | The bulkhead drilling template |
-| 11 | Floor drilling template, left half |
-| 12 | Floor drilling template, right half |
+| 1 | Left wall, lane 1's 2 rollers and beam, bulkhead template left half |
+| 2–4 | A centre wall each, with lane 2's, 3's and 4's 2 rollers and beam |
+| 5 | Right wall, bulkhead template right half |
+| 6 | Floor tiles 1 and 2 |
+| 7 | Floor tiles 3 and 4 |
+| 8 | Floor drilling template, left half |
+| 9 | Floor drilling template, right half |
+| 10 | All 10 pegs, lying on their flats — **print these in TPU** |
 
 Every part is also its own STL, in its print orientation, for printing one at
 a time.
@@ -64,12 +68,10 @@ is open at both sides, and both drilling templates print whole.
 
 | Plate | What's on it |
 |-------|--------------|
-| 1 | The left wall |
-| 2 | The right wall |
-| 3 | Both rollers, on end, and the beam |
+| 1 | The left wall, both rollers on end, and the beam |
+| 2 | The right wall and the bulkhead template |
+| 3 | The floor tile and the floor drilling template |
 | 4 | All 4 pegs — **print these in TPU** |
-| 5 | The floor tile |
-| 6 | Both drilling templates |
 
 Hardware: 4 × 608ZZ, one PTFE tube and bulkhead, 2 × M3 × 25, 6 × M3 × 8 and
 4 × M4 (optional).

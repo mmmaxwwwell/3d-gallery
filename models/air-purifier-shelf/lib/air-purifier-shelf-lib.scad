@@ -80,8 +80,8 @@ module base() {
 // Public modules
 // ============================================================
 
-// Complete shelf assembly: round plate + two diagonal struts + bottom
-// support strut, with everything below the base plane trimmed.
+// Complete shelf assembly: round plate + two diagonal struts, with
+// everything below the base plane trimmed.
 module shelf() {
     difference() {
         union() {
@@ -93,12 +93,6 @@ module shelf() {
 
             // Right truss (bottom of plate)
             translate([0, -(shelf_diameter / 2), shelf_thickness])
-                strut();
-
-            // Right-bottom support strut
-            translate([0,
-                       -(shelf_diameter / 2),
-                       shelf_thickness / 2 + shelf_thickness - (shelf_diameter / 2)])
                 strut();
         }
 
