@@ -1,20 +1,29 @@
 // SPDX-License-Identifier: MIT
 /** @jsxImportSource preact */
+//
+// Plan & print: one screen for turning a project's plates into prints.
+//
+// Desktop shows three panes at once — the plates on the left, the timeline
+// top right, the printers bottom right — under a summary of the whole job
+// that every change recomputes. A phone shows the same panes one at a time.
+// Plates slice on their own, in the background, for whichever printer the
+// timeline gives them — a re-plan that moves a plate slices it again. The way
+// out is Send to printers, which stays shut until every plate is sliced for
+// its printer and the timeline is clean, and hands the plan to the printers
+// screen (PrintDispatch), where it's uploaded and started.
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import {
   evaluateAuthoredPlateFit,
   fetchPrintStatus,
   printerBedFromConfig,
-  startPrint,
-  uploadGcode,
   type OperatorBlock,
+  type PlateFootprint,
   type PrintStatus,
   type Schedule,
-  type ScheduleJob,
   type ScheduleObjective,
   type SchedulePrinter,
 } from '@3d-gallery/print-toolkit';
-import { describeProfile, materialFamily } from '@3d-gallery/model-core';
+import { materialFamily } from '@3d-gallery/model-core';
 import { Modal } from './Modal.js';
 import { listPresets, type PrintPreset } from './print-storage.js';
 import { flattenPresetForSlicer } from './preset-flatten.js';
@@ -31,9 +40,31 @@ import {
   type SlicedGcode,
 } from './plate-store.js';
 import { DEFAULT_BED_SURFACE, processFromProfile, slicePlate, type SliceSetup } from './plate-slice.js';
-import { listTemplates } from './process-templates.js';
+import { listTemplates, type ProcessSettings } from './process-templates.js';
 import { loadLastSelections } from './PrintDialog.js';
 import { formatWhen, loadPlannerSettings, operatorBlocks, planFleet, savePlannerSettings, type PlannerSettings } from './fleet-plan.js';
+import {
+  collisions,
+  formatDuration,
+  freshSlices,
+  gcodeName,
+  isReady,
+  loadEstimates,
+  plateFilament,
+  plateGrams,
+  plateMaterial,
+  plateNumbers,
+  plateSeconds,
+  readiness,
+  scheduleJobs,
+  sliceSetupKey,
+  type Estimates,
+  type Measured,
+} from './planner-model.js';
+import { plateThumbnail } from './plate-thumbnail.js';
+import { PlannerGantt } from './PlannerGantt.js';
+import { getDaemon, hasDispatch } from './dispatch-daemon.js';
+import type { DispatchJob } from './dispatch-model.js';
 
 export interface ProjectPlannerProps {
   projectId: string;
@@ -41,102 +72,51 @@ export interface ProjectPlannerProps {
   onOpenPlate: (plateId: string) => void;
   onOpenPlates: () => void;
   onOpenSettings: () => void;
+  onOpenDispatch: () => void;
 }
 
-// ── CI estimates ─────────────────────────────────────────
+type StatusState = PrintStatus | { error: string } | 'loading';
+type Geometry = { footprints: PlateFootprint[]; thumb: string | null } | { failed: string };
+type Tab = 'plates' | 'timeline' | 'printers';
 
-/** The slice of `print-estimates.json` the planner reads. */
-interface Estimates {
-  settings: { rates: { mmPerS: number; label?: string }[]; defaultMaterial: string };
-  estimates: Record<string, { seconds: Record<string, number>; grams: number; profile?: string }>;
-}
-
-async function loadEstimates(): Promise<Estimates | null> {
-  try {
-    const res = await fetch(`${import.meta.env.BASE_URL}models/print-estimates.json`);
-    return res.ok ? ((await res.json()) as Estimates) : null;
-  } catch {
-    return null;
-  }
-}
-
-// ── Helpers ──────────────────────────────────────────────
-
-const HOUR = 3600_000;
-
-function plateMaterial(plate: Plate): string {
-  return materialFamily(plate.material ?? 'PETG');
-}
-
-function formatDuration(seconds: number): string {
-  const minutes = Math.max(1, Math.round(seconds / 60));
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return h === 0 ? `${m}m` : `${h}h ${String(m).padStart(2, '0')}m`;
-}
-
-function slugify(text: string): string {
-  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48) || 'plate';
-}
-
-/** Moonraker file name: the plan's start order first, so a printer's file list reads in print order. */
-function gcodeName(order: number, plate: Plate): string {
-  return `${String(order + 1).padStart(2, '0')}-${slugify(plate.name)}.gcode`;
-}
-
-function freshSlices(plate: Plate, slices: SlicedGcode[] | undefined): SlicedGcode[] {
-  const signature = plateSignature(plate);
-  return (slices ?? []).filter((s) => s.signature === signature);
-}
-
-type TimeSource = { seconds: number; source: 'sliced' | 'estimate' };
-
-/**
- * How long a plate takes: the slicer's own figure for a fresh slice, else the
- * CI estimate at the plate's material rate, summed over its items.
- */
-function plateTime(plate: Plate, slices: SlicedGcode[] | undefined, est: Estimates | null): TimeSource | null {
-  const sliced = freshSlices(plate, slices).find((s) => s.seconds);
-  if (sliced?.seconds) return { seconds: sliced.seconds, source: 'sliced' };
-  if (!est) return null;
-  const family = plateMaterial(plate);
-  const rates = est.settings.rates;
-  const rate = rates.find((r) => r.label === family)
-    ?? rates.find((r) => r.label === materialFamily(est.settings.defaultMaterial));
-  if (!rate) return null;
-  let seconds = 0;
-  for (const item of plate.items) {
-    const s = est.estimates[item.key]?.seconds[rate.mmPerS];
-    if (!s) return null;
-    seconds += s * item.qty;
-  }
-  return seconds > 0 ? { seconds, source: 'estimate' } : null;
-}
+/** The single-printer yardstick: one machine, every plate in turn. */
+const ONE_PRINTER = '__one';
 
 function filamentFamily(preset: PrintPreset): string | undefined {
   const type = flattenPresetForSlicer(preset)['filament_type']?.split(';')[0];
   return type ? materialFamily(type) : undefined;
 }
 
-type StatusState = PrintStatus | { error: string } | 'loading';
+function plural(n: number, one: string, many = `${one}s`): string {
+  return `${n} ${n === 1 ? one : many}`;
+}
 
 // ── Component ────────────────────────────────────────────
 
-export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenPlates, onOpenSettings }: ProjectPlannerProps) {
+export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenPlates, onOpenSettings, onOpenDispatch }: ProjectPlannerProps) {
   const [project, setProject] = useState<Project | null>(null);
   const [plates, setPlates] = useState<Plate[] | null>(null);
   const [printers, setPrinters] = useState<PrintPreset[]>([]);
   const [filaments, setFilaments] = useState<PrintPreset[]>([]);
   const [estimates, setEstimates] = useState<Estimates | null>(null);
   const [slices, setSlices] = useState<Record<string, SlicedGcode[]>>({});
-  const [fits, setFits] = useState<Record<string, string[]>>({});
+  const [geometry, setGeometry] = useState<Record<string, Geometry>>({});
   const [statuses, setStatuses] = useState<Record<string, StatusState>>({});
   const [settings, setSettingsState] = useState<PlannerSettings>(loadPlannerSettings);
+  // The plate editor writes these; it replaces this screen, so reading them once is current.
+  const [selections] = useState(loadLastSelections);
   const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState<string | null>(null);
+  const [slicing, setSlicing] = useState<{ plateId: string; pct: number } | null>(null);
   const [log, setLog] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [draftAway, setDraftAway] = useState({ start: '', end: '' });
+  const [tab, setTab] = useState<Tab>('plates');
+  const [timelineView, setTimelineView] = useState<'chart' | 'trips'>('chart');
+  const [hovered, setHovered] = useState<string | null>(null);
+  /** `plateId|printerId|setupKey` → why slicing it failed. Auto-slicing skips these until the Slice button retries. */
+  const [sliceFailed, setSliceFailed] = useState<Record<string, string>>({});
+  const [sent] = useState(() => hasDispatch(projectId));
 
   const setSettings = (patch: Partial<PlannerSettings>) => {
     setSettingsState((prev) => {
@@ -191,118 +171,183 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenPlates, 
   };
   useEffect(refreshStatuses, [printers]);
 
-  // Which printers each plate physically fits. Resolving meshes is the slow
-  // part, so it runs once per plate list and printer list.
+  // Each plate's footprint (for bed fit) and thumbnail. Resolving meshes is
+  // the slow part, so it runs once per plate list.
   useEffect(() => {
-    if (!plates || printers.length === 0) return;
+    if (!plates) return;
     let cancelled = false;
     void (async () => {
-      const beds = printers
-        .map((p) => ({ id: p.id, bed: printerBedFromConfig(flattenPresetForSlicer(p)) }))
-        .filter((b) => b.bed);
       for (const plate of plates) {
+        let entry: Geometry;
         try {
           const report = await resolvePlate(plate);
-          const footprints = toFootprints(buildInstances(plate, report.objects));
-          const ok = beds.filter((b) => evaluateAuthoredPlateFit(footprints, b.bed!).status !== 'blocked').map((b) => b.id);
-          if (!cancelled) setFits((prev) => ({ ...prev, [plate.id]: ok }));
-        } catch {
-          // Unknown fit: the plan lets any printer take it, and slicing will say.
+          const instances = buildInstances(plate, report.objects);
+          entry = { footprints: toFootprints(instances), thumb: plateThumbnail(plateSignature(plate), instances) };
+        } catch (err) {
+          entry = { failed: err instanceof Error ? err.message : String(err) };
         }
+        if (cancelled) return;
+        setGeometry((prev) => ({ ...prev, [plate.id]: entry }));
       }
     })();
     return () => { cancelled = true; };
-  }, [plates, printers]);
+  }, [plates]);
 
   const enabledPrinters = printers.filter((p) => settings.enabled[p.id] !== false);
+  const plateById = useMemo(() => new Map((plates ?? []).map((p) => [p.id, p])), [plates]);
+  const printerById = useMemo(() => new Map(printers.map((p) => [p.id, p])), [printers]);
   const materials = useMemo(() => [...new Set((plates ?? []).map(plateMaterial))].sort(), [plates]);
 
-  const times = useMemo(() => {
-    const out: Record<string, TimeSource | null> = {};
-    for (const plate of plates ?? []) out[plate.id] = plateTime(plate, slices[plate.id], estimates);
+  /** Which printers each plate physically fits. A plate whose geometry
+   *  couldn't be resolved is left unconstrained, and slicing will say. */
+  const fits = useMemo(() => {
+    const beds = printers
+      .map((p) => ({ id: p.id, bed: printerBedFromConfig(flattenPresetForSlicer(p)) }))
+      .filter((b) => b.bed);
+    const out: Record<string, string[]> = {};
+    for (const [plateId, g] of Object.entries(geometry)) {
+      if ('footprints' in g) {
+        out[plateId] = beds.filter((b) => evaluateAuthoredPlateFit(g.footprints, b.bed!).status !== 'blocked').map((b) => b.id);
+      }
+    }
     return out;
-  }, [plates, slices, estimates]);
+  }, [geometry, printers]);
+
+  const filamentFor = (family: string): PrintPreset | undefined =>
+    filaments.find((f) => f.id === settings.filaments[family])
+    ?? filaments.find((f) => filamentFamily(f) === family);
+
+  const procFor = (plate: Plate): ProcessSettings => {
+    const template = listTemplates().find((t) => t.id === selections.templateId) ?? listTemplates()[0];
+    return plate.profile ? processFromProfile(plate.profile) : selections.processOverride ?? template.settings;
+  };
+
+  /** How `plate` would be sliced on `printer`, or why it can't be. */
+  const setupFor = (plate: Plate, printer: PrintPreset): SliceSetup | { problem: string } => {
+    const family = plateMaterial(plate);
+    const filament = filamentFor(family);
+    if (!filament) return { problem: `No ${family} filament preset — import one, or pick one under Printers.` };
+    return {
+      printer,
+      filament,
+      proc: procFor(plate),
+      layerHeight: selections.layerHeight ?? '0.20',
+      bedSurface: selections.bedSurface ?? DEFAULT_BED_SURFACE,
+      preheat: selections.preheat ?? true,
+      centerOnBed: selections.centerOnBed ?? true,
+      clearExclusionZones: selections.clearExclusionZones ?? false,
+    };
+  };
+
+  /** plateId → printerId → the setup key a slice must carry to count, or null. */
+  const setupKeys = useMemo(() => {
+    const out: Record<string, Record<string, string | null>> = {};
+    for (const plate of plates ?? []) {
+      out[plate.id] = {};
+      for (const printer of printers) {
+        const setup = setupFor(plate, printer);
+        out[plate.id][printer.id] = 'problem' in setup ? null : sliceSetupKey(setup);
+      }
+    }
+    return out;
+  }, [plates, printers, filaments, settings.filaments]);
+
+  const freshIn = (map: Record<string, SlicedGcode[]>, plate: Plate) =>
+    freshSlices(plate, map[plate.id], (printerId) => setupKeys[plate.id]?.[printerId] ?? null);
 
   const unavailable = useMemo<OperatorBlock[]>(
     () => operatorBlocks(settings, now),
     [settings.bedtime, settings.wake, settings.away, now],
   );
 
-  const plan = useMemo<Schedule | null>(() => {
-    if (!plates || enabledPrinters.length === 0) return null;
-    const jobs: ScheduleJob[] = plates
-      .filter((p) => times[p.id])
-      .map((p) => ({
-        id: p.id,
-        label: p.name,
-        seconds: times[p.id]!.seconds,
-        material: plateMaterial(p),
-        printers: fits[p.id],
-      }));
+  const fleet = useMemo<SchedulePrinter[]>(() => enabledPrinters.map((p) => {
+    const status = statuses[p.id];
+    // A paused print never finishes on its own; the plan has the operator cancel it on the first trip.
+    const remaining = status && status !== 'loading' && 'remainingSec' in status && status.state !== 'paused'
+      ? status.remainingSec : 0;
+    return { id: p.id, name: p.name, freeAt: now + remaining * 1000, material: settings.loaded[p.id] || undefined };
+  }), [enabledPrinters.map((p) => p.id).join(), statuses, settings.loaded, now]);
+
+  const fresh = useMemo(
+    () => Object.fromEntries((plates ?? []).map((p) => [p.id, freshIn(slices, p)])),
+    [plates, slices, setupKeys],
+  );
+  const times = useMemo(() => {
+    const out: Record<string, Measured | null> = {};
+    for (const plate of plates ?? []) out[plate.id] = plateSeconds(plate, fresh[plate.id], estimates);
+    return out;
+  }, [plates, fresh, estimates]);
+  const grams = useMemo(() => {
+    const out: Record<string, Measured | null> = {};
+    for (const plate of plates ?? []) out[plate.id] = plateGrams(plate, fresh[plate.id], estimates);
+    return out;
+  }, [plates, fresh, estimates]);
+
+  const plans = useMemo(() => {
+    if (!plates) return null;
+    const jobs = scheduleJobs(plates, times, fits);
     if (jobs.length === 0) return null;
-    const fleet: SchedulePrinter[] = enabledPrinters.map((p) => {
-      const status = statuses[p.id];
-      // A paused print never finishes on its own; the plan has the operator cancel it on the first trip.
-      const remaining = status && status !== 'loading' && 'remainingSec' in status && status.state !== 'paused'
-        ? status.remainingSec : 0;
-      return { id: p.id, name: p.name, freeAt: now + remaining * 1000, material: settings.loaded[p.id] || undefined };
-    });
-    return planFleet(jobs, fleet, settings, unavailable, now);
-  }, [plates, times, fits, enabledPrinters.map((p) => p.id).join(), statuses, settings, unavailable, now]);
-
-  const plateById = useMemo(() => new Map((plates ?? []).map((p) => [p.id, p])), [plates]);
-  const printerById = useMemo(() => new Map(printers.map((p) => [p.id, p])), [printers]);
-  const startOrder = useMemo(() => {
-    const ordered = [...(plan?.jobs ?? [])].sort((a, b) => a.start - b.start);
-    return new Map(ordered.map((j, i) => [j.jobId, i]));
-  }, [plan]);
-
-  const filamentFor = (family: string): PrintPreset | undefined =>
-    filaments.find((f) => f.id === settings.filaments[family])
-    ?? filaments.find((f) => filamentFamily(f) === family);
-
-  const setupFor = (plate: Plate, printer: PrintPreset): SliceSetup => {
-    const sel = loadLastSelections();
-    const family = plateMaterial(plate);
-    const filament = filamentFor(family);
-    if (!filament) throw new Error(`No ${family} filament preset — import one in Print settings, or pick one below.`);
-    const template = listTemplates().find((t) => t.id === sel.templateId) ?? listTemplates()[0];
+    // Bed fit doesn't apply to the yardstick: it stands for any one of the fleet.
+    const one = planFleet(
+      jobs.map(({ printers: _, ...job }) => job),
+      [{ id: ONE_PRINTER, name: 'One printer', freeAt: now }],
+      settings, unavailable, now, 'makespan',
+    );
+    if (fleet.length === 0) return { one, makespan: null, visits: null };
     return {
-      printer,
-      filament,
-      proc: plate.profile ? processFromProfile(plate.profile) : sel.processOverride ?? template.settings,
-      layerHeight: sel.layerHeight ?? '0.20',
-      bedSurface: sel.bedSurface ?? DEFAULT_BED_SURFACE,
-      preheat: sel.preheat ?? true,
-      centerOnBed: sel.centerOnBed ?? true,
-      clearExclusionZones: sel.clearExclusionZones ?? false,
+      one,
+      makespan: planFleet(jobs, fleet, settings, unavailable, now, 'makespan'),
+      visits: planFleet(jobs, fleet, settings, unavailable, now, 'visits'),
     };
-  };
+  }, [plates, times, fits, fleet, settings, unavailable, now]);
 
-  /** A fresh slice of `plate` for `printer`, from the store or made now. */
-  const ensureSlice = async (plate: Plate, printer: PrintPreset, label: string): Promise<SlicedGcode> => {
-    const kept = freshSlices(plate, slices[plate.id]).find((s) => s.printerId === printer.id);
-    if (kept) return kept;
+  const plan = plans?.[settings.objective] ?? null;
+  const numbers = useMemo(() => plateNumbers(plan), [plan]);
+  const clashes = useMemo(() => collisions(plan), [plan]);
+  const jobByPlate = useMemo(() => new Map((plan?.jobs ?? []).map((j) => [j.jobId, j])), [plan]);
+  const ordered = [...(plates ?? [])].sort((a, b) =>
+    (numbers.get(a.id) ?? Infinity) - (numbers.get(b.id) ?? Infinity));
+
+  /** Where a plate will print: the plan's choice, else the first enabled printer it fits. */
+  const targetFor = (plate: Plate, schedule: Schedule | null = plan): PrintPreset | undefined =>
+    printerById.get(schedule?.jobs.find((j) => j.jobId === plate.id)?.printerId ?? '')
+    ?? enabledPrinters.find((p) => !fits[plate.id] || fits[plate.id].includes(p.id));
+
+  const ready = readiness(
+    plates ?? [],
+    plan,
+    enabledPrinters.length,
+    (plateId, printerId) => (fresh[plateId] ?? []).some((s) => s.printerId === printerId),
+  );
+
+  // ── Actions ────────────────────────────────────────────
+
+  /** Slice `plate` for `printer` and keep it. Returns the updated slice map. */
+  const sliceOne = async (
+    plate: Plate,
+    printer: PrintPreset,
+    map: Record<string, SlicedGcode[]>,
+    label: string,
+  ): Promise<Record<string, SlicedGcode[]>> => {
     const setup = setupFor(plate, printer);
-    setBusy(`${label}: slicing ${plate.name} for ${printer.name}…`);
-    const sliced = await slicePlate(plate, setup, (_stage, pct) => {
-      setBusy(`${label}: slicing ${plate.name} for ${printer.name}… ${Math.round(pct)}%`);
-    });
+    if ('problem' in setup) throw new Error(`${plate.name}: ${setup.problem}`);
+    setBusy(`${label}Slicing ${plate.name} for ${printer.name}…`);
+    setSlicing({ plateId: plate.id, pct: 0 });
+    const sliced = await slicePlate(plate, setup, (_stage, pct) => setSlicing({ plateId: plate.id, pct }));
     const record = await putSlicedGcode({
       plateId: plate.id,
       printerId: printer.id,
       filamentId: setup.filament.id,
       signature: plateSignature(plate),
+      setup: sliceSetupKey(setup),
       gcode: sliced.gcode,
       seconds: sliced.seconds,
       grams: sliced.grams,
       slicedAt: Date.now(),
     });
-    setSlices((prev) => ({
-      ...prev,
-      [plate.id]: [...(prev[plate.id] ?? []).filter((s) => s.printerId !== printer.id), record],
-    }));
-    return record;
+    const next = { ...map, [plate.id]: [...(map[plate.id] ?? []).filter((s) => s.printerId !== printer.id), record] };
+    setSlices(next);
+    return next;
   };
 
   const run = async (what: string, body: () => Promise<void>) => {
@@ -314,76 +359,76 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenPlates, 
       setError(`${what} stopped: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setBusy(null);
+      setSlicing(null);
     }
   };
 
-  /** Slice every plate for the printer the plan gives it — or, for a plate
-   *  with no time yet, the first enabled printer it fits — so the plan runs
-   *  on the slicer's own times rather than CI's. */
-  const handleSliceAll = () => run('Slicing', async () => {
-    const todo = (plates ?? []).map((plate) => {
-      const assigned = plan?.jobs.find((j) => j.jobId === plate.id)?.printerId;
-      const printer = printerById.get(assigned ?? '')
-        ?? enabledPrinters.find((p) => !fits[plate.id] || fits[plate.id].includes(p.id));
-      return { plate, printer };
+  const failKey = (plate: Plate, printer: PrintPreset) => `${plate.id}|${printer.id}|${setupKeys[plate.id]?.[printer.id]}`;
+
+  const handleSliceOne = (plate: Plate) => {
+    const printer = targetFor(plate);
+    if (printer) setSliceFailed(({ [failKey(plate, printer)]: _, ...rest }) => rest);
+    void run('Slicing', async () => {
+      if (!printer) throw new Error(`${plate.name}: no enabled printer fits it.`);
+      await sliceOne(plate, printer, slices, '');
     });
-    for (const [i, { plate, printer }] of todo.entries()) {
-      if (!printer) {
-        setLog((prev) => [...prev, `${plate.name}: no enabled printer fits it.`]);
-        continue;
-      }
-      await ensureSlice(plate, printer, `${i + 1}/${todo.length}`);
-      setLog((prev) => [...prev, `${plate.name}: sliced for ${printer.name}.`]);
-    }
-  });
+  };
 
-  /** Upload each printer's jobs in plan order, and start the first job on any
-   *  printer the plan starts right now. The rest wait for the operator. */
+  /**
+   * Slicing is local and free, so it doesn't wait to be asked: whenever a
+   * plate lacks a fresh slice for the printer the plan gives it, slice it.
+   * Each slice lands, re-plans (real times can move a plate), and this runs
+   * again until every plate is sliced where the plan puts it. Waits for every
+   * plate's footprint, so bed fit has had its say about where it goes.
+   */
+  useEffect(() => {
+    if (busy || !plates || plates.some((p) => !geometry[p.id])) return;
+    const todo = ordered
+      .map((plate) => ({ plate, printer: targetFor(plate) }))
+      .find(({ plate, printer }) => printer
+        && !('problem' in setupFor(plate, printer))
+        && !fresh[plate.id]?.some((s) => s.printerId === printer.id)
+        && !sliceFailed[failKey(plate, printer)]);
+    if (!todo) return;
+    const { plate, printer } = todo as { plate: Plate; printer: PrintPreset };
+    void (async () => {
+      try {
+        await sliceOne(plate, printer, slices, 'Auto · ');
+        setLog((prev) => [...prev, `${plate.name}: sliced for ${printer.name}.`]);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        setSliceFailed((prev) => ({ ...prev, [failKey(plate, printer)]: message }));
+        setError(`Slicing ${plate.name} stopped: ${message}`);
+      } finally {
+        setBusy(null);
+        setSlicing(null);
+      }
+    })();
+  }, [busy, plates, geometry, plan, fresh, sliceFailed]);
+
+  /** Hand the plan to the printers screen: each printer's jobs, in plan order,
+   *  with the slice each one sends. Nothing reaches a printer from here. */
   const handleSend = () => {
-    if (!plan) return;
-    const byPrinter = new Map<string, typeof plan.jobs>();
-    for (const job of plan.jobs) byPrinter.set(job.printerId, [...(byPrinter.get(job.printerId) ?? []), job]);
-    const missing = [...byPrinter.keys()].filter((id) => !printerById.get(id)?.address);
-    if (missing.length > 0) {
-      setError(`No Moonraker address for ${missing.map((id) => printerById.get(id)?.name ?? id).join(', ')}.`);
-      return;
-    }
-    // A job behind a filament swap waits for the operator to load the spool.
-    const startsNow = plan.visits[0]?.at === now ? plan.visits[0].starts.filter((s) => !s.swapFrom) : [];
-    const summary = [
-      `Upload ${plan.jobs.length} file${plan.jobs.length === 1 ? '' : 's'} to ${byPrinter.size} printer${byPrinter.size === 1 ? '' : 's'}`,
-      startsNow.length > 0
-        ? `and START printing now on ${startsNow.map((s) => printerById.get(s.printerId)?.name).join(', ')}`
-        : 'without starting anything',
-    ].join(' ');
-    if (!confirm(`${summary}?\n\nMake sure those beds are clear.`)) return;
-
-    void run('Sending', async () => {
-      let n = 0;
-      for (const [printerId, jobs] of byPrinter) {
-        const printer = printerById.get(printerId)!;
-        for (const job of [...jobs].sort((a, b) => a.start - b.start)) {
-          const plate = plateById.get(job.jobId)!;
-          const slice = await ensureSlice(plate, printer, `${++n}/${plan.jobs.length}`);
-          const name = gcodeName(startOrder.get(job.jobId) ?? 0, plate);
-          setBusy(`Uploading ${name} to ${printer.name}…`);
-          await uploadGcode(printer.address!, name, new TextEncoder().encode(slice.gcode));
-          setLog((prev) => [...prev, `${printer.name}: uploaded ${name}.`]);
-        }
-      }
-      for (const start of startsNow) {
-        const printer = printerById.get(start.printerId)!;
-        const status = await fetchPrintStatus(printer.address!).catch(() => null);
-        if (status && (status.state === 'printing' || status.state === 'paused')) {
-          setLog((prev) => [...prev, `${printer.name}: still printing ${status.filename} — not started.`]);
-          continue;
-        }
-        const name = gcodeName(startOrder.get(start.jobId) ?? 0, plateById.get(start.jobId)!);
-        setBusy(`Starting ${name} on ${printer.name}…`);
-        await startPrint(printer.address!, name);
-        setLog((prev) => [...prev, `${printer.name}: started ${name}.`]);
-      }
-      refreshStatuses();
+    if (!plan || !isReady(ready)) return;
+    const jobs: DispatchJob[] = plan.jobs.map((job) => {
+      const plate = plateById.get(job.jobId)!;
+      const slice = fresh[plate.id].find((s) => s.printerId === job.printerId)!;
+      const order = numbers.get(job.jobId) ?? 0;
+      return {
+        plateId: plate.id,
+        plateName: plate.name,
+        printerId: job.printerId,
+        file: gcodeName(order, plate),
+        order,
+        material: plateMaterial(plate),
+        filament: plateFilament(plate),
+        seconds: (job.end - job.start) / 1000,
+        slicedAt: slice.slicedAt,
+      };
+    });
+    void getDaemon(projectId).then((daemon) => {
+      daemon.send(jobs);
+      onOpenDispatch();
     });
   };
 
@@ -391,208 +436,206 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenPlates, 
     return <Modal title="Plan & print" onClose={onClose}><p class="plate-empty">{error}</p></Modal>;
   }
 
-  const unscheduled = (plates ?? []).filter((p) => !times[p.id]);
-  const totalPrintSec = (plan?.jobs ?? []).reduce((t, j) => t + (j.end - j.start) / 1000, 0);
-  const anySliced = (plates ?? []).some((p) => times[p.id]?.source === 'sliced');
-  const profiles = [...new Set((plates ?? []).map((p) => (p.profile ? describeProfile(p.profile) : null)).filter(Boolean))];
+  // ── Panes ──────────────────────────────────────────────
 
-  return (
-    <Modal title={`Plan & print — ${project?.name ?? '…'}`} onClose={() => { if (!busy) onClose(); }}>
-      <div class="planner">
-        <section class="planner-summary">
-          {plan ? (
-            <div class="planner-headline">
-              <div><span class="planner-big">{formatWhen(plan.finish, now)}</span> last print done</div>
-              <div><span class="planner-big">{plan.visits.length}</span> trip{plan.visits.length === 1 ? '' : 's'} to the printers</div>
-              <div>
-                <span class="planner-big">{formatDuration(totalPrintSec)}</span> of printing on{' '}
-                {new Set(plan.jobs.map((j) => j.printerId)).size} printer{new Set(plan.jobs.map((j) => j.printerId)).size === 1 ? '' : 's'}
-              </div>
-              {plan.collect > plan.finish && (
-                <div class="planner-note">You'll collect it {formatWhen(plan.collect, now)}, after the break it lands in.</div>
-              )}
-            </div>
-          ) : (
-            <p class="plate-empty">
-              {printers.length === 0
-                ? 'No printers imported yet.'
-                : enabledPrinters.length === 0
-                  ? 'Every printer is switched off.'
-                  : plates && plates.length === 0
-                    ? 'This project has no plates.'
-                    : 'No plate has a print time yet — slice them to plan.'}
-            </p>
-          )}
-          <div class="planner-actions">
-            <label class="planner-objective">
-              Optimize for
-              <select
-                value={settings.objective}
-                onChange={(e) => setSettings({ objective: (e.target as HTMLSelectElement).value as ScheduleObjective })}
-              >
-                <option value="makespan">Lowest wall-clock</option>
-                <option value="visits">Fewest operator trips</option>
-              </select>
-            </label>
-            <button type="button" class="btn" disabled={!!busy} onClick={refreshStatuses}>Refresh printers</button>
-            <button type="button" class="btn" disabled={!!busy || !plates?.length} onClick={() => void handleSliceAll()}>
-              Slice all
-            </button>
-            <button type="button" class="btn btn-primary" disabled={!!busy || !plan} onClick={handleSend}>
-              Send to printers
-            </button>
+  const slicedCount = (plates ?? []).filter((p) => {
+    const job = jobByPlate.get(p.id);
+    return job && fresh[p.id].some((s) => s.printerId === job.printerId);
+  }).length;
+
+  const summary = (
+    <PlannerSummary
+      plates={plates ?? []}
+      times={times}
+      grams={grams}
+      plans={plans}
+      now={now}
+      printerCount={fleet.length}
+    />
+  );
+
+  const platesPane = (
+    <section class="planner-pane planner-pane-plates" aria-label="Plates">
+      <header class="planner-pane-head">
+        <h4>Plates <span class="planner-muted">{slicedCount}/{plates?.length ?? 0} sliced</span></h4>
+        <div class="planner-pane-tools">
+          <button type="button" class="btn" onClick={onOpenPlates}>Manage plates</button>
+        </div>
+      </header>
+      <div class="planner-pane-body">
+        {plates && plates.length === 0 && <p class="plate-empty">This project has no plates.</p>}
+        <ul class="planner-plates">
+          {ordered.map((plate) => (
+            <PlateRow
+              key={plate.id}
+              plate={plate}
+              number={numbers.get(plate.id)}
+              geometry={geometry[plate.id]}
+              time={times[plate.id]}
+              grams={grams[plate.id]}
+              job={jobByPlate.get(plate.id)}
+              target={targetFor(plate)}
+              printerById={printerById}
+              fresh={fresh[plate.id]}
+              kept={slices[plate.id] ?? []}
+              fitsNone={fits[plate.id]?.length === 0}
+              setup={(printer) => setupFor(plate, printer)}
+              proc={procFor(plate)}
+              layerHeight={selections.layerHeight ?? '0.20'}
+              bedSurface={selections.bedSurface ?? DEFAULT_BED_SURFACE}
+              slicingPct={slicing?.plateId === plate.id ? slicing.pct : null}
+              clash={clashes.has(plate.id)}
+              hovered={hovered === plate.id}
+              busy={!!busy}
+              now={now}
+              onHover={setHovered}
+              onEdit={() => onOpenPlate(plate.id)}
+              sliceFailed={(() => { const t = targetFor(plate); return t ? sliceFailed[failKey(plate, t)] : undefined; })()}
+              onSlice={() => handleSliceOne(plate)}
+            />
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+
+  const notOnChart = (plates ?? []).filter((p) => !jobByPlate.has(p.id));
+  const timelinePane = (
+    <section class="planner-pane planner-pane-timeline" aria-label="Timeline">
+      <header class="planner-pane-head">
+        <h4>Timeline</h4>
+        <div class="planner-pane-tools">
+          <div class="planner-seg" role="group" aria-label="Timeline view">
+            <button type="button" class={timelineView === 'chart' ? 'is-on' : ''} onClick={() => setTimelineView('chart')}>Chart</button>
+            <button type="button" class={timelineView === 'trips' ? 'is-on' : ''} onClick={() => setTimelineView('trips')}>Trips</button>
           </div>
-          {busy && <p class="planner-busy">{busy}</p>}
-          {error && <p class="pd-notice is-bad">{error}</p>}
-          {log.length > 0 && <ul class="planner-log">{log.map((line, i) => <li key={i}>{line}</li>)}</ul>}
-          <p class="planner-note">
-            Times are {anySliced ? 'the slicer’s own where a plate is sliced, else ' : ''}CI estimates for an
-            Adventurer 5M{profiles.length > 0 ? ` at ${profiles.join('; ')}` : ''}.
-            {unscheduled.length > 0 && ` ${unscheduled.length} plate${unscheduled.length === 1 ? ' has' : 's have'} no time yet and ${unscheduled.length === 1 ? 'is' : 'are'} left out — Slice all fixes that.`}
-            {plan && plan.unassigned.length > 0 && ` ${plan.unassigned.length} plate${plan.unassigned.length === 1 ? '' : 's'} fit${plan.unassigned.length === 1 ? 's' : ''} no enabled printer.`}
+          <label class="planner-inline">
+            Optimize for
+            <select
+              value={settings.objective}
+              onChange={(e) => setSettings({ objective: (e.target as HTMLSelectElement).value as ScheduleObjective })}
+            >
+              <option value="makespan">Lowest wall-clock</option>
+              <option value="visits">Fewest operator trips</option>
+            </select>
+          </label>
+        </div>
+      </header>
+      <div class="planner-pane-body">
+        {!plan ? (
+          <p class="plate-empty">
+            {printers.length === 0
+              ? 'No printers yet — add them under Printers.'
+              : enabledPrinters.length === 0
+                ? 'Every printer is switched off.'
+                : plates && plates.length === 0
+                  ? 'This project has no plates.'
+                  : 'No plate has a print time yet — it will once one is sliced.'}
           </p>
-        </section>
-
-        {plan && (
-          <Gantt
+        ) : timelineView === 'chart' ? (
+          <>
+            <PlannerGantt
+              plan={plan}
+              now={now}
+              printers={enabledPrinters}
+              plates={plateById}
+              numbers={numbers}
+              unavailable={unavailable}
+              collisions={clashes}
+              hovered={hovered}
+              onHover={setHovered}
+            />
+            <p class="planner-note">Shaded: you're away or asleep. Numbered lines: trips to the printers.</p>
+          </>
+        ) : (
+          <Itinerary
             plan={plan}
             now={now}
-            printers={enabledPrinters}
             plates={plateById}
-            unavailable={unavailable}
+            printers={printerById}
+            numbers={numbers}
+            statuses={statuses}
+            swapMin={settings.swapMin}
           />
         )}
-
-        {plan && (
-          <section class="planner-section">
-            <h4>Operator itinerary</h4>
-            <ol class="planner-visits">
-              {plan.visits.map((visit, i) => (
-                <li key={i} class="planner-visit">
-                  <div class="planner-visit-when">
-                    <span class="planner-visit-num">{i + 1}</span>
-                    {i === 0 && visit.at === now ? 'Now' : formatWhen(visit.at, now)}
-                  </div>
-                  <ul>
-                    {visit.starts.map((s) => {
-                      const plate = plateById.get(s.jobId)!;
-                      const status = statuses[s.printerId];
-                      // Only the first trip can find a bed that is already empty.
-                      const occupied = i > 0 || (typeof status === 'object' && 'state' in status
-                        && (status.state === 'complete' || status.remainingSec > 0));
-                      const paused = i === 0 && typeof status === 'object' && 'state' in status && status.state === 'paused';
-                      return (
-                        <li key={s.jobId}>
-                          <strong>{printerById.get(s.printerId)?.name}</strong>: {paused && typeof status === 'object' && 'filename' in status
-                            ? `cancel the paused ${status.filename}, ` : ''}{occupied ? 'clear the bed, ' : ''}
-                          {s.swapFrom && <span class="planner-swap">swap {s.swapFrom} → {plateMaterial(plate)} (allow {settings.swapMin} min), </span>}
-                          start <code>{gcodeName(startOrder.get(s.jobId) ?? 0, plate)}</code> — {plate.name}{' '}
-                          <span class="planner-muted">({formatDuration((s.end - s.start) / 1000)}, done {formatWhen(s.end, now)})</span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </li>
-              ))}
-              <li class="planner-visit">
-                <div class="planner-visit-when">
-                  <span class="planner-visit-num">✓</span>
-                  {formatWhen(plan.collect, now)}
-                </div>
-                <ul><li>Collect the last prints.</li></ul>
-              </li>
-            </ol>
-          </section>
+        {clashes.size > 0 && (
+          <p class="pd-notice is-bad">{plural(clashes.size, 'job')} overlap another on the same printer.</p>
         )}
+        {notOnChart.length > 0 && (
+          <p class="planner-note">
+            Not on the chart: {notOnChart.map((p) => `${p.name} (${
+              !times[p.id] ? 'no time yet — slice it' : fits[p.id]?.length === 0 ? 'fits no printer' : 'fits no enabled printer'
+            })`).join(', ')}.
+          </p>
+        )}
+      </div>
+    </section>
+  );
 
-        <section class="planner-section">
-          <h4>Plates</h4>
-          <ul class="planner-plates">
-            {(plates ?? []).map((plate) => {
-              const time = times[plate.id];
-              const job = plan?.jobs.find((j) => j.jobId === plate.id);
-              const fit = fits[plate.id];
-              return (
-                <li key={plate.id} class="planner-plate">
-                  <button type="button" class="plate-row-fit-link" onClick={() => onOpenPlate(plate.id)}>{plate.name}</button>
-                  <span class="planner-chip">{plateMaterial(plate)}</span>
-                  <span class="planner-muted">
-                    {time ? `${formatDuration(time.seconds)} ${time.source === 'sliced' ? '(sliced)' : '(estimate)'}` : 'no time yet'}
-                    {job && ` · ${printerById.get(job.printerId)?.name}`}
-                    {fit && fit.length === 0 && ' · fits no printer'}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-          <button type="button" class="btn btn-secondary" onClick={onOpenPlates}>Edit plates</button>
-        </section>
-
-        <section class="planner-section">
-          <h4>Printers</h4>
-          {printers.length === 0 ? (
-            <p class="plate-empty">
-              None yet — <button type="button" class="plate-row-fit-link" onClick={onOpenSettings}>import your OrcaSlicer presets</button>.
-            </p>
-          ) : (
+  const allOn = enabledPrinters.length === printers.length;
+  const someOn = enabledPrinters.length > 0;
+  const printersPane = (
+    <section class="planner-pane planner-pane-printers" aria-label="Printers">
+      <header class="planner-pane-head">
+        <h4>Printers</h4>
+        <div class="planner-pane-tools">
+          <button type="button" class="btn" onClick={refreshStatuses}>Refresh status</button>
+          <button type="button" class="btn" onClick={onOpenSettings}>Edit printers</button>
+        </div>
+      </header>
+      <div class="planner-pane-body">
+        {printers.length === 0 ? (
+          <p class="plate-empty">
+            None yet — <button type="button" class="plate-row-fit-link" onClick={onOpenSettings}>import your OrcaSlicer presets</button>.
+          </p>
+        ) : (
+          <>
+            <label class="planner-printer-all">
+              <input
+                type="checkbox"
+                checked={allOn}
+                ref={(el) => { if (el) el.indeterminate = someOn && !allOn; }}
+                onChange={(e) => {
+                  const on = (e.target as HTMLInputElement).checked;
+                  setSettings({ enabled: Object.fromEntries(printers.map((p) => [p.id, on])) });
+                }}
+              />
+              All printers <span class="planner-muted">({enabledPrinters.length} of {printers.length} in use)</span>
+            </label>
             <ul class="planner-printers">
-              {printers.map((printer) => {
-                const status = statuses[printer.id];
-                const on = settings.enabled[printer.id] !== false;
-                return (
-                  <li key={printer.id} class={`planner-printer${on ? '' : ' is-off'}`}>
-                    <label class="plate3d-toggle">
-                      <input
-                        type="checkbox"
-                        checked={on}
-                        onChange={(e) => setSettings({ enabled: { ...settings.enabled, [printer.id]: (e.target as HTMLInputElement).checked } })}
-                      />
-                      {printer.name}
-                    </label>
-                    <span class="planner-muted">
-                      {!printer.address ? 'no address — can plan, can’t send'
-                        : status === undefined || status === 'loading' ? 'checking…'
-                          : 'error' in status ? 'unreachable'
-                            : status.state === 'paused' ? `paused on ${status.filename} — planned as free once you cancel it`
-                            : status.remainingSec > 0 ? `printing ${status.filename}, ${formatDuration(status.remainingSec)} left`
-                              : status.state === 'complete' ? 'finished — bed needs clearing'
-                                : status.state}
-                    </span>
-                    <label class="planner-inline">
-                      Loaded
-                      <select
-                        value={settings.loaded[printer.id] ?? ''}
-                        onChange={(e) => setSettings({ loaded: { ...settings.loaded, [printer.id]: (e.target as HTMLSelectElement).value } })}
-                      >
-                        <option value="">Unknown</option>
-                        {[...new Set([...materials, 'PLA', 'PETG', 'TPU'])].map((m) => <option key={m} value={m}>{m}</option>)}
-                      </select>
-                    </label>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-          {materials.length > 0 && (
-            <div class="planner-filaments">
-              {materials.map((family) => (
-                <label key={family} class="planner-inline">
-                  {family} slices with
-                  <select
-                    value={filamentFor(family)?.id ?? ''}
-                    onChange={(e) => setSettings({ filaments: { ...settings.filaments, [family]: (e.target as HTMLSelectElement).value } })}
-                  >
-                    <option value="">—</option>
-                    {filaments.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
-                  </select>
-                </label>
+              {printers.map((printer) => (
+                <PrinterRow
+                  key={printer.id}
+                  printer={printer}
+                  on={settings.enabled[printer.id] !== false}
+                  status={statuses[printer.id]}
+                  loaded={settings.loaded[printer.id] ?? ''}
+                  materials={materials}
+                  onToggle={(on) => setSettings({ enabled: { ...settings.enabled, [printer.id]: on } })}
+                  onLoaded={(m) => setSettings({ loaded: { ...settings.loaded, [printer.id]: m } })}
+                />
               ))}
-            </div>
-          )}
-        </section>
-
-        <section class="planner-section">
-          <h4>Operator</h4>
+            </ul>
+          </>
+        )}
+        {materials.length > 0 && (
+          <div class="planner-filaments">
+            {materials.map((family) => (
+              <label key={family} class="planner-inline">
+                {family} slices with
+                <select
+                  value={filamentFor(family)?.id ?? ''}
+                  onChange={(e) => setSettings({ filaments: { ...settings.filaments, [family]: (e.target as HTMLSelectElement).value } })}
+                >
+                  <option value="">—</option>
+                  {filaments.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
+                </select>
+              </label>
+            ))}
+          </div>
+        )}
+        <details class="planner-operator-details">
+          <summary>Your hours — bedtime {settings.bedtime}–{settings.wake}, {settings.changeoverMin} min bed change, {settings.swapMin} min swap</summary>
           <div class="planner-operator">
             <label class="planner-inline">
               Bedtime
@@ -638,81 +681,322 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenPlates, 
               onClick={() => { setSettings({ away: [...settings.away, draftAway] }); setDraftAway({ start: '', end: '' }); }}
             >Add</button>
           </div>
-        </section>
+        </details>
+      </div>
+    </section>
+  );
+
+  const checks: Array<[boolean, string]> = [
+    [ready.printers, ready.printers ? plural(enabledPrinters.length, 'printer') + ' in use' : 'Switch on a printer'],
+    [ready.scheduled, ready.scheduled ? 'Every plate is on the timeline' : `${plural(notOnChart.length, 'plate')} not on the timeline`],
+    [ready.sliced, `${slicedCount}/${plates?.length ?? 0} plates sliced for their printer`],
+    [ready.clear, ready.clear ? 'No overlapping jobs' : 'Jobs overlap on the timeline'],
+  ];
+
+  return (
+    <Modal title={`Plan & print — ${project?.name ?? '…'}`} onClose={onClose} bleed>
+      <div class="planner" data-tab={tab}>
+        {summary}
+        <nav class="planner-tabs" role="tablist">
+          {(['plates', 'timeline', 'printers'] as const).map((t) => (
+            <button key={t} type="button" role="tab" aria-selected={tab === t} class={tab === t ? 'is-on' : ''} onClick={() => setTab(t)}>
+              {t === 'plates' ? 'Plates' : t === 'timeline' ? 'Timeline' : 'Printers'}
+            </button>
+          ))}
+        </nav>
+        <div class="planner-panes">
+          {platesPane}
+          {timelinePane}
+          {printersPane}
+        </div>
+        <footer class="planner-footer">
+          <ul class="planner-checks">
+            {checks.map(([ok, text]) => (
+              <li key={text} class={ok ? 'is-ok' : 'is-todo'}><span aria-hidden="true">{ok ? '✓' : '○'}</span> {text}</li>
+            ))}
+          </ul>
+          <div class="planner-footer-status">
+            {busy && <p class="planner-busy">{busy}{slicing ? ` ${Math.round(slicing.pct)}%` : ''}</p>}
+            {error && <p class="pd-notice is-bad">{error}</p>}
+            {log.length > 0 && !busy && <p class="planner-muted">{log[log.length - 1]}</p>}
+          </div>
+          {sent && <button type="button" class="btn" onClick={onOpenDispatch}>Printers</button>}
+          <button
+            type="button"
+            class="btn btn-primary planner-send"
+            disabled={!isReady(ready)}
+            title={isReady(ready) ? undefined : 'Every plate has to be sliced for its printer, with a clean timeline'}
+            onClick={handleSend}
+          >
+            Send to printers
+          </button>
+        </footer>
       </div>
     </Modal>
   );
 }
 
-// ── Gantt ────────────────────────────────────────────────
+// ── Summary ──────────────────────────────────────────────
 
-interface GanttProps {
-  plan: Schedule;
+interface SummaryProps {
+  plates: Plate[];
+  times: Record<string, Measured | null>;
+  grams: Record<string, Measured | null>;
+  plans: { one: Schedule; makespan: Schedule | null; visits: Schedule | null } | null;
   now: number;
-  printers: PrintPreset[];
-  plates: Map<string, Plate>;
-  unavailable: OperatorBlock[];
+  printerCount: number;
 }
 
-const TICK_STEPS = [1, 2, 3, 6, 12, 24].map((h) => h * HOUR);
+/** The whole job at a glance: filament, and how long it takes one printer or the fleet. */
+function PlannerSummary({ plates, times, grams, plans, now, printerCount }: SummaryProps) {
+  const byFilament = new Map<string, number>();
+  let unweighed = 0;
+  let estimated = false;
+  for (const plate of plates) {
+    const g = grams[plate.id];
+    if (!g) { unweighed++; continue; }
+    if (g.source === 'estimate') estimated = true;
+    byFilament.set(plateFilament(plate), (byFilament.get(plateFilament(plate)) ?? 0) + g.value);
+  }
+  const totalGrams = [...byFilament.values()].reduce((a, b) => a + b, 0);
+  const printSec = plates.reduce((t, p) => t + (times[p.id]?.value ?? 0), 0);
+  const untimed = plates.filter((p) => !times[p.id]).length;
+  const approx = estimated ? '≈' : '';
 
-function Gantt({ plan, now, printers, plates, unavailable }: GanttProps) {
-  const end = Math.max(plan.collect, plan.finish) + HOUR / 2;
-  const span = end - now;
-  const pct = (t: number) => `${(Math.min(Math.max(t, now), end) - now) / span * 100}%`;
-  const width = (a: number, b: number) => `${(Math.min(b, end) - Math.max(a, now)) / span * 100}%`;
-  const step = TICK_STEPS.find((s) => span / s <= 10) ?? TICK_STEPS[TICK_STEPS.length - 1];
-  const ticks: number[] = [];
-  for (let t = Math.ceil(now / step) * step; t < end; t += step) ticks.push(t);
-  const rows = printers.filter((p) => plan.jobs.some((j) => j.printerId === p.id));
-  const blocks = unavailable.filter((b) => b.end > now && b.start < end);
+  const planCell = (key: string, label: string, schedule: Schedule | null | undefined) => (
+    <div class="planner-stat" data-plan={key}>
+      <div class="planner-stat-label">{label}</div>
+      {schedule ? (
+        <>
+          <div class="planner-stat-value">{formatDuration((schedule.finish - now) / 1000)}</div>
+          <div class="planner-stat-sub">
+            <span class="planner-trips">{plural(schedule.visits.length, 'trip')}</span> · done {formatWhen(schedule.finish, now)}
+          </div>
+        </>
+      ) : (
+        <div class="planner-stat-sub">—</div>
+      )}
+    </div>
+  );
 
   return (
-    <section class="planner-section">
-      <h4>Timeline</h4>
-      <div class="gantt" role="img" aria-label="Print timeline by printer">
-        <div class="gantt-axis">
-          <div class="gantt-label" />
-          <div class="gantt-track">
-            {ticks.map((t) => (
-              <span key={t} class="gantt-tick" style={{ left: pct(t) }}>
-                {new Date(t).getHours() === 0 || step >= 24 * HOUR
-                  ? new Date(t).toLocaleDateString([], { weekday: 'short' })
-                  : new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </span>
-            ))}
-            {plan.visits.map((v, i) => (
-              <span key={i} class="gantt-visit-flag" style={{ left: pct(v.at) }} title={`Trip ${i + 1}`}>{i + 1}</span>
-            ))}
-          </div>
-        </div>
-        {rows.map((printer) => (
-          <div key={printer.id} class="gantt-row">
-            <div class="gantt-label">{printer.name}</div>
-            <div class="gantt-track">
-              {blocks.map((b, i) => (
-                <div key={i} class="gantt-away" style={{ left: pct(b.start), width: width(b.start, b.end) }} />
-              ))}
-              {plan.visits.map((v, i) => <div key={i} class="gantt-visit" style={{ left: pct(v.at) }} />)}
-              {plan.jobs.filter((j) => j.printerId === printer.id).map((j) => {
-                const plate = plates.get(j.jobId);
-                const family = materialFamily(plate?.material ?? 'PETG');
-                return (
-                  <div
-                    key={j.jobId}
-                    class={`gantt-bar is-${family.toLowerCase()}${j.swapFrom ? ' has-swap' : ''}`}
-                    style={{ left: pct(j.start), width: width(j.start, j.end) }}
-                    title={`${plate?.name} — ${new Date(j.start).toLocaleString()} → ${new Date(j.end).toLocaleString()}`}
-                  >
-                    <span>{plate?.name}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        ))}
+    <section class="planner-summary" aria-label="Project summary">
+      <div class="planner-stat planner-stat-filament">
+        <div class="planner-stat-label">Filament</div>
+        <ul class="planner-filament-list">
+          {[...byFilament].map(([name, g]) => (
+            <li key={name}><span>{name}</span> <strong>{approx}{Math.round(g)} g</strong></li>
+          ))}
+          {byFilament.size !== 1 && <li class="is-total"><span>Total</span> <strong>{approx}{Math.round(totalGrams)} g</strong></li>}
+        </ul>
+        {unweighed > 0 && <div class="planner-stat-sub">{plural(unweighed, 'plate')} not weighed yet</div>}
       </div>
-      <p class="planner-note">Shaded: you're away or asleep. Numbered lines: trips to the printers.</p>
+      <div class="planner-stat" data-plan="print">
+        <div class="planner-stat-label">Print time</div>
+        <div class="planner-stat-value">{formatDuration(printSec)}</div>
+        <div class="planner-stat-sub">{untimed > 0 ? `${plural(untimed, 'plate')} not timed yet` : `${plural(plates.length, 'plate')}, back to back`}</div>
+      </div>
+      {planCell('one', 'On one Adventurer 5M', plans?.one)}
+      {planCell('makespan', `All ${plural(printerCount, 'printer')} · lowest wall-clock`, plans?.makespan)}
+      {planCell('visits', `All ${plural(printerCount, 'printer')} · fewest trips`, plans?.visits)}
+      {estimated && <p class="planner-stat-note">≈ CI estimates until a plate is sliced.</p>}
     </section>
+  );
+}
+
+// ── Plate row ────────────────────────────────────────────
+
+interface PlateRowProps {
+  plate: Plate;
+  number: number | undefined;
+  geometry: Geometry | undefined;
+  time: Measured | null;
+  grams: Measured | null;
+  job: Schedule['jobs'][number] | undefined;
+  target: PrintPreset | undefined;
+  printerById: Map<string, PrintPreset>;
+  fresh: SlicedGcode[];
+  kept: SlicedGcode[];
+  fitsNone: boolean;
+  setup: (printer: PrintPreset) => SliceSetup | { problem: string };
+  proc: ProcessSettings;
+  layerHeight: string;
+  bedSurface: string;
+  slicingPct: number | null;
+  sliceFailed: string | undefined;
+  clash: boolean;
+  hovered: boolean;
+  busy: boolean;
+  now: number;
+  onHover: (plateId: string | null) => void;
+  onEdit: () => void;
+  onSlice: () => void;
+}
+
+function PlateRow(props: PlateRowProps) {
+  const { plate, number, geometry, time, grams, job, target, fresh, kept, proc } = props;
+  const setup = target ? props.setup(target) : null;
+  const slicedHere = !!target && fresh.some((s) => s.printerId === target.id);
+  const status = props.slicingPct !== null
+    ? { cls: 'is-busy', text: `Slicing… ${Math.round(props.slicingPct)}%` }
+    : slicedHere
+      ? { cls: 'is-ok', text: `Sliced for ${target!.name}` }
+      : props.sliceFailed
+        ? { cls: 'is-todo', text: `Slicing failed: ${props.sliceFailed}` }
+        : fresh.length > 0
+          ? { cls: 'is-todo', text: `Sliced for ${props.printerById.get(fresh[0].printerId)?.name ?? 'another printer'} — needs ${target?.name ?? 'its printer'}` }
+          : kept.length > 0
+            ? { cls: 'is-todo', text: 'Out of date — plate or settings changed' }
+            : { cls: 'is-todo', text: 'Not sliced' };
+  const supports = proc.supportStyle === 'none'
+    ? 'none'
+    : `${proc.supportStyle}${proc.supportOnBuildPlateOnly ? ', build plate only' : ''}`;
+  const overridden = Object.keys(plate.overrides ?? {}).length;
+  const specs: Array<[string, string]> = [
+    ['Layer', `${props.layerHeight} mm${proc.adaptiveLayerHeight ? ', adaptive' : ''}`],
+    ['Walls', proc.wallLoops],
+    ['Top / bottom', `${proc.topShells} / ${proc.bottomShells}`],
+    ['Infill', `${proc.infillDensity}% ${proc.infillPattern}`],
+    ['Supports', supports],
+    ['Brim', proc.brim ? 'yes' : 'no'],
+    ['Bed', props.bedSurface],
+    ['Filament', setup && !('problem' in setup) ? setup.filament.name : 'none picked'],
+  ];
+  if (overridden > 0) specs.push(['Per object', `${overridden} overridden`]);
+
+  return (
+    <li
+      class={`planner-plate${props.hovered ? ' is-hovered' : ''}${props.clash ? ' is-collision' : ''}`}
+      data-plate={plate.id}
+      onMouseEnter={() => props.onHover(plate.id)}
+      onMouseLeave={() => props.onHover(null)}
+    >
+      <div class="planner-thumb">
+        {geometry && 'thumb' in geometry && geometry.thumb
+          ? <img src={geometry.thumb} alt="" />
+          : <span class="planner-thumb-empty">{!geometry ? '…' : 'failed' in geometry ? '!' : ''}</span>}
+      </div>
+      <div class="planner-plate-main">
+        <div class="planner-plate-head">
+          <span class="planner-plate-num" title="Plate number: the order it starts in">#{number ?? '–'}</span>
+          <strong class="planner-plate-name">{plate.name}</strong>
+          <span class="planner-chip">{plateFilament(plate)}</span>
+        </div>
+        <div class="planner-plate-meta">
+          <span class="planner-plate-printer">{job ? props.printerById.get(job.printerId)?.name : props.fitsNone ? 'fits no printer' : 'not scheduled'}</span>
+          {job && <span>starts {job.start <= props.now ? 'now' : formatWhen(job.start, props.now)}</span>}
+          <span>
+            {time ? formatDuration(time.value) : 'no time yet'}
+            {grams && ` · ${Math.round(grams.value)} g`}
+            {time && <span class="planner-muted"> ({time.source === 'sliced' ? 'sliced' : 'CI estimate'})</span>}
+          </span>
+        </div>
+        <dl class="planner-specs">
+          {specs.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
+        </dl>
+        <div class={`planner-slice-status ${status.cls}`}>{status.text}</div>
+        {setup && 'problem' in setup && <p class="pd-notice is-bad">{setup.problem}</p>}
+        {geometry && 'failed' in geometry && <p class="pd-notice is-bad">Couldn't load this plate: {geometry.failed}</p>}
+      </div>
+      <div class="planner-plate-actions">
+        <button type="button" class="btn" onClick={props.onEdit}>Edit plate</button>
+        <button type="button" class="btn" disabled={props.busy || !target || slicedHere} onClick={props.onSlice}>
+          {props.sliceFailed ? 'Retry slice' : 'Slice'}
+        </button>
+      </div>
+    </li>
+  );
+}
+
+// ── Printer row ──────────────────────────────────────────
+
+interface PrinterRowProps {
+  printer: PrintPreset;
+  on: boolean;
+  status: StatusState | undefined;
+  loaded: string;
+  materials: string[];
+  onToggle: (on: boolean) => void;
+  onLoaded: (material: string) => void;
+}
+
+function PrinterRow({ printer, on, status, loaded, materials, onToggle, onLoaded }: PrinterRowProps) {
+  return (
+    <li class={`planner-printer${on ? '' : ' is-off'}`}>
+      <label class="planner-toggle">
+        <input type="checkbox" checked={on} onChange={(e) => onToggle((e.target as HTMLInputElement).checked)} />
+        {printer.name}
+      </label>
+      <span class="planner-muted">
+        {!printer.address ? 'no address — can plan, can’t send'
+          : status === undefined || status === 'loading' ? 'checking…'
+            : 'error' in status ? 'unreachable'
+              : status.state === 'paused' ? `paused on ${status.filename} — planned as free once you cancel it`
+                : status.remainingSec > 0 ? `printing ${status.filename}, ${formatDuration(status.remainingSec)} left`
+                  : status.state === 'complete' ? 'finished — bed needs clearing'
+                    : status.state}
+      </span>
+      <label class="planner-inline">
+        Loaded
+        <select value={loaded} onChange={(e) => onLoaded((e.target as HTMLSelectElement).value)}>
+          <option value="">Unknown</option>
+          {[...new Set([...materials, 'PLA', 'PETG', 'TPU'])].map((m) => <option key={m} value={m}>{m}</option>)}
+        </select>
+      </label>
+    </li>
+  );
+}
+
+// ── Itinerary ────────────────────────────────────────────
+
+interface ItineraryProps {
+  plan: Schedule;
+  now: number;
+  plates: Map<string, Plate>;
+  printers: Map<string, PrintPreset>;
+  numbers: Map<string, number>;
+  statuses: Record<string, StatusState>;
+  swapMin: number;
+}
+
+/** The operator's trips: what to clear, swap and start at each. */
+function Itinerary({ plan, now, plates, printers, numbers, statuses, swapMin }: ItineraryProps) {
+  return (
+    <ol class="planner-visits">
+      {plan.visits.map((visit, i) => (
+        <li key={i} class="planner-visit">
+          <div class="planner-visit-when">
+            <span class="planner-visit-num">{i + 1}</span>
+            {i === 0 && visit.at === now ? 'Now' : formatWhen(visit.at, now)}
+          </div>
+          <ul>
+            {visit.starts.map((s) => {
+              const plate = plates.get(s.jobId)!;
+              const status = statuses[s.printerId];
+              // Only the first trip can find a bed that is already empty.
+              const occupied = i > 0 || (typeof status === 'object' && 'state' in status
+                && (status.state === 'complete' || status.remainingSec > 0));
+              const paused = i === 0 && typeof status === 'object' && 'state' in status && status.state === 'paused';
+              return (
+                <li key={s.jobId}>
+                  <strong>{printers.get(s.printerId)?.name}</strong>: {paused && typeof status === 'object' && 'filename' in status
+                    ? `cancel the paused ${status.filename}, ` : ''}{occupied ? 'clear the bed, ' : ''}
+                  {s.swapFrom && <span class="planner-swap">swap {s.swapFrom} → {plateMaterial(plate)} (allow {swapMin} min), </span>}
+                  start <code>{gcodeName(numbers.get(s.jobId) ?? 0, plate)}</code> — {plate.name}{' '}
+                  <span class="planner-muted">({formatDuration((s.end - s.start) / 1000)}, done {formatWhen(s.end, now)})</span>
+                </li>
+              );
+            })}
+          </ul>
+        </li>
+      ))}
+      <li class="planner-visit">
+        <div class="planner-visit-when">
+          <span class="planner-visit-num">✓</span>
+          {formatWhen(plan.collect, now)}
+        </div>
+        <ul><li>Collect the last prints.</li></ul>
+      </li>
+    </ol>
   );
 }

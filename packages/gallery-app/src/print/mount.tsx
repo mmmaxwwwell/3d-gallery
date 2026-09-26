@@ -4,6 +4,7 @@ import { render } from 'preact';
 import { PrintDialog } from './PrintDialog.js';
 import { PlatesPanel } from './PlatesPanel.js';
 import { ProjectPlanner } from './ProjectPlanner.js';
+import { PrintDispatch } from './PrintDispatch.js';
 import { SettingsPanel } from './SettingsPanel.js';
 import { mayLeavePrintUI, setPrintLeaveGuard } from './nav-guard.js';
 import { syncFromServerOnce } from './server-store.js';
@@ -15,7 +16,7 @@ import { syncFromServerOnce } from './server-store.js';
  *
  * Which panel is open is part of the URL, alongside the gallery's own
  * `?model=&part=` route: `?plates=1`, `?plate=<id>`, `?project=<id>`,
- * `?settings=1`. That makes
+ * `?dispatch=<id>`, `?settings=1`. That makes
  * a plate linkable and makes the browser's Back button close a panel instead
  * of leaving the app. `main.ts` excludes these names from the customizer's
  * parameter sweep, so they never reach a model as a param.
@@ -34,11 +35,12 @@ export type PrintRoute =
   | { view: 'plates' }
   | { view: 'plate'; plateId: string }
   | { view: 'project'; projectId: string }
+  | { view: 'dispatch'; projectId: string }
   | { view: 'settings' }
   | null;
 
 /** Query names this module owns. Exported so the gallery router can skip them. */
-export const PRINT_ROUTE_PARAMS = ['plates', 'plate', 'project', 'settings'] as const;
+export const PRINT_ROUTE_PARAMS = ['plates', 'plate', 'project', 'dispatch', 'settings'] as const;
 
 function readRoute(): PrintRoute {
   const params = new URLSearchParams(window.location.search);
@@ -46,6 +48,8 @@ function readRoute(): PrintRoute {
   if (plateId) return { view: 'plate', plateId };
   const projectId = params.get('project');
   if (projectId) return { view: 'project', projectId };
+  const dispatchId = params.get('dispatch');
+  if (dispatchId) return { view: 'dispatch', projectId: dispatchId };
   if (params.get('settings')) return { view: 'settings' };
   if (params.get('plates')) return { view: 'plates' };
   return null;
@@ -57,6 +61,7 @@ function routePath(route: PrintRoute): string {
   if (route?.view === 'plates') url.searchParams.set('plates', '1');
   else if (route?.view === 'plate') url.searchParams.set('plate', route.plateId);
   else if (route?.view === 'project') url.searchParams.set('project', route.projectId);
+  else if (route?.view === 'dispatch') url.searchParams.set('dispatch', route.projectId);
   else if (route?.view === 'settings') url.searchParams.set('settings', '1');
   return url.pathname + url.search;
 }
@@ -71,9 +76,10 @@ function navigate(route: PrintRoute, replace = false): void {
   else history.pushState(state, '', path);
 }
 
-/** Settings is the one panel that can be handed a custom way out — it is
- *  reached from the other two and returns to whichever opened it. */
+/** Settings and the plate editor can be handed a custom way out — each is
+ *  reached from other panels and returns to whichever opened it. */
 let settingsOnClose: (() => void) | null = null;
+let plateOnClose: (() => void) | null = null;
 
 /** What is on screen — the route to restore if a guard refuses a Back. */
 let painted: PrintRoute = null;
@@ -103,9 +109,22 @@ function paint(route: PrintRoute): void {
       <ProjectPlanner
         projectId={projectId}
         onClose={() => closePrintUI()}
-        onOpenPlate={openPlateDialog}
+        onOpenPlate={(plateId) => openPlateDialog(plateId, true, () => openProjectPlanner(projectId, true))}
         onOpenPlates={() => openPlatesPanel()}
         onOpenSettings={() => openSettingsPanel(() => openProjectPlanner(projectId, true), true)}
+        onOpenDispatch={() => openPrintDispatch(projectId)}
+      />,
+      portal,
+    );
+    return;
+  }
+  if (route.view === 'dispatch') {
+    const { projectId } = route;
+    render(
+      <PrintDispatch
+        projectId={projectId}
+        onClose={() => closePrintUI()}
+        onOpenPlanner={() => openProjectPlanner(projectId)}
       />,
       portal,
     );
@@ -116,8 +135,11 @@ function paint(route: PrintRoute): void {
     render(
       <PrintDialog
         plateId={plateId}
-        onClose={() => closePrintUI()}
-        onOpenSettings={() => openSettingsPanel(() => openPlateDialog(plateId, true), true)}
+        onClose={() => (plateOnClose ?? closePrintUI)()}
+        onOpenSettings={() => {
+          const back = plateOnClose ?? undefined;
+          openSettingsPanel(() => openPlateDialog(plateId, true, back), true);
+        }}
       />,
       portal,
     );
@@ -128,30 +150,42 @@ function paint(route: PrintRoute): void {
 
 export function openPlatesPanel(replace = false): void {
   settingsOnClose = null;
+  plateOnClose = null;
   navigate({ view: 'plates' }, replace);
   paint({ view: 'plates' });
 }
 
-export function openPlateDialog(plateId: string, replace = false): void {
+export function openPlateDialog(plateId: string, replace = false, onClose?: () => void): void {
   settingsOnClose = null;
+  plateOnClose = onClose ?? null;
   navigate({ view: 'plate', plateId }, replace);
   paint({ view: 'plate', plateId });
 }
 
 export function openProjectPlanner(projectId: string, replace = false): void {
   settingsOnClose = null;
+  plateOnClose = null;
   navigate({ view: 'project', projectId }, replace);
   paint({ view: 'project', projectId });
 }
 
+export function openPrintDispatch(projectId: string, replace = false): void {
+  settingsOnClose = null;
+  plateOnClose = null;
+  navigate({ view: 'dispatch', projectId }, replace);
+  paint({ view: 'dispatch', projectId });
+}
+
 export function openSettingsPanel(onClose?: () => void, replace = false): void {
   settingsOnClose = onClose ?? null;
+  plateOnClose = null;
   navigate({ view: 'settings' }, replace);
   paint({ view: 'settings' });
 }
 
 export function closePrintUI(): void {
   settingsOnClose = null;
+  plateOnClose = null;
   navigate(null);
   paint(null);
 }
@@ -176,6 +210,7 @@ export function initPrintRouting(): void {
     }
     setPrintLeaveGuard(null);
     settingsOnClose = null;
+    plateOnClose = null;
     paint(readRoute());
   });
   const route = readRoute();

@@ -78,7 +78,7 @@ const X_AXIS = new THREE.Vector3(1, 0, 0);
 const MODEL_TO_THREE = new THREE.Quaternion().setFromAxisAngle(X_AXIS, -Math.PI / 2);
 const THREE_TO_MODEL = MODEL_TO_THREE.clone().invert();
 
-function modelToThreeQuat(q: Quat): THREE.Quaternion {
+export function modelToThreeQuat(q: Quat): THREE.Quaternion {
   return MODEL_TO_THREE.clone()
     .multiply(new THREE.Quaternion(q.x, q.y, q.z, q.w))
     .multiply(THREE_TO_MODEL);
@@ -90,7 +90,7 @@ function threeToModelQuat(q: THREE.Quaternion): Quat {
 }
 
 /** Model Y becomes Three -Z, so a per-axis scale is a permutation, not a turn. */
-function modelToThreeScale(s: PlateScale): THREE.Vector3 {
+export function modelToThreeScale(s: PlateScale): THREE.Vector3 {
   return new THREE.Vector3(s.x, s.z, s.y);
 }
 
@@ -105,7 +105,7 @@ function material(color: number): THREE.MeshPhongMaterial {
 }
 
 /** Parse artifact bytes into Three-space geometry (model axes already turned). */
-function parseGeometry(data: ArrayBuffer, format: 'stl' | '3mf'): THREE.Group {
+export function parseGeometry(data: ArrayBuffer, format: 'stl' | '3mf'): THREE.Group {
   const group = new THREE.Group();
 
   if (format === 'stl') {
@@ -153,7 +153,7 @@ function instantiate(template: THREE.Group): THREE.Group {
   return clone;
 }
 
-function disposeGroup(group: THREE.Object3D, geometries: boolean): void {
+export function disposeGroup(group: THREE.Object3D, geometries: boolean): void {
   group.traverse((child) => {
     if (!(child instanceof THREE.Mesh)) return;
     if (geometries) child.geometry.dispose();
@@ -181,7 +181,7 @@ function setTint(group: THREE.Object3D, color: number | null): void {
  * because a rotation changes which part of the mesh is lowest — a part tipped
  * onto a corner has to drop further than the same part lying flat.
  */
-function place(obj: THREE.Object3D, bedX: number, bedY: number): void {
+export function place(obj: THREE.Object3D, bedX: number, bedY: number): void {
   obj.position.set(0, 0, 0);
   obj.updateMatrixWorld(true);
   // Precise: the loose box (the local AABB's corners, turned) overstates a

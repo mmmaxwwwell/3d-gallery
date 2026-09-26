@@ -8,6 +8,10 @@
  * - GET /server/files/config/printer.cfg — raw config file text
  * - POST /server/files/upload — upload a G-code file (multipart)
  * - POST /printer/print/start — start printing an already-uploaded file
+ * - GET /server/info, /printer/info — whether Klipper is up
+ * - GET /server/files/metadata — whether a file is on the printer
+ * - GET /server/history/list — how past prints ended
+ * - GET /server/webcams/list — camera URLs
  */
 
 // Pulled in for the `window.AndroidPrinterDiscovery` feature-detect below.
@@ -143,6 +147,8 @@ export interface PrintStatus {
   filename: string;
   /** Seconds left on the current print; 0 when nothing is running. */
   remainingSec: number;
+  /** Fraction of the file printed, 0–1. */
+  progress: number;
 }
 
 interface MoonrakerPrintStatsResponse {
@@ -165,7 +171,7 @@ export async function fetchPrintStatus(address: string): Promise<PrintStatus> {
   );
   const { print_stats: stats, virtual_sdcard: sd } = data.result.status;
   const running = stats.state === 'printing' || stats.state === 'paused';
-  if (!running) return { state: stats.state, filename: stats.filename, remainingSec: 0 };
+  if (!running) return { state: stats.state, filename: stats.filename, remainingSec: 0, progress: sd.progress };
 
   let remainingSec = sd.progress > 0 ? stats.print_duration / sd.progress - stats.print_duration : 0;
   try {
@@ -178,7 +184,89 @@ export async function fetchPrintStatus(address: string): Promise<PrintStatus> {
   } catch {
     // Metadata is a refinement; the progress-based figure stands without it.
   }
-  return { state: stats.state, filename: stats.filename, remainingSec: Math.max(0, remainingSec) };
+  return { state: stats.state, filename: stats.filename, remainingSec: Math.max(0, remainingSec), progress: sd.progress };
+}
+
+/** Whether Klipper is up, as Moonraker sees it. */
+export interface KlippyState {
+  /** `ready`, `startup`, `shutdown`, `error` or `disconnected`. */
+  state: string;
+  /** Klipper's own explanation when it isn't ready; empty otherwise. */
+  message: string;
+}
+
+/** Throws only when Moonraker itself can't be reached. */
+export async function fetchKlippyState(address: string): Promise<KlippyState> {
+  const info = await moonrakerGet<{ result: { klippy_state: string } }>(address, '/server/info');
+  const state = info.result.klippy_state;
+  if (state === 'ready') return { state, message: '' };
+  // /printer/info only answers while Klipper is connected; the state stands without it.
+  const detail = await moonrakerGet<{ result: { state_message?: string } }>(address, '/printer/info').catch(() => null);
+  return { state, message: detail?.result.state_message?.trim() ?? '' };
+}
+
+/** Whether `fileName` is in the printer's gcodes root. */
+export async function fileExists(address: string, fileName: string): Promise<boolean> {
+  const url = buildMoonrakerUrl(address, `/server/files/metadata?filename=${encodeURIComponent(fileName)}`);
+  checkMixedContent(url);
+  const res = await fetch(url, { mode: 'cors' });
+  if (res.status === 404) return false;
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Moonraker file lookup failed (${res.status}): ${text || res.statusText}`);
+  }
+  return true;
+}
+
+/** One print from Moonraker's job history. */
+export interface HistoryJob {
+  filename: string;
+  /** `completed`, `cancelled`, `error`, `klippy_shutdown`, `in_progress`, … */
+  status: string;
+  /** Epoch ms, printer clock. */
+  startTime: number;
+}
+
+/** Prints started at or after `sinceMs`, newest first. */
+export async function fetchJobHistory(address: string, sinceMs: number): Promise<HistoryJob[]> {
+  const since = Math.floor(sinceMs / 1000);
+  const data = await moonrakerGet<{ result: { jobs: Array<{ filename: string; status: string; start_time: number }> } }>(
+    address,
+    `/server/history/list?since=${since}&limit=100&order=desc`,
+  );
+  return data.result.jobs.map((j) => ({ filename: j.filename, status: j.status, startTime: j.start_time * 1000 }));
+}
+
+export interface Webcam {
+  name: string;
+  snapshotUrl: string;
+  streamUrl: string;
+}
+
+/**
+ * Resolve a webcam URL from Moonraker's config. Relative ones are served by
+ * the printer's web front end (Mainsail/Fluidd behind nginx), on the host's
+ * default port rather than Moonraker's.
+ */
+export function resolveWebcamUrl(address: string, url: string): string {
+  if (!url) return '';
+  if (/^https?:\/\//.test(url)) return url;
+  const origin = new URL(buildMoonrakerUrl(address, '/'));
+  return `${origin.protocol}//${origin.hostname}${url.startsWith('/') ? '' : '/'}${url}`;
+}
+
+/** The printer's enabled cameras. */
+export async function listWebcams(address: string): Promise<Webcam[]> {
+  const data = await moonrakerGet<{
+    result: { webcams: Array<{ name: string; enabled?: boolean; snapshot_url?: string; stream_url?: string }> };
+  }>(address, '/server/webcams/list');
+  return data.result.webcams
+    .filter((w) => w.enabled !== false)
+    .map((w) => ({
+      name: w.name,
+      snapshotUrl: resolveWebcamUrl(address, w.snapshot_url ?? ''),
+      streamUrl: resolveWebcamUrl(address, w.stream_url ?? ''),
+    }));
 }
 
 /** Start printing a file that has already been uploaded. */

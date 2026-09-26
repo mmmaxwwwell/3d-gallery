@@ -1808,11 +1808,11 @@ async function planSummaryRows(model: Model, plates: Part[]): Promise<HTMLLIElem
     const seconds = rate ? est.seconds[rate.mmPerS] : undefined;
     if (!seconds) return null;
     const scale = (densities[family] ?? densities[fallback] ?? filament.density) / filament.density;
-    const color = filamentFor(model, plate.components?.[0]?.part ?? plate.file)?.color;
+    const color = plateColor(model, plate);
     return {
       plate,
       family,
-      filament: color && color !== "any" ? `${material} · ${color}` : material,
+      filament: color ? `${material} · ${color}` : material,
       seconds,
       grams: est.grams * scale,
       support: (est.supportGrams ?? 0) * scale,
@@ -1910,6 +1910,7 @@ async function addPlatesToProject(model: Model, plates: Part[], newProject: bool
   const entries = await Promise.all(plates.map(async (plate) => ({
     name: plate.label,
     material: plateMaterial(model, plate),
+    color: plateColor(model, plate),
     profile,
     item: {
       slug: model.slug,
@@ -2009,6 +2010,12 @@ function materialFamily(material: string): string {
 }
 
 /** The filament a printed file is in: the entry naming it, else the entry naming nothing. */
+/** The colour a print plate's filament comes in, when the model names one. */
+function plateColor(model: Model, plate: Part): string | undefined {
+  const color = filamentFor(model, plate.components?.[0]?.part ?? plate.file)?.color;
+  return color && color !== "any" ? color : undefined;
+}
+
 function filamentFor(model: Model, file: string): FilamentEntry | undefined {
   const filament = model.filament ?? [];
   return filament.find((f) => f.parts?.includes(file)) ?? filament.find((f) => !f.parts);

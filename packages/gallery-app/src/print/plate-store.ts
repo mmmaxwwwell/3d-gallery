@@ -141,6 +141,8 @@ export interface Plate {
   overrides?: Record<string, ObjectOverrides>;
   /** Material family, for a plate made from one of a model's print plates. */
   material?: string;
+  /** Filament colour the model asks for, when it names one. */
+  color?: string;
   /** The model's recommended profile, for a plate made from its print plates. */
   profile?: RecommendedProfile;
   createdAt: number;
@@ -156,6 +158,9 @@ export interface SlicedGcode {
   filamentId: string;
   /** `plateSignature` at slice time; any other value means the G-code is stale. */
   signature: string;
+  /** `sliceSetupKey` at slice time: the presets and process it was sliced
+   *  with. Absent on records from before it was kept, which count as stale. */
+  setup?: string;
   gcode: string;
   seconds?: number;
   grams?: number;
@@ -341,7 +346,7 @@ export async function listSlicedGcode(plateId: string): Promise<SlicedGcode[]> {
  */
 export async function createPlatesWithItems(
   projectId: string,
-  entries: Array<{ name: string; item: Omit<PlateItem, 'id'>; material?: string; profile?: RecommendedProfile }>,
+  entries: Array<{ name: string; item: Omit<PlateItem, 'id'>; material?: string; color?: string; profile?: RecommendedProfile }>,
 ): Promise<Plate[]> {
   const db = await getDb();
   const tx = db.transaction(PLATES_STORE, 'readwrite');
@@ -357,6 +362,7 @@ export async function createPlatesWithItems(
         Array.from({ length: item.qty }, (_, copy) => [instanceId(item.id, copy), DEFAULT_TRANSFORM]),
       ),
       material: entry.material,
+      color: entry.color,
       profile: entry.profile,
       createdAt: now,
       // Oldest first reads top to bottom in plate order, since lists sort newest first.

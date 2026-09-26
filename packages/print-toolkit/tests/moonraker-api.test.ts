@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { buildMoonrakerUrl, extractGcodeBlock, extractGcodeSection, parsePrinterConfig, fetchConfigfile, fetchToolhead, fetchRawPrinterCfg, startPrint, fetchPrinterConfig } from '../src/moonraker-api.js';
+import { buildMoonrakerUrl, extractGcodeBlock, extractGcodeSection, parsePrinterConfig, fetchConfigfile, fetchToolhead, fetchRawPrinterCfg, startPrint, fetchPrinterConfig, fetchKlippyState, fileExists, fetchJobHistory, listWebcams, resolveWebcamUrl } from '../src/moonraker-api.js';
 
 // ─── Shared fetch mock helpers ───────────────────────────────────────────────
 
@@ -702,5 +702,78 @@ describe('mixed content check', () => {
     }) as any;
 
     await expect(fetchConfigfile('http://192.168.1.50')).resolves.toEqual({});
+  });
+});
+
+// ─── Dispatch probes ────────────────────────────────────────────────────────
+
+describe('resolveWebcamUrl', () => {
+  it('keeps absolute URLs', () => {
+    expect(resolveWebcamUrl('printer.local:7125', 'http://cam.local:8080/?action=snapshot')).toBe('http://cam.local:8080/?action=snapshot');
+  });
+
+  it('resolves relative URLs on the web front end, not Moonraker\'s port', () => {
+    expect(resolveWebcamUrl('http://192.168.1.58:7125', '/webcam/?action=snapshot')).toBe('http://192.168.1.58/webcam/?action=snapshot');
+    expect(resolveWebcamUrl('printer.local', 'webcam/?action=stream')).toBe('http://printer.local/webcam/?action=stream');
+  });
+});
+
+describe('listWebcams', () => {
+  useMockFetch();
+
+  it('returns enabled cameras with resolved URLs', async () => {
+    globalThis.fetch = mockFetch({ json: { result: { webcams: [
+      { name: 'bed', enabled: true, snapshot_url: '/webcam/?action=snapshot', stream_url: '/webcam/?action=stream' },
+      { name: 'off', enabled: false, snapshot_url: '/x' },
+    ] } } }) as any;
+    expect(await listWebcams('printer.local:7125')).toEqual([
+      { name: 'bed', snapshotUrl: 'http://printer.local/webcam/?action=snapshot', streamUrl: 'http://printer.local/webcam/?action=stream' },
+    ]);
+  });
+});
+
+describe('fetchKlippyState', () => {
+  useMockFetch();
+
+  it('adds Klipper\'s message when it is not ready', async () => {
+    globalThis.fetch = vi.fn((url: string) => Promise.resolve({
+      ok: true, status: 200, statusText: 'OK',
+      json: () => Promise.resolve(url.endsWith('/server/info')
+        ? { result: { klippy_state: 'shutdown' } }
+        : { result: { state_message: 'MCU lost communication\n' } }),
+      text: () => Promise.resolve(''),
+    })) as any;
+    expect(await fetchKlippyState('printer.local')).toEqual({ state: 'shutdown', message: 'MCU lost communication' });
+  });
+});
+
+describe('fileExists', () => {
+  useMockFetch();
+
+  it('is false on 404 and true on 200', async () => {
+    globalThis.fetch = mockFetch({ ok: false, status: 404 }) as any;
+    expect(await fileExists('printer.local', '01-a.gcode')).toBe(false);
+    globalThis.fetch = mockFetch({ json: { result: {} } }) as any;
+    expect(await fileExists('printer.local', '01-a.gcode')).toBe(true);
+  });
+
+  it('throws on other failures', async () => {
+    globalThis.fetch = mockFetch({ ok: false, status: 500, text: 'oops' }) as any;
+    await expect(fileExists('printer.local', '01-a.gcode')).rejects.toThrow('500');
+  });
+});
+
+describe('fetchJobHistory', () => {
+  useMockFetch();
+
+  it('asks for jobs since a time and returns ms timestamps', async () => {
+    globalThis.fetch = mockFetch({ json: { result: { jobs: [{ filename: '01-a.gcode', status: 'completed', start_time: 1700000000.5 }] } } }) as any;
+    expect(await fetchJobHistory('printer.local', 1_700_000_000_000)).toEqual([
+      { filename: '01-a.gcode', status: 'completed', startTime: 1_700_000_000_500 },
+    ]);
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      'http://printer.local/server/history/list?since=1700000000&limit=100&order=desc',
+      expect.anything(),
+    );
   });
 });

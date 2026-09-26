@@ -79,7 +79,8 @@ test('a build\'s plates become a project the planner schedules', async ({ page }
   const projectId = new URL(page.url()).searchParams.get('project')!;
   const planner = page.locator('.planner');
   await expect(planner.locator('.planner-plate')).toHaveCount(4);
-  await expect(planner.locator('.planner-plate .planner-chip')).toContainText(['PETG', 'PETG', 'PETG', 'TPU']);
+  await expect(planner.locator('.planner-plate .planner-chip').filter({ hasText: 'TPU' })).toHaveCount(1);
+  await expect(planner.locator('.planner-plate .planner-chip').filter({ hasText: 'PETG' })).toHaveCount(3);
 
   await serveEstimates(page, projectId);
   await page.reload();
@@ -87,21 +88,51 @@ test('a build\'s plates become a project the planner schedules', async ({ page }
   // 13h of printing on two printers: the plan puts every plate on a bar.
   await expect(planner.locator('.gantt-bar')).toHaveCount(4);
   await expect(planner.locator('.gantt-row')).toHaveCount(2);
-  await expect(planner.locator('.planner-headline')).toContainText('13h 00m');
-  await expect(planner.locator('.planner-visit').first()).toContainText('Now');
+  const summary = planner.locator('.planner-summary');
+  await expect(summary.locator('[data-plan="print"] .planner-stat-value')).toHaveText('13h 00m');
+  // Three PETG plates and one TPU, 10 g each, all from CI so far.
+  await expect(summary.locator('.planner-filament-list li')).toHaveText([/PETG\s*≈30 g/, /TPU 64D\s*≈10 g/, /Total\s*≈40 g/]);
   // The TPU plate costs a filament swap wherever it lands after PETG.
   await expect(planner.locator('.gantt-bar.is-tpu')).toHaveCount(1);
 
-  // Fewer trips is never more trips.
-  const trips = async () => Number(await planner.locator('.planner-headline .planner-big').nth(1).textContent());
-  const fastTrips = await trips();
+  // Plates are numbered from 0 in the order they start, and read in that order.
+  await expect(planner.locator('.planner-plate-num')).toHaveText(['#0', '#1', '#2', '#3']);
+
+  // Fewer trips is never more trips, and one printer takes longest.
+  const trips = async (plan: string) =>
+    Number((await summary.locator(`[data-plan="${plan}"] .planner-trips`).textContent())!.split(' ')[0]);
+  expect(await trips('visits')).toBeLessThanOrEqual(await trips('makespan'));
+  await expect(summary.locator('[data-plan="one"] .planner-stat-value')).not.toHaveText('—');
+
+  // Nothing is sliced, so nothing can be sent.
+  await expect(planner.getByRole('button', { name: 'Send to printers' })).toBeDisabled();
+  await expect(planner.locator('.planner-checks')).toContainText('0/4 plates sliced');
+
+  await planner.getByRole('button', { name: 'Trips' }).click();
+  await expect(planner.locator('.planner-visit').first()).toContainText('Now');
+  await planner.getByRole('button', { name: 'Chart' }).click();
   await planner.getByLabel('Optimize for').selectOption('visits');
-  expect(await trips()).toBeLessThanOrEqual(fastTrips);
+  await expect(planner.locator('.gantt-bar')).toHaveCount(4);
 
   // Switching a printer off puts everything on the other.
   await planner.locator('.planner-printer').filter({ hasText: 'Right' }).getByRole('checkbox').uncheck();
   await expect(planner.locator('.gantt-row')).toHaveCount(1);
   await expect(planner.locator('.gantt-bar')).toHaveCount(4);
+  // One of two on leaves All part-way; ticking it turns both on, unticking both off.
+  const all = planner.getByRole('checkbox', { name: /All printers/ });
+  await all.check();
+  await expect(planner.locator('.gantt-row')).toHaveCount(2);
+  await all.uncheck();
+  await expect(planner.locator('.gantt-bar')).toHaveCount(0);
+  await expect(planner.getByRole('button', { name: 'Send to printers' })).toBeDisabled();
+  await all.check();
+
+  // Edit plate opens the editor, and closing it comes back to the planner.
+  await planner.locator('.planner-plate').first().getByRole('button', { name: 'Edit plate' }).click();
+  await expect(page).toHaveURL(/[?&]plate=/);
+  await page.locator('.print-modal-close').click();
+  await expect(page).toHaveURL(new RegExp(`[?&]project=${projectId}`));
+  await expect(planner.locator('.planner-plate')).toHaveCount(4);
 
   // Back closes the planner and leaves the gallery where it was.
   await page.goBack();

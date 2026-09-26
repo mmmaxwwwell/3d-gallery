@@ -124,7 +124,15 @@ export {
   startPrint,
   uploadGcode,
   fetchPrintStatus,
+  fetchKlippyState,
+  fileExists,
+  fetchJobHistory,
+  listWebcams,
+  resolveWebcamUrl,
   type PrintStatus,
+  type KlippyState,
+  type HistoryJob,
+  type Webcam,
 } from './moonraker-api.js';
 
 // ─── Print scheduling ───────────────────────────────────────────────────────
