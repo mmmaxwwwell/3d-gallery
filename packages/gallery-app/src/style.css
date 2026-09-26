@@ -1205,7 +1205,7 @@ body.sidebar-open #sidebar-backdrop {
   display: none;
 }
 
-/* Add to plate is the one action that commits something, so it reads as the
+/* Add to project is the one action that commits something, so it reads as the
    primary of the row. */
 #print-btn {
   background: #e2ecf8;
@@ -3881,6 +3881,34 @@ html, body {
   background: var(--rw-surface-3);
 }
 
+/* "Added to …" hangs under the buttons as a toast; in the row it would get
+   an icon button's 40 px and spill under the next one. */
+#header-actions {
+  position: relative;
+}
+
+#header-actions > #plate-added {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  width: max-content;
+  max-width: min(360px, 80vw);
+  padding: 8px 12px;
+  display: block;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--rw-text);
+  background: var(--rw-surface);
+  border-color: var(--rw-magenta);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  cursor: default;
+}
+
+#header-actions > #plate-added[hidden] {
+  display: none;
+}
+
 body.customizer-open #customize-btn,
 body.info-open #info-btn {
   background: linear-gradient(135deg, var(--rw-pink), var(--rw-magenta));
@@ -3994,79 +4022,6 @@ button:focus-visible {
 
 /* ── Plate list ──────────────────────────────────────── */
 
-.plates-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.plate-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 10px;
-  padding: 10px 12px;
-  background: var(--rw-surface);
-  border: 1px solid var(--rw-border);
-  border-radius: 8px;
-}
-
-.plate-row.is-active {
-  border-color: var(--rw-border-strong);
-  background: linear-gradient(90deg, rgba(255, 23, 199, 0.10), var(--rw-surface) 55%);
-  box-shadow: inset 3px 0 0 var(--rw-magenta);
-}
-
-.plate-row-name {
-  flex: 1 1 160px;
-  min-width: 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--rw-text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-input.plate-row-name {
-  padding: 5px 8px;
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  background: var(--rw-surface-2);
-  color: var(--rw-text);
-  border: 1px solid var(--rw-border);
-  border-radius: 6px;
-}
-
-input.plate-row-name:focus {
-  outline: none;
-  border-color: var(--rw-magenta);
-  box-shadow: 0 0 0 1px var(--rw-magenta);
-}
-
-.plate-row-meta {
-  flex: 0 0 auto;
-  font-size: 12px;
-  color: var(--rw-text-muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.plate-row-fit {
-  order: 3;
-  flex: 1 1 100%;
-  font-size: 12px;
-  line-height: 1.4;
-  color: var(--rw-text-muted);
-}
-
-.plate-row-fit.is-blocked {
-  color: var(--rw-danger-text);
-}
-
 .plate-row-fit-link {
   font: inherit;
   padding: 0;
@@ -4075,20 +4030,6 @@ input.plate-row-name:focus {
   color: var(--rw-cyan);
   text-decoration: underline;
   cursor: pointer;
-}
-
-.plate-row-actions {
-  order: 2;
-  margin-left: auto;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.plate-row-actions .btn {
-  padding: 5px 12px;
-  min-height: 34px;
-  font-size: 12px;
 }
 
 .plate-empty {
@@ -4236,42 +4177,8 @@ input.plate-row-name:focus {
 .plates-panel-toolbar {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 12px;
-}
-
-.plates-panel {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-}
-
-@media (min-width: 720px) {
-  .plates-panel {
-    grid-template-columns: minmax(180px, 250px) minmax(0, 1fr);
-    align-items: start;
-  }
-}
-
-.plates-pane {
-  display: flex;
-  flex-direction: column;
   gap: 8px;
-  min-width: 0;
-}
-
-.plates-pane-title {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--rw-text-muted);
-}
-
-.plates-pane-hint {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.4;
-  color: var(--rw-text-dim);
+  margin-bottom: 12px;
 }
 
 .projects-list {
@@ -4319,16 +4226,18 @@ input.project-row-name:focus {
   box-shadow: 0 0 0 1px var(--rw-magenta);
 }
 
+.project-row-meta {
+  flex: 0 0 auto;
+  font-size: 12px;
+  color: var(--rw-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
 .btn.project-row-delete {
   flex: 0 0 auto;
   padding: 4px 10px;
   min-height: 30px;
   font-size: 11px;
-}
-
-/* Selecting the plate "Add to plate" targets is a click on the row. */
-.plate-row {
-  cursor: pointer;
 }
 
 .pd-dirty {
@@ -4337,11 +4246,6 @@ input.project-row-name:focus {
 
 .pd-saved {
   color: var(--rw-text-muted);
-}
-
-/* Pane actions size to their label — the pane is a column flexbox. */
-.plates-pane > .btn {
-  align-self: start;
 }
 
 /* ── 3D plate editor ──────────────────────────────────────────────────────
@@ -4477,11 +4381,6 @@ input.project-row-name:focus {
   display: block;
   font-size: 10px;
   font-style: normal;
-  font-variant-numeric: tabular-nums;
-  color: var(--rw-text-dim);
-}
-
-.plate-row-size {
   font-variant-numeric: tabular-nums;
   color: var(--rw-text-dim);
 }
@@ -5299,64 +5198,18 @@ input.project-row-name:focus {
   margin-bottom: 4px;
 }
 
-/* ── Print it: a build's plates → a project ─────────────── */
+/* ── A build's plates → the open project ─────────────── */
 
 .project-actions-row {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.project-actions-buttons {
-  display: flex;
   flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
 }
 
 #info-panel-body li.reference-note {
   display: block;
-}
-
-#info-panel-body li.filament-summary {
-  display: block;
-}
-
-.filament-summary table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-}
-
-.filament-summary th,
-.filament-summary td {
-  padding: 3px 0 3px 8px;
-  text-align: right;
-  white-space: nowrap;
-}
-
-.filament-summary th:first-child,
-.filament-summary td:first-child {
-  padding-left: 0;
-  text-align: left;
-  white-space: normal;
-}
-
-.filament-summary th {
-  font-weight: 600;
-  font-size: 12px;
-  color: #666;
-}
-
-.filament-summary tr.is-total td {
-  font-weight: 600;
-  border-top: 1px solid var(--rw-cyan-dim, #cfe0f5);
-}
-
-.plates-pane-plan {
-  margin-left: 10px;
-  text-transform: none;
-  letter-spacing: normal;
 }
 
 /* ── Project planner ──────────────────────────────────────
@@ -5405,6 +5258,49 @@ input.project-row-name:focus {
   text-transform: none;
   letter-spacing: normal;
   font-weight: 400;
+}
+
+/* Project bar: which project is open, and the way to save or swap it */
+
+.planner-project {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--rw-border);
+}
+
+input.planner-project-name {
+  flex: 1 1 220px;
+  min-width: 0;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  background: var(--rw-surface-2);
+  color: var(--rw-text);
+  border: 1px solid var(--rw-border);
+  border-radius: 6px;
+}
+
+input.planner-project-name:focus,
+input.planner-plate-name:focus {
+  outline: none;
+  border-color: var(--rw-magenta);
+  box-shadow: 0 0 0 1px var(--rw-magenta);
+}
+
+.planner-chip.planner-unsaved {
+  color: var(--rw-magenta);
+  border-color: var(--rw-magenta);
+}
+
+.planner-project-tools {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
 }
 
 /* Summary strip */
@@ -5794,9 +5690,39 @@ input.project-row-name:focus {
   font-variant-numeric: tabular-nums;
 }
 
-.planner-plate-name {
+input.planner-plate-name {
+  flex: 1 1 140px;
   min-width: 0;
-  overflow-wrap: anywhere;
+  padding: 3px 6px;
+  font: inherit;
+  font-weight: 700;
+  color: var(--rw-text);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+}
+
+input.planner-plate-name:hover {
+  border-color: var(--rw-border);
+}
+
+/* The plate "Add to project" drops parts on; clicking a plate picks it. */
+.planner-plate {
+  cursor: pointer;
+}
+
+.planner-plate.is-target {
+  border-color: var(--rw-magenta);
+  box-shadow: inset 3px 0 0 var(--rw-magenta);
+}
+
+.planner-chip.planner-target-chip {
+  color: var(--rw-magenta);
+  border-color: var(--rw-magenta);
+}
+
+.planner-plate.is-empty .planner-thumb {
+  opacity: 0.4;
 }
 
 .planner-plate-meta {

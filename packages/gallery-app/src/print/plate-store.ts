@@ -113,6 +113,8 @@ export function instanceId(itemId: string, copy: number): string {
 export interface Project {
   id: string;
   name: string;
+  /** Not saved yet: the working project, dropped when another replaces it. */
+  draft?: boolean;
   createdAt: number;
   updatedAt: number;
 }
@@ -234,10 +236,10 @@ export async function saveProject(project: Project): Promise<Project> {
   return record;
 }
 
-export async function createProject(name: string): Promise<Project> {
+export async function createProject(name: string, draft = false): Promise<Project> {
   const db = await getDb();
   const now = Date.now();
-  const project: Project = { id: newId(), name, createdAt: now, updatedAt: now };
+  const project: Project = { id: newId(), name, createdAt: now, updatedAt: now, ...(draft ? { draft } : {}) };
   await db.put(PROJECTS_STORE, project);
   return project;
 }
@@ -448,30 +450,75 @@ export function setActiveProjectId(id: string | null): void {
   } catch { /* see setActivePlateId */ }
 }
 
-/**
- * Resolve where "Add to plate" should drop a part, creating a project and/or
- * a plate on first use. `fallbackProjectName` names a project only when there
- * is none at all to fall back on.
- */
-export async function ensureTargetPlate(
-  fallbackProjectName: string,
-): Promise<{ project: Project; plate: Plate }> {
-  const activeProjectId = getActiveProjectId();
-  const project =
-    (activeProjectId ? await getProject(activeProjectId) : undefined)
-    ?? (await listProjects())[0]
-    ?? (await createProject(fallbackProjectName));
-  setActiveProjectId(project.id);
+export const UNTITLED_PROJECT = 'Untitled project';
 
+/** The project the app has open. There always is one: an empty draft when
+ *  nothing else has been opened. */
+export async function currentProject(): Promise<Project> {
+  const id = getActiveProjectId();
+  const project = id ? await getProject(id) : undefined;
+  if (project) return project;
+  const draft = await createProject(UNTITLED_PROJECT, true);
+  setActiveProjectId(draft.id);
+  setActivePlateId(null);
+  return draft;
+}
+
+/** Plates in `projectId` that hold something. */
+export async function filledPlateCount(projectId: string): Promise<number> {
+  return (await listPlates(projectId)).filter((p) => p.items.length > 0).length;
+}
+
+/**
+ * Make `id` the open project. The draft it replaces goes with it — a draft
+ * lives only while it is open; the caller asks first if it held anything.
+ */
+export async function setCurrentProject(id: string): Promise<void> {
+  const previous = getActiveProjectId();
+  if (previous === id) return;
+  const old = previous ? await getProject(previous) : undefined;
+  setActiveProjectId(id);
+  setActivePlateId(null);
+  if (old?.draft) await deleteProject(old.id);
+}
+
+/**
+ * Where "Add to project" drops a part: the open project's selected plate,
+ * else its first, else a new one.
+ */
+export async function ensureTargetPlate(): Promise<{ project: Project; plate: Plate }> {
+  const project = await currentProject();
   const activePlateId = getActivePlateId();
   const active = activePlateId ? await getPlate(activePlateId) : undefined;
   // An active plate from another project would silently scatter parts across
-  // projects, so it only counts when it belongs to the project we resolved.
+  // projects, so it only counts when it belongs to the open one.
   const plate =
     (active?.projectId === project.id ? active : undefined)
     ?? (await listPlates(project.id))[0]
     ?? (await createPlate(await nextPlateName(project.id), project.id));
   setActivePlateId(plate.id);
-
   return { project, plate };
+}
+
+/** A copy of `plate` in the same project, arrangement and all. */
+export async function duplicatePlate(plate: Plate): Promise<Plate> {
+  const copy = await createPlate(`${plate.name} (copy)`, plate.projectId);
+  // Fresh item ids, so the arrangement has to be re-keyed to match or the
+  // copy would open with everything unplaced.
+  const remap = new Map(plate.items.map((i) => [i.id, newId()]));
+  const transforms: Plate['transforms'] = {};
+  for (const [id, transform] of Object.entries(plate.transforms ?? {})) {
+    const split = id.lastIndexOf(':');
+    const next = remap.get(id.slice(0, split));
+    if (next) transforms[`${next}:${id.slice(split + 1)}`] = transform;
+  }
+  return savePlate({
+    ...copy,
+    items: plate.items.map((i) => ({ ...i, id: remap.get(i.id) ?? newId() })),
+    transforms,
+    material: plate.material,
+    color: plate.color,
+    profile: plate.profile,
+    overrides: plate.overrides,
+  });
 }

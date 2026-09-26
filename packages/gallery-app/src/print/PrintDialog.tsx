@@ -1046,7 +1046,7 @@ export function PrintDialog({ plateId, onClose, onOpenSettings }: PrintDialogPro
 
       {plate && instances.length === 0 && !resolveProgress && (
         <div class="print-dialog-empty">
-          This plate is empty. Use <strong>Add to plate</strong> on a part to fill it.
+          This plate is empty. Use <strong>Add to project</strong> on a part to fill it.
         </div>
       )}
 
@@ -1676,7 +1676,7 @@ export function PrintDialog({ plateId, onClose, onOpenSettings }: PrintDialogPro
             </p>
           ) : objectCount === 0 ? (
             <p>
-              This plate is empty. Use <strong>Add to plate</strong> on a part to fill it.
+              This plate is empty. Use <strong>Add to project</strong> on a part to fill it.
             </p>
           ) : (
             <div class="pd-stage-pick">

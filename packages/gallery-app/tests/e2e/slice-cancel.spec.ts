@@ -43,7 +43,7 @@ test('slicing shows a cancellable progress overlay', async ({ page }) => {
   await expect(page.locator('#plate-added')).toBeVisible({ timeout: 30_000 });
 
   await page.locator('#plates-btn').click();
-  await page.locator('.plate-row').first().getByRole('button', { name: /open/i }).click();
+  await page.locator('.planner-plate').first().getByRole('button', { name: 'Edit plate' }).click();
   await expect(page.locator('.plate3d-viewport canvas')).toBeVisible({ timeout: 120_000 });
 
   // Desktop width puts print setup beside the plate, so the slicer starts

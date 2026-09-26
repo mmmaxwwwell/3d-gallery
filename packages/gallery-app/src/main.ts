@@ -101,22 +101,17 @@ import {
 import {
   PRINT_ROUTE_PARAMS,
   initPrintRouting,
-  openPlateDialog,
-  openPlatesPanel,
+  openCurrentProject,
   openProjectPlanner,
 } from "./print/mount";
+import { openNewProject } from "./print/current-project";
 import { setPlateArtifactClient } from "./print/plate-resolve";
 import { listPresets } from "./print/print-storage";
-import { formatWhen, loadPlannerSettings, operatorBlocks, planFleet } from "./print/fleet-plan";
 import { CUSTOMIZABLE_SOURCES as INITIAL_SOURCES } from "./customizable-sources";
 import {
   addItemToPlate,
   createPlatesWithItems,
-  createProject,
   ensureTargetPlate,
-  getActiveProjectId,
-  getProject,
-  setActiveProjectId,
 } from "./print/plate-store";
 
 interface LegendEntry {
@@ -1690,7 +1685,7 @@ function renderHardware(model: Model, bom: Bom) {
 function renderInfoPanel(model: Model, part: Part) {
   const bom = bomFor(model, part);
 
-  renderProjectActions(model, part);
+  renderProjectActions(model);
   renderSection(printedListEl, "3D printed parts", printedRows(model, bom));
   renderUnlinked();
   renderHardware(model, bom);
@@ -1739,173 +1734,39 @@ function renderInfoPanel(model: Model, part: Part) {
 // ── Print plates → project ───────────────────────────────
 
 /**
- * On a view with print plates: send every plate to a project, where the
- * planner can slice, schedule and send them.
+ * On a view with print plates: load them as the open project, where the
+ * planner slices, schedules and sends them.
  */
-function renderProjectActions(model: Model, part: Part) {
+function renderProjectActions(model: Model) {
   const plates = (model.previews ?? []).filter((p) => p.plate);
   if (plates.length === 0) {
-    renderSection(projectActionsEl, "Print it", []);
+    renderSection(projectActionsEl, "Project", []);
     return;
   }
   const li = document.createElement("li");
   li.className = "project-actions-row";
   const note = document.createElement("span");
   note.className = "item-note";
-  note.textContent = `${plates.length} print plate${plates.length === 1 ? "" : "s"} · ${describeProfile(recommendedProfile(model))}`;
-  const buttons = document.createElement("div");
-  buttons.className = "project-actions-buttons";
-  const add = document.createElement("button");
-  add.type = "button";
-  add.className = "btn";
-  add.textContent = "+ Add to project";
-  add.title = "Add every print plate of this build to the active project";
-  const fresh = document.createElement("button");
-  fresh.type = "button";
-  fresh.className = "btn btn-primary";
-  fresh.textContent = "+ New project";
-  fresh.title = "Start a project holding every print plate of this build";
-  for (const [btn, newProject] of [[add, false], [fresh, true]] as const) {
-    btn.addEventListener("click", () => {
-      add.disabled = fresh.disabled = true;
-      void addPlatesToProject(model, plates, newProject)
-        .catch((err) => setError(err instanceof Error ? err.message : String(err)))
-        .finally(() => { add.disabled = fresh.disabled = false; });
-    });
-  }
-  buttons.append(add, fresh);
-  li.append(note, buttons);
-  renderSection(projectActionsEl, "Print it", [li]);
-  void planSummaryRows(model, plates).then((rows) => {
-    if (currentPart !== part) return;
-    projectActionsEl.querySelector("ul")?.append(...rows);
-  }).catch(() => {
-    // The summary is optional; the buttons still work without it.
+  note.textContent = `${plates.length} print plate${plates.length === 1 ? "" : "s"}`;
+  const load = document.createElement("button");
+  load.type = "button";
+  load.className = "btn btn-primary";
+  load.textContent = "Load project";
+  load.title = "Open a project holding every print plate of this build";
+  load.addEventListener("click", () => {
+    load.disabled = true;
+    void loadBuildProject(model, plates)
+      .catch((err) => setError(err instanceof Error ? err.message : String(err)))
+      .finally(() => { load.disabled = false; });
   });
+  li.append(note, load);
+  renderSection(projectActionsEl, "Project", [li]);
 }
 
-/**
- * What the planner would make of this build's plates: total print time, the
- * wall-clock on the registered printers under each objective, and the
- * filament by colour. From the CI estimates, so it's what the planner shows
- * before anything is sliced.
- */
-async function planSummaryRows(model: Model, plates: Part[]): Promise<HTMLLIElement[]> {
-  const data = printEstimates;
-  const client = artifactClient;
-  if (!data || !client) return [];
-  const { rates, densities, filament, defaultMaterial } = data.settings;
-  const params = buildParams(model);
-  const fallback = materialFamily(defaultMaterial);
-
-  // Each plate at its own material's flow rate and density, as the planner times it.
-  const timed = await Promise.all(plates.map(async (plate) => {
-    const est = data.estimates[await client.keyFor({ slug: model.slug, target: targetOf(plate), params })];
-    if (!est) return null;
-    const material = plateMaterial(model, plate);
-    const family = materialFamily(material);
-    const rate = rates.find((r) => r.label?.toUpperCase() === family) ?? rates.find((r) => r.label?.toUpperCase() === fallback);
-    const seconds = rate ? est.seconds[rate.mmPerS] : undefined;
-    if (!seconds) return null;
-    const scale = (densities[family] ?? densities[fallback] ?? filament.density) / filament.density;
-    const color = plateColor(model, plate);
-    return {
-      plate,
-      family,
-      filament: color ? `${material} · ${color}` : material,
-      seconds,
-      grams: est.grams * scale,
-      support: (est.supportGrams ?? 0) * scale,
-      purge: (est.purgeGrams ?? 0) * scale,
-    };
-  }));
-  const known = timed.filter((t) => t !== null);
-  if (known.length === 0) return [];
-
-  const rows: HTMLLIElement[] = [];
-  const totalSec = known.reduce((t, k) => t + k.seconds, 0);
-  rows.push(estimateRow("", `All ${known.length} plates, back to back`, totalSec, "estimate-specified"));
-
-  const settings = loadPlannerSettings();
-  const printers = (await listPresets("printer")).filter((p) => settings.enabled[p.id] !== false);
-  const now = Date.now();
-  if (printers.length > 0) {
-    const jobs = known.map((k) => ({ id: k.plate.file, label: k.plate.label, seconds: k.seconds, material: k.family }));
-    const fleet = printers.map((p) => ({ id: p.id, name: p.name, freeAt: now, material: settings.loaded[p.id] || undefined }));
-    const blocks = operatorBlocks(settings, now);
-    const on = `${printers.length} printer${printers.length === 1 ? "" : "s"}`;
-    for (const [objective, label] of [["makespan", "lowest wall-clock"], ["visits", "fewest trips"]] as const) {
-      const plan = planFleet(jobs, fleet, settings, blocks, now, objective);
-      const trips = `${plan.visits.length} trip${plan.visits.length === 1 ? "" : "s"}`;
-      rows.push(estimateRow("", `${on}, ${label} · ${trips} · done ${formatWhen(plan.finish, now)}`, (plan.finish - now) / 1000));
-    }
-  }
-
-  const byFilament = new Map<string, { grams: number; support: number; purge: number }>();
-  for (const k of known) {
-    const sum = byFilament.get(k.filament) ?? { grams: 0, support: 0, purge: 0 };
-    sum.grams += k.grams;
-    sum.support += k.support;
-    sum.purge += k.purge;
-    byFilament.set(k.filament, sum);
-  }
-  const total = [...byFilament.values()].reduce(
-    (t, f) => ({ grams: t.grams + f.grams, support: t.support + f.support, purge: t.purge + f.purge }),
-    { grams: 0, support: 0, purge: 0 },
-  );
-  rows.push(filamentTable([...byFilament, ...(byFilament.size > 1 ? [["Total", total] as const] : [])]));
-
-  const notes = [
-    printers.length > 0
-      ? `Starting now with every printer idle, around your planner's bedtime (${settings.bedtime}–${settings.wake}), ${settings.changeoverMin} min bed changes and ${settings.swapMin} min filament swaps. The planner checks live printer status and bed fit.`
-      : "Import your printers in Print settings to see how long it takes across them.",
-    known.length < plates.length ? `${plates.length - known.length} plate(s) not estimated` : "",
-    `${data.settings.printer} · ${describeProfile(recommendedProfile(model))}`,
-  ];
-  const li = document.createElement("li");
-  li.className = "estimate-notes";
-  for (const text of notes.filter(Boolean)) {
-    const note = document.createElement("span");
-    note.className = "item-note";
-    note.textContent = text;
-    li.appendChild(note);
-  }
-  rows.push(li);
-  return rows;
-}
-
-/** Grams of filament per colour: the print itself, its supports, its purge, and all of it. */
-function filamentTable(entries: ReadonlyArray<readonly [string, { grams: number; support: number; purge: number }]>): HTMLLIElement {
-  const li = document.createElement("li");
-  li.className = "filament-summary";
-  const table = document.createElement("table");
-  const g = (n: number) => `${Math.round(n)} g`;
-  const head = table.createTHead().insertRow();
-  for (const text of ["Filament", "Part", "Support", "Purge", "Total"]) {
-    const th = document.createElement("th");
-    th.textContent = text;
-    head.appendChild(th);
-  }
-  const body = table.createTBody();
-  for (const [name, f] of entries) {
-    const row = body.insertRow();
-    if (name === "Total") row.className = "is-total";
-    for (const text of [name, g(f.grams - f.support - f.purge), g(f.support), g(f.purge), g(f.grams)]) {
-      row.insertCell().textContent = text;
-    }
-  }
-  li.appendChild(table);
-  return li;
-}
-
-async function addPlatesToProject(model: Model, plates: Part[], newProject: boolean): Promise<void> {
+async function loadBuildProject(model: Model, plates: Part[]): Promise<void> {
   const client = artifactClient;
   if (!client) return;
   const params = buildParams(model);
-  const name = model.build ? `${model.title} (${model.build.label})` : model.title;
-  const activeId = newProject ? null : getActiveProjectId();
-  const project = (activeId ? await getProject(activeId) : undefined) ?? await createProject(name);
-  setActiveProjectId(project.id);
   const profile = recommendedProfile(model);
   const entries = await Promise.all(plates.map(async (plate) => ({
     name: plate.label,
@@ -1923,7 +1784,9 @@ async function addPlatesToProject(model: Model, plates: Part[], newProject: bool
       qty: 1,
     },
   })));
-  await createPlatesWithItems(project.id, entries);
+  const name = model.build ? `${model.title} (${model.build.label})` : model.title;
+  const project = await openNewProject(name, (p) => createPlatesWithItems(p.id, entries).then(() => undefined));
+  if (!project) return;
   closeInfoPanelOnMobile();
   openProjectPlanner(project.id);
 }
@@ -2691,7 +2554,7 @@ mobilePartSelect.addEventListener("change", () => handlePartChange(mobilePartSel
 // downloadLink points at it.
 platesBtn?.addEventListener("click", () => {
   closeSidebarDrawer();
-  openPlatesPanel();
+  void openCurrentProject();
 });
 
 const plateNotice = document.createElement("span");
@@ -2700,18 +2563,18 @@ plateNotice.hidden = true;
 printBtn?.insertAdjacentElement("beforebegin", plateNotice);
 let plateNoticeTimer: number | undefined;
 
-function showPlateNotice(plateId: string, where: string): void {
+function showPlateNotice(projectId: string, where: string): void {
   window.clearTimeout(plateNoticeTimer);
   plateNotice.textContent = `Added to ${where} · `;
   const open = document.createElement("a");
   open.className = "part-link";
   open.href = "#";
-  open.textContent = "Open plate";
+  open.textContent = "Open project";
   open.addEventListener("click", (e) => {
     e.preventDefault();
     window.clearTimeout(plateNoticeTimer);
     plateNotice.hidden = true;
-    openPlateDialog(plateId);
+    openProjectPlanner(projectId);
   });
   plateNotice.appendChild(open);
   plateNotice.hidden = false;
@@ -2735,7 +2598,7 @@ async function addCurrentPartToPlate(): Promise<void> {
     const key = lastCustomizerRequest?.key
       ?? await artifactClient.keyFor({ slug: model.slug, target, params });
 
-    const { project, plate } = await ensureTargetPlate(model.title);
+    const { project, plate } = await ensureTargetPlate();
     await addItemToPlate(plate.id, {
       slug: model.slug,
       target,
@@ -2747,7 +2610,7 @@ async function addCurrentPartToPlate(): Promise<void> {
       qty: 1,
     });
     setError(null);
-    showPlateNotice(plate.id, `${project.name} / ${plate.name}`);
+    showPlateNotice(project.id, `${project.name} / ${plate.name}`);
   } catch (err) {
     setError(err instanceof Error ? err.message : String(err));
   } finally {

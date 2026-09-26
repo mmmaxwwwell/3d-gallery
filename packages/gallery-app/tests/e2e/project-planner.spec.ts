@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 //
-// A build's print plates, from the assembly to a print plan: "+ New project"
-// on the parts list makes one plate per manifest print plate and opens the
-// planner, which schedules them across the enabled printers.
+// A build's print plates, from the assembly to a print plan: "Load project"
+// on the parts list opens a project with one plate per manifest print plate,
+// and the planner schedules them across the enabled printers. And the open
+// project itself: there is always one, and it's where "Add to project" lands.
 //
 // Print times come from print-estimates.json. The real file only covers the
 // artifacts CI last sliced, so the spec serves one keyed by the plates it just
@@ -11,7 +12,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Dialog, type Page } from '@playwright/test';
 import { fsSrcUrl, loadModel } from './helpers';
 
 const PRINT_STORAGE_URL = fsSrcUrl('packages/gallery-app/src/print/print-storage.ts');
@@ -72,8 +73,7 @@ test('a build\'s plates become a project the planner schedules', async ({ page }
 
   const actions = page.locator('#project-actions');
   await expect(actions).toContainText('4 print plates');
-  await expect(actions).toContainText('4 walls, 15% gyroid, no supports, no brim');
-  await actions.getByRole('button', { name: '+ New project' }).click();
+  await actions.getByRole('button', { name: 'Load project' }).click();
 
   await expect(page).toHaveURL(/[?&]project=/);
   const projectId = new URL(page.url()).searchParams.get('project')!;
@@ -140,30 +140,60 @@ test('a build\'s plates become a project the planner schedules', async ({ page }
   await expect(page).toHaveURL(/model=filament-spool-roller/);
 });
 
-test('the parts list sums up what the planner would make of a build\'s plates', async ({ page }) => {
+test('the open project is always there, takes parts, and asks before an unsaved one is replaced', async ({ page }) => {
   await page.route('**/__devstore', (route) => route.abort());
   await loadModel(page, 'filament-spool-roller', { build: '1x', part: 'stand_tiles' });
-  await seedPrinters(page);
-  await page.evaluate(() => localStorage.setItem('3dg:print:planner', JSON.stringify({ bedtime: '03:00', wake: '03:01' })));
 
-  // The plates' artifact keys, by way of a project made from them.
-  await page.locator('#project-actions').getByRole('button', { name: '+ New project' }).click();
-  await expect(page).toHaveURL(/[?&]project=/);
-  await serveEstimates(page, new URL(page.url()).searchParams.get('project')!);
+  // First visit: an empty, unsaved project.
+  await page.locator('#plates-btn').click();
+  const planner = page.locator('.planner');
+  await expect(planner.locator('.planner-unsaved')).toBeVisible();
+  await expect(planner.locator('.planner-plate')).toHaveCount(0);
+
+  // Two plates; the second is picked, so Add to project fills it.
+  await planner.getByRole('button', { name: 'New plate' }).click();
+  await planner.getByRole('button', { name: 'New plate' }).click();
+  await expect(planner.locator('.planner-plate')).toHaveCount(2);
+  const picked = planner.locator('.planner-plate.is-target');
+  await expect(picked).toHaveCount(1);
+  const pickedId = await picked.getAttribute('data-plate');
+  await page.locator('.print-modal-close').click();
+
   await loadModel(page, 'filament-spool-roller', { build: '1x', part: 'stand_tiles' });
+  const printBtn = page.locator('#print-btn');
+  await expect(printBtn).toBeEnabled({ timeout: 60_000 });
+  await printBtn.click();
+  await expect(page.locator('#plate-added')).toBeVisible({ timeout: 30_000 });
+  await page.locator('#plate-added').getByRole('link', { name: 'Open project' }).click();
+  await expect(planner.locator(`.planner-plate[data-plate="${pickedId}"]`)).not.toHaveClass(/is-empty/);
+  await expect(planner.locator('.planner-plate.is-empty')).toHaveCount(1);
+  await page.locator('.print-modal-close').click();
 
+  // Loading a build over unsaved work asks; declining keeps it.
   const actions = page.locator('#project-actions');
-  const times = actions.locator('.estimate-row');
-  await expect(times).toHaveCount(3);
-  await expect(times.nth(0)).toContainText('All 4 plates, back to back');
-  await expect(times.nth(0).locator('.estimate-time')).toHaveText('13h 00m');
-  await expect(times.nth(1)).toContainText(/2 printers, lowest wall-clock · \d+ trips?/);
-  await expect(times.nth(2)).toContainText(/2 printers, fewest trips · \d+ trips?/);
+  page.once('dialog', (d) => void d.dismiss());
+  await actions.getByRole('button', { name: 'Load project' }).click();
+  await expect(page).not.toHaveURL(/[?&]project=/);
+  await page.locator('#plates-btn').click();
+  await expect(planner.locator('.planner-plate')).toHaveCount(2);
 
-  // Three PETG plates and one TPU, 10 g each: 2 g of it support, 1 g purge.
-  const rows = actions.locator('.filament-summary tbody tr');
-  await expect(rows).toHaveCount(3);
-  await expect(rows.nth(0).locator('td')).toHaveText(['PETG', '21 g', '6 g', '3 g', '30 g']);
-  await expect(rows.nth(1).locator('td')).toHaveText(['TPU 64D', '7 g', '2 g', '1 g', '10 g']);
-  await expect(rows.nth(2).locator('td')).toHaveText(['Total', '28 g', '8 g', '4 g', '40 g']);
+  // Saved, it's on the shelf and replacing it asks nothing.
+  await planner.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(planner.locator('.planner-unsaved')).toHaveCount(0);
+  await page.locator('.print-modal-close').click();
+  let asked = false;
+  const ask = (d: Dialog) => { asked = true; void d.dismiss(); };
+  page.on('dialog', ask);
+  await actions.getByRole('button', { name: 'Load project' }).click();
+  await expect(planner.locator('.planner-plate')).toHaveCount(4);
+  page.off('dialog', ask);
+  expect(asked).toBe(false);
+  await expect(planner.locator('.planner-unsaved')).toBeVisible();
+
+  // The saved one is still there to go back to, at the price of the unsaved build.
+  await planner.getByRole('button', { name: 'Projects…' }).click();
+  await expect(page.locator('.project-row')).toHaveCount(1);
+  page.once('dialog', (d) => void d.accept());
+  await page.locator('.project-row').getByRole('button', { name: 'Open' }).click();
+  await expect(planner.locator('.planner-plate')).toHaveCount(2);
 });

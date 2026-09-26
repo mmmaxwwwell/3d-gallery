@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: MIT
 /** @jsxImportSource preact */
 //
-// Plan & print: one screen for turning a project's plates into prints.
+// The project view: the open project's plates, and the one screen for
+// turning them into prints. There is always an open project — an unsaved
+// draft until it is saved — and "Add to project" drops parts on the plate
+// picked here.
 //
 // Desktop shows three panes at once — the plates on the left, the timeline
 // top right, the printers bottom right — under a summary of the whole job
@@ -11,7 +14,7 @@
 // out is Send to printers, which stays shut until every plate is sliced for
 // its printer and the timeline is clean, and hands the plan to the printers
 // screen (PrintDispatch), where it's uploaded and started.
-import { useEffect, useMemo, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import {
   evaluateAuthoredPlateFit,
   fetchPrintStatus,
@@ -30,15 +33,25 @@ import { flattenPresetForSlicer } from './preset-flatten.js';
 import { resolvePlate } from './plate-resolve.js';
 import { buildInstances, toFootprints } from './plate-geometry.js';
 import {
+  createPlate,
+  currentProject,
+  deletePlate,
+  duplicatePlate,
+  getActivePlateId,
   getProject,
   listPlates,
   listSlicedGcode,
+  nextPlateName,
   plateSignature,
   putSlicedGcode,
+  savePlate,
+  saveProject,
+  setActivePlateId,
   type Plate,
   type Project,
   type SlicedGcode,
 } from './plate-store.js';
+import { openNewProject, openProject } from './current-project.js';
 import { DEFAULT_BED_SURFACE, processFromProfile, slicePlate, type SliceSetup } from './plate-slice.js';
 import { listTemplates, type ProcessSettings } from './process-templates.js';
 import { loadLastSelections } from './PrintDialog.js';
@@ -70,7 +83,9 @@ export interface ProjectPlannerProps {
   projectId: string;
   onClose: () => void;
   onOpenPlate: (plateId: string) => void;
-  onOpenPlates: () => void;
+  onOpenProjects: () => void;
+  /** Shows another project, once it has become the open one. */
+  onShowProject: (projectId: string) => void;
   onOpenSettings: () => void;
   onOpenDispatch: () => void;
 }
@@ -91,11 +106,19 @@ function plural(n: number, one: string, many = `${one}s`): string {
   return `${n} ${n === 1 ? one : many}`;
 }
 
+/** Open `project` and return its id, or the id of the project that stays open. */
+async function openCurrentOr(project: Project | undefined): Promise<string> {
+  if (project && await openProject(project.id)) return project.id;
+  return (await currentProject()).id;
+}
+
 // ── Component ────────────────────────────────────────────
 
-export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenPlates, onOpenSettings, onOpenDispatch }: ProjectPlannerProps) {
+export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects, onShowProject, onOpenSettings, onOpenDispatch }: ProjectPlannerProps) {
   const [project, setProject] = useState<Project | null>(null);
   const [plates, setPlates] = useState<Plate[] | null>(null);
+  const [targetPlate, setTargetPlate] = useState<string | null>(getActivePlateId);
+  const [nameDraft, setNameDraft] = useState<string | null>(null);
   const [printers, setPrinters] = useState<PrintPreset[]>([]);
   const [filaments, setFilaments] = useState<PrintPreset[]>([]);
   const [estimates, setEstimates] = useState<Estimates | null>(null);
@@ -142,19 +165,27 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenPlates, 
           listPresets('filament'),
           loadEstimates(),
         ]);
-        if (!proj) { setError(`Project not found: ${projectId}`); return; }
-        setProject(proj);
-        setPlates(rows);
+        // A URL can name a project that isn't the open one (history, a
+        // deleted draft); showing it means opening it, or going back to the one that is.
+        const current = await openCurrentOr(proj);
+        if (current !== projectId) { onShowProject(current); return; }
+        setProject(proj!);
         setPrinters(p);
         setFilaments(f);
         setEstimates(est);
-        const kept = await Promise.all(rows.map(async (plate) => [plate.id, await listSlicedGcode(plate.id)] as const));
-        setSlices(Object.fromEntries(kept));
+        await showPlates(rows);
       } catch (err) {
         setError(err instanceof Error ? err.message : String(err));
       }
     })();
   }, [projectId]);
+
+  const showPlates = async (rows: Plate[]) => {
+    const kept = await Promise.all(rows.map(async (plate) => [plate.id, await listSlicedGcode(plate.id)] as const));
+    setSlices(Object.fromEntries(kept));
+    setPlates(rows);
+  };
+  const reloadPlates = async () => showPlates(await listPlates(projectId));
 
   const refreshStatuses = () => {
     for (const printer of printers) {
@@ -172,13 +203,19 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenPlates, 
   useEffect(refreshStatuses, [printers]);
 
   // Each plate's footprint (for bed fit) and thumbnail. Resolving meshes is
-  // the slow part, so it runs once per plate list.
+  // the slow part, so a plate is only resolved again once its arrangement changes.
+  const geometryCache = useRef(new Map<string, Geometry>());
   useEffect(() => {
     if (!plates) return;
     let cancelled = false;
     void (async () => {
       for (const plate of plates) {
-        let entry: Geometry;
+        const signature = plateSignature(plate);
+        let entry = geometryCache.current.get(signature);
+        if (entry) {
+          setGeometry((prev) => ({ ...prev, [plate.id]: entry! }));
+          continue;
+        }
         try {
           const report = await resolvePlate(plate);
           const instances = buildInstances(plate, report.objects);
@@ -187,16 +224,19 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenPlates, 
           entry = { failed: err instanceof Error ? err.message : String(err) };
         }
         if (cancelled) return;
-        setGeometry((prev) => ({ ...prev, [plate.id]: entry }));
+        geometryCache.current.set(signature, entry);
+        setGeometry((prev) => ({ ...prev, [plate.id]: entry! }));
       }
     })();
     return () => { cancelled = true; };
   }, [plates]);
 
   const enabledPrinters = printers.filter((p) => settings.enabled[p.id] !== false);
+  /** Plates with something on them. An empty plate waits for "Add to project"; it isn't planned or sliced. */
+  const printable = useMemo(() => (plates ?? []).filter((p) => p.items.length > 0), [plates]);
   const plateById = useMemo(() => new Map((plates ?? []).map((p) => [p.id, p])), [plates]);
   const printerById = useMemo(() => new Map(printers.map((p) => [p.id, p])), [printers]);
-  const materials = useMemo(() => [...new Set((plates ?? []).map(plateMaterial))].sort(), [plates]);
+  const materials = useMemo(() => [...new Set(printable.map(plateMaterial))].sort(), [printable]);
 
   /** Which printers each plate physically fits. A plate whose geometry
    *  couldn't be resolved is left unconstrained, and slicing will say. */
@@ -284,8 +324,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenPlates, 
   }, [plates, fresh, estimates]);
 
   const plans = useMemo(() => {
-    if (!plates) return null;
-    const jobs = scheduleJobs(plates, times, fits);
+    const jobs = scheduleJobs(printable, times, fits);
     if (jobs.length === 0) return null;
     // Bed fit doesn't apply to the yardstick: it stands for any one of the fleet.
     const one = planFleet(
@@ -299,7 +338,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenPlates, 
       makespan: planFleet(jobs, fleet, settings, unavailable, now, 'makespan'),
       visits: planFleet(jobs, fleet, settings, unavailable, now, 'visits'),
     };
-  }, [plates, times, fits, fleet, settings, unavailable, now]);
+  }, [printable, times, fits, fleet, settings, unavailable, now]);
 
   const plan = plans?.[settings.objective] ?? null;
   const numbers = useMemo(() => plateNumbers(plan), [plan]);
@@ -314,7 +353,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenPlates, 
     ?? enabledPrinters.find((p) => !fits[plate.id] || fits[plate.id].includes(p.id));
 
   const ready = readiness(
-    plates ?? [],
+    printable,
     plan,
     enabledPrinters.length,
     (plateId, printerId) => (fresh[plateId] ?? []).some((s) => s.printerId === printerId),
@@ -382,8 +421,9 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenPlates, 
    * plate's footprint, so bed fit has had its say about where it goes.
    */
   useEffect(() => {
-    if (busy || !plates || plates.some((p) => !geometry[p.id])) return;
+    if (busy || !plates || printable.some((p) => !geometry[p.id])) return;
     const todo = ordered
+      .filter((plate) => plate.items.length > 0)
       .map((plate) => ({ plate, printer: targetFor(plate) }))
       .find(({ plate, printer }) => printer
         && !('problem' in setupFor(plate, printer))
@@ -432,20 +472,81 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenPlates, 
     });
   };
 
+  // ── Plates and the project itself ──────────────────────
+
+  const edit = (what: string, body: () => Promise<void>) => {
+    setError('');
+    body().catch((err) => setError(`${what}: ${err instanceof Error ? err.message : String(err)}`));
+  };
+
+  /** The plate "Add to project" drops parts on. */
+  const selectTarget = (plateId: string | null) => {
+    setActivePlateId(plateId);
+    setTargetPlate(plateId);
+  };
+
+  // "Add to project" falls back to the newest plate when none was picked (ensureTargetPlate).
+  const addsTo = plates?.find((p) => p.id === targetPlate)?.id ?? plates?.[0]?.id;
+
+  const handleNewPlate = () => edit('New plate', async () => {
+    const plate = await createPlate(await nextPlateName(projectId), projectId);
+    selectTarget(plate.id);
+    await reloadPlates();
+  });
+
+  const handleDuplicate = (plate: Plate) => edit('Duplicate', async () => {
+    await duplicatePlate(plate);
+    await reloadPlates();
+  });
+
+  const handleDeletePlate = (plate: Plate) => edit('Delete', async () => {
+    if (plate.items.length > 0 && !confirm(`Delete “${plate.name}”?`)) return;
+    await deletePlate(plate.id);
+    if (targetPlate === plate.id) selectTarget(null);
+    await reloadPlates();
+  });
+
+  const handleRenamePlate = (plate: Plate, name: string) => edit('Rename', async () => {
+    const trimmed = name.trim();
+    if (!trimmed || trimmed === plate.name) return;
+    await savePlate({ ...plate, name: trimmed });
+    await reloadPlates();
+  });
+
+  const commitProjectName = () => edit('Rename', async () => {
+    const name = nameDraft?.trim();
+    setNameDraft(null);
+    if (!project || !name || name === project.name) return;
+    setProject(await saveProject({ ...project, name }));
+  });
+
+  const handleSaveProject = () => edit('Save', async () => {
+    if (!project) return;
+    const name = (nameDraft ?? project.name).trim() || project.name;
+    setNameDraft(null);
+    const { draft: _, ...saved } = project;
+    setProject(await saveProject({ ...saved, name }));
+  });
+
+  const handleNewProject = () => edit('New project', async () => {
+    const fresh = await openNewProject();
+    if (fresh) onShowProject(fresh.id);
+  });
+
   if (error && !project) {
-    return <Modal title="Plan & print" onClose={onClose}><p class="plate-empty">{error}</p></Modal>;
+    return <Modal title="Project" onClose={onClose}><p class="plate-empty">{error}</p></Modal>;
   }
 
   // ── Panes ──────────────────────────────────────────────
 
-  const slicedCount = (plates ?? []).filter((p) => {
+  const slicedCount = printable.filter((p) => {
     const job = jobByPlate.get(p.id);
     return job && fresh[p.id].some((s) => s.printerId === job.printerId);
   }).length;
 
   const summary = (
     <PlannerSummary
-      plates={plates ?? []}
+      plates={printable}
       times={times}
       grams={grams}
       plans={plans}
@@ -457,13 +558,17 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenPlates, 
   const platesPane = (
     <section class="planner-pane planner-pane-plates" aria-label="Plates">
       <header class="planner-pane-head">
-        <h4>Plates <span class="planner-muted">{slicedCount}/{plates?.length ?? 0} sliced</span></h4>
+        <h4>Plates <span class="planner-muted">{slicedCount}/{printable.length} sliced</span></h4>
         <div class="planner-pane-tools">
-          <button type="button" class="btn" onClick={onOpenPlates}>Manage plates</button>
+          <button type="button" class="btn" onClick={handleNewPlate}>New plate</button>
         </div>
       </header>
       <div class="planner-pane-body">
-        {plates && plates.length === 0 && <p class="plate-empty">This project has no plates.</p>}
+        {plates && plates.length === 0 && (
+          <p class="plate-empty">
+            Nothing here yet. Use <strong>Add to project</strong> on a part, or <strong>Load project</strong> on a build with print plates.
+          </p>
+        )}
         <ul class="planner-plates">
           {ordered.map((plate) => (
             <PlateRow
@@ -490,6 +595,11 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenPlates, 
               now={now}
               onHover={setHovered}
               onEdit={() => onOpenPlate(plate.id)}
+              isTarget={plate.id === addsTo}
+              onTarget={() => selectTarget(plate.id)}
+              onRename={(name) => handleRenamePlate(plate, name)}
+              onDuplicate={() => handleDuplicate(plate)}
+              onDelete={() => handleDeletePlate(plate)}
               sliceFailed={(() => { const t = targetFor(plate); return t ? sliceFailed[failKey(plate, t)] : undefined; })()}
               onSlice={() => handleSliceOne(plate)}
             />
@@ -499,7 +609,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenPlates, 
     </section>
   );
 
-  const notOnChart = (plates ?? []).filter((p) => !jobByPlate.has(p.id));
+  const notOnChart = printable.filter((p) => !jobByPlate.has(p.id));
   const timelinePane = (
     <section class="planner-pane planner-pane-timeline" aria-label="Timeline">
       <header class="planner-pane-head">
@@ -689,14 +799,30 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenPlates, 
   const checks: Array<[boolean, string]> = [
     [ready.printers, ready.printers ? plural(enabledPrinters.length, 'printer') + ' in use' : 'Switch on a printer'],
     [ready.scheduled, ready.scheduled ? 'Every plate is on the timeline' : `${plural(notOnChart.length, 'plate')} not on the timeline`],
-    [ready.sliced, `${slicedCount}/${plates?.length ?? 0} plates sliced for their printer`],
+    [ready.sliced, `${slicedCount}/${printable.length} plates sliced for their printer`],
     [ready.clear, ready.clear ? 'No overlapping jobs' : 'Jobs overlap on the timeline'],
   ];
 
   return (
-    <Modal title={`Plan & print — ${project?.name ?? '…'}`} onClose={onClose} bleed>
+    <Modal title="Project" onClose={onClose} bleed>
       <div class="planner" data-tab={tab}>
-        {summary}
+        <div class="planner-project">
+          <input
+            class="planner-project-name"
+            aria-label="Project name"
+            value={nameDraft ?? project?.name ?? ''}
+            onInput={(e) => setNameDraft((e.target as HTMLInputElement).value)}
+            onBlur={commitProjectName}
+            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+          />
+          {project?.draft && <span class="planner-chip planner-unsaved">Unsaved</span>}
+          <div class="planner-project-tools">
+            {project?.draft && <button type="button" class="btn btn-primary" onClick={handleSaveProject}>Save</button>}
+            <button type="button" class="btn" onClick={handleNewProject}>New</button>
+            <button type="button" class="btn" onClick={onOpenProjects}>Projects…</button>
+          </div>
+        </div>
+        {printable.length > 0 && summary}
         <nav class="planner-tabs" role="tablist">
           {(['plates', 'timeline', 'printers'] as const).map((t) => (
             <button key={t} type="button" role="tab" aria-selected={tab === t} class={tab === t ? 'is-on' : ''} onClick={() => setTab(t)}>
@@ -831,13 +957,23 @@ interface PlateRowProps {
   onHover: (plateId: string | null) => void;
   onEdit: () => void;
   onSlice: () => void;
+  /** Where "Add to project" drops parts. */
+  isTarget: boolean;
+  onTarget: () => void;
+  onRename: (name: string) => void;
+  onDuplicate: () => void;
+  onDelete: () => void;
 }
 
 function PlateRow(props: PlateRowProps) {
   const { plate, number, geometry, time, grams, job, target, fresh, kept, proc } = props;
+  const [name, setName] = useState<string | null>(null);
+  const empty = plate.items.length === 0;
   const setup = target ? props.setup(target) : null;
   const slicedHere = !!target && fresh.some((s) => s.printerId === target.id);
-  const status = props.slicingPct !== null
+  const status = empty
+    ? { cls: 'is-todo', text: props.isTarget ? 'Empty — Add to project puts parts here' : 'Empty' }
+    : props.slicingPct !== null
     ? { cls: 'is-busy', text: `Slicing… ${Math.round(props.slicingPct)}%` }
     : slicedHere
       ? { cls: 'is-ok', text: `Sliced for ${target!.name}` }
@@ -866,10 +1002,11 @@ function PlateRow(props: PlateRowProps) {
 
   return (
     <li
-      class={`planner-plate${props.hovered ? ' is-hovered' : ''}${props.clash ? ' is-collision' : ''}`}
+      class={`planner-plate${props.hovered ? ' is-hovered' : ''}${props.clash ? ' is-collision' : ''}${props.isTarget ? ' is-target' : ''}${empty ? ' is-empty' : ''}`}
       data-plate={plate.id}
       onMouseEnter={() => props.onHover(plate.id)}
       onMouseLeave={() => props.onHover(null)}
+      onClick={props.onTarget}
     >
       <div class="planner-thumb">
         {geometry && 'thumb' in geometry && geometry.thumb
@@ -879,10 +1016,19 @@ function PlateRow(props: PlateRowProps) {
       <div class="planner-plate-main">
         <div class="planner-plate-head">
           <span class="planner-plate-num" title="Plate number: the order it starts in">#{number ?? '–'}</span>
-          <strong class="planner-plate-name">{plate.name}</strong>
-          <span class="planner-chip">{plateFilament(plate)}</span>
+          <input
+            class="planner-plate-name"
+            aria-label="Plate name"
+            title={plate.name}
+            value={name ?? plate.name}
+            onInput={(e) => setName((e.target as HTMLInputElement).value)}
+            onBlur={() => { if (name !== null) props.onRename(name); setName(null); }}
+            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+          />
+          {!empty && <span class="planner-chip">{plateFilament(plate)}</span>}
+          {props.isTarget && <span class="planner-chip planner-target-chip" title="Add to project puts parts on this plate">Adding here</span>}
         </div>
-        <div class="planner-plate-meta">
+        {!empty && <div class="planner-plate-meta">
           <span class="planner-plate-printer">{job ? props.printerById.get(job.printerId)?.name : props.fitsNone ? 'fits no printer' : 'not scheduled'}</span>
           {job && <span>starts {job.start <= props.now ? 'now' : formatWhen(job.start, props.now)}</span>}
           <span>
@@ -890,19 +1036,23 @@ function PlateRow(props: PlateRowProps) {
             {grams && ` · ${Math.round(grams.value)} g`}
             {time && <span class="planner-muted"> ({time.source === 'sliced' ? 'sliced' : 'CI estimate'})</span>}
           </span>
-        </div>
-        <dl class="planner-specs">
+        </div>}
+        {!empty && <dl class="planner-specs">
           {specs.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
-        </dl>
+        </dl>}
         <div class={`planner-slice-status ${status.cls}`}>{status.text}</div>
-        {setup && 'problem' in setup && <p class="pd-notice is-bad">{setup.problem}</p>}
+        {!empty && setup && 'problem' in setup && <p class="pd-notice is-bad">{setup.problem}</p>}
         {geometry && 'failed' in geometry && <p class="pd-notice is-bad">Couldn't load this plate: {geometry.failed}</p>}
       </div>
       <div class="planner-plate-actions">
         <button type="button" class="btn" onClick={props.onEdit}>Edit plate</button>
-        <button type="button" class="btn" disabled={props.busy || !target || slicedHere} onClick={props.onSlice}>
-          {props.sliceFailed ? 'Retry slice' : 'Slice'}
-        </button>
+        {!empty && (
+          <button type="button" class="btn" disabled={props.busy || !target || slicedHere} onClick={props.onSlice}>
+            {props.sliceFailed ? 'Retry slice' : 'Slice'}
+          </button>
+        )}
+        <button type="button" class="btn" onClick={props.onDuplicate}>Duplicate</button>
+        <button type="button" class="btn" onClick={props.onDelete}>Delete</button>
       </div>
     </li>
   );

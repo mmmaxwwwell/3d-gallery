@@ -4,22 +4,26 @@ A project's plates, scheduled across the printer fleet and sent to it.
 
 ## Flow
 
-1. **Parts list → Print it.** On a view whose manifest has print plates
-   (`plate: true` previews), **+ New project** makes a project named after the
-   model and build. **+ Add to project** adds to the active project instead.
-   Each manifest plate becomes one print plate. The plate 3MF is its single
-   item at the plate origin, so the editor has nothing to arrange. The plate
-   also records its material family and the model's recommended profile.
-   Above the buttons, the section sums up what the planner would make of those
-   plates before a project exists: the plates' total print time, the
-   wall-clock and trip count on the enabled printers under each objective
-   (every printer idle now, the planner's operator settings, bed fit
-   assumed), and the filament per material and colour, split into part,
-   support and purge. It runs the planner's own `planFleet`
-   (`gallery-app/src/print/fleet-plan.ts`) on the CI estimates.
-2. **Planner** (`?project=<id>`, also **Plan & print** in Projects & plates).
-   It shows the plan, a Gantt chart per printer, the operator's itinerary,
-   the plates, the printers and the operator's hours.
+1. **There is always an open project.** It starts as an empty, unsaved
+   draft (`Project.draft`), and the sidebar's **Project** button opens it
+   (`?project=<id>`). The project view saves it (clears `draft`), starts a
+   new one, and lists the saved ones (**Projects…**, `?projects=1`). A draft
+   lives only while it is open: whatever replaces it deletes it, and if any of
+   its plates holds something, the operator is asked first
+   (`current-project.ts`). Saved projects persist edits as they happen, so
+   switching away from one asks nothing.
+2. **Filling it.** On a view whose manifest has print plates (`plate: true`
+   previews), the parts list's **Load project** opens a new draft named after
+   the model and build, holding one plate per manifest plate. The plate 3MF is
+   its single item at the plate origin, so the editor has nothing to arrange.
+   The plate also records its material, colour and the model's recommended
+   profile. Anywhere else, the header's **Add to project** (➕) drops the
+   part on the plate picked in the project view (click a plate; it shows
+   "Adding here"), else the newest plate, else a new one
+   (`ensureTargetPlate`). The project view also makes, renames, duplicates
+   and deletes plates. An empty plate is listed but not planned or sliced.
+   The view shows the plan, a Gantt chart per printer, the operator's
+   itinerary, the plates, the printers and the operator's hours.
 3. **Slicing is automatic.** Whenever a plate has no fresh slice for the
    printer the plan gives it, the planner slices it, one plate at a time, in
    the background. A slice's real time can move a plate to another printer,

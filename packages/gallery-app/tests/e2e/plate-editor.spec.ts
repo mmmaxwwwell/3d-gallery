@@ -59,9 +59,10 @@ test('desktop shows the plate and its print setup at once, and routes by URL', a
   await addFirstPartToPlate(page);
   await addFirstPartToPlate(page);
 
+  // The sidebar's Project button opens the open project on its plates.
   await page.locator('#plates-btn').click();
-  await expect(page).toHaveURL(/[?&]plates=1/);
-  await page.locator('.plate-row').first().getByRole('button', { name: /open/i }).click();
+  await expect(page).toHaveURL(/[?&]project=/);
+  await page.locator('.planner-plate').first().getByRole('button', { name: 'Edit plate' }).click();
 
   // Opening a plate names it in the URL, so the editor is linkable.
   await expect(page).toHaveURL(/[?&]plate=[^&]+/);
@@ -208,7 +209,7 @@ test('a narrow viewport keeps the plate and print setup on separate screens', as
 
   await addFirstPartToPlate(page);
   await page.locator('#plates-btn').click();
-  await page.locator('.plate-row').first().getByRole('button', { name: /open/i }).click();
+  await page.locator('.planner-plate').first().getByRole('button', { name: 'Edit plate' }).click();
   await expect(page.locator('.plate3d-viewport canvas')).toBeVisible({ timeout: 120_000 });
 
   // The editor reads the media query live, so narrowing splits the one screen
@@ -256,20 +257,18 @@ test('projects and plates can be created without crypto.randomUUID', async ({ pa
   // Add-to-plate mints a project, a plate and an item id in one go.
   await addFirstPartToPlate(page);
 
-  // `ensureTargetPlate` makes exactly one project, holding exactly one plate.
+  // `ensureTargetPlate` fills the open (draft) project's one plate.
   await page.locator('#plates-btn').click();
-  await expect(page.locator('.project-row')).toHaveCount(1);
-  await expect(page.locator('.plate-row')).toHaveCount(1);
+  const plates = page.locator('.planner-plate');
+  await expect(plates).toHaveCount(1);
 
-  // And an explicitly created project accepts an explicitly created plate.
-  // Creating one also selects it, so waiting for its empty state is what says
-  // the panel has finished swapping the plate list over.
-  await page.getByRole('button', { name: 'New project' }).click();
-  await expect(page.locator('.project-row')).toHaveCount(2);
-  await expect(page.locator('.plate-empty')).toHaveText(/No plates in this project/);
-
+  // A plate made by hand, and a save, mint ids too.
   await page.getByRole('button', { name: 'New plate' }).click();
-  await expect(page.locator('.plate-row')).toHaveCount(1);
+  await expect(plates).toHaveCount(2);
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page.locator('.planner-unsaved')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Projects…' }).click();
+  await expect(page.locator('.project-row')).toHaveCount(1);
 
   expect(errors).toEqual([]);
 });
