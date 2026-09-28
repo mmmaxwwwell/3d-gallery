@@ -15,7 +15,7 @@ import {
   sliceFraction,
   type Estimates,
 } from '../../src/print/planner-model.js';
-import { plateSignature, type Plate, type SlicedGcode } from '../../src/print/plate-store.js';
+import { plateSignature, printedPlate, type Plate, type SlicedGcode } from '../../src/print/plate-store.js';
 
 function plate(id: string, material = 'PETG', key = `k-${id}`): Plate {
   return {
@@ -77,6 +77,18 @@ describe('planner model', () => {
     expect(plateSeconds(tpu, [], EST)).toEqual({ value: 7200, source: 'estimate' });
     expect(plateSeconds(tpu, [slice(tpu, 'L', 'x', { seconds: 100 })], EST)).toEqual({ value: 100, source: 'sliced' });
     expect(plateSeconds(plate('z'), [], EST)).toBeNull();
+  });
+
+  it('leaves an unticked part out of the print, and stales a slice that had it', () => {
+    const both: Plate = { ...plate('a'), items: [...plate('a').items, { ...plate('b').items[0] }] };
+    const kept = slice(both, 'L', 'x');
+    const without: Plate = { ...both, items: both.items.map((i) => (i.id === 'i-b' ? { ...i, skip: true } : i)) };
+    expect(printedPlate(without).items.map((i) => i.id)).toEqual(['i-a']);
+    expect(plateSeconds(printedPlate(without), [], EST)).toEqual({ value: 3600, source: 'estimate' });
+    expect(freshSlices(without, [kept], () => 'x')).toEqual([]);
+    // A skipped part weighs the same as a removed one, so the plate's slice is
+    // still good for the plate with that part gone.
+    expect(plateSignature(without)).toBe(plateSignature({ ...without, items: [both.items[0]] }));
   });
 
   it('reweighs CI grams at the plate’s material density', () => {

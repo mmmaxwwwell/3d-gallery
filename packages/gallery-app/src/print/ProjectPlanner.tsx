@@ -45,6 +45,7 @@ import {
   listSlicedGcode,
   nextPlateName,
   plateSignature,
+  printedPlate,
   putSlicedGcode,
   savePlate,
   saveProject,
@@ -250,9 +251,10 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
           continue;
         }
         try {
-          const report = await resolvePlate(plate);
-          const instances = buildInstances(plate, report.objects);
-          entry = { footprints: toFootprints(instances), thumb: plateThumbnail(plateSignature(plate), instances) };
+          const printed = printedPlate(plate);
+          const report = await resolvePlate(printed);
+          const instances = buildInstances(printed, report.objects);
+          entry = { footprints: toFootprints(instances), thumb: plateThumbnail(signature, instances) };
         } catch (err) {
           entry = { failed: err instanceof Error ? err.message : String(err) };
         }
@@ -265,8 +267,12 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
   }, [plates]);
 
   const enabledPrinters = printers.filter((p) => settings.enabled[p.id] !== false);
-  /** Plates with something on them. An empty plate waits for "Add to project"; it isn't planned or sliced. */
-  const printable = useMemo(() => (plates ?? []).filter((p) => p.items.length > 0), [plates]);
+  /** Plates with something ticked on them. An empty plate waits for "Add to project"; it
+   *  and an unticked one aren't planned or sliced. */
+  const printable = useMemo(
+    () => (plates ?? []).filter((p) => !p.skip && printedPlate(p).items.length > 0),
+    [plates],
+  );
   const plateById = useMemo(() => new Map((plates ?? []).map((p) => [p.id, p])), [plates]);
   const printerById = useMemo(() => new Map(printers.map((p) => [p.id, p])), [printers]);
   const materials = useMemo(() => [...new Set(printable.map(plateMaterial))].sort(), [printable]);
@@ -347,12 +353,12 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
   );
   const times = useMemo(() => {
     const out: Record<string, Measured | null> = {};
-    for (const plate of plates ?? []) out[plate.id] = plateSeconds(plate, fresh[plate.id], estimates);
+    for (const plate of plates ?? []) out[plate.id] = plateSeconds(printedPlate(plate), fresh[plate.id], estimates);
     return out;
   }, [plates, fresh, estimates]);
   const grams = useMemo(() => {
     const out: Record<string, Measured | null> = {};
-    for (const plate of plates ?? []) out[plate.id] = plateGrams(plate, fresh[plate.id], estimates);
+    for (const plate of plates ?? []) out[plate.id] = plateGrams(printedPlate(plate), fresh[plate.id], estimates);
     return out;
   }, [plates, fresh, estimates]);
 
@@ -413,7 +419,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
       expectedMs: expectedSliceMs(plate.id, times[plate.id]?.value, map),
       done: false,
     });
-    const sliced = await slicePlate(plate, setup, (_stage, pct, message) => setSlicing((prev) => prev && ({
+    const sliced = await slicePlate(printedPlate(plate), setup, (_stage, pct, message) => setSlicing((prev) => prev && ({
       ...prev,
       done: prev.done || pct >= 1,
       message: message ?? prev.message,
@@ -473,7 +479,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
   useEffect(() => {
     if (busy || !plates || !statusesSettled || printable.some((p) => !geometry[p.id])) return;
     const todo = ordered
-      .filter((plate) => plate.items.length > 0)
+      .filter((plate) => printable.includes(plate))
       .map((plate) => ({ plate, printer: targetFor(plate) }))
       .find(({ plate, printer }) => printer
         && !('problem' in setupFor(plate, printer))
@@ -593,6 +599,20 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
     await reloadPlates();
   });
 
+  /** Shown at once, so a tick box doesn't snap back while the save lands. */
+  const saveTicks = (next: Plate) => edit('Save', async () => {
+    setPlates((prev) => prev && prev.map((p) => (p.id === next.id ? next : p)));
+    await savePlate(next);
+    await reloadPlates();
+  });
+
+  const handleSkipPlate = (plate: Plate, skip: boolean) => saveTicks({ ...plate, skip: skip || undefined });
+
+  const handleSkipItem = (plate: Plate, itemId: string, skip: boolean) => saveTicks({
+    ...plate,
+    items: plate.items.map((i) => (i.id === itemId ? { ...i, skip: skip || undefined } : i)),
+  });
+
   const handleRenamePlate = (plate: Plate, name: string) => edit('Rename', async () => {
     const trimmed = name.trim();
     if (!trimmed || trimmed === plate.name) return;
@@ -685,6 +705,8 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
               isTarget={plate.id === addsTo}
               onTarget={() => selectTarget(plate.id)}
               onRename={(name) => handleRenamePlate(plate, name)}
+              onSkip={(skip) => handleSkipPlate(plate, skip)}
+              onSkipItem={(itemId, skip) => handleSkipItem(plate, itemId, skip)}
               onDuplicate={() => handleDuplicate(plate)}
               onDelete={() => handleDeletePlate(plate)}
               sliceFailed={(() => { const t = targetFor(plate); return t ? sliceFailed[failKey(plate, t)] : undefined; })()}
@@ -727,7 +749,9 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
                 ? 'Every printer is switched off.'
                 : plates && plates.length === 0
                   ? 'This project has no plates.'
-                  : 'No plate has a print time yet — it will once one is sliced.'}
+                  : printable.length === 0 && plates?.some((p) => p.items.length > 0)
+                    ? 'Nothing to print — every plate is unticked.'
+                    : 'No plate has a print time yet — it will once one is sliced.'}
           </p>
         ) : timelineView === 'chart' ? (
           <>
@@ -1126,6 +1150,9 @@ interface PlateRowProps {
   isTarget: boolean;
   onTarget: () => void;
   onRename: (name: string) => void;
+  /** Untick (true) or tick the plate. */
+  onSkip: (skip: boolean) => void;
+  onSkipItem: (itemId: string, skip: boolean) => void;
   onDuplicate: () => void;
   onDelete: () => void;
 }
@@ -1134,10 +1161,13 @@ function PlateRow(props: PlateRowProps) {
   const { plate, number, geometry, time, grams, job, target, fresh, kept, proc } = props;
   const [name, setName] = useState<string | null>(null);
   const empty = plate.items.length === 0;
+  const off = !empty && (!!plate.skip || plate.items.every((i) => i.skip));
   const setup = target ? props.setup(target) : null;
   const slicedHere = !!target && fresh.some((s) => s.printerId === target.id);
   const status = empty
     ? { cls: 'is-todo', text: props.isTarget ? 'Empty — Add to project puts parts here' : 'Empty' }
+    : off
+    ? { cls: 'is-off', text: plate.skip ? 'Not printing — tick it to put it back in the plan' : 'Not printing — every part is unticked' }
     : props.slicing
     ? { cls: 'is-busy', text: `Slicing for ${target?.name ?? 'its printer'}…` }
     : slicedHere
@@ -1167,7 +1197,7 @@ function PlateRow(props: PlateRowProps) {
 
   return (
     <li
-      class={`planner-plate${props.hovered ? ' is-hovered' : ''}${props.clash ? ' is-collision' : ''}${props.isTarget ? ' is-target' : ''}${empty ? ' is-empty' : ''}`}
+      class={`planner-plate${props.hovered ? ' is-hovered' : ''}${props.clash ? ' is-collision' : ''}${props.isTarget ? ' is-target' : ''}${empty ? ' is-empty' : ''}${off ? ' is-off' : ''}`}
       data-plate={plate.id}
       onMouseEnter={() => props.onHover(plate.id)}
       onMouseLeave={() => props.onHover(null)}
@@ -1180,6 +1210,17 @@ function PlateRow(props: PlateRowProps) {
       </div>
       <div class="planner-plate-main">
         <div class="planner-plate-head">
+          {!empty && (
+            <input
+              type="checkbox"
+              class="planner-plate-print"
+              aria-label="Print this plate"
+              title="Print this plate"
+              checked={!plate.skip}
+              onClick={(e) => e.stopPropagation()}
+              onChange={(e) => props.onSkip(!(e.target as HTMLInputElement).checked)}
+            />
+          )}
           <span class="planner-plate-num" title="Plate number: the order it starts in">#{number ?? '–'}</span>
           <input
             class="planner-plate-name"
@@ -1193,7 +1234,28 @@ function PlateRow(props: PlateRowProps) {
           {!empty && <span class="planner-chip">{plateFilament(plate)}</span>}
           {props.isTarget && <span class="planner-chip planner-target-chip" title="Add to project puts parts on this plate">Adding here</span>}
         </div>
-        {!empty && <div class="planner-plate-meta">
+        {plate.items.length > 1 && (
+          <details class="planner-plate-parts">
+            <summary>Parts <span class="planner-muted">({plate.items.filter((i) => !i.skip).length} of {plate.items.length} printing)</span></summary>
+            <ul>
+              {plate.items.map((item) => (
+                <li key={item.id}>
+                  <label class={item.skip ? 'is-off' : ''}>
+                    <input
+                      type="checkbox"
+                      checked={!item.skip}
+                      disabled={!!plate.skip}
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={(e) => props.onSkipItem(item.id, !(e.target as HTMLInputElement).checked)}
+                    />
+                    {item.label}{item.qty > 1 && <span class="planner-muted"> ×{item.qty}</span>}
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
+        {!empty && !off && <div class="planner-plate-meta">
           <span class="planner-plate-printer">{job ? props.printerById.get(job.printerId)?.name : props.fitsNone ? 'fits no printer' : 'not scheduled'}</span>
           {job && <span>starts {job.start <= props.now ? 'now' : formatWhen(job.start, props.now)}</span>}
           <span>
@@ -1202,16 +1264,16 @@ function PlateRow(props: PlateRowProps) {
             {time && <span class="planner-muted"> ({time.source === 'sliced' ? 'sliced' : 'CI estimate'})</span>}
           </span>
         </div>}
-        {!empty && <dl class="planner-specs">
+        {!empty && !off && <dl class="planner-specs">
           {specs.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
         </dl>}
         <div class={`planner-slice-status ${status.cls}`}>{status.text}</div>
-        {!empty && setup && 'problem' in setup && <p class="pd-notice is-bad">{setup.problem}</p>}
+        {!empty && !off && setup && 'problem' in setup && <p class="pd-notice is-bad">{setup.problem}</p>}
         {geometry && 'failed' in geometry && <p class="pd-notice is-bad">Couldn't load this plate: {geometry.failed}</p>}
       </div>
       <div class="planner-plate-actions">
         <button type="button" class="btn" onClick={props.onEdit}>Edit plate</button>
-        {!empty && (
+        {!empty && !off && (
           <button type="button" class="btn" disabled={props.busy || !target || slicedHere} onClick={props.onSlice}>
             {props.sliceFailed ? 'Retry slice' : 'Slice'}
           </button>
