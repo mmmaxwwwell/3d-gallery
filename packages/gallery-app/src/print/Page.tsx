@@ -12,8 +12,8 @@ interface PageProps {
 
 /**
  * A screen that owns the whole viewport — no backdrop, no title bar. For the
- * working screens (the project, the printers, the operator's runbook), where
- * every pixel of chrome is a pixel of plan lost. Esc and Back still leave.
+ * Project page, where every pixel of chrome is a pixel of plan lost. Esc and
+ * Back still leave.
  */
 export function Page({ label, onClose, children }: PageProps) {
   useEffect(() => {
