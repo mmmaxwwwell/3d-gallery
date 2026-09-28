@@ -139,6 +139,8 @@ export {
   pausePrint,
   resumePrint,
   cancelPrint,
+  rebootHost,
+  shutdownHost,
   type PrinterLiveStatus,
   type HeaterLive,
   type FilamentSensorLive,

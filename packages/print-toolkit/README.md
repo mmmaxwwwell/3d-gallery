@@ -49,7 +49,9 @@ and every call refuses up front on an HTTPS page reaching an `http://` printer
 - **Commands.** `sendGcode`, `emergencyStop`, `firmwareRestart`,
   `pausePrint`, `resumePrint`, `cancelPrint`, `startPrint`, `uploadGcode`.
   `sendGcode` resolves when Klipper has finished the script, so a mesh holds
-  the request open for minutes.
+  the request open for minutes. `rebootHost` / `shutdownHost` go through
+  Moonraker's `/machine/*`, for when Klipper is down and refuses the REBOOT
+  and SHUTDOWN macros.
 - **Files.** `listGcodeFiles` (newest first, with the slicer estimate and the
   largest thumbnail), `fileExists`, `fetchJobHistory`, `fetchConsole` /
   `fetchConsoleTail`, `listWebcams`.

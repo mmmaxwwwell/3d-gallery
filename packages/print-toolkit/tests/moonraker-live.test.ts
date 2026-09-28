@@ -11,6 +11,8 @@ import {
   pausePrint,
   resumePrint,
   cancelPrint,
+  rebootHost,
+  shutdownHost,
 } from '../src/moonraker-api.js';
 
 const originalFetch = globalThis.fetch;
@@ -257,6 +259,8 @@ describe('commands', () => {
     ['/printer/print/pause', pausePrint],
     ['/printer/print/resume', resumePrint],
     ['/printer/print/cancel', cancelPrint],
+    ['/machine/reboot', rebootHost],
+    ['/machine/shutdown', shutdownHost],
   ])('POSTs %s', async (path, command) => {
     const mock = serve(() => ({ json: { result: 'ok' } }));
     await command('printer.local');
