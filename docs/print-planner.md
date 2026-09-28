@@ -83,9 +83,13 @@ because it may have reached the printer, so the operator decides.
 
 ## Operator runbook
 
-`?operator=<projectId>` (`operator-app.tsx`, model in `operator-model.ts`),
-opened from **Runbook** on the project and printers screens. It is a phone
-screen for the trips to the printers.
+The Operator page, `/operator/?id=<projectId>` (`src/operator/`, model in
+`src/print/operator-model.ts`), linked from **Runbook** on the project and
+printers screens. It is a phone screen for the trips to the printers. With no
+`id` it opens the runbook last open, else the open project's, else the one
+planned last. The Operator tab's badge is the time to the next trip
+(`tripBadge`): the runbook rewrites it each minute, and the project view
+rewrites it each time it keeps a plan (`operator-badge.ts`).
 
 - **Where the plan comes from.** The project view keeps the plan it last
   drew in `localStorage['3dg:print:plan:<projectId>']` (`plan-snapshot.ts`).

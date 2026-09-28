@@ -10,6 +10,7 @@
 import type { ComponentChildren } from 'preact';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { Page } from './Page.js';
+import { operatorUrl } from '../shell/views.js';
 import { getProject, listPlates, plateSignature } from './plate-store.js';
 import { resolvePlate } from './plate-resolve.js';
 import { buildInstances } from './plate-geometry.js';
@@ -41,8 +42,6 @@ export interface PrintDispatchProps {
   projectId: string;
   onClose: () => void;
   onOpenPlanner: () => void;
-  /** The operator's runbook for this project, when the host has one. */
-  onOpenOperator?: () => void;
 }
 
 const PHASE_TEXT: Record<JobPhase, string> = {
@@ -63,7 +62,7 @@ function hours(h: number): string {
   return h === 0 ? '0h' : formatDuration(h * 3600);
 }
 
-export function PrintDispatch({ projectId, onClose, onOpenPlanner, onOpenOperator }: PrintDispatchProps) {
+export function PrintDispatch({ projectId, onClose, onOpenPlanner }: PrintDispatchProps) {
   const [daemon, setDaemon] = useState<DispatchDaemon | null>(null);
   const [snap, setSnap] = useState<DaemonSnapshot | null>(null);
   const [projectName, setProjectName] = useState('…');
@@ -171,7 +170,7 @@ export function PrintDispatch({ projectId, onClose, onOpenPlanner, onOpenOperato
           </p>
         </div>
         <div class="planner-pane-tools">
-          {onOpenOperator && <button type="button" class="btn" onClick={onOpenOperator}>Runbook</button>}
+          <a class="btn" href={operatorUrl(projectId)}>Runbook</a>
           {failed.length > 0 && (
             <button type="button" class="btn" onClick={() => daemon.retryAllFailed()}>Retry failed ({failed.length})</button>
           )}

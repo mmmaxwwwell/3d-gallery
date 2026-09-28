@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 /** @jsxImportSource preact */
 //
-// The operator's runbook: a phone screen for the trips to the printers. The
-// home page counts down to the next session; a session's front page says
+// The operator's runbook: a phone screen for the trips to the printers. Its
+// front page counts down to the next session; a session's front page says
 // what it holds and what to bring; each stop walks one printer through its
 // steps. Start / Stop on a stop time the operator, so the plan's allowances
 // can be checked against what the work really takes.
@@ -11,11 +11,11 @@
 // be read while planning and follows every re-plan. What the operator logs —
 // timings, ticks, how prints went, photos — lives in operator-store.ts.
 import { useEffect, useMemo, useState } from 'preact/hooks';
-import { Page } from './Page.js';
-import { loadPlanSnapshot, onPlanSnapshot, type PlanSnapshot } from './plan-snapshot.js';
-import { getDaemon, hasDispatch } from './dispatch-daemon.js';
-import type { PrinterLive } from './dispatch-model.js';
-import { isFinal, latestStart, refreshPrintReports, reportSummary, type PrintReport } from './print-report.js';
+import { setBadge } from '../shell/badges.js';
+import { loadPlanSnapshot, onPlanSnapshot, type PlanSnapshot } from '../print/plan-snapshot.js';
+import { getDaemon, hasDispatch } from '../print/dispatch-daemon.js';
+import type { PrinterLive } from '../print/dispatch-model.js';
+import { isFinal, latestStart, refreshPrintReports, reportSummary, type PrintReport } from '../print/print-report.js';
 import {
   OUTCOMES,
   TOOL_TEXT,
@@ -28,6 +28,7 @@ import {
   stopHeadline,
   stopSteps,
   stopTools,
+  tripBadge,
   upcoming,
   type OutcomeFlag,
   type Session,
@@ -35,7 +36,7 @@ import {
   type StepId,
   type Stop,
   type ToolId,
-} from './operator-model.js';
+} from '../print/operator-model.js';
 import {
   addPhoto,
   deletePhoto,
@@ -52,11 +53,10 @@ import {
   type PrintRecord,
   type SessionLog,
   type StopLog,
-} from './operator-store.js';
+} from '../print/operator-store.js';
 
 export interface OperatorAppProps {
   projectId: string;
-  onClose: () => void;
   onOpenPlanner: () => void;
 }
 
@@ -91,12 +91,16 @@ function num(order: number): string {
 
 // ── Screen ───────────────────────────────────────────────
 
-export function OperatorApp({ projectId, onClose, onOpenPlanner }: OperatorAppProps) {
+export function OperatorApp({ projectId, onOpenPlanner }: OperatorAppProps) {
   const [plan, setPlan] = useState<PlanSnapshot | null>(() => loadPlanSnapshot(projectId));
   const [logs, setLogs] = useState<Logs>(EMPTY);
+  const [logsLoaded, setLogsLoaded] = useState(false);
   const [live, setLive] = useState<Record<string, PrinterLive>>({});
   const [now, setNow] = useState(() => Date.now());
   const [view, setView] = useState<View>({ at: 'home' });
+
+  // The page scrolls, not a panel, so a new screen would open wherever the last was left.
+  useEffect(() => window.scrollTo(0, 0), [view]);
 
   useEffect(() => onPlanSnapshot((id) => { if (id === projectId) setPlan(loadPlanSnapshot(projectId)); }), [projectId]);
 
@@ -118,6 +122,7 @@ export function OperatorApp({ projectId, onClose, onOpenPlanner }: OperatorAppPr
         photos,
         prints,
       });
+      setLogsLoaded(true);
     };
     void load().catch(() => {});
     const off = onOperatorChange((id) => { if (id === projectId) void load().catch(() => {}); });
@@ -149,6 +154,12 @@ export function OperatorApp({ projectId, onClose, onOpenPlanner }: OperatorAppPr
   const list = useMemo(() => (plan ? sessionsOf(plan) : []), [plan]);
   const progress = (key: string) => logs.sessions.get(key);
   const states = sessionStates(list, progress, now);
+
+  // The tab's countdown. It only changes text once a minute, so that's how
+  // often it's written. Before the logs are in, a finished trip would still
+  // look ahead.
+  const badge = logsLoaded ? tripBadge(list, progress, now) : undefined;
+  useEffect(() => { if (badge !== undefined) setBadge('operator', badge); }, [badge]);
 
   /** Something is known to be on this printer's bed besides what the plan says. */
   const hadPrint = (stop: Stop): boolean => {
@@ -245,20 +256,32 @@ export function OperatorApp({ projectId, onClose, onOpenPlanner }: OperatorAppPr
   }
 
   return (
-    <Page label="Operator runbook" onClose={onClose}>
-      <div class="op">
-        <header class="op-bar">
-          <button type="button" class="btn" onClick={onOpenPlanner}>← Project</button>
-          <span class="op-bar-title">{plan?.projectName ?? 'Runbook'}</span>
-          <button type="button" class="btn op-bar-close" aria-label="Close" onClick={onClose}>×</button>
-        </header>
-        {body}
-      </div>
-    </Page>
+    <main class="op" aria-label="Operator runbook">
+      <header class="op-bar">
+        <button type="button" class="btn" onClick={onOpenPlanner}>← Project</button>
+        <span class="op-bar-title">{plan?.projectName ?? 'Runbook'}</span>
+      </header>
+      {body}
+    </main>
   );
 }
 
 // ── Home ─────────────────────────────────────────────────
+
+/** No project has a plan to run yet: point at where plans are made. */
+export function NoPlan({ projectHref }: { projectHref: string }) {
+  return (
+    <main class="op" aria-label="Operator runbook">
+      <header class="op-bar">
+        <span class="op-bar-title">Runbook</span>
+      </header>
+      <div class="op-scroll">
+        <Hero label="Next session" big="--:--" sub="No plan yet — open a project and it plans itself" />
+        <a class="btn btn-primary op-wide" href={projectHref}>Open Project</a>
+      </div>
+    </main>
+  );
+}
 
 function Hero({ label, big, sub, tone }: { label: string; big: string; sub: string; tone?: 'due' | 'active' }) {
   return (

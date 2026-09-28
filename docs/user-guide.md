@@ -92,7 +92,8 @@ Your runbook for trips to the printers.
   print. Check the first layer. Start / Stop timers record how long the
   work really took, so the plan's allowances get better.
 
-*Today:* Operator opens as **Runbook** from the Project and printers screens.
+The tab's badge counts down to the next trip, even with Operator closed.
+**Runbook** on the Project and printers screens opens that project's runbook.
 
 ## Importing from OrcaSlicer
 

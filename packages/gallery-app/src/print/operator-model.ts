@@ -229,6 +229,25 @@ export function upcoming(
   return list.find((s) => !progress(s.key)?.endedAt);
 }
 
+/**
+ * The Operator tab's badge: how long until the next trip, short enough for a
+ * tab ("45m", "2h05", "3d"), "Now" once it's due or under way, null when
+ * there's no trip left. Minutes round up, so the last seconds read "1m".
+ */
+export function tripBadge(
+  list: Session[],
+  progress: (key: string) => SessionProgress | undefined,
+  now: number,
+): string | null {
+  const next = upcoming(list, progress);
+  if (!next) return null;
+  if (progress(next.key)?.startedAt || next.at <= now) return 'Now';
+  const total = Math.ceil((next.at - now) / 60_000);
+  if (total < 60) return `${total}m`;
+  if (total < 24 * 60) return `${Math.floor(total / 60)}h${String(total % 60).padStart(2, '0')}`;
+  return `${Math.floor(total / (24 * 60))}d`;
+}
+
 /** "1:05:09", "4:09", "0:00" — the countdown. Negative is overdue, shown as its magnitude. */
 export function countdown(ms: number): string {
   const total = Math.floor(Math.abs(ms) / 1000);
