@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 //
-// The printers screen against the Moonraker simulator: a sent plan's plates upload
-// in the background, the printer passes its readiness checks, Print starts
-// the head of its belt, and the belt moves on once the printer says it's done.
+// The Printers page's queue against the Moonraker simulator: a sent plan's
+// plates upload in the background, the printer passes its readiness checks,
+// Print starts the head of its belt, and the belt moves on once the printer
+// says it's done. An old `?dispatch=` link lands on the same page.
 
 import { test, expect } from '@playwright/test';
 import { fsSrcUrl } from './helpers';
@@ -41,24 +42,31 @@ test('a sent plan uploads, starts on Print, and the belt moves on', async ({ pag
     return project.id as string;
   }, { storeUrl: PLATE_STORE_URL, presetsUrl: PRINT_STORAGE_URL, address: ADDRESS });
 
+  // The old per-project screen's link forwards to the Printers page, focused on the plan.
   await page.goto(`gallery/?dispatch=${projectId}`);
-  const screen = page.locator('.dispatch');
-  const row = screen.locator('.dispatch-card[data-printer="Left"]');
-  await expect(row.locator('.dispatch-job')).toHaveCount(2);
-  await expect(row.locator('.dispatch-checks')).toContainText('Klipper ready');
+  await expect(page).toHaveURL(new RegExp(`/printers/\\?project=${projectId}$`));
+  const focus = page.locator('.pq-focus');
+  await expect(focus.locator('.pq-focus-name')).toHaveText('Dispatch test');
+  const row = page.locator('.printers-card[data-printer="Left"] .pq');
+  await expect(row.locator('.pq-project.is-focus')).toHaveCount(1);
+  await expect(row.locator('.pq-job')).toHaveCount(2);
+  await expect(row.locator('.pq-checks')).toContainText('Klipper ready');
   await expect(row.getByRole('button', { name: 'Print #00' })).toBeDisabled();
 
   // The first upload fails; the queue says why and retries it.
-  await screen.getByRole('button', { name: 'Upload all (2)' }).click();
-  await expect(screen.locator('.dispatch-queue .is-failed')).toContainText('500');
-  await screen.getByRole('button', { name: 'Retry failed (1)' }).click();
-  await expect(row.locator('.dispatch-job .dispatch-phase.is-uploaded')).toHaveCount(2);
+  await focus.getByRole('button', { name: 'Upload all (2)' }).click();
+  await page.getByRole('button', { name: /^Queue \(/ }).click();
+  const sheet = page.locator('.pq-sheet');
+  await expect(sheet.locator('.pq-tasks .is-failed')).toContainText('500');
+  await sheet.getByRole('button', { name: 'Retry failed (1)' }).click();
+  await sheet.getByRole('button', { name: 'Close' }).click();
+  await expect(row.locator('.pq-job .pq-phase.is-uploaded')).toHaveCount(2);
   expect(printer.fileNames()).toEqual(['00-tiles.gcode', '01-pegs.gcode']);
 
-  await expect(row.locator('.dispatch-checks')).toContainText('00-tiles.gcode on the printer');
+  await expect(row.locator('.pq-checks')).toContainText('00-tiles.gcode on the printer');
   page.once('dialog', (d) => d.accept());
   await row.getByRole('button', { name: 'Print #00' }).click();
-  await expect(row.locator('.dispatch-job[data-file="00-tiles.gcode"] .dispatch-phase')).toContainText('Printing');
+  await expect(row.locator('.pq-job[data-file="00-tiles.gcode"] .pq-phase')).toContainText('Printing');
   expect(printer.state).toBe('printing');
   expect(printer.filename).toBe('00-tiles.gcode');
   // Busy printer: the next plate waits.
@@ -66,10 +74,11 @@ test('a sent plan uploads, starts on Print, and the belt moves on', async ({ pag
 
   printer.finish();
   await row.getByRole('button', { name: 'Check Left again' }).click();
-  await expect(row.locator('.dispatch-job')).toHaveCount(1);
-  await expect(row.locator('.dispatch-finished')).toContainText('1 off the queue');
+  await expect(row.locator('.pq-job')).toHaveCount(1);
+  await expect(row.locator('.pq-finished')).toContainText('1 off the queue');
   await expect(row.getByRole('button', { name: 'Print #01' })).toBeEnabled();
 
-  await screen.getByRole('tab', { name: /Log/ }).click();
-  await expect(screen.locator('.dispatch-log')).toContainText('00-tiles.gcode finished');
+  await page.getByRole('button', { name: /^Queue \(/ }).click();
+  await sheet.getByRole('tab', { name: /Log/ }).click();
+  await expect(sheet.locator('.pq-log')).toContainText('00-tiles.gcode finished');
 });

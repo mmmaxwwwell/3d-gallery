@@ -4,12 +4,11 @@ import { render } from 'preact';
 import { PrintDialog } from './PrintDialog.js';
 import { ProjectsPanel } from './ProjectsPanel.js';
 import { ProjectPlanner } from './ProjectPlanner.js';
-import { PrintDispatch } from './PrintDispatch.js';
 import { SettingsPanel } from './SettingsPanel.js';
 import { mayLeavePrintUI, setPrintLeaveGuard } from './nav-guard.js';
 import { syncFromServerOnce } from './server-store.js';
 import { currentProject } from './plate-store.js';
-import { operatorUrl } from '../shell/views.js';
+import { operatorUrl, printersUrl } from '../shell/views.js';
 
 /**
  * Preact print UI lives in a single portal div appended to <body>. Each open
@@ -18,10 +17,11 @@ import { operatorUrl } from '../shell/views.js';
  *
  * Which panel is open is part of the URL, alongside the gallery's own
  * `?model=&part=` route: `?projects=1`, `?plate=<id>`, `?project=<id>`,
- * `?dispatch=<id>`, `?settings=1`. That makes a plate linkable and makes the
- * browser's Back button close a panel instead of leaving the app. The
- * runbook has moved to its own page; `?operator=<id>` forwards there. `main.ts` excludes these names from the customizer's
- * parameter sweep, so they never reach a model as a param.
+ * `?settings=1`. That makes a plate linkable and makes the browser's Back
+ * button close a panel instead of leaving the app. The runbook and the
+ * printers screen have moved to their own pages; `?operator=<id>` and
+ * `?dispatch=<id>` forward there. `main.ts` excludes these names from the
+ * customizer's parameter sweep, so they never reach a model as a param.
  */
 function ensurePortal(): HTMLDivElement {
   let portal = document.getElementById('print-portal') as HTMLDivElement | null;
@@ -37,7 +37,6 @@ export type PrintRoute =
   | { view: 'projects' }
   | { view: 'plate'; plateId: string }
   | { view: 'project'; projectId: string }
-  | { view: 'dispatch'; projectId: string }
   | { view: 'settings' }
   | null;
 
@@ -50,8 +49,6 @@ function readRoute(): PrintRoute {
   if (plateId) return { view: 'plate', plateId };
   const projectId = params.get('project');
   if (projectId) return { view: 'project', projectId };
-  const dispatchId = params.get('dispatch');
-  if (dispatchId) return { view: 'dispatch', projectId: dispatchId };
   if (params.get('settings')) return { view: 'settings' };
   if (params.get('projects')) return { view: 'projects' };
   return null;
@@ -63,7 +60,6 @@ function routePath(route: PrintRoute): string {
   if (route?.view === 'projects') url.searchParams.set('projects', '1');
   else if (route?.view === 'plate') url.searchParams.set('plate', route.plateId);
   else if (route?.view === 'project') url.searchParams.set('project', route.projectId);
-  else if (route?.view === 'dispatch') url.searchParams.set('dispatch', route.projectId);
   else if (route?.view === 'settings') url.searchParams.set('settings', '1');
   return url.pathname + url.search;
 }
@@ -115,20 +111,7 @@ function paint(route: PrintRoute): void {
         onOpenProjects={() => openProjectsPanel()}
         onShowProject={(id) => openProjectPlanner(id, true)}
         onOpenSettings={() => openSettingsPanel(() => openProjectPlanner(projectId, true), true)}
-        onOpenDispatch={() => openPrintDispatch(projectId)}
-      />,
-      portal,
-    );
-    return;
-  }
-  if (route.view === 'dispatch') {
-    const { projectId } = route;
-    render(
-      <PrintDispatch
-        key={projectId}
-        projectId={projectId}
-        onClose={() => closePrintUI()}
-        onOpenPlanner={() => openProjectPlanner(projectId)}
+        onOpenDispatch={() => window.location.assign(printersUrl(projectId))}
       />,
       portal,
     );
@@ -179,13 +162,6 @@ export async function openCurrentProject(replace = false): Promise<void> {
   openProjectPlanner(project.id, replace);
 }
 
-export function openPrintDispatch(projectId: string, replace = false): void {
-  settingsOnClose = null;
-  plateOnClose = null;
-  navigate({ view: 'dispatch', projectId }, replace);
-  paint({ view: 'dispatch', projectId });
-}
-
 export function openSettingsPanel(onClose?: () => void, replace = false): void {
   settingsOnClose = onClose ?? null;
   plateOnClose = null;
@@ -205,9 +181,15 @@ export function closePrintUI(): void {
  * moves through history. Call once, after the gallery has booted.
  */
 export function initPrintRouting(): void {
-  const operatorId = new URLSearchParams(window.location.search).get('operator');
+  const params = new URLSearchParams(window.location.search);
+  const operatorId = params.get('operator');
   if (operatorId) {
     window.location.replace(operatorUrl(operatorId));
+    return;
+  }
+  const dispatchId = params.get('dispatch');
+  if (dispatchId) {
+    window.location.replace(printersUrl(dispatchId));
     return;
   }
   // Adopt anything added to the optional server store since the last load —

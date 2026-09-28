@@ -80,11 +80,21 @@ The dashboard for every printer at once, built for a phone.
   single object), reboot, power off, firmware restart and bed mesh need a
   press-and-hold. Anything that would
   ruin a running print is greyed out while one is running.
-- **Queue.** Each printer's upcoming plates from the plan you last sent, with
-  upload state and a **Print** button that checks the printer is ready first.
-
-*Today:* Printers shows every printer's status, camera and controls; the
-queue is still on each project's printers screen (**Send to printers**).
+- **Queue.** Each printer's card lists its plates from every plan you've
+  sent, in the order it prints them, with what the plan asks of it
+  (filament by spool, hours, stops). Uploads run in the background while
+  the page is open; **Upload all** sends any that haven't gone. **Print**
+  starts the plate at the head of the queue once the printer passes its
+  checks (online, Klipper ready, idle, the file on it), and asks you first
+  whether the bed is clear. **Skip** / **Mark done** takes a plate off the
+  queue and **Put back** returns it. How each print ended is filled in from
+  the printer.
+- **One plan in front.** **Send to printers** opens Printers on that plan:
+  its plates are highlighted, and a bar at the top shows its progress, the
+  way back to the project and its runbook.
+- **Queue sheet.** The **Queue** button at the top lists every upload and
+  start still waiting, running or failed (Retry, Cancel, Dismiss) and the
+  log of what happened.
 
 ### Operator
 
@@ -99,7 +109,7 @@ Your runbook for trips to the printers.
   work really took, so the plan's allowances get better.
 
 The tab's badge counts down to the next trip, even with Operator closed.
-**Runbook** on the Project and printers screens opens that project's runbook.
+**Runbook** on Project, and on Printers when it shows one plan, opens that project's runbook.
 
 ## Importing from OrcaSlicer
 

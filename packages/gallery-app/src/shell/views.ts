@@ -59,6 +59,12 @@ export function operatorUrl(projectId: string, base = BASE): string {
   return `${base}${viewById('operator').path}?id=${encodeURIComponent(projectId)}`;
 }
 
+/** The Printers page, focused on one project's plan when given one. */
+export function printersUrl(projectId?: string, base = BASE): string {
+  const front = `${base}${viewById('printers').path}`;
+  return projectId ? `${front}?project=${encodeURIComponent(projectId)}` : front;
+}
+
 /** A project's planner. It's still a panel over the gallery until the Project page lands. */
 export function projectUrl(projectId: string, base = BASE): string {
   return `${base}gallery/?project=${encodeURIComponent(projectId)}`;
