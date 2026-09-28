@@ -51,7 +51,7 @@ export async function loadModel(page: Page, slug: string, opts: LoadOpts = {}) {
   if (opts.build) params.set("build", opts.build);
   if (opts.part) params.set("part", opts.part);
   if (opts.initial) for (const [k, v] of Object.entries(opts.initial)) params.set(k, String(v));
-  await page.goto(`?${params.toString()}`);
+  await page.goto(`gallery/?${params.toString()}`);
   await expect(page.locator("#model-title")).not.toHaveText("Select a model");
 }
 

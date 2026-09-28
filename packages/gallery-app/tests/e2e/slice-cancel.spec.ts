@@ -28,7 +28,7 @@ async function seedPresets(page: Page): Promise<void> {
 test('slicing shows a cancellable progress overlay', async ({ page }) => {
   test.setTimeout(180_000);
 
-  await page.goto('/');
+  await page.goto('gallery/');
   await seedPresets(page);
   await page.reload();
 

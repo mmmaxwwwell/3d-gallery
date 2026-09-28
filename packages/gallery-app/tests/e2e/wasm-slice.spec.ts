@@ -41,7 +41,7 @@ const FILAMENT = FIX('kingroon-petg-ffadm5.json') as {
 test('sliced XYZ test cube fits in Flashforge Adventurer 5M bed after post-process', async ({ page }) => {
   test.setTimeout(180_000);
 
-  await page.goto('/');
+  await page.goto('gallery/');
   await page.waitForFunction(() => document.querySelectorAll('#model-list .model-item').length > 0);
 
   // Skip the test when the WASM assets aren't served — the slicer would fail
