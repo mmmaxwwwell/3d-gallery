@@ -8,6 +8,7 @@ import { openDB, type IDBPDatabase } from 'idb';
 import type { OutcomeFlag, StepId } from './operator-model.js';
 import type { PrintReport } from './print-report.js';
 import { newId } from './plate-store.js';
+import { onStoreChange, publishChange } from './change-bus.js';
 
 const DB_NAME = '3dg:print:operator';
 const DB_VERSION = 1;
@@ -83,16 +84,13 @@ function db(): Promise<IDBPDatabase> {
   return dbPromise;
 }
 
-const listeners = new Set<(projectId: string) => void>();
-
-/** Called with the project whenever anything of it is written. */
+/** Called with the project whenever anything of it is written, in this tab or another. */
 export function onOperatorChange(fn: (projectId: string) => void): () => void {
-  listeners.add(fn);
-  return () => listeners.delete(fn);
+  return onStoreChange('operator', (projectId) => fn(projectId));
 }
 
 function changed(projectId: string): void {
-  for (const fn of listeners) fn(projectId);
+  publishChange('operator', projectId);
 }
 
 export async function recordPrint(record: Omit<PrintRecord, 'id'>): Promise<void> {

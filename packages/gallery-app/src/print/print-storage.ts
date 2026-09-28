@@ -7,6 +7,7 @@
 // strings.
 
 import { openDB, type IDBPDatabase } from 'idb';
+import { onStoreChange, publishChange } from './change-bus.js';
 
 const DB_NAME = '3dg:print:presets';
 // v2: raw + parents schema. On upgrade from v1 we drop the old store — users
@@ -80,6 +81,11 @@ function getDb(): Promise<IDBPDatabase> {
   });
 }
 
+/** Called with the kind of preset saved or deleted, in this tab or another. */
+export function onPresetsChange(fn: (kind: PresetKind) => void): () => void {
+  return onStoreChange('presets', (kind) => fn(kind as PresetKind));
+}
+
 export async function listPresets(kind?: PresetKind): Promise<PrintPreset[]> {
   const db = await getDb();
   if (!kind) {
@@ -111,6 +117,7 @@ export async function savePreset(
     updatedAt: Date.now(),
   };
   await db.put(PRESETS_STORE, record);
+  publishChange('presets', record.kind);
   return record;
 }
 
@@ -139,12 +146,17 @@ export async function deletePresetsByKind(kind: PresetKind): Promise<number> {
     cursor = await cursor.continue();
   }
   await tx.done;
+  if (deleted) publishChange('presets', kind);
   return deleted;
 }
 
 export async function deletePreset(id: string): Promise<void> {
   const db = await getDb();
-  await db.delete(PRESETS_STORE, id);
+  const tx = db.transaction(PRESETS_STORE, 'readwrite');
+  const existing: PrintPreset | undefined = await tx.store.get(id);
+  await tx.store.delete(id);
+  await tx.done;
+  if (existing) publishChange('presets', existing.kind);
 }
 
 export async function getPreset(id: string): Promise<PrintPreset | undefined> {
