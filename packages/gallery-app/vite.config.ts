@@ -308,6 +308,9 @@ export default defineConfig({
     // filament looks deleted, while the real records sit untouched under
     // localhost:5173. Refusing to start is far kinder than that.
     strictPort: true,
+    // Reachable from a phone over the tailnet (`tailscale serve --http`), whose
+    // MagicDNS name Vite's host check would otherwise refuse.
+    allowedHosts: ['.ts.net'],
   },
   plugins: [
     pageSlashPlugin(),
