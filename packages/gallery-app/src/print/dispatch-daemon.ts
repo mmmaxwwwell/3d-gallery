@@ -320,6 +320,9 @@ export class DispatchDaemon {
   // ── Probing ────────────────────────────────────────────
 
   private async poll(): Promise<void> {
+    // The bus can outrun localStorage between tabs: a message may land before
+    // the write it announces is readable here, and nothing announces it again.
+    this.reload();
     await Promise.all(printerIds(this.snap.dispatch).map((id) => this.probe(id)));
   }
 
