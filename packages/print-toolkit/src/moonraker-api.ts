@@ -655,6 +655,19 @@ export async function cancelPrint(address: string): Promise<void> {
   await moonrakerPost(address, '/printer/print/cancel');
 }
 
+/**
+ * Reboots the printer's host through Moonraker rather than Klipper, so it
+ * works while Klipper is shut down or errored, when the REBOOT macro is refused.
+ */
+export async function rebootHost(address: string): Promise<void> {
+  await moonrakerPost(address, '/machine/reboot');
+}
+
+/** Shuts the host down through Moonraker; like `rebootHost`, it needs no working Klipper. */
+export async function shutdownHost(address: string): Promise<void> {
+  await moonrakerPost(address, '/machine/shutdown');
+}
+
 // ─── Composite fetcher ──────────────────────────────────────────────────────
 
 /**

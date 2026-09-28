@@ -31,7 +31,7 @@ const RENDERERS: Record<string, RegExp> = {
   print: /^(pd|plate3d|slice|print)-/,
   shell: /^shell-/,
   home: /^home(-|$)/,
-  printers: /^printers-/,
+  printers: /^(printers|pc)(-|$)/,
 };
 
 function classesUsed(dir: string, prefix: RegExp): Set<string> {

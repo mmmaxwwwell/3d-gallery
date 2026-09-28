@@ -1,0 +1,449 @@
+/* SPDX-License-Identifier: MIT */
+/* A printer card's controls: the emergency stop, the collapsible groups, the
+ * press-and-hold buttons and the file picker. Phone first: every target is at
+ * least 48 px, and rows wrap rather than scroll sideways at 360 px. */
+
+:root {
+  --pc-danger: #ff3b4e;
+  --pc-danger-text: #ffffff;
+  --pc-danger-wash: rgba(255, 59, 78, 0.18);
+  --pc-disabled: 0.45;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-shell-view='models']) {
+    --pc-danger: #c8102e;
+    --pc-danger-wash: rgba(200, 16, 46, 0.10);
+  }
+}
+
+.pc {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-family: var(--shell-font);
+  color: var(--shell-text);
+}
+
+.pc-notice {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--pc-danger);
+  border-radius: 8px;
+  background: var(--pc-danger-wash);
+  font-weight: 600;
+}
+
+.pc-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pc-btn {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  min-width: 48px;
+  padding: 6px 14px;
+  border: 1px solid var(--shell-border);
+  border-radius: 8px;
+  background: var(--shell-surface);
+  color: var(--shell-text);
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.pc-btn:hover:not(:disabled) {
+  border-color: var(--shell-accent);
+}
+
+.pc-btn:focus-visible {
+  outline: 2px solid var(--shell-focus);
+  outline-offset: 2px;
+}
+
+.pc-btn:disabled {
+  opacity: var(--pc-disabled);
+  cursor: not-allowed;
+}
+
+.pc-btn.is-primary {
+  background: var(--shell-accent);
+  border-color: var(--shell-accent);
+  color: #ffffff;
+}
+
+.pc-btn.is-danger {
+  border-color: var(--pc-danger);
+  color: var(--shell-text);
+}
+
+.pc-btn.is-step {
+  padding: 6px 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pc-estop {
+  flex: 1 1 100%;
+  min-height: 56px;
+  background: var(--pc-danger);
+  border-color: var(--pc-danger);
+  color: var(--pc-danger-text);
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+}
+
+.pc-estop:disabled {
+  opacity: var(--pc-disabled);
+}
+
+@media (min-width: 720px) {
+  .pc-estop {
+    flex: 0 1 auto;
+  }
+}
+
+.pc-reason {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.72rem;
+  color: var(--shell-text-muted);
+}
+
+.pc-sub {
+  font-size: 0.75rem;
+  color: var(--shell-text-muted);
+}
+
+/* The fill runs for as long as the hold takes; letting go drops it at once. */
+.pc-hold {
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.pc-hold::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--pc-danger-wash);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.pc-hold.is-holding::before {
+  transform: scaleX(1);
+  background: var(--pc-danger);
+  opacity: 0.5;
+  transition: transform var(--pc-hold-ms) linear;
+}
+
+.pc-hold-label,
+.pc-hold-hint {
+  position: relative;
+}
+
+.pc-hold-hint {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--shell-text-muted);
+}
+
+.pc-group {
+  border: 1px solid var(--shell-border);
+  border-radius: 10px;
+  background: var(--shell-bg);
+}
+
+.pc-group-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 14px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.pc-group-head::-webkit-details-marker {
+  display: none;
+}
+
+.pc-group-head::before {
+  content: '▸';
+  color: var(--shell-text-muted);
+  transition: transform 0.15s;
+}
+
+.pc-group[open] > .pc-group-head::before {
+  transform: rotate(90deg);
+}
+
+.pc-group-head:focus-visible {
+  outline: 2px solid var(--shell-focus);
+  outline-offset: -2px;
+}
+
+.pc-group-reason {
+  margin-left: auto;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--shell-text-muted);
+}
+
+.pc-group-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 12px 12px;
+}
+
+.pc-buttons,
+.pc-row-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pc-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+}
+
+.pc-row-label {
+  display: inline-flex;
+  flex-direction: column;
+  min-width: 5.5em;
+  font-size: 0.9rem;
+}
+
+.pc-row-value {
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--shell-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.pc-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.pc-field input,
+.pc-select {
+  min-height: 48px;
+  padding: 0 10px;
+  border: 1px solid var(--shell-border);
+  border-radius: 8px;
+  background: var(--shell-surface);
+  color: var(--shell-text);
+  font: inherit;
+}
+
+.pc-field input {
+  width: 5.5em;
+}
+
+.pc-objects {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pc-object-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pc-object {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pc-object-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.85rem;
+}
+
+.pc-object.is-current .pc-object-name {
+  font-weight: 700;
+}
+
+.pc-object.is-excluded .pc-object-name {
+  text-decoration: line-through;
+  color: var(--shell-text-muted);
+}
+
+/* ── File picker ── */
+
+.pc-picker {
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: 1px solid var(--shell-border);
+  border-radius: 12px;
+  background: var(--shell-bg);
+  color: var(--shell-text);
+  font-family: var(--shell-font);
+}
+
+.pc-picker::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.pc-picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 4px 4px 16px;
+  border-bottom: 1px solid var(--shell-border);
+}
+
+.pc-picker-head h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.pc-picker-close {
+  min-width: 48px;
+  min-height: 48px;
+  border: 0;
+  background: none;
+  color: var(--shell-text);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.pc-picker-browse,
+.pc-picker-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 16px 16px;
+}
+
+.pc-picker-search {
+  min-height: 48px;
+  padding: 0 12px;
+  border: 1px solid var(--shell-border);
+  border-radius: 8px;
+  background: var(--shell-surface);
+  color: var(--shell-text);
+  font: inherit;
+}
+
+.pc-picker-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pc-picker-file {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 6px;
+  border: 1px solid var(--shell-border);
+  border-radius: 8px;
+  background: var(--shell-surface);
+  color: var(--shell-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pc-picker-file:focus-visible {
+  outline: 2px solid var(--shell-focus);
+  outline-offset: 2px;
+}
+
+.pc-picker-file-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pc-picker-thumb {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 6px;
+  object-fit: contain;
+  background: var(--shell-page-bg);
+}
+
+.pc-picker-thumb.is-large {
+  width: 160px;
+  height: 160px;
+  align-self: center;
+}
+
+.pc-picker-thumb.is-blank {
+  display: block;
+  border: 1px dashed var(--shell-border);
+}
+
+.pc-picker-name {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+
+.pc-picker-meta {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--shell-text-muted);
+}
+
+.pc-picker-empty {
+  margin: 0;
+  color: var(--shell-text-muted);
+}
+
+.pc-picker-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  font-weight: 600;
+}
+
+.pc-picker-check input {
+  width: 24px;
+  height: 24px;
+}
+
+.pc-picker-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
