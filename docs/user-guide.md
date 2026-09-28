@@ -68,16 +68,26 @@ The dashboard for every printer at once, built for a phone.
 - **At a glance:** state (idle, printing, paused, error), nozzle and bed
   temperatures, the current file, layer, % done and time left, filament
   sensor, uptime and the camera.
-- **Controls:** emergency stop, pause / resume / cancel, pause at the next
-  layer, cancel a single object, start a file already on the printer,
-  nozzle and bed temperature presets (or preheat by material), load /
-  unload / purge filament, home, new bed mesh (saved), clean nozzle, cold
-  pull, Z-offset nudge, speed / flow / fan, light, restart camera, firmware
-  restart, reboot and power off.
+- **Controls** sit on each printer's card. **Emergency stop** is always
+  there, and **Print a file…** picks a file already on the printer when
+  it's idle. The rest are in four groups that fold open: **Print** (pause /
+  resume / cancel, pause at the next layer, cancel a single object, Z-offset
+  nudge, speed / flow / fan), **Heat** (nozzle and bed presets, or preheat
+  by material), **Filament** (load / unload, heating first if the nozzle is
+  cold; purge, extrude, retract) and **Machine** (home, new bed mesh, clean
+  nozzle, cold pull, park, motors off, light, restart camera, firmware
+  restart, reboot and power off). Print opens while a job runs, Heat and
+  Filament while it's idle, Machine after an emergency stop or an error. A
+  control the printer has no macro for isn't shown. Tap a printer's name
+  for its camera and details.
 - **Safety.** Emergency stop acts immediately. Cancel (the print or a
   single object), reboot, power off, firmware restart and bed mesh need a
-  press-and-hold. Anything that would
-  ruin a running print is greyed out while one is running.
+  press-and-hold. Anything that would ruin a running print is greyed out
+  while one is running. After an emergency stop, **Firmware restart**
+  brings the printer back.
+- **Good to know.** A new bed mesh is saved, which restarts Klipper. A
+  Z-offset nudge is kept for later prints too. Pause at the next layer only
+  works when the slicer marks layer changes.
 - **Queue.** Each printer's card lists its plates from every plan you've
   sent, in the order it prints them, with what the plan asks of it
   (filament by spool, hours, stops). Uploads run in the background while

@@ -156,6 +156,33 @@ rewrites it each time it keeps a plan (`operator-badge.ts`).
   about again. The runbook shows it in "Log the last print" and "Start the
   print"; the Printers page shows it on each job off the queue.
 
+## Across pages
+
+The planner is spread over three pages that never call each other: Project
+(`project/?id=`) plans and sends, Printers (`printers/?project=`) runs the
+queues, Operator (`operator/?id=`) walks the trips. They meet only in the
+stores, and each can be open in its own tab.
+
+- **The change bus** (`src/print/change-bus.ts`). Every store publishes
+  `{ store, key }` once a write commits (`plates`, `presets`, `planner`,
+  `dispatch`, `operator`), over a `BroadcastChannel`, or a `storage` event
+  where there's none. Each store's `on*Change` hears writes from its own tab
+  and from every other one, so a re-plan in Project reaches an open runbook,
+  and a plan sent from one tab joins an open Printers page.
+- **The dispatch lock** (`src/print/dispatch-lock.ts`). Every page showing a
+  plan's queue has a dispatch daemon for it, and two sending the same upload
+  or start would print a plate twice. The daemons ask for the lock named
+  after the plan; the one holding it runs uploads and starts. The others
+  show the queue, probe the printers and write the operator's commands into
+  it, and the holder hears those over the change bus and runs them. The lock
+  is a Web Lock where the browser offers them, handed on the moment the
+  holder closes. Web Locks need a secure context and printer control runs
+  over plain HTTP, so there a lease in `localStorage` stands in, long enough
+  to outlast a hidden tab's throttled timers and given back on close.
+- **Old links.** Before the split these were query routes on the gallery
+  (`?project=`, `?plate=`, `?dispatch=`, `?operator=`, `?projects=`,
+  `?settings=`). `src/shell/legacy-routes.ts` forwards each to its page.
+
 ## Times
 
 A plate's time is the slicer's own figure when it has a fresh slice (for any
@@ -191,8 +218,8 @@ one trip handles several printers. The time is then pushed out of any block.
 TPU is held back until every other job has started, then printed as one
 batch on at most two printers (`lastMaterials`), so no printer sits on a
 flexible all day and the swap to it is paid once, near the end. The
-itinerary shows each swap and the time allowed for it, and the printers
-screen warns when the loaded filament doesn't match the next plate.
+itinerary shows each swap and the time allowed for it, and the Printers
+page warns when the loaded filament doesn't match the next plate.
 
 `planSchedule` seeds a few orders (longest first, grouped by material, and
 others) across gather allowances from 0 to "wait for all". It then hill-climbs

@@ -6,13 +6,23 @@ Start with the repo-root `CLAUDE.md` for the model / manifest / build-pipeline c
 
 ## Package-specific quirks
 
-- **Preact via `react` alias.** `vite.config.ts` aliases `react → preact/compat`, `react-dom → preact/compat`, `react/jsx-runtime → preact/jsx-runtime`. Any component that imports from `react` is really Preact at runtime. Don't add a real React dependency; don't add `@types/react` (Preact's types resolve through the alias). Any new print UI wired up under `src/print/` is Preact too.
+- **Preact via `react` alias.** `vite.config.ts` aliases `react → preact/compat`, `react-dom → preact/compat`, `react/jsx-runtime → preact/jsx-runtime`. Any component that imports from `react` is really Preact at runtime. Don't add a real React dependency; don't add `@types/react` (Preact's types resolve through the alias). Every page's UI is Preact too.
 - **Vite base path is `/3d-gallery/`.** Local dev serves under the same prefix as production so relative URLs behave identically. Assets loaded via `import.meta.env.BASE_URL` still resolve correctly.
-- **`models/manifest.json` is served from the repo root via middleware.** `liveManifestPlugin` in `vite.config.ts` intercepts `GET /3d-gallery/models/manifest.json` in dev and streams `../../models/manifest.json` off disk, so edits show up on refresh without `npm run build:models`. In production, `scripts/build-models.mjs` (repo root) mirrors it to `public/models/manifest.json` — the middleware doesn't run there.
+- **Models are served from the repo root via middleware.** `galleryModelsPlugin` in `vite.config.ts` answers `GET /3d-gallery/models/manifest.json` (the runtime manifest) and `models/<slug>/<file>` out of the artifact forge in dev, rendering on a cache miss; the root `CLAUDE.md` → *Build / dev commands* has the details. In production `scripts/build-models.mjs` (repo root) mirrors both into `public/models/`.
 - **`publicDir` points at the repo-root `public/`.** `scripts/build-models.mjs` (root) writes STL/3MF into `../../public/models/`; PWA icons and WASM live there too. Don't duplicate `public/` inside this package.
-- **`scadWatcherPlugin` watches `../../models/**/*.scad` in dev** and rebuilds the affected slug via `buildModel(model)` from the root `scripts/build-models.mjs`. This is why the build pipeline stays at the repo root: both this dev-server plugin and CI invoke it directly.
-- **Playwright config lives here.** `webServer` runs `npm run dev -- --host 127.0.0.1 --port 5173`, which the workspace resolves to `vite`. `playwright-report/` and `test-results/` land in this package, not the repo root — CI uploads them from `packages/gallery-app/{playwright-report,test-results}/`.
+- **Playwright config lives here.** `webServer` runs `npm run dev -- --host 127.0.0.1 --port $E2E_PORT --strictPort` (default 5173) and, outside CI, reuses a server already on that port — so a worktree running its own suite sets `E2E_PORT` and makes sure no other checkout's dev server holds it. `playwright-report/` and `test-results/` land in this package, not the repo root — CI uploads them from `packages/gallery-app/{playwright-report,test-results}/`.
 - **Delegated scripts.** Root `npm run dev`, `build`, `preview`, and `test:e2e*` all wrap `-w @3d-gallery/gallery-app`. Prefer running from the repo root so the wrappers stay honest; if you invoke `npx vite …` directly, do it from inside this package (the config's `resolve(__dirname, '..', '..', …)` paths assume that CWD).
+
+## Pages
+
+One Vite page per view, listed in `PAGES` in `vite.config.ts` (build inputs, and `pageSlashPlugin`'s trailing-slash redirect). The root `CLAUDE.md` → *App shape* has the table; per directory:
+
+- `index.html` + `src/home/` — Home. Renders `docs/user-guide.md` (imported `?raw`, parsed with `marked` in `guide.ts`).
+- `gallery/index.html` + `src/main.ts` — Models. The only page that loads `src/style.css`; the other pages import their own stylesheet next to their code.
+- `project/`, `printers/`, `operator/`, `settings/` — each an `index.html` that loads `src/<page>/main.ts(x)`, which mounts the page inside the shell frame.
+- `src/shell/` — the frame, nav bar/rail, badges, last-open URLs and `legacy-routes.ts`. `src/print/` — shared stores (with the cross-tab change bus in `change-bus.ts`) and pure models. A page imports these, never another page's directory.
+- `tests/unit/style-coverage.test.ts` checks that every class a page directory renders has a rule in some stylesheet. A new page directory must be added to its `RENDERERS` table.
+- `tests/unit/shell.test.ts` and `tests/e2e/shell.spec.ts` pin the nav, badges and legacy forwards.
 
 ## Moonraker simulator (no real printer needed)
 
@@ -28,4 +38,4 @@ Never test a printer write against the fleet. Test it against the simulator.
 
 ## Where the toolkit fits
 
-`@3d-gallery/print-toolkit` (in `packages/print-toolkit/`) is framework-free — this package is the only consumer wiring it into a Preact UI. When adding print-related features, keep pure logic in the toolkit and put Preact glue under `src/print/`.
+`@3d-gallery/print-toolkit` (in `packages/print-toolkit/`) is framework-free — this package is the only consumer wiring it into a Preact UI. When adding print-related features, keep pure logic in the toolkit, shared browser stores and models under `src/print/`, and each page's Preact UI in its own directory.

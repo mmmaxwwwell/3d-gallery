@@ -2,24 +2,36 @@
 
 A browser-first tool for 3D modelling (OpenSCAD for now), slicing, printing and queuing, published on GitHub Pages. It started as a gallery of 3D-printable OpenSCAD models with an in-browser Three.js viewer. Some models are **customizable** — user tweaks parameters and the model re-renders live via OpenSCAD-WASM. The new-user guide is `docs/user-guide.md`. Keep it true when a view's behaviour changes.
 
-## App shape (target — being migrated to)
+## App shape
 
-Five views, each its own Vite page (own entry, own bundle), sharing config and not code paths. Today everything but the landing page lives in the one gallery SPA as `?projects= / ?project= / ?dispatch= / ?operator= / ?settings=` panels (`src/print/mount.tsx`). Move toward the target. Don't add new panels to that router.
+Five views plus Settings, each its own Vite page (own `index.html` entry, own bundle) in `packages/gallery-app/`, sharing config and stores but not code paths. `PAGES` in `vite.config.ts` lists the page directories; `src/shell/views.ts` is the one table of views that the nav, Home's cards and the tests read.
 
-| View | Path (under `/3d-gallery/`) | Job |
-|------|------|-----|
-| **Home** | `/` | What this is, what each view does, a workflow that uses them all. Settings (Orca import, presets) are reached from here. |
-| **Models** | `/gallery/` | Browse, view, customize a model; load its plates or add parts to the open project. Not `/models/` — that prefix is the artifact URL space (`models/<slug>/<file>`, `public/models/`). |
-| **Project** | `/project/?id=` | Plates, automatic slicing, the fleet plan, **Send to printers**. |
-| **Printers** | `/printers/` | Fleet dashboard, phone-first. Every printer live: state, temps, progress, camera, uptime, sensors. Controls, and each printer's queue from the last sent plan. |
-| **Operator** | `/operator/?id=` | The runbook: countdown to the next trip, the session brief, the per-printer stops. |
+| View | Path (under `/3d-gallery/`) | Source | Job |
+|------|------|------|-----|
+| **Home** | `/` | `index.html`, `src/home/` | What this is, what each view does, a workflow that uses them all. Renders `docs/user-guide.md` itself (`guide.ts`, via `marked`), so the guide is the one description of the app. |
+| **Models** | `/gallery/` | `gallery/index.html`, `src/main.ts`, `src/style.css` | Browse, view, customize a model; load its plates or add parts to the open project. The only page that loads `style.css`. |
+| **Project** | `/project/?id=` (`&plate=` opens the plate editor; no `id` lists projects) | `src/project/` | Plates, automatic slicing, the fleet plan, **Send to printers**. |
+| **Printers** | `/printers/` (`?project=` puts one sent plan in front) | `src/printers/`, queue in `src/printers/queue/` | Fleet dashboard, phone-first. Every printer live: state, temps, progress, camera, uptime, sensors. Controls, and each printer's queue from every sent plan. |
+| **Operator** | `/operator/?id=` | `src/operator/` | The runbook: countdown to the next trip, the session brief, the per-printer stops. |
+| Settings | `/settings/` | `src/settings/` | Orca import, presets, process templates. Not a tab: reached from Home and the rail's gear. |
 
-- **Switching views.** A persistent view switcher is on every page. On phones it's a bottom navigation bar: five labelled icon tabs, thumb-reachable, with badges (Printers: count needing attention; Operator: time to next trip). On wide screens the same items sit in a left navigation rail. A tab reopens the last thing open in that view (last project id, etc.). Views link to each other directly too (Send to printers → Printers; a due stop → Operator).
-- **Loose coupling.** Views never import each other's components. They share state only through the stores all same-origin pages see: presets (`print-storage.ts`), projects/plates (`plate-store.ts`), plan snapshot, dispatch queue, operator store, planner settings. They talk to printers only through `print-toolkit`'s Moonraker API. A change made in one view shows up in another via the store's change events / `storage` events, not via calls.
-- **Old links keep working.** `/?model=…` (and every other legacy query route) forwards to the view that now owns it.
+- **Shared code.** `src/shell/` is the frame every page mounts (nav bar/rail, badges, last-open URLs, PWA registration, legacy routes). `src/print/` holds the stores and pure models the views share. A page may import those and workspace packages, never another view's directory.
+- **Switching views.** On phones a bottom bar (five labelled icon tabs, badges: Printers counts those needing attention, Operator shows time to the next trip); from 720 px a left rail. Pages read `--shell-bottom` / `--shell-left` to stay clear of it. A tab reopens the last URL seen in that view (`last-open.ts`, `localStorage`). Badges go through `localStorage` too (`badges.ts`), since the page computing one is usually not the one showing it. Views link to each other directly (Send to printers → Printers; Runbook → Operator).
+- **Loose coupling.** Views share state only through the stores every same-origin page sees: presets (`print-storage.ts`), projects/plates (`plate-store.ts`), plan snapshot (`plan-snapshot.ts`), dispatch queue, operator store, planner settings (`fleet-plan.ts`). Each store publishes `{ store, key }` on the **change bus** (`print/change-bus.ts`: `BroadcastChannel`, falling back to a `storage` event) once its write commits, and its `on*Change` subscribers hear writes from this tab and every other. Printers are reached only through `print-toolkit`'s Moonraker API.
+- **One dispatcher per plan.** Every page that shows a plan's queue has a dispatch daemon; `print/dispatch-lock.ts` makes only one of them run, so no upload or start goes out twice. It's a Web Lock where the browser has them (secure contexts only), else a lease in `localStorage` (plain HTTP on the LAN), handed on when the holding page closes.
+- **Old links keep working.** `src/shell/legacy-routes.ts` is the only code that knows the old query routes (`?model=`, `?project=`, `?plate=`, `?dispatch=`, `?operator=`, `?projects=`, `?settings=`); Home and Models run it first and forward to the page that owns the route now.
 - **Printer control needs plain HTTP.** Browsers block an HTTPS page from reaching `http://` Moonraker. Printers/Operator controls work when served over HTTP on the LAN (dev server, local build) or inside the Android shell. On HTTPS they explain why they're read-only, not fail silently.
-- **Printers safety rules.** Emergency stop fires instantly, no confirm. Cancel, reboot, power off, firmware restart and mesh-and-save are hold-to-confirm. Anything that would ruin a running print (home, mesh, load/unload, firmware restart, temperature presets) is disabled while printing. Machine controls call the printers' own macros (the fleet runs ZMOD: `LOAD_FILAMENT`, `UNLOAD_FILAMENT`, `AUTO_FULL_BED_LEVEL`, `CLEAR_NOZZLE`, `COLDPULL`, `SET_PAUSE_NEXT_LAYER`, `CAMERA_RESTART`, …) — don't reimplement them in G-code.
-- **Staging.** The swarm brief is `docs/app-split-swarm.md`. 1) Home page + view switcher + Printers dashboard as new pages. 2) Operator moves out. 3) Project moves out, and the per-project printers screen (`PrintDispatch`) folds into Printers, leaving Project with just Send. The gallery SPA ends as the Models view.
+- **Printers safety rules.** Emergency stop fires instantly, no confirm. Cancel, cancel-an-object, reboot, power off, firmware restart and mesh-and-save are hold-to-confirm. Anything that would ruin a running print (home, mesh, load/unload, firmware restart, temperature presets) is disabled while printing. Machine controls call the printers' own macros (the fleet runs ZMOD: `LOAD_FILAMENT`, `UNLOAD_FILAMENT`, `AUTO_FULL_BED_LEVEL`, `CLEAR_NOZZLE`, `COLDPULL`, `SET_PAUSE_NEXT_LAYER`, `CAMERA_RESTART`, …) — don't reimplement them in G-code. `print-toolkit/README.md` → *Controls and the ZMOD macros* records what each does.
+- **No printer needed to test.** `MoonrakerSim` (`gallery-app/tests/fixtures/moonraker-sim.ts`) is a Klipper + Moonraker state machine the e2e specs route a fake printer origin to; `scripts/fake-printers.ts` serves three of them over HTTP for work by hand. See `packages/gallery-app/CLAUDE.md`. Never test a printer write against the real fleet.
+- **History.** The views used to be query-routed panels over the one gallery SPA (`src/print/mount.tsx`). They were split out by the swarm in `docs/app-split-swarm.md`; don't add panels or routers back.
+
+### Gotchas
+
+- **`models/` is taken.** The artifact URL space is `/3d-gallery/models/<slug>/<file>` (`public/models/`, the dev server's forge middleware), so the Models view lives at `/gallery/`. Don't name a page directory after an artifact prefix (`models/`, `a/`).
+- **A page URL needs its trailing slash.** Pages serves `/printers` → `/printers/`; `pageSlashPlugin` does the same in dev. Without it Vite's HTML fallback answers with Home.
+- **The user guide is shipped UI.** Home renders `docs/user-guide.md` with `marked`, and each view's card is the first paragraph under its `###` heading. Keep those headings named after the views.
+- **e2e port.** Playwright starts (or, outside CI, reuses) a dev server on `E2E_PORT` (default 5173). Give parallel worktrees their own port, and stop a stale dev server first: `reuseExistingServer` will happily test an old checkout on that port.
+- **Fresh worktrees.** `npm ci` runs print-toolkit's `fetch-wasm` postinstall, which fails offline or before the WASM release exists. Install with `SKIP_PRINT_TOOLKIT_WASM=1` and link or fetch `packages/print-toolkit/assets` afterwards. Symlinked asset dirs show as untracked; don't `git add -A` them.
 
 ## Stack
 
@@ -45,17 +57,16 @@ scripts/
   build-multicolor-3mf.mjs multicolor 3MF pipeline (see gotcha below)
   openscad-args.mjs       shared CLI flags (Manifold backend)
   cache.mjs               on-disk build cache
-src/
-  main.ts                 app entry, sidebar, part loader, customizer host
-  viewer.ts               Three.js viewer
-  style.css               all styles
-  lib/                    scad-parser, openscad-api, types
+packages/gallery-app/     the web app (one Vite page per view — see App shape)
+  src/main.ts             Models page: sidebar, part loader, customizer host
+  src/shell/              nav bar/rail, badges, legacy routes — every page
+  src/print/              shared stores + pure models (no view code)
+  src/{home,project,printers,operator,settings}/  one directory per page
+packages/*/               model-core, model-forge, viewer, print-toolkit, … (see Workspaces)
 public/models/            build output copied here at build time (Vite-served)
 tests/
   build/                  node --test, baseline STL/3MF checksums
-  e2e/                    Playwright
 .github/workflows/        deploy.yml, e2e.yml — both use Nix
-vite.config.ts            `@owg` alias → ../openscad-web-generator/src
 ```
 
 ## Model convention (enforced)
@@ -247,7 +258,7 @@ If you add a new SCAD dependency, it must land in **both** places or the CLI/WAS
 
 The repo is an npm workspace (`workspaces: ["packages/*"]` in root `package.json`). The historical single-project layout has been split; per-package details override anything above that reads as "at the repo root".
 
-- **`packages/gallery-app/`** — the Vite + Preact + Three.js UI. Owns `index.html`, `vite.config.ts`, `playwright.config.ts`, `src/`, `tests/e2e/`. `vite.config.ts` still aliases `react → preact/compat` (and `react-dom`, `react/jsx-runtime`) — the print UI is Preact, not React. The runtime manifest (authored manifest + source digests + artifact keys) is served in dev by `galleryModelsPlugin`, reading from repo-root `models/`. Base path stays `/3d-gallery/`.
+- **`packages/gallery-app/`** — the Vite + Preact + Three.js UI. Owns one `index.html` per page (`index.html`, `gallery/`, `project/`, `printers/`, `operator/`, `settings/`), `vite.config.ts`, `playwright.config.ts`, `src/`, `tests/e2e/`, and `scripts/fake-printers.ts`. `vite.config.ts` still aliases `react → preact/compat` (and `react-dom`, `react/jsx-runtime`) — the print UI is Preact, not React. The runtime manifest (authored manifest + source digests + artifact keys) is served in dev by `galleryModelsPlugin`, reading from repo-root `models/`. Base path stays `/3d-gallery/`.
 - **`packages/print-toolkit/`** — framework-free slicer + Moonraker + Orca importer. **Never import React, Preact, or DOM globals beyond `window.*` feature-detects** here. Consumers wire their own UI. WASM assets ship out-of-band via `npm run fetch-wasm -w @3d-gallery/print-toolkit`.
   - **`src/orca-schema.generated.ts` is generated** from an OrcaSlicer source tree (`npm run gen:orca-schema -w @3d-gallery/print-toolkit -- <orca-src>`); never hand-edit it. It types every printer/filament key and carries Orca's tab layout. See the package README.
   - **Stored presets are never edited in place.** A `PrintPreset` keeps the imported file as `raw` and its chain as `parents`; the gallery's preset editor (`gallery-app/src/settings/PresetEditor.tsx`, model in `print/preset-edit.ts`) writes only `overrides`, which `mergeInheritance` layers last. Anything that saves a preset must spread the existing record (`{ ...preset, … }`) or it drops the user's edits; re-imports go through `importPreset`, which keeps them.
