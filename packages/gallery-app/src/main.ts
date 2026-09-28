@@ -1753,7 +1753,7 @@ function renderProjectActions(model: Model) {
   load.type = "button";
   load.className = "btn btn-primary";
   load.textContent = "Load project";
-  load.title = "Open a project holding every print plate of this build";
+  load.title = "Make a new open project holding every print plate of this build";
   const open = document.createElement("a");
   open.className = "part-link";
   open.textContent = "Open project →";
