@@ -8,6 +8,7 @@ import {
   type ScheduleObjective,
   type SchedulePrinter,
 } from '@3d-gallery/print-toolkit';
+import { onStoreChange, publishChange } from './change-bus.js';
 
 /** Per browser, shared by every project: they describe the operator and the fleet, not a job. */
 export interface PlannerSettings {
@@ -56,6 +57,12 @@ export function savePlannerSettings(settings: PlannerSettings): void {
   try {
     localStorage.setItem(LS_PLANNER, JSON.stringify(settings));
   } catch { /* private mode — settings last for the session */ }
+  publishChange('planner', LS_PLANNER);
+}
+
+/** Called whenever the planner settings are saved, in this tab or another. */
+export function onPlannerSettingsChange(fn: () => void): () => void {
+  return onStoreChange('planner', () => fn());
 }
 
 /** Bedtimes over the planning horizon, plus the operator's away blocks. */

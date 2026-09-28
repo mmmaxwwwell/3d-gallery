@@ -19,6 +19,7 @@ import { openDB, type IDBPDatabase } from 'idb';
 import type { RecommendedProfile, ScadValue } from '@3d-gallery/model-core';
 import { IDENTITY_QUAT, type Quat } from './mesh-bounds.js';
 import type { SupportStyle } from './process-templates.js';
+import { onStoreChange, publishChange } from './change-bus.js';
 
 /**
  * A fresh id for a project, plate or item.
@@ -217,6 +218,18 @@ function getDb(): Promise<IDBPDatabase> {
   });
 }
 
+/**
+ * Called with the project id whenever the project, one of its plates or one of
+ * their slices is written, in this tab or another.
+ */
+export function onProjectChange(fn: (projectId: string) => void): () => void {
+  return onStoreChange('plates', (projectId) => fn(projectId));
+}
+
+function changed(projectId: string): void {
+  publishChange('plates', projectId);
+}
+
 function byRecency<T extends { updatedAt: number }>(rows: T[]): T[] {
   return rows.sort((a, b) => b.updatedAt - a.updatedAt);
 }
@@ -235,6 +248,7 @@ export async function saveProject(project: Project): Promise<Project> {
   const db = await getDb();
   const record: Project = { ...project, updatedAt: Date.now() };
   await db.put(PROJECTS_STORE, record);
+  changed(record.id);
   return record;
 }
 
@@ -243,6 +257,7 @@ export async function createProject(name: string, draft = false): Promise<Projec
   const now = Date.now();
   const project: Project = { id: newId(), name, createdAt: now, updatedAt: now, ...(draft ? { draft } : {}) };
   await db.put(PROJECTS_STORE, project);
+  changed(project.id);
   return project;
 }
 
@@ -259,6 +274,7 @@ export async function deleteProject(id: string): Promise<void> {
     ...gcodeKeys.map((key) => tx.objectStore(GCODE_STORE).delete(key)),
   ]);
   await tx.done;
+  changed(id);
 }
 
 /** Every plate, newest first, or just one project's when `projectId` is given. */
@@ -298,18 +314,21 @@ export async function savePlate(plate: Plate): Promise<Plate> {
   const db = await getDb();
   const record: Plate = { ...pruneTransforms(plate), updatedAt: Date.now() };
   await db.put(PLATES_STORE, record);
+  changed(record.projectId);
   return record;
 }
 
 export async function deletePlate(id: string): Promise<void> {
   const db = await getDb();
   const tx = db.transaction([PLATES_STORE, GCODE_STORE], 'readwrite');
+  const plate: Plate | undefined = await tx.objectStore(PLATES_STORE).get(id);
   const gcodeKeys = await tx.objectStore(GCODE_STORE).index('byPlate').getAllKeys(id);
   await Promise.all([
     tx.objectStore(PLATES_STORE).delete(id),
     ...gcodeKeys.map((key) => tx.objectStore(GCODE_STORE).delete(key)),
   ]);
   await tx.done;
+  if (plate) changed(plate.projectId);
 }
 
 /** What a slice depends on. A rename leaves it alone; a move or a qty change does not. */
@@ -329,6 +348,8 @@ export async function putSlicedGcode(entry: Omit<SlicedGcode, 'id'>): Promise<Sl
   const db = await getDb();
   const record: SlicedGcode = { ...entry, id: gcodeId(entry.plateId, entry.printerId) };
   await db.put(GCODE_STORE, record);
+  const plate: Plate | undefined = await db.get(PLATES_STORE, entry.plateId);
+  if (plate) changed(plate.projectId);
   return record;
 }
 
@@ -375,6 +396,7 @@ export async function createPlatesWithItems(
   });
   await Promise.all(plates.map((p) => tx.store.put(p)));
   await tx.done;
+  changed(projectId);
   return plates;
 }
 
@@ -390,6 +412,7 @@ export async function createPlate(name: string, projectId: string): Promise<Plat
     updatedAt: now,
   };
   await db.put(PLATES_STORE, plate);
+  changed(projectId);
   return plate;
 }
 
@@ -411,6 +434,7 @@ async function mutatePlate(plateId: string, mutate: (plate: Plate) => Plate): Pr
   const updated: Plate = { ...mutate(existing), updatedAt: Date.now() };
   await tx.store.put(updated);
   await tx.done;
+  changed(updated.projectId);
   return updated;
 }
 

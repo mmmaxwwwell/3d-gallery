@@ -3,6 +3,11 @@
 // and keeps probing its printers. One per project, living at module scope so
 // uploads carry on when the screen is closed. The queue and log persist in
 // localStorage, so a reload picks up where it left off.
+//
+// Every open page that shows the queue has a daemon, but only the one holding
+// the project's dispatch lock runs uploads and starts. The others read and
+// show the queue, write the operator's commands into it, and probe printers;
+// the holder hears the write over the change bus and runs the command.
 
 import {
   fetchJobHistory,
@@ -14,9 +19,11 @@ import {
   uploadGcode,
   type Webcam,
 } from '@3d-gallery/print-toolkit';
-import { listPresets, type PrintPreset } from './print-storage.js';
+import { listPresets, onPresetsChange, type PrintPreset } from './print-storage.js';
 import { getPlate, getSlicedGcode, newId, plateSignature } from './plate-store.js';
 import { recordPrint } from './operator-store.js';
+import { onStoreChange, publishChange } from './change-bus.js';
+import { holdLock } from './dispatch-lock.js';
 import {
   belt,
   cancelTask,
@@ -49,22 +56,35 @@ function storageKey(projectId: string): string {
   return `3dg:print:dispatch:${projectId}`;
 }
 
-export function loadDispatch(projectId: string): Dispatch {
+/** The queue as stored, or null when storage can't be read. */
+function readDispatch(projectId: string): Dispatch | null {
   try {
     const raw = localStorage.getItem(storageKey(projectId));
-    if (raw) return { ...emptyDispatch(projectId), ...(JSON.parse(raw) as Dispatch) };
+    return raw ? { ...emptyDispatch(projectId), ...(JSON.parse(raw) as Dispatch) } : emptyDispatch(projectId);
   } catch {
-    // Unreadable or blocked storage: start empty rather than refuse to open.
+    return null;
   }
-  return emptyDispatch(projectId);
 }
 
-function saveDispatch(d: Dispatch): void {
+export function loadDispatch(projectId: string): Dispatch {
+  // Unreadable or blocked storage: start empty rather than refuse to open.
+  return readDispatch(projectId) ?? emptyDispatch(projectId);
+}
+
+/** False when the store is full or blocked: persistence is lost, not the running queue. */
+function saveDispatch(d: Dispatch): boolean {
   try {
     localStorage.setItem(storageKey(d.projectId), JSON.stringify(d));
   } catch {
-    // A full or blocked store loses persistence, not the running queue.
+    return false;
   }
+  publishChange('dispatch', d.projectId);
+  return true;
+}
+
+/** Called with the project id whenever its queue is written, in this tab or another. */
+export function onDispatchChange(fn: (projectId: string) => void): () => void {
+  return onStoreChange('dispatch', (projectId) => fn(projectId));
 }
 
 export function hasDispatch(projectId: string): boolean {
@@ -77,6 +97,8 @@ function message(err: unknown): string {
 
 export interface DaemonSnapshot {
   dispatch: Dispatch;
+  /** Whether this page holds the lock and runs the queue's uploads and starts. */
+  runner: boolean;
   live: Record<string, PrinterLive>;
   cams: Record<string, Webcam[]>;
   printers: Map<string, PrintPreset>;
@@ -87,17 +109,26 @@ export class DispatchDaemon {
   private readonly listeners = new Set<() => void>();
   private readonly running = new Set<string>();
   private timer: number | null = null;
+  /** The last write didn't stick, so this page's copy is newer than the store's. */
+  private unsaved = false;
 
   constructor(projectId: string, printers: PrintPreset[]) {
-    const now = Date.now();
     this.snap = {
-      dispatch: resumeAfterReload(loadDispatch(projectId), now),
+      dispatch: loadDispatch(projectId),
+      runner: false,
       live: {},
       cams: {},
       printers: new Map(printers.map((p) => [p.id, p])),
     };
-    saveDispatch(this.snap.dispatch);
-    this.pump();
+    onStoreChange('dispatch', (id, fromOtherTab) => {
+      if (id === projectId && fromOtherTab) this.reload();
+    });
+    holdLock(`3dg:dispatch:${projectId}`, (held) => {
+      this.snap = { ...this.snap, runner: held };
+      // Whatever the last holder had running died with it.
+      if (held) this.update((d, now) => this.resume(d, now));
+      else this.emit();
+    });
   }
 
   get snapshot(): DaemonSnapshot {
@@ -129,13 +160,38 @@ export class DispatchDaemon {
     for (const fn of this.listeners) fn();
   }
 
-  private update(fn: (d: Dispatch, now: number) => Dispatch): void {
-    const next = fn(this.snap.dispatch, Date.now());
-    if (next === this.snap.dispatch) return;
-    this.snap = { ...this.snap, dispatch: next };
-    saveDispatch(next);
+  /** The queue as stored: another page may have written it since this one last looked. */
+  private current(): Dispatch {
+    if (this.unsaved) return this.snap.dispatch;
+    const stored = readDispatch(this.snap.dispatch.projectId);
+    if (stored && JSON.stringify(stored) !== JSON.stringify(this.snap.dispatch)) {
+      this.snap = { ...this.snap, dispatch: stored };
+    }
+    return this.snap.dispatch;
+  }
+
+  private reload(): void {
+    const before = this.snap.dispatch;
+    if (this.current() === before) return;
     this.emit();
     this.pump();
+  }
+
+  private update(fn: (d: Dispatch, now: number) => Dispatch): void {
+    const cur = this.current();
+    const next = fn(cur, Date.now());
+    if (next === cur) return;
+    this.snap = { ...this.snap, dispatch: next };
+    this.unsaved = !saveDispatch(next);
+    this.emit();
+    this.pump();
+  }
+
+  /** `resumeAfterReload`, sparing what this page itself still has running. */
+  private resume(d: Dispatch, now: number): Dispatch {
+    const resumed = resumeAfterReload(d, now);
+    if (resumed === d || this.running.size === 0) return resumed;
+    return { ...resumed, tasks: resumed.tasks.map((t, i) => (this.running.has(t.id) ? d.tasks[i] : t)) };
   }
 
   private printerName(id: string): string {
@@ -158,7 +214,7 @@ export class DispatchDaemon {
 
   /** Start the printer's next job. The screen has already asked about the bed. */
   print(printerId: string): void {
-    const job = nextJob(this.snap.dispatch, printerId);
+    const job = nextJob(this.current(), printerId);
     if (job) this.update((d, now) => enqueue(d, 'start', job, newId(), now));
   }
 
@@ -188,7 +244,8 @@ export class DispatchDaemon {
   // ── Queue ──────────────────────────────────────────────
 
   private pump(): void {
-    for (const task of runnable(this.snap.dispatch)) {
+    if (!this.snap.runner) return;
+    for (const task of runnable(this.current())) {
       if (this.running.has(task.id)) continue;
       this.running.add(task.id);
       void this.run(task);
@@ -274,7 +331,8 @@ export class DispatchDaemon {
       const next = nextJob(this.snap.dispatch, printerId);
       const nextOnPrinter = next ? await fileExists(address, next.file).catch(() => undefined) : undefined;
       this.setLive(printerId, { checkedAt, klippy, status, nextOnPrinter });
-      await this.settle(printerId, address, status);
+      // One page records outcomes, so two can't log the same finish.
+      if (this.snap.runner) await this.settle(printerId, address, status);
     } catch (err) {
       this.setLive(printerId, { checkedAt, error: message(err) });
     }
@@ -311,7 +369,14 @@ const daemons = new Map<string, Promise<DispatchDaemon>>();
 export async function getDaemon(projectId: string): Promise<DispatchDaemon> {
   let pending = daemons.get(projectId);
   if (!pending) {
-    pending = listPresets('printer').then((printers) => new DispatchDaemon(projectId, printers));
+    pending = listPresets('printer').then((printers) => {
+      const daemon = new DispatchDaemon(projectId, printers);
+      // An address edited in Settings, in this page or another, reaches the queue.
+      onPresetsChange((kind) => {
+        if (kind === 'printer') void listPresets('printer').then((p) => daemon.setPrinters(p));
+      });
+      return daemon;
+    });
     daemons.set(projectId, pending);
     return pending;
   }
