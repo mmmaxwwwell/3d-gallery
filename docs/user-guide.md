@@ -76,15 +76,15 @@ The dashboard for every printer at once, built for a phone.
   unload / purge filament, home, new bed mesh (saved), clean nozzle, cold
   pull, Z-offset nudge, speed / flow / fan, light, restart camera, firmware
   restart, reboot and power off.
-- **Safety.** Emergency stop acts immediately. Cancel, reboot, power off,
-  firmware restart and bed mesh need a press-and-hold. Anything that would
+- **Safety.** Emergency stop acts immediately. Cancel (the print or a
+  single object), reboot, power off, firmware restart and bed mesh need a
+  press-and-hold. Anything that would
   ruin a running print is greyed out while one is running.
 - **Queue.** Each printer's upcoming plates from the plan you last sent, with
   upload state and a **Print** button that checks the printer is ready first.
 
-*Today:* Printers shows every printer's status and camera; the controls
-and the queue are still on each project's printers screen (**Send to
-printers**).
+*Today:* Printers shows every printer's status, camera and controls; the
+queue is still on each project's printers screen (**Send to printers**).
 
 ### Operator
 
