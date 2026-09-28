@@ -74,9 +74,11 @@ test('a build\'s plates become a project the planner schedules', async ({ page }
   const actions = page.locator('#project-actions');
   await expect(actions).toContainText('4 print plates');
   await actions.getByRole('button', { name: 'Load project' }).click();
+  // Models only writes the project; the planner is the Project page's.
+  await actions.getByRole('link', { name: 'Open project' }).click();
 
-  await expect(page).toHaveURL(/[?&]project=/);
-  const projectId = new URL(page.url()).searchParams.get('project')!;
+  await expect(page).toHaveURL(/\/project\/\?id=/);
+  const projectId = new URL(page.url()).searchParams.get('id')!;
   const planner = page.locator('.planner');
   await expect(planner.locator('.planner-plate')).toHaveCount(4);
   await expect(planner.locator('.planner-plate .planner-chip').filter({ hasText: 'TPU' })).toHaveCount(1);
@@ -147,10 +149,10 @@ test('a build\'s plates become a project the planner schedules', async ({ page }
   await planner.locator('.planner-plate').first().getByRole('button', { name: 'Edit plate' }).click();
   await expect(page).toHaveURL(/[?&]plate=/);
   await page.locator('.print-modal-close').click();
-  await expect(page).toHaveURL(new RegExp(`[?&]project=${projectId}`));
+  await expect(page).toHaveURL(new RegExp(`/project/\\?id=${projectId}$`));
   await expect(planner.locator('.planner-plate')).toHaveCount(4);
 
-  // Back closes the planner and leaves the gallery where it was.
+  // Back leaves the Project page for the gallery, where it was.
   await page.goBack();
   await expect(planner).toHaveCount(0);
   await expect(page).toHaveURL(/model=filament-spool-roller/);
@@ -189,7 +191,8 @@ test('the open project is always there, takes parts, and asks before an unsaved 
   const actions = page.locator('#project-actions');
   page.once('dialog', (d) => void d.dismiss());
   await actions.getByRole('button', { name: 'Load project' }).click();
-  await expect(page).not.toHaveURL(/[?&]project=/);
+  await expect(actions.getByRole('button', { name: 'Load project' })).toBeEnabled();
+  await expect(actions.getByRole('link', { name: 'Open project' })).toHaveCount(0);
   await page.locator('#plates-btn').click();
   await expect(planner.locator('.planner-plate')).toHaveCount(2);
 
@@ -201,6 +204,7 @@ test('the open project is always there, takes parts, and asks before an unsaved 
   const ask = (d: Dialog) => { asked = true; void d.dismiss(); };
   page.on('dialog', ask);
   await actions.getByRole('button', { name: 'Load project' }).click();
+  await actions.getByRole('link', { name: 'Open project' }).click();
   await expect(planner.locator('.planner-plate')).toHaveCount(4);
   page.off('dialog', ask);
   expect(asked).toBe(false);

@@ -14,8 +14,8 @@
 // Plates slice on their own, in the background, for whichever printer the
 // timeline gives them — a re-plan that moves a plate slices it again. The way
 // out is Send to printers, which stays shut until every plate is sliced for
-// its printer and the timeline is clean, and hands the plan to the printers
-// screen (PrintDispatch), where it's uploaded and started.
+// its printer and the timeline is clean, and hands the plan to the Printers
+// page, where it's uploaded and started.
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import {
   evaluateAuthoredPlateFit,
@@ -29,11 +29,11 @@ import {
   type SchedulePrinter,
 } from '@3d-gallery/print-toolkit';
 import { materialFamily } from '@3d-gallery/model-core';
-import { Page } from './Page.js';
-import { listPresets, type PrintPreset } from './print-storage.js';
-import { flattenPresetForSlicer } from './preset-flatten.js';
-import { resolvePlate } from './plate-resolve.js';
-import { buildInstances, toFootprints } from './plate-geometry.js';
+import { Page } from '../print/Page.js';
+import { listPresets, type PrintPreset } from '../print/print-storage.js';
+import { flattenPresetForSlicer } from '../print/preset-flatten.js';
+import { resolvePlate } from '../print/plate-resolve.js';
+import { buildInstances, toFootprints } from '../print/plate-geometry.js';
 import {
   createPlate,
   currentProject,
@@ -53,12 +53,12 @@ import {
   type Plate,
   type Project,
   type SlicedGcode,
-} from './plate-store.js';
-import { openNewProject, openProject } from './current-project.js';
-import { DEFAULT_BED_SURFACE, processFromProfile, slicePlate, type SliceSetup } from './plate-slice.js';
-import { listTemplates, type ProcessSettings } from './process-templates.js';
+} from '../print/plate-store.js';
+import { openNewProject, openProject } from '../print/current-project.js';
+import { DEFAULT_BED_SURFACE, processFromProfile, slicePlate, type SliceSetup } from '../print/plate-slice.js';
+import { listTemplates, type ProcessSettings } from '../print/process-templates.js';
 import { loadLastSelections } from './PrintDialog.js';
-import { formatWhen, loadPlannerSettings, operatorBlocks, planFleet, savePlannerSettings, type PlannerSettings } from './fleet-plan.js';
+import { formatWhen, loadPlannerSettings, operatorBlocks, planFleet, savePlannerSettings, type PlannerSettings } from '../print/fleet-plan.js';
 import {
   collisions,
   expectedSliceMs,
@@ -78,13 +78,13 @@ import {
   sliceSetupKey,
   type Estimates,
   type Measured,
-} from './planner-model.js';
-import { plateThumbnail } from './plate-thumbnail.js';
+} from '../print/planner-model.js';
+import { plateThumbnail } from '../print/plate-thumbnail.js';
 import { PlannerGantt } from './PlannerGantt.js';
-import { getDaemon, hasDispatch, type DaemonSnapshot } from './dispatch-daemon.js';
-import type { DispatchJob } from './dispatch-model.js';
-import { savePlanSnapshot } from './plan-snapshot.js';
-import { refreshOperatorBadge } from './operator-badge.js';
+import { getDaemon, hasDispatch, type DaemonSnapshot } from '../print/dispatch-daemon.js';
+import type { DispatchJob } from '../print/dispatch-model.js';
+import { savePlanSnapshot } from '../print/plan-snapshot.js';
+import { refreshOperatorBadge } from '../print/operator-badge.js';
 import { operatorUrl } from '../shell/views.js';
 
 export interface ProjectPlannerProps {
@@ -95,7 +95,8 @@ export interface ProjectPlannerProps {
   /** Shows another project, once it has become the open one. */
   onShowProject: (projectId: string) => void;
   onOpenSettings: () => void;
-  onOpenDispatch: () => void;
+  /** Shows the printers this project's plan was sent to. */
+  onOpenPrinters: () => void;
 }
 
 type StatusState = PrintStatus | { error: string } | 'loading';
@@ -134,7 +135,7 @@ async function openCurrentOr(project: Project | undefined): Promise<string> {
 
 // ── Component ────────────────────────────────────────────
 
-export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects, onShowProject, onOpenSettings, onOpenDispatch }: ProjectPlannerProps) {
+export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects, onShowProject, onOpenSettings, onOpenPrinters }: ProjectPlannerProps) {
   const [project, setProject] = useState<Project | null>(null);
   const [plates, setPlates] = useState<Plate[] | null>(null);
   const [targetPlate, setTargetPlate] = useState<string | null>(getActivePlateId);
@@ -562,7 +563,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
     });
     void getDaemon(projectId).then((daemon) => {
       daemon.send(jobs);
-      onOpenDispatch();
+      onOpenPrinters();
     });
   };
 
@@ -937,7 +938,10 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
             <button type="button" class="btn" onClick={handleNewProject}>New</button>
             <button type="button" class="btn" onClick={onOpenProjects}>Projects…</button>
             <a class="btn" href={operatorUrl(projectId)}>Runbook</a>
-            {sent && <button type="button" class="btn" onClick={onOpenDispatch}>Printers</button>}
+            <button type="button" class="btn" aria-label="Settings" title="Settings: presets and imports" onClick={onOpenSettings}>
+              <span aria-hidden="true">⚙️</span>
+            </button>
+            {sent && <button type="button" class="btn" onClick={onOpenPrinters}>Printers</button>}
             <button
               type="button"
               class="btn btn-primary planner-send"

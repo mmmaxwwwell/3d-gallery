@@ -16,13 +16,13 @@ describe('legacy routes', () => {
   });
 
   it.each([
-    ['?projects=1', 'gallery/?projects=1'],
-    ['?project=p1', 'gallery/?project=p1'],
-    ['?plate=pl1', 'gallery/?plate=pl1'],
+    ['?projects=1', 'project/'],
+    ['?project=p1', 'project/?id=p1'],
+    ['?plate=pl1', 'project/?plate=pl1'],
     ['?dispatch=p1', 'gallery/?dispatch=p1'],
     ['?operator=p1', 'operator/?id=p1'],
-    ['?settings=1', 'gallery/?settings=1'],
-    ['?model=cube&plate=pl1', 'gallery/?model=cube&plate=pl1'],
+    ['?settings=1', 'settings/'],
+    ['?model=cube&plate=pl1', 'project/?plate=pl1'],
   ])('forwards %s', (search, target) => {
     expect(legacyTarget(search)).toBe(target);
   });

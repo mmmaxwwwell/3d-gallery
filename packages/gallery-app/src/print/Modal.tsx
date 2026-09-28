@@ -13,9 +13,9 @@ interface ModalProps {
 }
 
 /**
- * Minimal modal with backdrop + Esc-to-close. Mounted per-instance into a
- * dedicated portal div (see openPlateDialog / openSettingsPanel in mount.tsx)
- * so it sits above the viewer chrome without fighting the existing layout.
+ * Minimal modal with backdrop + Esc-to-close: the frame of the projects
+ * list, the plate editor and Settings. It covers its page but not the view
+ * switcher, so every view stays one tap away.
  */
 export function Modal({ title, onClose, children, bleed }: ModalProps) {
   useEffect(() => {

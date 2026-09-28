@@ -61,7 +61,7 @@ test('desktop shows the plate and its print setup at once, and routes by URL', a
 
   // The sidebar's Project button opens the open project on its plates.
   await page.locator('#plates-btn').click();
-  await expect(page).toHaveURL(/[?&]project=/);
+  await expect(page).toHaveURL(/\/project\/\?id=/);
   await page.locator('.planner-plate').first().getByRole('button', { name: 'Edit plate' }).click();
 
   // Opening a plate names it in the URL, so the editor is linkable.
@@ -114,6 +114,12 @@ test('desktop shows the plate and its print setup at once, and routes by URL', a
   await expect(rows.nth(0).locator('.pd-object-opt').first()).toHaveValue('');
   await expect(page.locator('.pd-dirty')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Save plate' })).toBeVisible();
+
+  // Leaving the page over unsaved edits asks first; staying keeps them.
+  const asked = new Promise<string>((resolve) => page.once('dialog', (d) => { resolve(d.type()); void d.dismiss(); }));
+  await page.locator('.shell-tab[data-view="models"]').click();
+  expect(await asked).toBe('beforeunload');
+  await expect(page.locator('.pd-dirty')).toBeVisible();
 
   // The trash can takes that object off the plate. Copy indices close up
   // behind it, so the surviving copy keeps the settings it was given.
@@ -187,7 +193,7 @@ test('desktop shows the plate and its print setup at once, and routes by URL', a
   await expect(page.locator('.pd-sheet')).toContainText(/not built yet/);
   await page.locator('.pd-sheet-close').click();
 
-  // Back closes the editor; the plate URL reopens it.
+  // Back leaves the editor; the plate URL reopens it.
   await page.goBack();
   await expect(page.locator('.pd-stage')).toHaveCount(0);
   await page.goto(plateUrl);

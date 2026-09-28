@@ -17,14 +17,14 @@ import {
   type PrinterBed,
   type SlicerBackend,
 } from '@3d-gallery/print-toolkit';
-import { Modal } from './Modal.js';
+import { Modal } from '../print/Modal.js';
 import { Sheet } from './Sheet.js';
-import { setPrintLeaveGuard } from './nav-guard.js';
+import { setPrintLeaveGuard } from '../print/nav-guard.js';
 import { SliceProgress } from './SliceProgress.js';
 import { GcodePreview } from './GcodePreview.js';
-import { PlateCanvas3D, type PlateCanvas3DObject } from './PlateCanvas3D.js';
-import { listPresets, type PrintPreset } from './print-storage.js';
-import { flattenPresetForSlicer } from './preset-flatten.js';
+import { PlateCanvas3D, type PlateCanvas3DObject } from '../print/PlateCanvas3D.js';
+import { listPresets, type PrintPreset } from '../print/print-storage.js';
+import { flattenPresetForSlicer } from '../print/preset-flatten.js';
 import {
   filamentSlotCount,
   filamentSpecs,
@@ -32,7 +32,7 @@ import {
   processSpecs,
   speedSpecs,
   type SpecRow,
-} from './preset-spec.js';
+} from '../print/preset-spec.js';
 import {
   getPlate,
   getProject,
@@ -42,7 +42,7 @@ import {
   type Plate,
   type PlateScale,
   type PlateTransform,
-} from './plate-store.js';
+} from '../print/plate-store.js';
 import {
   arrangeInstances,
   buildInstances,
@@ -50,8 +50,8 @@ import {
   toFootprints,
   withArrangedGaps,
   type PlateInstance,
-} from './plate-geometry.js';
-import { resolvePlate, type ResolveReport, type ResolvedPlateObject } from './plate-resolve.js';
+} from '../print/plate-geometry.js';
+import { resolvePlate, type ResolveReport, type ResolvedPlateObject } from '../print/plate-resolve.js';
 import {
   BED_SURFACES,
   DEFAULT_BED_SURFACE,
@@ -59,7 +59,7 @@ import {
   processFromProfile,
   sliceInstances,
   type BedSurface,
-} from './plate-slice.js';
+} from '../print/plate-slice.js';
 import {
   INFILL_PATTERNS,
   LAYER_HEIGHTS,
@@ -69,20 +69,20 @@ import {
   type ProcessSettings,
   type ProcessTemplate,
   type SupportStyle,
-} from './process-templates.js';
+} from '../print/process-templates.js';
 import {
   deleteSlicePreset,
   listSlicePresets,
   saveLastPrintPreset,
   saveSlicePreset,
   type SlicePreset,
-} from './slice-presets.js';
-import type { Quat } from './mesh-bounds.js';
+} from '../print/slice-presets.js';
+import type { Quat } from '../print/mesh-bounds.js';
 
 interface PrintDialogProps {
   plateId: string;
   onClose: () => void;
-  /** Opens the OrcaSlicer preset panel; closing it returns to this plate. */
+  /** Opens the Settings page; closing it returns to this plate. */
   onOpenSettings: () => void;
 }
 
@@ -587,7 +587,7 @@ export function PrintDialog({ plateId, onClose, onOpenSettings }: PrintDialogPro
       if (busyRef.current) return false;
       if (!dirtyRef.current) return true;
       return confirm('Discard unsaved changes to this plate?');
-    });
+    }, () => dirtyRef.current);
     return () => setPrintLeaveGuard(null);
   }, []);
 
@@ -599,11 +599,13 @@ export function PrintDialog({ plateId, onClose, onOpenSettings }: PrintDialogPro
     onClose();
   };
 
-  // Settings replaces this dialog in the portal, so it has to clear the same
-  // bar closing does — the plate is re-read from the store on the way back.
+  // Settings is another page, so going there has to clear the same bar
+  // closing does — the plate is re-read from the store on the way back. The
+  // question has been asked, so the unload doesn't ask it a second time.
   const openSettingsGuarded = () => {
     if (busy) return;
     if (dirty && !confirm('Discard unsaved changes to this plate?')) return;
+    setPrintLeaveGuard(null);
     onOpenSettings();
   };
 

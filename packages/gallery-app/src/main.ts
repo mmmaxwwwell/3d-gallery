@@ -98,13 +98,9 @@ import {
   type ArtifactClient,
   type ArtifactSource,
 } from "@3d-gallery/viewer";
-import {
-  PRINT_ROUTE_PARAMS,
-  initPrintRouting,
-  openCurrentProject,
-  openProjectPlanner,
-} from "./print/mount";
+import { PRINT_ROUTE_PARAMS, initPrintRouting } from "./print/mount";
 import { openNewProject } from "./print/current-project";
+import { projectUrl } from "./shell/views";
 import { setPlateArtifactClient } from "./print/plate-resolve";
 import { listPresets } from "./print/print-storage";
 import { CUSTOMIZABLE_SOURCES as INITIAL_SOURCES } from "./customizable-sources";
@@ -112,7 +108,9 @@ import { PARAM_SCHEMAS } from "./param-schemas";
 import {
   addItemToPlate,
   createPlatesWithItems,
+  currentProject,
   ensureTargetPlate,
+  getActiveProjectId,
 } from "./print/plate-store";
 
 interface LegendEntry {
@@ -239,7 +237,7 @@ const mobilePartSelect = document.getElementById("mobile-part-select") as HTMLSe
 const viewerContainer = document.getElementById("viewer-container")!;
 const downloadLink = document.getElementById("download-link") as HTMLAnchorElement;
 const printBtn = document.getElementById("print-btn") as HTMLButtonElement | null;
-const platesBtn = document.getElementById("plates-btn") as HTMLButtonElement | null;
+const platesBtn = document.getElementById("plates-btn") as HTMLAnchorElement | null;
 const errorEl = document.getElementById("viewer-error")!;
 const descTextEl = document.getElementById("description-text")!;
 const descToggle = document.getElementById("description-toggle") as HTMLButtonElement;
@@ -1736,7 +1734,9 @@ function renderInfoPanel(model: Model, part: Part) {
 
 /**
  * On a view with print plates: load them as the open project, where the
- * planner slices, schedules and sends them.
+ * planner slices, schedules and sends them. The planner is the Project page,
+ * which reads the project from the store, so this only writes it and offers
+ * the way there.
  */
 function renderProjectActions(model: Model) {
   const plates = (model.previews ?? []).filter((p) => p.plate);
@@ -1753,20 +1753,31 @@ function renderProjectActions(model: Model) {
   load.type = "button";
   load.className = "btn btn-primary";
   load.textContent = "Load project";
-  load.title = "Open a project holding every print plate of this build";
+  load.title = "Make a new open project holding every print plate of this build";
+  const open = document.createElement("a");
+  open.className = "part-link";
+  open.textContent = "Open project →";
+  open.hidden = true;
   load.addEventListener("click", () => {
     load.disabled = true;
     void loadBuildProject(model, plates)
+      .then((projectId) => {
+        if (!projectId) return;
+        note.textContent = "Loaded as the open project";
+        open.href = projectUrl(projectId);
+        open.hidden = false;
+      })
       .catch((err) => setError(err instanceof Error ? err.message : String(err)))
       .finally(() => { load.disabled = false; });
   });
-  li.append(note, load);
+  li.append(note, open, load);
   renderSection(projectActionsEl, "Project", [li]);
 }
 
-async function loadBuildProject(model: Model, plates: Part[]): Promise<void> {
+/** The new project's id, or null when the user kept the unsaved one. */
+async function loadBuildProject(model: Model, plates: Part[]): Promise<string | null> {
   const client = artifactClient;
-  if (!client) return;
+  if (!client) return null;
   const params = buildParams(model);
   const profile = recommendedProfile(model);
   const entries = await Promise.all(plates.map(async (plate) => ({
@@ -1787,9 +1798,7 @@ async function loadBuildProject(model: Model, plates: Part[]): Promise<void> {
   })));
   const name = model.build ? `${model.title} (${model.build.label})` : model.title;
   const project = await openNewProject(name, (p) => createPlatesWithItems(p.id, entries).then(() => undefined));
-  if (!project) return;
-  closeInfoPanelOnMobile();
-  openProjectPlanner(project.id);
+  return project?.id ?? null;
 }
 
 // ── Print-time estimates ─────────────────────────────────
@@ -2590,12 +2599,21 @@ function handlePartChange(selectedFile: string, initialValues?: Record<string, S
 partSelect.addEventListener("change", () => handlePartChange(partSelect.value));
 mobilePartSelect.addEventListener("change", () => handlePartChange(mobilePartSelect.value));
 
-// Print controls — Plates lives in the sidebar and is always available, Add
+// Print controls — Project lives in the sidebar and is always available, Add
 // to plate appears only once a printable mesh (STL or 3MF) is loaded and
 // downloadLink points at it.
-platesBtn?.addEventListener("click", () => {
-  closeSidebarDrawer();
-  void openCurrentProject();
+//
+// Project is a link to the Project page, aimed at the open project. The open
+// project can change in another page at any moment, so the link is aimed when
+// it's followed; with none open yet, one is made first, as the page would.
+platesBtn?.addEventListener("click", (e) => {
+  const id = getActiveProjectId();
+  if (id) {
+    platesBtn.href = projectUrl(id);
+    return;
+  }
+  e.preventDefault();
+  void currentProject().then((project) => window.location.assign(projectUrl(project.id)));
 });
 
 const plateNotice = document.createElement("span");
@@ -2609,14 +2627,8 @@ function showPlateNotice(projectId: string, where: string): void {
   plateNotice.textContent = `Added to ${where} · `;
   const open = document.createElement("a");
   open.className = "part-link";
-  open.href = "#";
-  open.textContent = "Open project";
-  open.addEventListener("click", (e) => {
-    e.preventDefault();
-    window.clearTimeout(plateNoticeTimer);
-    plateNotice.hidden = true;
-    openProjectPlanner(projectId);
-  });
+  open.href = projectUrl(projectId);
+  open.textContent = "Open project →";
   plateNotice.appendChild(open);
   plateNotice.hidden = false;
   plateNoticeTimer = window.setTimeout(() => { plateNotice.hidden = true; }, 8000);
