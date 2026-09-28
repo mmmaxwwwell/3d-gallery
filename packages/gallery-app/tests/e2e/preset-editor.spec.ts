@@ -22,7 +22,7 @@ async function storedPrinter(page: Page) {
 }
 
 async function openEditor(page: Page) {
-  await page.goto('gallery/?settings=1');
+  await page.goto('settings/');
   await page.locator('.print-settings-tab', { hasText: 'Printers' }).click();
   await page.locator('.print-settings-item', { hasText: PRINTER.name }).getByRole('button', { name: 'Edit' }).click();
   await expect(page.locator('.print-preset-editor')).toBeVisible();

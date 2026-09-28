@@ -24,9 +24,10 @@
   --shell-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* The gallery is dark-only, so its bar stays dark with it. */
+/* The gallery and the print screens (Project, Settings) are dark-only, so
+   their bar stays dark with them. */
 @media (prefers-color-scheme: light) {
-  :root:not([data-shell-view='models']) {
+  :root:not([data-shell-view='models']):not([data-shell-view='project']):not([data-shell-view='settings']) {
     --shell-page-bg: #f6f4fb;
     --shell-bg: #ffffff;
     --shell-surface: #ffffff;
@@ -229,24 +230,7 @@ html.has-shell body {
   }
 }
 
-/* ── Placeholder pages ────────────────────────────────── */
-
-.shell-page {
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 32px 16px;
-}
-
-.shell-placeholder h1 {
-  margin: 0 0 8px;
-  font-size: 24px;
-}
-
-.shell-placeholder p {
-  margin: 0 0 20px;
-  color: var(--shell-text-muted);
-  line-height: 1.5;
-}
+/* ── A page's call to action ───────────────────────── */
 
 .shell-button {
   display: inline-flex;

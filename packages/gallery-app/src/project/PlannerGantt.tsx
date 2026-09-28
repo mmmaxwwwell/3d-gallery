@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 /** @jsxImportSource preact */
 import type { OperatorBlock, Schedule } from '@3d-gallery/print-toolkit';
-import type { PrintPreset } from './print-storage.js';
-import type { Plate } from './plate-store.js';
-import { plateMaterial } from './planner-model.js';
+import type { PrintPreset } from '../print/print-storage.js';
+import type { Plate } from '../print/plate-store.js';
+import { plateMaterial } from '../print/planner-model.js';
 
 const HOUR = 3600_000;
 const TICK_STEPS = [1, 2, 3, 6, 12, 24].map((h) => h * HOUR);

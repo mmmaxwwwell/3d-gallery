@@ -33,6 +33,6 @@ describe('which project the Operator page opens', () => {
 describe('runbook and project links', () => {
   it('address a project by id under the base', () => {
     expect(operatorUrl('a b', '/3d-gallery/')).toBe('/3d-gallery/operator/?id=a%20b');
-    expect(projectUrl('p1', '/3d-gallery/')).toBe('/3d-gallery/gallery/?project=p1');
+    expect(projectUrl('p1', '/3d-gallery/')).toBe('/3d-gallery/project/?id=p1');
   });
 });

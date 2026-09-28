@@ -7,6 +7,7 @@ import { lastOpen } from '../shell/last-open.js';
 import { setBadge } from '../shell/badges.js';
 import { operatorUrl, projectUrl, viewById } from '../shell/views.js';
 import { getActiveProjectId } from '../print/plate-store.js';
+import { syncFromServerOnce } from '../print/server-store.js';
 import { latestPlanProject, loadPlanSnapshot } from '../print/plan-snapshot.js';
 import { NoPlan, OperatorApp } from './operator-app.js';
 import { pickProject } from './pick-project.js';
@@ -14,6 +15,9 @@ import './operator.css';
 
 export function mountOperator(): void {
   registerServiceWorker();
+  // The runbook reaches the printers through their presets, and the optional
+  // server store may hold newer ones.
+  void syncFromServerOnce();
   let id = new URLSearchParams(location.search).get('id');
   if (!id) {
     // Read before mountShell, which records this bare URL as the last one.

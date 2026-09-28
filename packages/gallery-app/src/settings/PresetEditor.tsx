@@ -22,7 +22,7 @@ import {
   type OrcaOptionDef,
   type OrcaSchema,
 } from '@3d-gallery/print-toolkit/orca-schema';
-import { savePreset, type OrcaJson, type OrcaValue, type PrintPreset } from './print-storage.js';
+import { savePreset, type OrcaJson, type OrcaValue, type PrintPreset } from '../print/print-storage.js';
 import {
   clearOverride,
   describeOrigin,
@@ -33,8 +33,8 @@ import {
   setOverride,
   unrecognisedKeys,
   type FieldState,
-} from './preset-edit.js';
-import { setPrintLeaveGuard } from './nav-guard.js';
+} from '../print/preset-edit.js';
+import { setPrintLeaveGuard } from '../print/nav-guard.js';
 
 type EditableKind = 'printer' | 'filament';
 

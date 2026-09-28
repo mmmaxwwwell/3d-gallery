@@ -1,0 +1,1177 @@
+/* SPDX-License-Identifier: MIT */
+/* The Settings page: OrcaSlicer import, the preset lists and the preset
+ * editor. These rules moved out of the gallery's style.css with the panel, in
+ * the order they sat there, so the cascade between them is what it was. The
+ * page doesn't load style.css, so the reset, the retrowave tokens, the buttons
+ * and the modal frame came along too; project.css carries its own copy. */
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f5f5f5;
+  color: #222;
+}
+
+.btn {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  border: none;
+}
+
+.btn-secondary {
+  background: #e8ecf0;
+  color: #333;
+  border: 1px solid #ccc;
+}
+
+.btn-secondary:hover {
+  background: #d5dbe2;
+}
+
+.btn-primary {
+  background: #2b6cb0;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #225694;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (min-width: 768px) {
+  .btn {
+    padding: 6px 14px;
+    font-size: 13px;
+  }
+}
+
+/* ── Print modal ──────────────────────────────────────── */
+
+.print-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 1000;
+  padding: 0;
+}
+
+.print-modal {
+  background: #fff;
+  border-radius: 14px 14px 0 0;
+  width: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -6px 30px rgba(0, 0, 0, 0.35);
+}
+
+.print-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 4;
+  min-height: 52px;
+}
+
+.print-modal-header h3 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.2;
+}
+
+.print-modal-close {
+  background: none;
+  border: none;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  color: #666;
+  padding: 8px 10px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 8px;
+}
+
+.print-modal-close:hover,
+.print-modal-close:active {
+  color: #000;
+  background: #f2f4f7;
+}
+
+.print-modal-body {
+  padding: 14px 16px 96px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  flex: 1;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 720px) {
+  .print-modal-backdrop {
+    align-items: center;
+    padding: 24px;
+  }
+
+  .print-modal {
+    width: min(720px, 100%);
+    height: auto;
+    max-height: calc(100vh - 48px);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  }
+
+  .print-modal-body {
+    padding: 20px 24px 24px;
+  }
+}
+
+/* ── Print settings panel ─────────────────────────────── */
+
+.print-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.print-settings h4 {
+  margin: 0 0 6px;
+  font-size: 14px;
+}
+
+.print-settings-help {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: #555;
+}
+
+.print-settings-help code {
+  background: #f0f0f0;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.print-settings-notice {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #2b6cb0;
+}
+
+.print-settings-error {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #b00020;
+  white-space: pre-wrap;
+}
+
+.print-settings-empty {
+  font-size: 12px;
+  color: #888;
+  padding: 4px 0;
+}
+
+.print-settings-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.print-settings-item {
+  padding: 8px 10px;
+  background: #f8f9fb;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.print-settings-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.print-settings-item-name {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.print-settings-delete {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.print-settings-item-address {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.print-settings-item-address label {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11px;
+  color: #666;
+}
+
+.print-settings-item-address input {
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.print-settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.print-settings-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 12px;
+}
+
+.print-settings-tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #555;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.print-settings-tab.active {
+  color: #0f172a;
+  border-bottom-color: #0f172a;
+  font-weight: 500;
+}
+
+.print-settings-tab-count {
+  font-size: 11px;
+  background: #e0e0e0;
+  color: #333;
+  padding: 1px 6px;
+  border-radius: 8px;
+}
+
+.print-settings-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.print-settings-toolbar input[type="search"] {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.print-settings-warnings {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #b8860b;
+}
+
+.print-settings-warnings ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
+.print-settings-server {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.print-settings-server h4 {
+  margin: 0 0 6px;
+}
+
+.print-settings-server-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.print-settings-item-compat {
+  border-top: 1px dashed #e0e0e0;
+  padding-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.print-settings-compat-universal {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #444;
+}
+
+.print-settings-compat-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.print-settings-compat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  font-size: 11px;
+  cursor: pointer;
+  background: #fff;
+}
+
+.print-settings-compat-chip.on {
+  background: #0f172a;
+  color: #fff;
+  border-color: #0f172a;
+}
+
+.print-settings-compat-chip input {
+  display: none;
+}
+
+.print-settings-badge {
+  font-style: normal;
+  font-size: 10px;
+  background: #e0e0e0;
+  color: #555;
+  padding: 1px 6px;
+  border-radius: 8px;
+  margin-left: 8px;
+}
+
+.print-settings-item-summary {
+  font-size: 12px;
+  color: #666;
+}
+
+.print-settings-new-template {
+  margin-top: 12px;
+  padding: 8px 10px;
+  background: #f8f9fb;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+}
+
+.print-settings-new-template summary {
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.print-settings-new-template-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 12px;
+  margin-top: 10px;
+}
+
+.print-settings-new-template-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11px;
+  color: #666;
+}
+
+.print-settings-new-template-grid input,
+.print-settings-new-template-grid select {
+  padding: 5px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.print-settings-new-template-grid button {
+  grid-column: 1 / -1;
+  justify-self: flex-end;
+}
+
+/* ── Preset editor ──────────────────────────────────── */
+
+.print-preset-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.print-preset-editor-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.print-preset-editor-title h4 {
+  margin: 0 0 2px;
+  font-size: 15px;
+}
+
+.print-preset-editor-toolbar {
+  flex-wrap: wrap;
+}
+
+.print-preset-editor-toolbar select {
+  padding: 4px 6px;
+}
+
+.print-preset-editor-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.print-preset-editor-body {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: 12px;
+  min-height: 0;
+}
+
+.print-preset-editor-pages {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.print-preset-editor-page {
+  text-align: left;
+  padding: 6px 8px;
+  border: 0;
+  border-left: 2px solid transparent;
+  background: transparent;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.print-preset-editor-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.print-preset-group {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 6px 10px 10px;
+  margin: 0;
+}
+
+.print-preset-group legend {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 4px;
+}
+
+.print-preset-field {
+  display: grid;
+  grid-template-columns: minmax(140px, 32%) minmax(0, 1fr);
+  gap: 4px 12px;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px dashed #eee;
+  font-size: 12px;
+}
+
+.print-preset-field:last-child {
+  border-bottom: 0;
+}
+
+.print-preset-field-label {
+  cursor: help;
+  overflow-wrap: anywhere;
+}
+
+.print-preset-field-input {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.print-preset-field-input input[type="text"],
+.print-preset-field-input select,
+.print-preset-field-input textarea {
+  font: inherit;
+  padding: 3px 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  min-width: 0;
+}
+
+.print-preset-field-input textarea {
+  width: 100%;
+  resize: vertical;
+}
+
+.print-preset-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace !important;
+  font-size: 11px !important;
+}
+
+.print-preset-number {
+  width: 7em;
+}
+
+.print-preset-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.print-preset-field-input:has(textarea) .print-preset-cell {
+  flex: 1 1 100%;
+}
+
+.print-preset-cell-label,
+.print-preset-field-unit {
+  font-size: 11px;
+}
+
+.print-preset-nullable,
+.print-preset-color {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.print-preset-color input[type="color"] {
+  width: 28px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.print-preset-field-head {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.print-preset-field-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.print-preset-field-origin {
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.print-preset-field-reset {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 2px;
+}
+
+.print-preset-field-error {
+  grid-column: 2;
+  font-size: 11px;
+}
+
+.print-preset-editor-changes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.print-preset-editor-changes li {
+  display: grid;
+  grid-template-columns: minmax(120px, 200px) minmax(0, 1fr) auto auto;
+  gap: 10px;
+  align-items: center;
+  font-size: 12px;
+}
+
+.print-preset-editor-change {
+  overflow-wrap: anywhere;
+}
+
+.print-preset-editor-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.print-preset-editor-status {
+  margin-right: auto;
+  font-size: 12px;
+}
+
+@media (max-width: 719px) {
+  .print-preset-editor-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .print-preset-editor-pages {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .print-preset-editor-page {
+    border-left: 0;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+  }
+
+  .print-preset-field,
+  .print-preset-editor-changes li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .print-preset-field-error {
+    grid-column: 1;
+  }
+
+  .print-preset-editor-fields {
+    max-height: none;
+  }
+}
+
+/* ================================================================
+ * Dark theme — cyberpunk retrowave. Saturated neon, no pastels.
+ *
+ * Palette:
+ *   bg deep       #000000  (true black)
+ *   bg surface    #0b0116  (raised card)
+ *   bg surface-2  #16032e  (deeper raised)
+ *   border neon   #4b1093  (line at rest)
+ *   text primary  #ffffff
+ *   text muted    #d4b0ff
+ *   magenta neon  #ff17c7  (primary highlight)
+ *   violet neon   #a021ff  (cool end of the ramp)
+ *   cyan neon     #00eaff  (secondary / links)
+ *   hot pink      #ff2e6e  (punctuation)
+ *   ok            #2bff88
+ *   warn          #ffd60a
+ *   danger        #ff2d55
+ *
+ * Applied as a single overlay at the end of the sheet so it can be
+ * removed as a block if the design needs to revert.
+ * ================================================================ */
+
+:root {
+  /* True black, not a tinted near-black: the surfaces above it carry a violet
+     cast so panels separate from the page without lifting to grey. */
+  --rw-bg: #000000;
+  --rw-surface: #0b0116;
+  --rw-surface-2: #16032e;
+  --rw-surface-3: #260550;
+  --rw-border: #4b1093;
+  --rw-border-strong: #b829ff;
+  --rw-text: #ffffff;
+  --rw-text-muted: #d4b0ff;
+  --rw-text-dim: #9470d9;
+
+  /* Neon ramp — the primary highlight. Magenta carries emphasis, violet is the
+     cool end of the gradient, and the bright tint is for text on black. */
+  --rw-magenta: #ff17c7;
+  --rw-magenta-bright: #ff72e4;
+  --rw-violet: #a021ff;
+
+  /* Accents. Hot pink and cyan as punctuation against the magentas. */
+  --rw-pink: #ff2e6e;
+  --rw-cyan: #00eaff;
+  --rw-cyan-dim: #0097ad;
+
+  /* Status. The -text tints sit on a 10%-alpha wash of their own hue, so they
+     are lifted for contrast but stay fully saturated. */
+  --rw-ok: #2bff88;
+  --rw-ok-text: #3dffa0;
+  --rw-warn: #ffd60a;
+  --rw-danger: #ff2d55;
+  --rw-danger-text: #ff4d78;
+
+  --rw-glow-magenta: 0 0 0 1px rgba(255, 23, 199, 0.45), 0 0 16px rgba(255, 23, 199, 0.35);
+  --rw-glow-pink: 0 0 0 1px rgba(255, 46, 110, 0.40), 0 0 14px rgba(255, 46, 110, 0.30);
+  --rw-glow-cyan: 0 0 0 1px rgba(0, 234, 255, 0.40), 0 0 14px rgba(0, 234, 255, 0.28);
+}
+
+body {
+  /* Reads as a horizon: magenta low and wide like the sun just under the edge,
+     a violet band above it, and a cyan cast up top for contrast. Black
+     underneath so the glow has something to sit on. */
+  background: var(--rw-bg);
+  background-image:
+    radial-gradient(ellipse 120% 45% at 50% 108%, rgba(255, 23, 199, 0.24), transparent 70%),
+    radial-gradient(ellipse 90% 30% at 50% 100%, rgba(160, 33, 255, 0.20), transparent 65%),
+    radial-gradient(ellipse at 85% 0%, rgba(0, 234, 255, 0.10), transparent 55%),
+    radial-gradient(ellipse at 12% 4%, rgba(255, 46, 110, 0.10), transparent 50%),
+    linear-gradient(180deg, #000000 0%, #000000 100%);
+  background-attachment: fixed;
+  color: var(--rw-text);
+}
+
+/* ── Print modal ─────────────────────────────────────── */
+
+.print-modal-backdrop {
+  background: rgba(4, 0, 12, 0.78);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.print-modal {
+  background: linear-gradient(180deg, var(--rw-surface) 0%, var(--rw-bg) 100%);
+  color: var(--rw-text);
+  border: 1px solid var(--rw-border);
+  box-shadow:
+    0 -6px 30px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 46, 110, 0.15) inset;
+}
+
+.print-modal-header {
+  background: linear-gradient(90deg, var(--rw-surface-2), var(--rw-surface));
+  border-bottom: 1px solid var(--rw-border);
+}
+
+.print-modal-header h3 {
+  color: var(--rw-text);
+  text-shadow: 0 0 12px rgba(255, 46, 110, 0.4);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.print-modal-close {
+  color: var(--rw-text-muted);
+}
+
+.print-modal-close:hover,
+.print-modal-close:active {
+  color: var(--rw-pink);
+  background: var(--rw-surface-2);
+}
+
+/* ── Buttons ─────────────────────────────────────────── */
+
+.btn {
+  background: var(--rw-surface-2);
+  color: var(--rw-text);
+  border: 1px solid var(--rw-border);
+  border-radius: 8px;
+  transition: all 120ms ease-out;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--rw-surface-3);
+  border-color: var(--rw-border-strong);
+}
+
+.btn-primary {
+  /* Sunset gradient: hot pink burning into amber. Dark text, because amber at
+     full chroma does not carry white at an accessible contrast. */
+  background: linear-gradient(135deg, var(--rw-pink) 0%, var(--rw-violet) 55%, var(--rw-magenta) 100%);
+  color: #1a0016;
+  border: 1px solid rgba(255, 23, 199, 0.65);
+  font-weight: 650;
+  text-shadow: none;
+  box-shadow: var(--rw-glow-magenta);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ff5cd8 0%, #c04dff 55%, var(--rw-magenta-bright) 100%);
+  border-color: var(--rw-magenta);
+  box-shadow: 0 0 0 1px var(--rw-magenta), 0 0 22px rgba(255, 23, 199, 0.55);
+}
+
+.btn-secondary {
+  background: var(--rw-surface-2);
+  color: var(--rw-cyan);
+  border: 1px solid var(--rw-cyan-dim);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--rw-surface-3);
+  border-color: var(--rw-cyan);
+  box-shadow: var(--rw-glow-cyan);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Settings panel ─────────────────────────────────── */
+
+.print-settings-tabs {
+  border-bottom-color: var(--rw-border);
+}
+
+.print-settings-tab {
+  color: var(--rw-text-muted);
+  background: transparent;
+}
+
+.print-settings-tab:hover:not(.active) {
+  color: var(--rw-cyan);
+}
+
+.print-settings-tab.active {
+  color: var(--rw-pink);
+  border-bottom-color: var(--rw-pink);
+  text-shadow: 0 0 6px rgba(255, 46, 110, 0.35);
+}
+
+.print-settings-tab-count {
+  background: var(--rw-surface-3);
+  color: var(--rw-text-muted);
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 10px;
+}
+
+.print-settings-help {
+  color: var(--rw-text-muted);
+}
+
+.print-settings-help code {
+  background: var(--rw-surface-2);
+  color: var(--rw-cyan);
+}
+
+.print-settings-item {
+  background: var(--rw-surface);
+  border: 1px solid var(--rw-border);
+}
+
+.print-settings-item-name {
+  color: var(--rw-text);
+}
+
+.print-settings-item-summary {
+  color: var(--rw-text-muted);
+}
+
+.print-settings-item-hint {
+  color: var(--rw-text-dim);
+}
+
+.print-settings-item-address input,
+.print-settings-toolbar input,
+.print-settings-new-template-grid input,
+.print-settings-new-template-grid select {
+  background: var(--rw-surface-2);
+  color: var(--rw-text);
+  border-color: var(--rw-border);
+}
+
+.print-settings-item-address input:focus,
+.print-settings-toolbar input:focus,
+.print-settings-new-template-grid input:focus,
+.print-settings-new-template-grid select:focus {
+  border-color: var(--rw-magenta);
+  outline: none;
+  box-shadow: 0 0 0 1px var(--rw-pink);
+}
+
+.print-settings-empty {
+  color: var(--rw-text-dim);
+}
+
+.print-settings-badge {
+  background: var(--rw-surface-3);
+  color: var(--rw-cyan);
+}
+
+.print-settings-compat-chip {
+  background: var(--rw-surface-2);
+  color: var(--rw-text-muted);
+  border-color: var(--rw-border);
+}
+
+.print-settings-compat-chip.on {
+  background: rgba(0, 234, 255, 0.1);
+  color: var(--rw-cyan);
+  border-color: var(--rw-cyan-dim);
+}
+
+.print-settings-new-template {
+  background: var(--rw-surface);
+  border-color: var(--rw-border);
+}
+
+.print-settings-new-template summary {
+  color: var(--rw-cyan);
+}
+
+.print-settings-notice {
+  color: var(--rw-cyan);
+}
+
+.print-settings-error {
+  color: var(--rw-danger);
+}
+
+.print-settings-warnings {
+  color: var(--rw-text-muted);
+}
+
+.print-preset-editor-page {
+  color: var(--rw-text-muted);
+}
+
+.print-preset-editor-page:hover:not(.active) {
+  color: var(--rw-cyan);
+}
+
+.print-preset-editor-page.active {
+  color: var(--rw-pink);
+  border-color: var(--rw-pink);
+  background: var(--rw-surface-2);
+}
+
+.print-preset-group,
+.print-preset-editor-foot {
+  border-color: var(--rw-border);
+}
+
+.print-preset-group {
+  background: var(--rw-surface);
+}
+
+.print-preset-group legend {
+  color: var(--rw-cyan);
+}
+
+.print-preset-field {
+  border-bottom-color: var(--rw-surface-3);
+}
+
+.print-preset-field-label {
+  color: var(--rw-text);
+}
+
+.print-preset-field-input input[type="text"],
+.print-preset-field-input select,
+.print-preset-field-input textarea,
+.print-preset-editor-toolbar select {
+  background: var(--rw-surface-2);
+  color: var(--rw-text);
+  border-color: var(--rw-border);
+}
+
+.print-preset-field-input input[type="text"]:focus,
+.print-preset-field-input select:focus,
+.print-preset-field-input textarea:focus {
+  border-color: var(--rw-magenta);
+  outline: none;
+  box-shadow: 0 0 0 1px var(--rw-pink);
+}
+
+.print-preset-cell-label,
+.print-preset-field-unit,
+.print-preset-field-origin,
+.print-preset-editor-status {
+  color: var(--rw-text-dim);
+}
+
+/* An edited field reads at a glance: magenta rail, and the "was" line lit. */
+.print-preset-field.is-edited {
+  box-shadow: inset 2px 0 0 var(--rw-magenta);
+  padding-left: 8px;
+}
+
+.print-preset-field-origin.is-edited {
+  color: var(--rw-magenta-bright);
+}
+
+.print-preset-field-reset {
+  color: var(--rw-cyan);
+}
+
+.print-preset-field.is-invalid input,
+.print-preset-field.is-invalid textarea {
+  border-color: var(--rw-danger);
+}
+
+.print-preset-field-error {
+  color: var(--rw-danger-text);
+}
+
+.print-preset-editor-change s {
+  color: var(--rw-text-dim);
+}
+
+.print-preset-editor-change strong {
+  color: var(--rw-magenta-bright);
+}
+
+.print-preset-editor-toggle {
+  color: var(--rw-text-muted);
+}
+
+::selection {
+  background: rgba(255, 46, 110, 0.4);
+  color: #fff;
+}
+
+/* ── Full-app retrowave theme ─────────────────────────── */
+
+html, body {
+  background: var(--rw-bg);
+  color: var(--rw-text);
+}
+
+/* Scrollbars */
+* {
+  scrollbar-color: var(--rw-surface-3) var(--rw-bg);
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--rw-bg);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--rw-surface-3);
+  border-radius: 6px;
+  border: 2px solid var(--rw-bg);
+}
+
+.print-settings-item-address label,
+.print-settings-new-template-grid label {
+  color: var(--rw-text-muted);
+}
+
+.print-settings-toolbar input[type="search"] {
+  background: var(--rw-surface-3);
+  color: var(--rw-text);
+  border-color: var(--rw-border);
+  color-scheme: dark;
+}
+
+.print-settings-item-compat {
+  border-top-color: var(--rw-border);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--rw-border-strong);
+}
+
+/* Focus rings on any focusable */
+:focus-visible {
+  outline: 2px solid var(--rw-cyan);
+  outline-offset: 2px;
+}
+
+button:focus-visible {
+  outline-color: var(--rw-pink);
+}
+
+@media (min-width: 1360px) {
+  .print-modal {
+    width: min(1240px, calc(100vw - 120px));
+  }
+}
+
+/* ================================================================
+ * 3D-first plate editor.
+ *
+ * The plate owns the screen at every width: the canvas fills the modal
+ * body, and every option lives behind a rail button that opens a sheet
+ * over it. Nothing here scrolls except sheet bodies — the stage is sized
+ * by the modal, not by its content.
+ * ================================================================ */
+
+.print-modal-body.is-bleed {
+  padding: 0;
+  overflow: hidden;
+}
+
+@media (min-width: 720px) {
+  .print-modal:has(> .print-modal-body.is-bleed) {
+    width: min(1100px, calc(100vw - 48px));
+    height: min(860px, calc(100vh - 48px));
+    max-height: calc(100vh - 48px);
+  }
+}
+
+/* ── Room for the view switcher ───────────────────────── */
+/* The modal frame was written for a gallery with nothing pinned to its edges.
+   Here it stops at the bar, so every view stays one tap away. */
+
+html.has-shell .print-modal-backdrop {
+  left: var(--shell-left);
+  bottom: var(--shell-bottom);
+}
+
+@media (max-width: 719px) {
+  html.has-shell .print-modal {
+    height: calc(100dvh - var(--shell-bottom));
+    max-height: calc(100dvh - var(--shell-bottom));
+  }
+}

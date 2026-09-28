@@ -35,12 +35,20 @@ export interface ResolveReport {
 let clientPromise: Promise<ArtifactClient> | null = null;
 
 /**
- * Hand plate resolution the app's own client so it shares the customizer's
- * OpenSCAD-WASM local renderer; without it a parametric item that is neither
- * cached nor prebuilt has nowhere left to come from.
+ * Hand plate resolution the page's own client so it shares the artifact cache
+ * and an OpenSCAD-WASM local renderer; without one a parametric item that is
+ * neither cached nor prebuilt has nowhere left to come from. A page that has
+ * to fetch the manifest first hands over the promise, so a resolve that starts
+ * meanwhile waits for it rather than building a lesser client of its own.
  */
-export function setPlateArtifactClient(client: ArtifactClient): void {
-  clientPromise = Promise.resolve(client);
+export function setPlateArtifactClient(client: ArtifactClient | Promise<ArtifactClient>): void {
+  const pending: Promise<ArtifactClient> = Promise.resolve(client).catch((err: unknown) => {
+    if (clientPromise === pending) clientPromise = null;
+    throw err;
+  });
+  // Reported by the resolve that awaits it, not as an unhandled rejection.
+  pending.catch(() => {});
+  clientPromise = pending;
 }
 
 async function loadClient(): Promise<ArtifactClient> {

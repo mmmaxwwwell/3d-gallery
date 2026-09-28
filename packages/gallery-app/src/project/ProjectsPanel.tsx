@@ -4,7 +4,7 @@
 // Saved projects: open one, rename it, delete it, or start a new one. The
 // plates themselves live on the project view — this is only the shelf.
 import { useEffect, useState } from 'preact/hooks';
-import { Modal } from './Modal.js';
+import { Modal } from '../print/Modal.js';
 import {
   deleteProject,
   getActiveProjectId,
@@ -12,8 +12,8 @@ import {
   listProjects,
   saveProject,
   type Project,
-} from './plate-store.js';
-import { openNewProject, openProject } from './current-project.js';
+} from '../print/plate-store.js';
+import { openNewProject, openProject } from '../print/current-project.js';
 
 export interface ProjectsPanelProps {
   /** Back to the open project. */

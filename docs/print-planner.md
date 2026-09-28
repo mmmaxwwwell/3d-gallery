@@ -5,19 +5,22 @@ A project's plates, scheduled across the printer fleet and sent to it.
 ## Flow
 
 1. **There is always an open project.** It starts as an empty, unsaved
-   draft (`Project.draft`), and the sidebar's **Project** button opens it
-   (`?project=<id>`). The project view saves it (clears `draft`), starts a
-   new one, and lists the saved ones (**Projects…**, `?projects=1`). A draft
+   draft (`Project.draft`), and the gallery sidebar's **Project** link opens
+   it on the Project page (`project/?id=<id>`). The project view saves it
+   (clears `draft`), starts a new one, and lists the saved ones
+   (**Projects…**, `project/`). A plate opens in the plate editor at
+   `project/?id=<id>&plate=<plateId>`. A draft
    lives only while it is open: whatever replaces it deletes it, and if any of
    its plates holds something, the operator is asked first
    (`current-project.ts`). Saved projects persist edits as they happen, so
    switching away from one asks nothing.
 2. **Filling it.** On a view whose manifest has print plates (`plate: true`
-   previews), the parts list's **Load project** opens a new draft named after
+   previews), the parts list's **Load project** makes a new draft named after
    the model and build, holding one plate per manifest plate. The plate 3MF is
    its single item at the plate origin, so the editor has nothing to arrange.
    The plate also records its material, colour and the model's recommended
-   profile. Anywhere else, the header's **Add to project** (➕) drops the
+   profile, and the parts list offers **Open project →**. Anywhere else, the
+   header's **Add to project** (➕) drops the
    part on the plate picked in the project view (click a plate; it shows
    "Adding here"), else the newest plate, else a new one
    (`ensureTargetPlate`). The project view also makes, renames, duplicates
@@ -44,8 +47,9 @@ A project's plates, scheduled across the printer fleet and sent to it.
    last selections. The G-code is kept in IndexedDB (plate store v5,
    `gcode`), keyed by plate and printer, and goes stale when the plate's
    items, arrangement or overrides change.
-4. **Send to printers** hands the plan to the printers screen
-   (`?dispatch=<id>`, `PrintDispatch.tsx`). Nothing reaches a printer yet.
+4. **Send to printers** writes the plan to the dispatch queue and opens the
+   Printers page on it (`printers/?project=<id>`). Nothing reaches a printer
+   yet.
    Each job is named `NN-<plate>.gcode`, with NN the plan's start order, and
    carries the `slicedAt` of the slice it sends. Sending again replaces the
    plan. Jobs that are the same slice of the same file on the same printer

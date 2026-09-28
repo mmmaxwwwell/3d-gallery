@@ -13,11 +13,20 @@ interface LegacyRoute {
   to: (query: URLSearchParams) => string;
 }
 
-/** Still a panel over the gallery, so the whole query goes along unchanged. */
+/** The gallery itself, or a panel still over it: the whole query goes along unchanged. */
 const toGallery = (query: URLSearchParams) => `gallery/?${query}`;
 
 const toOperator = (query: URLSearchParams) =>
   `operator/?${new URLSearchParams({ id: query.get('operator')! })}`;
+
+/** A plate's project isn't in its old link; the Project page looks it up. */
+const toPlate = (query: URLSearchParams) => `project/?${new URLSearchParams({ plate: query.get('plate')! })}`;
+
+const toProject = (query: URLSearchParams) => `project/?${new URLSearchParams({ id: query.get('project')! })}`;
+
+const toProjects = () => 'project/';
+
+const toSettings = () => 'settings/';
 
 /**
  * First match wins, in the precedence `print/mount.tsx` reads its panels in, so
@@ -25,12 +34,12 @@ const toOperator = (query: URLSearchParams) =>
  * its own row when its page lands.
  */
 export const LEGACY_ROUTES: readonly LegacyRoute[] = [
-  { param: 'plate', to: toGallery },
-  { param: 'project', to: toGallery },
+  { param: 'plate', to: toPlate },
+  { param: 'project', to: toProject },
   { param: 'dispatch', to: toGallery },
   { param: 'operator', to: toOperator },
-  { param: 'settings', to: toGallery },
-  { param: 'projects', to: toGallery },
+  { param: 'settings', to: toSettings },
+  { param: 'projects', to: toProjects },
   // Every other gallery query (`build`, `part`, customizer params) rides on `model`.
   { param: 'model', to: toGallery },
 ];

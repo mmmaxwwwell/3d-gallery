@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
 const ROOT = fileURLToPath(new URL('../../src', import.meta.url));
 
 /**
- * Every class the print UI renders must have a rule somewhere.
+ * Every class a view renders must have a rule somewhere.
  *
  * A stylesheet edit that removes the wrong range is silent: the markup still
  * renders, just unstyled, and only a screenshot catches it. This is the cheap
@@ -15,10 +15,12 @@ const ROOT = fileURLToPath(new URL('../../src', import.meta.url));
  * were already decorative-only before this check existed.
  */
 const KNOWN_UNSTYLED = new Set([
+  'planner-trips',
   'print-settings-export',
   'print-settings-import',
   'print-settings-item-actions',
   'print-settings-new-template-toggle',
+  'project-row-open',
   'slice-progress-message',
 ]);
 
@@ -29,6 +31,8 @@ const KNOWN_UNSTYLED = new Set([
  */
 const RENDERERS: Record<string, RegExp> = {
   print: /^(pd|plate3d|slice|print)-/,
+  project: /^(pd|plate3d|slice|print|planner|project|plates?|gantt|gcode)-/,
+  settings: /^print-(settings|preset)(-|$)/,
   shell: /^shell-/,
   home: /^home(-|$)/,
   printers: /^(printers|pc)(-|$)/,
@@ -65,18 +69,11 @@ function allCss(): string {
 describe('style coverage', () => {
   const css = allCss();
 
-  it('every print-UI class has a rule', () => {
-    const used = classesUsed(join(ROOT, 'print'), RENDERERS.print);
-    expect(used.size).toBeGreaterThan(50);
-    const missing = [...used].filter((c) => !KNOWN_UNSTYLED.has(c) && !css.includes(`.${c}`));
-    expect(missing).toEqual([]);
-  });
-
-  for (const dir of Object.keys(RENDERERS).filter((d) => d !== 'print')) {
+  for (const dir of Object.keys(RENDERERS)) {
     it(`every ${dir} class has a rule`, () => {
       const used = classesUsed(join(ROOT, dir), RENDERERS[dir]);
       expect(used.size).toBeGreaterThan(0);
-      const missing = [...used].filter((c) => !new RegExp(`\\.${c}(?![\\w-])`).test(css));
+      const missing = [...used].filter((c) => !KNOWN_UNSTYLED.has(c) && !new RegExp(`\\.${c}(?![\\w-])`).test(css));
       expect(missing).toEqual([]);
     });
   }

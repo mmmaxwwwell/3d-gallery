@@ -125,7 +125,12 @@ export function PrintersApp() {
   return (
     <main class="printers">
       <header class="printers-header">
-        <h1 class="printers-title">Printers</h1>
+        <div class="printers-title-row">
+          <h1 class="printers-title">Printers</h1>
+          <a class="printers-gear" href={`${import.meta.env.BASE_URL}${SETTINGS_PATH}`} aria-label="Settings" title="Settings: printers and presets">
+            <span aria-hidden="true">⚙️</span>
+          </a>
+        </div>
         {fleet.on.length > 0 && (
           <p class="printers-strip" role="status">
             <span class="printers-count is-printing">{summary.printing} printing</span>

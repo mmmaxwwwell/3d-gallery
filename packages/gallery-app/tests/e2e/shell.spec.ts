@@ -8,6 +8,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { fsSrcUrl, loadModel } from './helpers';
 
 const BADGES_URL = fsSrcUrl('packages/gallery-app/src/shell/badges.ts');
+const PLATE_STORE_URL = fsSrcUrl('packages/gallery-app/src/print/plate-store.ts');
 
 const PHONE = { width: 360, height: 740 };
 const DESKTOP = { width: 1280, height: 800 };
@@ -113,11 +114,14 @@ test('a tab reopens the URL its view was left at', async ({ page }) => {
   await expect(page).toHaveURL(/\/3d-gallery\/$/);
   await expect(tab(page, 'Models')).toHaveAttribute('href', new URL(modelUrl).pathname + new URL(modelUrl).search);
 
-  await page.goto('project/?id=abc');
+  // A real project: the planner answers an unknown id with the open project.
+  const projectId: string = await page.evaluate(async (url) => (await (await import(url)).createProject('Tabs')).id, PLATE_STORE_URL);
+  await page.goto(`project/?id=${projectId}`);
+  await expect(page.locator('.planner-project-name')).toHaveValue('Tabs');
   await tab(page, 'Printers').click();
   await expect(page).toHaveURL(/\/printers\/$/);
   await tab(page, 'Project').click();
-  await expect(page).toHaveURL(/\/project\/\?id=abc$/);
+  await expect(page).toHaveURL(new RegExp(`/project/\\?id=${projectId}$`));
 
   await tab(page, 'Models').click();
   await expect(page).toHaveURL(modelUrl);
@@ -150,7 +154,7 @@ test.describe('pre-split links', () => {
 
   test('a panel link on / forwards to the page that owns it', async ({ page }) => {
     await page.goto('?settings=1');
-    await expect(page).toHaveURL(/\/3d-gallery\/gallery\/\?settings=1$/);
+    await expect(page).toHaveURL(/\/3d-gallery\/settings\/$/);
     await expect(page.locator('.print-settings-tab').first()).toBeVisible();
   });
 });

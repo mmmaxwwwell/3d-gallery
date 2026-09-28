@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 /** @jsxImportSource preact */
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { Modal } from './Modal.js';
+import { Modal } from '../print/Modal.js';
 import {
   deletePreset,
   deletePresetsByKind,
@@ -10,11 +10,11 @@ import {
   savePreset,
   type PrintPreset,
   type PresetKind,
-} from './print-storage.js';
-import { parseOrcaPresetFile, parseOrcaConfigTree, type ParsedPreset } from './orca-import.js';
+} from '../print/print-storage.js';
+import { parseOrcaPresetFile, parseOrcaConfigTree, type ParsedPreset } from '../print/orca-import.js';
 import { PresetEditor } from './PresetEditor.js';
-import { setOverride } from './preset-edit.js';
-import { exportFilename, exportMergedJson, exportRawJson } from './preset-flatten.js';
+import { setOverride } from '../print/preset-edit.js';
+import { exportFilename, exportMergedJson, exportRawJson } from '../print/preset-flatten.js';
 import {
   clearServerAndUseLocal,
   probeServerStore,
@@ -22,7 +22,7 @@ import {
   pushToServer,
   syncFromServerOnce,
   type ServerStoreStatus,
-} from './server-store.js';
+} from '../print/server-store.js';
 import {
   INFILL_PATTERNS,
   deleteUserTemplate,
@@ -30,7 +30,7 @@ import {
   upsertUserTemplate,
   type ProcessTemplate,
   type SupportStyle,
-} from './process-templates.js';
+} from '../print/process-templates.js';
 
 interface SettingsPanelProps {
   onClose: () => void;

@@ -35,7 +35,8 @@ notes, hardware and print times.
 - **Getting parts into a project.** If the model comes with print plates,
   **Load project** opens a new project holding those plates, already laid
   out for the bed. Otherwise **Add to project** (➕) puts the part you're
-  looking at onto the open project.
+  looking at onto the open project. Either way, **Open project →** takes
+  you to it.
 
 ### Project
 
@@ -58,10 +59,11 @@ starts as an unsaved draft; save it to keep it.
   flexible filaments (TPU) for the end. Choose whether you want it all done
   soonest or with the fewest trips. It's shown as a timeline per printer
   and as a list of trips.
-- **Send to printers** hands the plan to the printers. Uploads start in the
-  background. Nothing prints until you start it.
-
-*Today:* Project opens as a panel from Models (the **Project** button).
+- **Send to printers** hands the plan to the printers and opens
+  **Printers**. Uploads start in the background. Nothing prints until you
+  start it.
+- **Projects…** lists your saved projects. Open one, rename it or delete
+  it. The ⚙️ button opens Settings.
 
 ### Printers
 
