@@ -129,6 +129,16 @@ test('a build\'s plates become a project the planner schedules', async ({ page }
   await expect(planner.getByRole('button', { name: 'Send to printers' })).toBeDisabled();
   await all.check();
 
+  // An unticked plate stays in the project but drops out of the plan.
+  const printThis = planner.locator('.planner-plate').first().getByRole('checkbox', { name: 'Print this plate' });
+  await printThis.uncheck();
+  await expect(planner.locator('.planner-plate')).toHaveCount(4);
+  await expect(planner.locator('.gantt-bar')).toHaveCount(3);
+  await expect(planner.locator('.planner-checks')).toContainText('0/3 plates sliced');
+  await expect(planner.locator('.planner-plate.is-off')).toContainText('Not printing');
+  await planner.locator('.planner-plate.is-off').getByRole('checkbox', { name: 'Print this plate' }).check();
+  await expect(planner.locator('.gantt-bar')).toHaveCount(4);
+
   // Edit plate opens the editor, and closing it comes back to the planner.
   await planner.locator('.planner-plate').first().getByRole('button', { name: 'Edit plate' }).click();
   await expect(page).toHaveURL(/[?&]plate=/);

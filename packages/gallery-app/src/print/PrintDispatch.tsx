@@ -10,7 +10,7 @@
 import type { ComponentChildren } from 'preact';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { Page } from './Page.js';
-import { getProject, listPlates, plateSignature } from './plate-store.js';
+import { getProject, listPlates, plateSignature, printedPlate } from './plate-store.js';
 import { resolvePlate } from './plate-resolve.js';
 import { buildInstances } from './plate-geometry.js';
 import { plateThumbnail } from './plate-thumbnail.js';
@@ -105,8 +105,9 @@ export function PrintDispatch({ projectId, onClose, onOpenPlanner, onOpenOperato
       for (const plate of plates) {
         let thumb: string | null = null;
         try {
-          const report = await resolvePlate(plate);
-          thumb = plateThumbnail(plateSignature(plate), buildInstances(plate, report.objects));
+          const printed = printedPlate(plate);
+          const report = await resolvePlate(printed);
+          thumb = plateThumbnail(plateSignature(printed), buildInstances(printed, report.objects));
         } catch {
           // A plate that won't resolve just goes without a picture.
         }

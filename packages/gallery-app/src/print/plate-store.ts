@@ -79,6 +79,8 @@ export interface PlateItem {
   /** Artifact key, cached for display and dedupe. Recomputed on resolve. */
   key: string;
   qty: number;
+  /** Unticked in the project view: kept on the plate, left out of the print. */
+  skip?: boolean;
 }
 
 /** Per-axis scale factor. 1 = the artifact at its authored size. */
@@ -148,6 +150,8 @@ export interface Plate {
   color?: string;
   /** The model's recommended profile, for a plate made from its print plates. */
   profile?: RecommendedProfile;
+  /** Unticked in the project view: not planned, sliced or sent. */
+  skip?: boolean;
   createdAt: number;
   updatedAt: number;
 }
@@ -331,10 +335,16 @@ export async function deletePlate(id: string): Promise<void> {
   if (plate) changed(plate.projectId);
 }
 
-/** What a slice depends on. A rename leaves it alone; a move or a qty change does not. */
+/** The plate as it prints: without the parts unticked in the project view. */
+export function printedPlate(plate: Plate): Plate {
+  return plate.items.some((i) => i.skip) ? { ...plate, items: plate.items.filter((i) => !i.skip) } : plate;
+}
+
+/** What a slice depends on. A rename leaves it alone; a move, a qty change or
+ *  ticking a part in or out does not. */
 export function plateSignature(plate: Plate): string {
   return JSON.stringify({
-    items: plate.items.map((i) => [i.id, i.key, i.qty]),
+    items: printedPlate(plate).items.map((i) => [i.id, i.key, i.qty]),
     transforms: plate.transforms ?? {},
     overrides: plate.overrides ?? {},
   });
@@ -444,7 +454,7 @@ export function addItemToPlate(plateId: string, item: Omit<PlateItem, 'id'>): Pr
       (i) => i.slug === item.slug && i.target === item.target && i.key === item.key,
     );
     const items = match
-      ? plate.items.map((i) => (i === match ? { ...i, qty: i.qty + item.qty } : i))
+      ? plate.items.map((i) => (i === match ? { ...i, qty: i.qty + item.qty, skip: undefined } : i))
       : [...plate.items, { ...item, id: newId() }];
     return { ...plate, items };
   });

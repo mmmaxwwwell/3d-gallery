@@ -44,6 +44,11 @@ starts as an unsaved draft; save it to keep it.
 
 - **Plates.** Make, rename, duplicate and delete plates, and arrange parts
   on each one. Each plate prints in one material.
+- **Leaving things out.** Untick a plate to keep it in the project but out
+  of the plan: it isn't sliced, scheduled or sent. A plate with more than
+  one part lists them under **Parts**. Untick a part to print the plate
+  without it. Tick it again to put it back. Adding that part again from
+  Models ticks it too.
 - **Slicing is automatic.** Each plate is sliced in the background for the
   printer the plan gives it, using your imported presets and the model's
   recommended settings. If a plate changes, its slice is redone.
