@@ -9,6 +9,7 @@ import {
   stopHeadline,
   stopSteps,
   stopTools,
+  tripBadge,
   upcoming,
 } from '../../src/print/operator-model.js';
 
@@ -140,5 +141,34 @@ describe('session states', () => {
     expect(countdown(4 * MIN + 9_000)).toBe('4:09');
     expect(countdown(65 * MIN + 9_000)).toBe('1:05:09');
     expect(countdown(-90_000)).toBe('1:30');
+  });
+});
+
+describe('trip badge', () => {
+  const none = () => undefined;
+
+  it('counts down to the next trip in tab-sized text', () => {
+    const list = sessions(plan());
+    expect(tripBadge(list, none, T0 - 45 * MIN)).toBe('45m');
+    expect(tripBadge(list, none, T0 - 30_000)).toBe('1m');
+    expect(tripBadge(list, none, T0 - 60 * MIN)).toBe('1h00');
+    expect(tripBadge(list, none, T0 - 125 * MIN - 20_000)).toBe('2h06');
+    expect(tripBadge(list, none, T0 - 50 * 60 * MIN)).toBe('2d');
+  });
+
+  it('says Now once a trip is due or under way', () => {
+    const list = sessions(plan());
+    expect(tripBadge(list, none, T0)).toBe('Now');
+    const started: Record<string, { startedAt?: number }> = { a: { startedAt: T0 - 5 * MIN } };
+    expect(tripBadge(list, (k) => started[k], T0 - 10 * MIN)).toBe('Now');
+  });
+
+  it('moves to the next trip once one ends, and clears when none is left', () => {
+    const list = sessions(plan());
+    const logs: Record<string, { startedAt?: number; endedAt?: number }> = { a: { startedAt: T0, endedAt: T0 + 12 * MIN } };
+    expect(tripBadge(list, (k) => logs[k], T0 + 20 * MIN)).toBe('45m');
+    logs.c = { startedAt: T0 + 65 * MIN, endedAt: T0 + 80 * MIN };
+    expect(tripBadge(list, (k) => logs[k], T0 + 90 * MIN)).toBeNull();
+    expect(tripBadge([], none, T0)).toBeNull();
   });
 });

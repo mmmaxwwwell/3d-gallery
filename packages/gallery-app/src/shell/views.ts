@@ -54,3 +54,12 @@ export function viewHref(id: ViewId, last: string | null, base = BASE): string {
   return last.startsWith(front) ? last : front;
 }
 
+/** The runbook for a project's plan. */
+export function operatorUrl(projectId: string, base = BASE): string {
+  return `${base}${viewById('operator').path}?id=${encodeURIComponent(projectId)}`;
+}
+
+/** A project's planner. It's still a panel over the gallery until the Project page lands. */
+export function projectUrl(projectId: string, base = BASE): string {
+  return `${base}gallery/?project=${encodeURIComponent(projectId)}`;
+}

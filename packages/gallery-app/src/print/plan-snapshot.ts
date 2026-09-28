@@ -54,7 +54,8 @@ export interface PlanSnapshot {
   collect: number;
 }
 
-const key = (projectId: string) => `3dg:print:plan:${projectId}`;
+const PREFIX = '3dg:print:plan:';
+const key = (projectId: string) => PREFIX + projectId;
 const listeners = new Set<(projectId: string) => void>();
 
 export function loadPlanSnapshot(projectId: string): PlanSnapshot | null {
@@ -62,6 +63,20 @@ export function loadPlanSnapshot(projectId: string): PlanSnapshot | null {
     const raw = localStorage.getItem(key(projectId));
     return raw ? (JSON.parse(raw) as PlanSnapshot) : null;
   } catch { return null; }
+}
+
+/** The project whose plan was kept last, if any was. */
+export function latestPlanProject(): string | null {
+  let best: PlanSnapshot | null = null;
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const name = localStorage.key(i);
+      if (!name?.startsWith(PREFIX)) continue;
+      const plan = loadPlanSnapshot(name.slice(PREFIX.length));
+      if (plan && (!best || plan.savedAt > best.savedAt)) best = plan;
+    }
+  } catch { /* no storage, no plans */ }
+  return best?.projectId ?? null;
 }
 
 /** Keep `snapshot` unless it says the same as the one kept (bar `savedAt`). */
@@ -82,7 +97,7 @@ export function savePlanSnapshot(snapshot: PlanSnapshot): void {
 export function onPlanSnapshot(fn: (projectId: string) => void): () => void {
   listeners.add(fn);
   const storage = (e: StorageEvent) => {
-    if (e.key?.startsWith('3dg:print:plan:')) fn(e.key.slice('3dg:print:plan:'.length));
+    if (e.key?.startsWith(PREFIX)) fn(e.key.slice(PREFIX.length));
   };
   window.addEventListener('storage', storage);
   return () => {

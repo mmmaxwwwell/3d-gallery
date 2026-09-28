@@ -112,6 +112,10 @@ test('a build\'s plates become a project the planner schedules', async ({ page }
 
   await planner.getByRole('button', { name: 'Trips' }).click();
   await expect(planner.locator('.planner-visit').first()).toContainText('Now');
+  // The plan reaches the runbook's page through the store, and the Operator
+  // tab counts down to the trip without the runbook open.
+  await expect(page.locator('.shell-tab[data-view="operator"] .shell-badge')).toHaveText('Now');
+  await expect(planner.getByRole('link', { name: 'Runbook' })).toHaveAttribute('href', `/3d-gallery/operator/?id=${projectId}`);
   await planner.getByRole('button', { name: 'Chart' }).click();
   await planner.getByLabel('Optimize for').selectOption('visits');
   await expect(planner.locator('.gantt-bar')).toHaveCount(4);

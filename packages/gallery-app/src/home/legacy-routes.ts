@@ -16,6 +16,9 @@ interface LegacyRoute {
 /** Still a panel over the gallery, so the whole query goes along unchanged. */
 const toGallery = (query: URLSearchParams) => `gallery/?${query}`;
 
+const toOperator = (query: URLSearchParams) =>
+  `operator/?${new URLSearchParams({ id: query.get('operator')! })}`;
+
 /**
  * First match wins, in the precedence `print/mount.tsx` reads its panels in, so
  * a URL naming two routes lands where it used to. Each view's task edits only
@@ -25,7 +28,7 @@ export const LEGACY_ROUTES: readonly LegacyRoute[] = [
   { param: 'plate', to: toGallery },
   { param: 'project', to: toGallery },
   { param: 'dispatch', to: toGallery },
-  { param: 'operator', to: toGallery },
+  { param: 'operator', to: toOperator },
   { param: 'settings', to: toGallery },
   { param: 'projects', to: toGallery },
   // Every other gallery query (`build`, `part`, customizer params) rides on `model`.

@@ -20,7 +20,7 @@ describe('legacy routes', () => {
     ['?project=p1', 'gallery/?project=p1'],
     ['?plate=pl1', 'gallery/?plate=pl1'],
     ['?dispatch=p1', 'gallery/?dispatch=p1'],
-    ['?operator=p1', 'gallery/?operator=p1'],
+    ['?operator=p1', 'operator/?id=p1'],
     ['?settings=1', 'gallery/?settings=1'],
     ['?model=cube&plate=pl1', 'gallery/?model=cube&plate=pl1'],
   ])('forwards %s', (search, target) => {

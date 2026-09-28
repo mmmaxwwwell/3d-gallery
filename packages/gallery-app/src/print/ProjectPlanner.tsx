@@ -84,6 +84,8 @@ import { PlannerGantt } from './PlannerGantt.js';
 import { getDaemon, hasDispatch, type DaemonSnapshot } from './dispatch-daemon.js';
 import type { DispatchJob } from './dispatch-model.js';
 import { savePlanSnapshot } from './plan-snapshot.js';
+import { refreshOperatorBadge } from './operator-badge.js';
+import { operatorUrl } from '../shell/views.js';
 
 export interface ProjectPlannerProps {
   projectId: string;
@@ -94,8 +96,6 @@ export interface ProjectPlannerProps {
   onShowProject: (projectId: string) => void;
   onOpenSettings: () => void;
   onOpenDispatch: () => void;
-  /** The operator's runbook for this project's plan. */
-  onOpenOperator?: () => void;
 }
 
 type StatusState = PrintStatus | { error: string } | 'loading';
@@ -134,7 +134,7 @@ async function openCurrentOr(project: Project | undefined): Promise<string> {
 
 // ── Component ────────────────────────────────────────────
 
-export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects, onShowProject, onOpenSettings, onOpenDispatch, onOpenOperator }: ProjectPlannerProps) {
+export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects, onShowProject, onOpenSettings, onOpenDispatch }: ProjectPlannerProps) {
   const [project, setProject] = useState<Project | null>(null);
   const [plates, setPlates] = useState<Plate[] | null>(null);
   const [targetPlate, setTargetPlate] = useState<string | null>(getActivePlateId);
@@ -537,6 +537,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
       finish: plan.finish,
       collect: plan.collect,
     });
+    void refreshOperatorBadge(projectId).catch(() => {});
   }, [plan, project?.name, grams, times]);
 
   /** Hand the plan to the printers screen: each printer's jobs, in plan order,
@@ -935,7 +936,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
             {project?.draft && <button type="button" class="btn btn-primary" onClick={handleSaveProject}>Save</button>}
             <button type="button" class="btn" onClick={handleNewProject}>New</button>
             <button type="button" class="btn" onClick={onOpenProjects}>Projects…</button>
-            {onOpenOperator && <button type="button" class="btn" onClick={onOpenOperator}>Runbook</button>}
+            <a class="btn" href={operatorUrl(projectId)}>Runbook</a>
             {sent && <button type="button" class="btn" onClick={onOpenDispatch}>Printers</button>}
             <button
               type="button"
