@@ -12,6 +12,10 @@
  * - GET /server/files/metadata — whether a file is on the printer
  * - GET /server/history/list — how past prints ended
  * - GET /server/webcams/list — camera URLs
+ * - GET /printer/objects/list, /printer/objects/query, /machine/proc_stats — live dashboard status
+ * - GET /server/files/list, /server/gcode_store — the printer's files and console
+ * - POST /printer/gcode/script, /printer/emergency_stop, /printer/firmware_restart,
+ *   /printer/print/{pause,resume,cancel} — controls
  */
 
 // Pulled in for the `window.AndroidPrinterDiscovery` feature-detect below.
@@ -170,21 +174,34 @@ export async function fetchPrintStatus(address: string): Promise<PrintStatus> {
     '/printer/objects/query?print_stats&virtual_sdcard',
   );
   const { print_stats: stats, virtual_sdcard: sd } = data.result.status;
-  const running = stats.state === 'printing' || stats.state === 'paused';
-  if (!running) return { state: stats.state, filename: stats.filename, remainingSec: 0, progress: sd.progress };
+  const remainingSec = await estimateRemainingSec(address, stats.state, stats.filename, stats.print_duration, sd.progress);
+  return { state: stats.state, filename: stats.filename, remainingSec, progress: sd.progress };
+}
 
-  let remainingSec = sd.progress > 0 ? stats.print_duration / sd.progress - stats.print_duration : 0;
+/**
+ * Seconds left on the job: the slicer's estimate from the file's metadata when
+ * Moonraker has it, else extrapolated from progress so far. 0 when idle.
+ */
+async function estimateRemainingSec(
+  address: string,
+  state: string,
+  filename: string,
+  printDurationSec: number,
+  progress: number,
+): Promise<number> {
+  if (state !== 'printing' && state !== 'paused') return 0;
+  let remainingSec = progress > 0 ? printDurationSec / progress - printDurationSec : 0;
   try {
     const meta = await moonrakerGet<{ result: { estimated_time?: number } }>(
       address,
-      `/server/files/metadata?filename=${encodeURIComponent(stats.filename)}`,
+      `/server/files/metadata?filename=${encodeURIComponent(filename)}`,
     );
     const estimated = meta.result.estimated_time;
-    if (typeof estimated === 'number' && estimated > 0) remainingSec = estimated - stats.print_duration;
+    if (typeof estimated === 'number' && estimated > 0) remainingSec = estimated - printDurationSec;
   } catch {
     // Metadata is a refinement; the progress-based figure stands without it.
   }
-  return { state: stats.state, filename: stats.filename, remainingSec: Math.max(0, remainingSec), progress: sd.progress };
+  return Math.max(0, remainingSec);
 }
 
 /** Whether Klipper is up, as Moonraker sees it. */
@@ -346,6 +363,296 @@ export async function uploadGcode(
     const text = await res.text().catch(() => '');
     throw new Error(`Moonraker upload failed (${res.status}): ${text || res.statusText}`);
   }
+}
+
+// ─── Live status ────────────────────────────────────────────────────────────
+
+export interface HeaterLive {
+  actual: number;
+  target: number;
+  /** Heater duty, 0–1. */
+  power: number;
+}
+
+export interface FilamentSensorLive {
+  /** The config name, e.g. `e0_sensor`. */
+  name: string;
+  enabled: boolean;
+  detected: boolean;
+}
+
+export interface PrintObjectLive {
+  name: string;
+  excluded: boolean;
+  /** The object being printed right now. */
+  current: boolean;
+}
+
+/**
+ * Everything the fleet dashboard shows for one printer, from one poll. A field
+ * is null when the printer has no such object (or Klipper isn't up to say).
+ */
+export interface PrinterLiveStatus {
+  /** `print_stats.state`: standby, printing, paused, complete, cancelled, error; '' while Klipper is down. */
+  state: string;
+  /** `ready`, `startup`, `shutdown`, `error` or `disconnected`. */
+  klippyState: string;
+  /** Klipper's explanation when it isn't ready; empty otherwise. */
+  klippyMessage: string;
+  file: string;
+  /** Fraction of the file printed, 0–1. */
+  progress: number;
+  /** The last M117 message; empty when none. */
+  message: string;
+  /** From `print_stats.info`, which only the slicer's SET_PRINT_STATS_INFO fills in. */
+  layer: number | null;
+  totalLayers: number | null;
+  /** Seconds spent printing, pauses excluded. */
+  elapsedSec: number;
+  /** Seconds left; 0 when nothing is running. */
+  remainingSec: number;
+  extruder: HeaterLive | null;
+  bed: HeaterLive | null;
+  /** Part-cooling fan, 0–100. */
+  fanPct: number | null;
+  /** M220 speed factor, 100 = as sliced. */
+  speedPct: number | null;
+  /** M221 extrude factor, 100 = as sliced. */
+  flowPct: number | null;
+  /** Z of the G-code offset (`gcode_move.homing_origin`), mm. */
+  zOffset: number | null;
+  /** Some of `xyz`; empty when nothing is homed. */
+  homedAxes: string;
+  /** Toolhead x, y, z, mm. */
+  position: [number, number, number] | null;
+  sensors: FilamentSensorLive[];
+  /** `led chamber_light` lit at all. */
+  lightOn: boolean | null;
+  /** Objects the running file defines for EXCLUDE_OBJECT. */
+  objects: PrintObjectLive[];
+  /** `idle_timeout.state`: Idle, Ready or Printing. */
+  idleState: string | null;
+  paused: boolean;
+  /** Host load average and free memory, from Klipper's `system_stats`. */
+  host: { load: number; memAvailKb: number } | null;
+  /** Host uptime, s. */
+  uptimeSec: number | null;
+  /** Every `gcode_macro` the printer defines, by name as Klipper lists it. */
+  macros: Set<string>;
+}
+
+const LIGHT_OBJECT = 'led chamber_light';
+/** Klipper's own part fan when configured, else the fleet's ZMOD one (M106 drives it). */
+const FAN_OBJECTS = ['fan', 'fan_generic fanM106'];
+const WANTED_OBJECTS = [
+  'webhooks', 'print_stats', 'virtual_sdcard', 'display_status', 'extruder', 'heater_bed',
+  'toolhead', 'gcode_move', 'exclude_object', 'idle_timeout', 'pause_resume', LIGHT_OBJECT, 'system_stats',
+];
+
+// A printer's objects only change with its config, and asking every poll would
+// double the requests. A failed query drops the entry so a restart re-reads it.
+const objectLists = new Map<string, Promise<string[]>>();
+
+function printerObjects(address: string): Promise<string[]> {
+  let list = objectLists.get(address);
+  if (!list) {
+    list = moonrakerGet<{ result: { objects: string[] } }>(address, '/printer/objects/list').then((d) => d.result.objects);
+    objectLists.set(address, list);
+    list.catch(() => objectLists.delete(address));
+  }
+  return list;
+}
+
+// Only fields read below are typed; Klipper sends more.
+interface LiveQueryStatus {
+  webhooks?: { state: string; state_message: string };
+  print_stats?: {
+    state: string;
+    filename: string;
+    print_duration: number;
+    info?: { current_layer: number | null; total_layer: number | null };
+  };
+  virtual_sdcard?: { progress: number };
+  display_status?: { message: string | null };
+  extruder?: { temperature: number; target: number; power: number };
+  heater_bed?: { temperature: number; target: number; power: number };
+  toolhead?: { homed_axes: string; position: number[] };
+  gcode_move?: { speed_factor: number; extrude_factor: number; homing_origin: number[] };
+  exclude_object?: { objects: Array<{ name: string }>; excluded_objects: string[]; current_object: string | null };
+  idle_timeout?: { state: string };
+  pause_resume?: { is_paused: boolean };
+  system_stats?: { sysload: number; memavail: number };
+  [object: string]: unknown;
+}
+
+function heater(h: { temperature: number; target: number; power: number } | undefined): HeaterLive | null {
+  return h ? { actual: h.temperature, target: h.target, power: h.power } : null;
+}
+
+/**
+ * The printer's live state in one object query, plus host uptime. While
+ * Klipper is down it still resolves, with the Klipper state and message and
+ * nothing else; it throws only when Moonraker can't be reached.
+ */
+export async function fetchPrinterLive(address: string): Promise<PrinterLiveStatus> {
+  const uptime = moonrakerGet<{ result: { system_uptime?: number } }>(address, '/machine/proc_stats')
+    .then((d) => d.result.system_uptime ?? null)
+    .catch(() => null);
+
+  let objects: string[];
+  let status: LiveQueryStatus;
+  try {
+    objects = await printerObjects(address);
+    const listed = new Set(objects);
+    const fan = FAN_OBJECTS.find((f) => listed.has(f));
+    const sensors = objects.filter((o) => o.startsWith('filament_switch_sensor '));
+    const query = [...WANTED_OBJECTS.filter((o) => listed.has(o)), ...(fan ? [fan] : []), ...sensors];
+    const data = await moonrakerGet<{ result: { status: LiveQueryStatus } }>(
+      address,
+      `/printer/objects/query?${query.map(encodeURIComponent).join('&')}`,
+    );
+    status = data.result.status;
+  } catch {
+    objectLists.delete(address);
+    const klippy = await fetchKlippyState(address);
+    return { ...offlineStatus(), klippyState: klippy.state, klippyMessage: klippy.message, uptimeSec: await uptime };
+  }
+
+  const stats = status.print_stats;
+  const progress = status.virtual_sdcard?.progress ?? 0;
+  const fanObject = FAN_OBJECTS.find((f) => f in status);
+  const fan = fanObject ? (status[fanObject] as { speed: number }) : undefined;
+  const move = status.gcode_move;
+  const exclude = status.exclude_object;
+  const light = status[LIGHT_OBJECT] as { color_data: number[][] } | undefined;
+  const pos = status.toolhead?.position;
+
+  return {
+    state: stats?.state ?? '',
+    klippyState: status.webhooks?.state ?? 'ready',
+    klippyMessage: status.webhooks?.state === 'ready' ? '' : (status.webhooks?.state_message.trim() ?? ''),
+    file: stats?.filename ?? '',
+    progress,
+    message: status.display_status?.message ?? '',
+    layer: stats?.info?.current_layer ?? null,
+    totalLayers: stats?.info?.total_layer ?? null,
+    elapsedSec: stats?.print_duration ?? 0,
+    remainingSec: stats ? await estimateRemainingSec(address, stats.state, stats.filename, stats.print_duration, progress) : 0,
+    extruder: heater(status.extruder),
+    bed: heater(status.heater_bed),
+    fanPct: fan ? fan.speed * 100 : null,
+    speedPct: move ? move.speed_factor * 100 : null,
+    flowPct: move ? move.extrude_factor * 100 : null,
+    zOffset: move ? move.homing_origin[2] : null,
+    homedAxes: status.toolhead?.homed_axes ?? '',
+    position: pos ? [pos[0], pos[1], pos[2]] : null,
+    sensors: objects
+      .filter((o) => o.startsWith('filament_switch_sensor ') && o in status)
+      .map((o) => {
+        const s = status[o] as { enabled: boolean; filament_detected: boolean };
+        return { name: o.slice('filament_switch_sensor '.length), enabled: s.enabled, detected: s.filament_detected };
+      }),
+    lightOn: light ? light.color_data.some((c) => c.some((v) => v > 0)) : null,
+    objects: (exclude?.objects ?? []).map((o) => ({
+      name: o.name,
+      excluded: exclude!.excluded_objects.includes(o.name),
+      current: exclude!.current_object === o.name,
+    })),
+    idleState: status.idle_timeout?.state ?? null,
+    paused: status.pause_resume?.is_paused ?? false,
+    host: status.system_stats ? { load: status.system_stats.sysload, memAvailKb: status.system_stats.memavail } : null,
+    uptimeSec: await uptime,
+    macros: new Set(objects.filter((o) => o.startsWith('gcode_macro ')).map((o) => o.slice('gcode_macro '.length))),
+  };
+}
+
+function offlineStatus(): PrinterLiveStatus {
+  return {
+    state: '', klippyState: '', klippyMessage: '', file: '', progress: 0, message: '',
+    layer: null, totalLayers: null, elapsedSec: 0, remainingSec: 0, extruder: null, bed: null,
+    fanPct: null, speedPct: null, flowPct: null, zOffset: null, homedAxes: '', position: null,
+    sensors: [], lightOn: null, objects: [], idleState: null, paused: false, host: null,
+    uptimeSec: null, macros: new Set(),
+  };
+}
+
+/** The last few console lines, oldest first. */
+export function fetchConsoleTail(address: string, count = 50): Promise<ConsoleLine[]> {
+  return fetchConsole(address, count);
+}
+
+// ─── Files ──────────────────────────────────────────────────────────────────
+
+export interface GcodeFile {
+  /** Relative to the gcodes root; what `startPrint` takes. */
+  path: string;
+  size: number;
+  /** Epoch ms, printer clock. */
+  modified: number;
+  /** The slicer's print-time estimate, s. */
+  estimatedSec?: number;
+  /** The largest embedded thumbnail. */
+  thumbnailUrl?: string;
+}
+
+interface MoonrakerFileMetadata {
+  estimated_time?: number;
+  thumbnails?: Array<{ width: number; height: number; relative_path: string }>;
+}
+
+/** The printer's G-code files, newest first, with estimates and thumbnails where the metadata has them. */
+export async function listGcodeFiles(address: string): Promise<GcodeFile[]> {
+  const data = await moonrakerGet<{ result: Array<{ path: string; modified: number; size: number }> }>(
+    address,
+    '/server/files/list?root=gcodes',
+  );
+  const files = data.result
+    .filter((f) => /\.(gcode|gco|g)$/i.test(f.path))
+    .sort((a, b) => b.modified - a.modified);
+  return Promise.all(files.map(async (f) => {
+    const file: GcodeFile = { path: f.path, size: f.size, modified: f.modified * 1000 };
+    const meta = await moonrakerGet<{ result: MoonrakerFileMetadata }>(
+      address,
+      `/server/files/metadata?filename=${encodeURIComponent(f.path)}`,
+    ).then((m) => m.result).catch(() => null);
+    if (typeof meta?.estimated_time === 'number' && meta.estimated_time > 0) file.estimatedSec = meta.estimated_time;
+    const thumb = meta?.thumbnails?.reduce((a, b) => (b.width * b.height > a.width * a.height ? b : a));
+    if (thumb) {
+      // A thumbnail's path is relative to the directory its G-code sits in.
+      const dir = f.path.includes('/') ? f.path.slice(0, f.path.lastIndexOf('/') + 1) : '';
+      const encoded = `${dir}${thumb.relative_path}`.split('/').map(encodeURIComponent).join('/');
+      file.thumbnailUrl = buildMoonrakerUrl(address, `/server/files/gcodes/${encoded}`);
+    }
+    return file;
+  }));
+}
+
+// ─── Commands ───────────────────────────────────────────────────────────────
+
+/** Run G-code (a line or several, `\n`-separated). Resolves once Klipper has run all of it. */
+export async function sendGcode(address: string, script: string): Promise<void> {
+  await moonrakerPost(address, `/printer/gcode/script?script=${encodeURIComponent(script)}`);
+}
+
+/** M112: Klipper shuts down at once, heaters and motors off. Needs a firmware restart after. */
+export async function emergencyStop(address: string): Promise<void> {
+  await moonrakerPost(address, '/printer/emergency_stop');
+}
+
+export async function firmwareRestart(address: string): Promise<void> {
+  await moonrakerPost(address, '/printer/firmware_restart');
+}
+
+export async function pausePrint(address: string): Promise<void> {
+  await moonrakerPost(address, '/printer/print/pause');
+}
+
+export async function resumePrint(address: string): Promise<void> {
+  await moonrakerPost(address, '/printer/print/resume');
+}
+
+export async function cancelPrint(address: string): Promise<void> {
+  await moonrakerPost(address, '/printer/print/cancel');
 }
 
 // ─── Composite fetcher ──────────────────────────────────────────────────────

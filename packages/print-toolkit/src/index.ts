@@ -130,12 +130,32 @@ export {
   fetchConsole,
   listWebcams,
   resolveWebcamUrl,
+  fetchPrinterLive,
+  fetchConsoleTail,
+  listGcodeFiles,
+  sendGcode,
+  emergencyStop,
+  firmwareRestart,
+  pausePrint,
+  resumePrint,
+  cancelPrint,
+  type PrinterLiveStatus,
+  type HeaterLive,
+  type FilamentSensorLive,
+  type PrintObjectLive,
+  type GcodeFile,
   type PrintStatus,
   type KlippyState,
   type HistoryJob,
   type ConsoleLine,
   type Webcam,
 } from './moonraker-api.js';
+export {
+  macroScript,
+  MACRO_NEEDS,
+  controlAvailable,
+  type MacroControl,
+} from './moonraker-control.js';
 
 // ─── Print scheduling ───────────────────────────────────────────────────────
 export {
