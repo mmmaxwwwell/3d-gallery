@@ -1,0 +1,290 @@
+/* SPDX-License-Identifier: MIT */
+/* The view switcher, and the room every page leaves for it.
+ *
+ * One bar, two shapes: along the bottom on a phone (thumb reach), down the left
+ * on a wide screen. Pages read --shell-bottom / --shell-left to stay clear of
+ * it; the gallery's own fixed panels are nudged below, since they predate it. */
+
+:root {
+  --shell-page-bg: #000000;
+  --shell-bg: #0b0116;
+  --shell-surface: #16032e;
+  --shell-border: #4b1093;
+  --shell-text: #ffffff;
+  --shell-text-muted: #d4b0ff;
+  --shell-accent: #ff17c7;
+  --shell-accent-text: #ff72e4;
+  --shell-accent-wash: rgba(255, 23, 199, 0.16);
+  --shell-focus: #00eaff;
+  --shell-link: #00eaff;
+  --shell-warn-bg: rgba(255, 214, 10, 0.12);
+  --shell-warn-border: #ffd60a;
+  --shell-badge-bg: #ff2e6e;
+  --shell-badge-text: #ffffff;
+  --shell-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* The gallery is dark-only, so its bar stays dark with it. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-shell-view='models']) {
+    --shell-page-bg: #f6f4fb;
+    --shell-bg: #ffffff;
+    --shell-surface: #ffffff;
+    --shell-border: #d9d0ea;
+    --shell-text: #1c1530;
+    --shell-text-muted: #5b4f75;
+    --shell-accent: #b3008a;
+    --shell-accent-text: #a1007c;
+    --shell-accent-wash: rgba(179, 0, 138, 0.10);
+    --shell-focus: #0068b3;
+    --shell-link: #0060a8;
+    --shell-warn-bg: #fff6d6;
+    --shell-warn-border: #b38600;
+    --shell-badge-bg: #d4004f;
+  }
+}
+
+html.has-shell {
+  --shell-bar-height: 64px;
+  --shell-rail-width: 88px;
+  --shell-bottom: calc(var(--shell-bar-height) + env(safe-area-inset-bottom, 0px));
+  --shell-left: 0px;
+}
+
+@media (min-width: 720px) {
+  html.has-shell {
+    --shell-bottom: 0px;
+    --shell-left: var(--shell-rail-width);
+  }
+}
+
+html.has-shell body {
+  padding-bottom: var(--shell-bottom);
+  padding-left: var(--shell-left);
+}
+
+/* Pages that are the shell's own, not the gallery's. */
+.shell-body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--shell-page-bg);
+  color: var(--shell-text);
+  font-family: var(--shell-font);
+  -webkit-text-size-adjust: 100%;
+}
+
+.shell-body *,
+.shell-body *::before,
+.shell-body *::after {
+  box-sizing: border-box;
+}
+
+/* ── The bar ──────────────────────────────────────────── */
+
+.shell-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Above the gallery's drawers and sheets, under the print UI's modals. */
+  z-index: 900;
+  display: flex;
+  height: var(--shell-bottom);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--shell-bg);
+  border-top: 1px solid var(--shell-border);
+  font-family: var(--shell-font);
+}
+
+.shell-tabs {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.shell-tabs > li {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+.shell-tab {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+  min-height: 48px;
+  padding: 4px 2px;
+  color: var(--shell-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.shell-tab-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 28px;
+  border-radius: 14px;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.shell-tab-label {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.shell-tab[aria-current='page'] {
+  color: var(--shell-accent-text);
+}
+
+.shell-tab[aria-current='page'] .shell-tab-icon {
+  background: var(--shell-accent-wash);
+  box-shadow: inset 0 0 0 1px var(--shell-accent);
+}
+
+.shell-tab:hover .shell-tab-icon {
+  background: var(--shell-accent-wash);
+}
+
+.shell-tab:focus-visible,
+.shell-settings:focus-visible,
+.shell-button:focus-visible {
+  outline: 2px solid var(--shell-focus);
+  outline-offset: -2px;
+  border-radius: 8px;
+}
+
+.shell-badge {
+  position: absolute;
+  top: 2px;
+  left: calc(50% + 8px);
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--shell-badge-bg);
+  color: var(--shell-badge-text);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Settings isn't a view; on a phone it's reached from Home, on the rail it
+   has room to sit apart at the foot. */
+.shell-settings {
+  display: none;
+}
+
+@media (min-width: 720px) {
+  .shell-nav {
+    top: 0;
+    right: auto;
+    width: var(--shell-rail-width);
+    height: auto;
+    flex-direction: column;
+    padding: 8px 0 calc(8px + env(safe-area-inset-bottom, 0px));
+    border-top: 0;
+    border-right: 1px solid var(--shell-border);
+  }
+
+  .shell-tabs {
+    flex: 0 0 auto;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .shell-tab {
+    min-height: 64px;
+  }
+
+  .shell-settings {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    margin-top: auto;
+    font-size: 20px;
+    text-decoration: none;
+    opacity: 0.8;
+  }
+
+  .shell-settings[aria-current='page'] {
+    opacity: 1;
+  }
+}
+
+/* ── Placeholder pages ────────────────────────────────── */
+
+.shell-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 16px;
+}
+
+.shell-placeholder h1 {
+  margin: 0 0 8px;
+  font-size: 24px;
+}
+
+.shell-placeholder p {
+  margin: 0 0 20px;
+  color: var(--shell-text-muted);
+  line-height: 1.5;
+}
+
+.shell-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 20px;
+  border: 1px solid var(--shell-accent);
+  border-radius: 10px;
+  background: var(--shell-accent-wash);
+  color: var(--shell-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* ── Making room in the gallery ───────────────────────── */
+/* Its layout assumes the whole viewport. Only the pieces that reach the
+   bottom or left edge move; everything inside #app follows its height. */
+
+html.has-shell #app {
+  height: calc(100dvh - var(--shell-bottom));
+}
+
+html.has-shell .print-page {
+  left: var(--shell-left);
+  bottom: var(--shell-bottom);
+}
+
+@media (max-width: 1279px) {
+  html.has-shell #sidebar {
+    left: var(--shell-left);
+    bottom: var(--shell-bottom);
+  }
+}
+
+@media (max-width: 767px) {
+  html.has-shell body.customizer-open #customizer:not([hidden]),
+  html.has-shell body.info-open #info-panel:not([hidden]) {
+    left: var(--shell-left);
+    bottom: var(--shell-bottom);
+  }
+}

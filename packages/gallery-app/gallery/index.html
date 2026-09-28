@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#000000" />
+    <title>mmmaxwwwell's 3d-gallery</title>
+    <link rel="icon" type="image/svg+xml" href="/3d-gallery/icons/icon.svg" />
+    <link rel="apple-touch-icon" href="/3d-gallery/icons/icon-192.png" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div id="sidebar-backdrop"></div>
+      <aside id="sidebar">
+        <h1>3D Gallery</h1>
+        <nav id="model-list">Loading…</nav>
+        <div id="sidebar-footer">
+          <button id="plates-btn" type="button" title="The open project and its plates">
+            <span aria-hidden="true">🗂️</span> Project
+          </button>
+        </div>
+      </aside>
+      <main id="viewer-pane">
+        <header id="viewer-header">
+          <div id="header-left">
+            <button id="sidebar-toggle" type="button" aria-label="Browse models" aria-expanded="false">☰</button>
+            <h2 id="model-title">Select a model</h2>
+            <div id="build-switch" class="section-tabs" role="tablist" aria-label="Build" hidden></div>
+            <select id="part-select" hidden></select>
+          </div>
+          <div id="header-actions">
+            <a id="download-link" href="#" download hidden aria-label="Download" title="Download this part">
+              <span aria-hidden="true">⬇️</span>
+            </a>
+            <button id="print-btn" type="button" hidden aria-label="Add to project" title="Add this part to the open project's selected plate">
+              <span aria-hidden="true">➕</span>
+            </button>
+            <button id="customize-btn" type="button" hidden aria-expanded="false" aria-label="Configure" title="Configure this model">
+              <span aria-hidden="true">✏️</span>
+            </button>
+            <button id="info-btn" type="button" hidden aria-expanded="false" aria-label="Parts list" title="Parts list for this model">
+              <span aria-hidden="true">📋</span>
+            </button>
+            <button id="install-app" type="button" hidden aria-label="Install app" title="Install this gallery as an app">
+              <span aria-hidden="true">📲</span>
+            </button>
+          </div>
+        </header>
+        <label id="mobile-part-row" for="mobile-part-select">
+          <span class="mobile-part-label">Showing</span>
+          <select id="mobile-part-select" hidden></select>
+        </label>
+        <div id="model-description" hidden>
+          <p id="description-text"></p>
+          <button id="description-toggle" type="button" aria-expanded="false" hidden>More</button>
+        </div>
+        <div id="viewer-container">
+          <svg id="viewer-leader" width="100%" height="100%" aria-hidden="true"></svg>
+          <div id="viewer-legend" hidden></div>
+          <div id="viewer-badges">
+            <div id="customized-badge" hidden>Customized</div>
+            <div id="stale-badge" hidden>Out of date — settings changed</div>
+          </div>
+          <div id="viewer-loading" hidden>
+            <div class="loading-status"></div>
+            <div class="loading-bar-track"><div class="loading-bar-fill"></div></div>
+            <div class="loading-note" hidden>This can take a minute — OpenSCAD is rendering the model</div>
+          </div>
+          <div id="viewer-prompt" hidden>
+            <div class="prompt-message">Press <strong>Generate</strong> below to render your custom 3D model</div>
+          </div>
+        </div>
+        <div id="viewer-error" hidden></div>
+        <div id="customizer-backdrop"></div>
+        <section id="customizer" hidden></section>
+      </main>
+      <aside id="info-panel" hidden>
+        <header id="info-panel-header">
+          <h2>Parts list</h2>
+          <button id="info-close" type="button" aria-label="Close parts list">✕</button>
+        </header>
+        <div id="info-panel-body">
+          <section id="project-actions" hidden></section>
+          <section id="printed-list" hidden></section>
+          <section id="unlinked-list" hidden></section>
+          <section id="hardware-list" hidden></section>
+          <section id="works-with-list" hidden></section>
+          <section id="filament-list" hidden></section>
+          <section id="print-time" hidden></section>
+          <p id="info-panel-empty" hidden>Nothing listed for this model.</p>
+        </div>
+      </aside>
+    </div>
+    <div id="shell-nav"></div>
+    <script type="module" src="/src/main.ts"></script>
+    <script type="module">
+      import { mountShell } from '/src/shell/shell.tsx';
+      mountShell(document.getElementById('shell-nav'), 'models');
+    </script>
+  </body>
+</html>

@@ -51,7 +51,7 @@ async function addFirstPartToPlate(page: Page): Promise<void> {
 test('desktop shows the plate and its print setup at once, and routes by URL', async ({ page }) => {
   test.setTimeout(180_000);
 
-  await page.goto('/');
+  await page.goto('gallery/');
   await seedPrinter(page, PRINTER);
   await page.reload();
 
@@ -203,7 +203,7 @@ test('a narrow viewport keeps the plate and print setup on separate screens', as
 
   // Filling the plate happens at desktop width: the gallery collapses its
   // model sidebar on a phone, and that is not what this test is about.
-  await page.goto('/');
+  await page.goto('gallery/');
   await seedPrinter(page, PRINTER);
   await page.reload();
 
@@ -251,7 +251,7 @@ test('projects and plates can be created without crypto.randomUUID', async ({ pa
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
 
-  await page.goto('/');
+  await page.goto('gallery/');
   expect(await page.evaluate(() => typeof (crypto as Crypto).randomUUID)).toBe('undefined');
 
   // Add-to-plate mints a project, a plate and an item id in one go.

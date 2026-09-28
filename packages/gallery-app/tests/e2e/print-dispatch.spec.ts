@@ -16,7 +16,7 @@ test('a sent plan uploads, starts on Print, and the belt moves on', async ({ pag
   await page.route('**/__devstore', (route) => route.abort());
   const printer = await fakeMoonraker(page, { address: ADDRESS, name: 'Left' });
   printer.faults.failUploads = 1;
-  await page.goto('./');
+  await page.goto('gallery/');
 
   const projectId = await page.evaluate(async ({ storeUrl, presetsUrl, address }) => {
     const store = await import(storeUrl);
@@ -41,7 +41,7 @@ test('a sent plan uploads, starts on Print, and the belt moves on', async ({ pag
     return project.id as string;
   }, { storeUrl: PLATE_STORE_URL, presetsUrl: PRINT_STORAGE_URL, address: ADDRESS });
 
-  await page.goto(`./?dispatch=${projectId}`);
+  await page.goto(`gallery/?dispatch=${projectId}`);
   const screen = page.locator('.dispatch');
   const row = screen.locator('.dispatch-card[data-printer="Left"]');
   await expect(row.locator('.dispatch-job')).toHaveCount(2);

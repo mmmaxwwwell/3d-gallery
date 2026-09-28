@@ -4,13 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#000000" />
-    <title>mmmaxwwwell's 3d-gallery</title>
+    <title>Printers · 3d-gallery</title>
     <link rel="icon" type="image/svg+xml" href="/3d-gallery/icons/icon.svg" />
     <link rel="apple-touch-icon" href="/3d-gallery/icons/icon-192.png" />
   </head>
   <body class="shell-body">
     <div id="page"></div>
     <div id="shell-nav"></div>
-    <script type="module" src="/src/home/main.ts"></script>
+    <script type="module">
+      import { mountPlaceholder } from '/src/shell/placeholder.tsx';
+      mountPlaceholder('printers');
+    </script>
   </body>
 </html>

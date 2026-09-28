@@ -1,4 +1,4 @@
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig, type Connect, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { readdirSync, existsSync, statSync } from 'node:fs';
 import { cpus } from 'node:os';
@@ -36,6 +36,8 @@ const MODELS_DIR = resolve(REPO_ROOT, 'models');
 const SITE_URL = 'https://mmmaxwwwell.github.io/3d-gallery/';
 const BASE = '/3d-gallery/';
 const ARTIFACT_BASE = `${BASE}a/`;
+/** Page directories under the base; '' is Home. `models/` is taken: that's where artifacts live. */
+const PAGES = ['', 'gallery', 'project', 'printers', 'operator', 'settings'];
 
 /**
  * Serves models straight out of the artifact forge in dev.
@@ -226,6 +228,32 @@ function galleryModelsPlugin(): Plugin {
 }
 
 /**
+ * `/3d-gallery/printers` → `/3d-gallery/printers/`, as Pages does. Without it
+ * the dev server's HTML fallback answers a slashless page URL with Home, and
+ * the page's relative URLs would resolve one directory up anyway.
+ */
+function pageSlashPlugin(): Plugin {
+  const redirect: Connect.NextHandleFunction = (req, res, next) => {
+    const [path, query] = (req.url ?? '').split(/\?(.*)/s);
+    const rel = path.startsWith(BASE) ? path.slice(BASE.length) : path.replace(/^\//, '');
+    if (!rel || !PAGES.includes(rel)) return next();
+    res.statusCode = 301;
+    res.setHeader('Location', `${BASE}${rel}/${query ? `?${query}` : ''}`);
+    res.end();
+  };
+  return {
+    name: 'gallery-page-slash',
+    enforce: 'pre',
+    configureServer(server) {
+      server.middlewares.use(redirect);
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use(redirect);
+    },
+  };
+}
+
+/**
  * Serves the orca-bridge MCP server on the dev server.
  *
  * Dev only — `configureServer` never runs for a build, so nothing here reaches
@@ -282,12 +310,13 @@ export default defineConfig({
     strictPort: true,
   },
   plugins: [
+    pageSlashPlugin(),
     galleryModelsPlugin(),
     orcaMcpPlugin(),
     ...(toolkitAssetsPresent ? [copyPrintToolkitAssets({ dest: 'wasm' })] : []),
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: false, // main.ts registers via virtual:pwa-register
+      injectRegister: false, // each page registers via virtual:pwa-register (main.ts, shell/pwa.ts)
       // In dev, the PWA plugin should be a no-op. Any SW registration
       // (from a prior prod visit) is cleared client-side in main.ts.
       devOptions: { enabled: false },
@@ -314,7 +343,13 @@ export default defineConfig({
           'a/**',
         ],
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
-        navigateFallback: '/3d-gallery/index.html',
+        // Each view is its own page, so no single fallback can serve every
+        // navigation. Every page's HTML is precached instead, and a navigation
+        // matches its page with the query dropped (`gallery/?model=…` →
+        // `gallery/index.html`). Nothing precached takes a meaningful query:
+        // assets are content-hashed and models are fetched by path.
+        navigateFallback: undefined,
+        ignoreURLParametersMatching: [/.*/],
         cleanupOutdatedCaches: true,
       },
       manifest: {
@@ -340,6 +375,14 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    rollupOptions: {
+      // One entry per view (see CLAUDE.md → App shape). Each directory's
+      // index.html is served at `/3d-gallery/<dir>/`, in dev by Vite's HTML
+      // fallback and in production by Pages.
+      input: Object.fromEntries(
+        PAGES.map((dir) => [dir || 'home', resolve(__dirname, dir, 'index.html')]),
+      ),
+    },
   },
   worker: {
     format: 'es',

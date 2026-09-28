@@ -22,14 +22,14 @@ async function storedPrinter(page: Page) {
 }
 
 async function openEditor(page: Page) {
-  await page.goto('/?settings=1');
+  await page.goto('gallery/?settings=1');
   await page.locator('.print-settings-tab', { hasText: 'Printers' }).click();
   await page.locator('.print-settings-item', { hasText: PRINTER.name }).getByRole('button', { name: 'Edit' }).click();
   await expect(page.locator('.print-preset-editor')).toBeVisible();
 }
 
 test('a printer edit is an override that remembers what it replaced', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('gallery/');
   await page.evaluate(async ({ printer, storeUrl }) => {
     const store = await import(storeUrl);
     await store.savePreset({ kind: 'printer', name: printer.name, raw: printer.raw, parents: printer.parents });
