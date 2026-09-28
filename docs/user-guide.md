@@ -5,10 +5,6 @@ queuing 3D prints. Models are written in OpenSCAD (for now). Everything
 happens in your browser: no account, no server, no install. Your printers,
 presets and projects are stored in this browser.
 
-> **First pass.** This guide describes where the app is heading. Some views
-> still open as panels inside Models rather than as their own pages. Where
-> that's true today, it says so.
-
 ## The five views
 
 A bar at the bottom of the screen switches between the views (on a wide
