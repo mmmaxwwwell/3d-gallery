@@ -1,0 +1,385 @@
+/* SPDX-License-Identifier: MIT */
+/* The Printers page: a strip of counts, then one card per printer, stacked on
+   a phone and in a grid on a wide screen. Colours build on the shell's tokens
+   (shell.css); the state colours are this page's own. */
+
+:root {
+  --printers-ok: #3ddc84;
+  --printers-busy: #00eaff;
+  --printers-warn: #ffd60a;
+  --printers-bad: #ff4d6d;
+  --printers-muted: #8f7bb0;
+  --printers-track: rgba(255, 255, 255, 0.12);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --printers-ok: #0a7a3c;
+    --printers-busy: #0060a8;
+    --printers-warn: #8a6400;
+    --printers-bad: #c0002e;
+    --printers-muted: #6d6287;
+    --printers-track: rgba(0, 0, 0, 0.1);
+  }
+}
+
+.printers {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px 96px;
+}
+
+.printers-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  margin: 0 -16px 12px;
+  padding: 12px 16px 10px;
+  background: var(--shell-page-bg);
+  border-bottom: 1px solid var(--shell-border);
+}
+
+.printers-title {
+  margin: 0 0 6px;
+  font-size: 22px;
+}
+
+.printers-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.printers-count.is-printing {
+  color: var(--printers-busy);
+}
+
+.printers-count.is-idle {
+  color: var(--shell-text-muted);
+}
+
+.printers-count.is-attention {
+  color: var(--shell-text-muted);
+}
+
+.printers-count.is-hot {
+  color: var(--printers-bad);
+}
+
+.printers-banner {
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--shell-warn-border);
+  border-radius: 10px;
+  background: var(--shell-warn-bg);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.printers-empty {
+  padding: 24px 0;
+  line-height: 1.5;
+  color: var(--shell-text-muted);
+}
+
+.printers-empty p {
+  margin: 0 0 16px;
+}
+
+.printers-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 900px) {
+  .printers-grid {
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    align-items: start;
+  }
+}
+
+/* ── A card ───────────────────────────────────────────── */
+
+.printers-card {
+  min-width: 0;
+  border: 1px solid var(--shell-border);
+  border-left: 4px solid var(--printers-muted);
+  border-radius: 12px;
+  background: var(--shell-surface);
+  overflow: hidden;
+}
+
+.printers-card.is-printing {
+  border-left-color: var(--printers-busy);
+}
+
+.printers-card.is-idle {
+  border-left-color: var(--printers-ok);
+}
+
+.printers-card.is-paused,
+.printers-card.is-runout,
+.printers-card.is-starting {
+  border-left-color: var(--printers-warn);
+}
+
+.printers-card.is-error,
+.printers-card.is-shutdown,
+.printers-card.is-unreachable {
+  border-left-color: var(--printers-bad);
+}
+
+.printers-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 56px;
+  padding: 8px 12px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.printers-card-head:focus-visible {
+  outline: 2px solid var(--shell-focus);
+  outline-offset: -2px;
+}
+
+.printers-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 18px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.printers-chip {
+  flex: none;
+  padding: 6px 12px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  color: var(--printers-muted);
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.printers-chip.is-printing {
+  color: var(--printers-busy);
+}
+
+.printers-chip.is-idle {
+  color: var(--printers-ok);
+}
+
+.printers-chip.is-paused,
+.printers-chip.is-runout,
+.printers-chip.is-starting {
+  color: var(--printers-warn);
+}
+
+.printers-chip.is-error,
+.printers-chip.is-shutdown,
+.printers-chip.is-unreachable {
+  color: var(--printers-bad);
+}
+
+.printers-chevron {
+  flex: none;
+  width: 16px;
+  color: var(--shell-text-muted);
+  text-align: center;
+}
+
+.printers-summary {
+  display: flex;
+  gap: 12px;
+  padding: 0 12px 12px;
+  cursor: pointer;
+}
+
+.printers-thumb {
+  flex: none;
+  width: 104px;
+  height: 78px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--printers-track);
+}
+
+.printers-facts {
+  flex: 1;
+  min-width: 0;
+}
+
+.printers-facts.is-stale {
+  opacity: 0.55;
+}
+
+.printers-temps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0 0 6px;
+}
+
+.printers-temps div,
+.printers-stats div {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.printers-temps dt,
+.printers-stats dt {
+  color: var(--shell-text-muted);
+  font-size: 13px;
+}
+
+.printers-temps dd,
+.printers-stats dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.printers-file {
+  margin: 0 0 6px;
+  overflow: hidden;
+  font-size: 14px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.printers-layer {
+  color: var(--shell-text-muted);
+}
+
+.printers-progress {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--printers-track);
+  overflow: hidden;
+}
+
+.printers-progress-fill {
+  display: block;
+  height: 100%;
+  background: var(--printers-busy);
+}
+
+.is-paused .printers-progress-fill,
+.is-runout .printers-progress-fill {
+  background: var(--printers-warn);
+}
+
+.printers-time {
+  margin: 4px 0 6px;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.printers-sensor {
+  margin: 0;
+  font-size: 13px;
+  color: var(--shell-text-muted);
+}
+
+.printers-sensor.is-empty {
+  color: var(--printers-warn);
+}
+
+.printers-note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--shell-text-muted);
+}
+
+.printers-stale {
+  align-self: flex-end;
+  white-space: nowrap;
+}
+
+/* ── Open card ────────────────────────────────────────── */
+
+.printers-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 12px 12px;
+}
+
+.printers-stream {
+  display: block;
+  width: 100%;
+  max-height: 60vh;
+  border-radius: 8px;
+  object-fit: contain;
+  background: #000;
+}
+
+.printers-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 6px 16px;
+  margin: 0;
+}
+
+.printers-klippy {
+  margin: 0;
+  padding: 8px 10px;
+  border-left: 3px solid var(--printers-bad);
+  background: var(--printers-track);
+  font-size: 13px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.printers-console {
+  max-height: 200px;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--printers-track);
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  overflow-y: auto;
+}
+
+.printers-off {
+  margin: 16px 0 0;
+  font-size: 13px;
+  color: var(--shell-text-muted);
+}
+
+.printers-toast {
+  position: fixed;
+  left: calc(var(--shell-left, 0px) + 16px);
+  right: 16px;
+  bottom: calc(var(--shell-bottom, 0px) + 12px);
+  z-index: 950;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 12px 14px;
+  border: 1px solid var(--printers-ok);
+  border-radius: 10px;
+  background: var(--shell-surface);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  font-size: 14px;
+}
+
+.printers-toast.is-error {
+  border-color: var(--printers-bad);
+}

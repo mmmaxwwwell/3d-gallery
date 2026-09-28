@@ -82,8 +82,9 @@ The dashboard for every printer at once, built for a phone.
 - **Queue.** Each printer's upcoming plates from the plan you last sent, with
   upload state and a **Print** button that checks the printer is ready first.
 
-*Today:* each project has its own printers screen (**Send to printers**).
-The fleet-wide dashboard is next.
+*Today:* Printers shows every printer's status and camera; the controls
+and the queue are still on each project's printers screen (**Send to
+printers**).
 
 ### Operator
 
