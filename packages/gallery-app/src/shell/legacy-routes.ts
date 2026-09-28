@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 /**
  * Old links keep working. Before the split every view was a query on the one
- * page at `/`, and those URLs live on in bookmarks, shared customizer links and
- * the permalink baked into every downloaded part. Home runs this first and
- * forwards any of them to the page that owns it now.
+ * page at `/` (later `/gallery/`), and those URLs live on in bookmarks, shared
+ * customizer links and the permalink baked into every downloaded part. Home and
+ * Models run this first and forward any of them to the page that owns it now.
+ * This is the only place that still knows the old routes.
  */
 
 interface LegacyRoute {
@@ -13,7 +14,7 @@ interface LegacyRoute {
   to: (query: URLSearchParams) => string;
 }
 
-/** The gallery itself, or a panel still over it: the whole query goes along unchanged. */
+/** The gallery itself: the whole query goes along unchanged. */
 const toGallery = (query: URLSearchParams) => `gallery/?${query}`;
 
 const toOperator = (query: URLSearchParams) =>
@@ -31,11 +32,7 @@ const toSettings = () => 'settings/';
 const toPrinters = (query: URLSearchParams) =>
   `printers/?${new URLSearchParams({ project: query.get('dispatch')! })}`;
 
-/**
- * First match wins, in the precedence `print/mount.tsx` reads its panels in, so
- * a URL naming two routes lands where it used to. Each view's task edits only
- * its own row when its page lands.
- */
+/** First match wins, so a model link that also names a panel opens the panel. */
 export const LEGACY_ROUTES: readonly LegacyRoute[] = [
   { param: 'plate', to: toPlate },
   { param: 'project', to: toProject },
@@ -54,10 +51,14 @@ export function legacyTarget(search: string): string | null {
   return route ? route.to(query) : null;
 }
 
-/** Forwards an old URL, replacing it in history so Back doesn't bounce. True if it did. */
-export function forwardLegacyRoute(): boolean {
+/**
+ * Forwards an old URL, replacing it in history so Back doesn't bounce. True if
+ * it did. The gallery passes `fromGallery`: a model link is already home there,
+ * and only a panel query that moved out has to leave.
+ */
+export function forwardLegacyRoute(fromGallery = false): boolean {
   const target = legacyTarget(location.search);
-  if (target === null) return false;
+  if (target === null || (fromGallery && target.startsWith('gallery/'))) return false;
   location.replace(import.meta.env.BASE_URL + target + location.hash);
   return true;
 }

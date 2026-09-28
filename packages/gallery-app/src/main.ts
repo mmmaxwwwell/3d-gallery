@@ -98,7 +98,8 @@ import {
   type ArtifactClient,
   type ArtifactSource,
 } from "@3d-gallery/viewer";
-import { PRINT_ROUTE_PARAMS, initPrintRouting } from "./print/mount";
+import { forwardLegacyRoute } from "./shell/legacy-routes";
+import { syncFromServerOnce } from "./print/server-store";
 import { openNewProject } from "./print/current-project";
 import { projectUrl } from "./shell/views";
 import { setPlateArtifactClient } from "./print/plate-resolve";
@@ -682,10 +683,9 @@ function hideViewerPrompt() {
 
 // ── URL routing ──────────────────────────────────────────
 
-// Everything else in the query is a customizer parameter, so the print UI's
-// own route names have to be named here or a `?plate=<id>` deep link would
-// reach the model as a param.
-const ROUTE_PARAMS = new Set(["model", "build", "part", ...PRINT_ROUTE_PARAMS]);
+// Everything else in the query is a customizer parameter. The old print-panel
+// queries never get this far: init() forwards them to their pages first.
+const ROUTE_PARAMS = new Set(["model", "build", "part"]);
 
 function buildUrl(
   slug: string,
@@ -694,16 +694,8 @@ function buildUrl(
   buildId?: string,
 ): string {
   const url = new URL(window.location.href);
-  // The query is rebuilt from scratch so a stale customizer param can't
-  // survive a model switch — but the print UI's params say which panel is
-  // open, which this router knows nothing about. Carry them across.
-  const open = new Map<string, string>();
-  for (const name of PRINT_ROUTE_PARAMS) {
-    const value = url.searchParams.get(name);
-    if (value !== null) open.set(name, value);
-  }
+  // Rebuilt from scratch so a stale customizer param can't survive a model switch.
   url.search = "";
-  for (const [name, value] of open) url.searchParams.set(name, value);
   url.searchParams.set("model", slug);
   if (buildId) url.searchParams.set("build", buildId);
   if (partModule) url.searchParams.set("part", partModule);
@@ -728,9 +720,8 @@ function isSameRoute(a: string, b: string): boolean {
 
 function pushRoute(slug: string, partModule?: string, customValues?: Record<string, ScadValue>, buildId?: string) {
   const path = buildUrl(slug, partModule, customValues, buildId);
-  // buildUrl puts the print UI's params first; the print router appends them
-  // last. Same route, different order — pushing it would stack a Back step
-  // that goes nowhere.
+  // A pasted link may order its params differently from buildUrl. Same route,
+  // different order — pushing it would stack a Back step that goes nowhere.
   if (!isSameRoute(window.location.pathname + window.location.search, path)) {
     history.pushState({ slug, build: buildId, part: partModule, custom: customValues }, "", path);
   }
@@ -2809,6 +2800,11 @@ async function loadRuntimeManifest(): Promise<RuntimeManifest> {
 }
 
 async function init() {
+  if (forwardLegacyRoute(true)) return;
+  // Adopt anything added to the optional server store since the last load —
+  // including records an agent created over MCP. No-op unless the user has
+  // opted in, and failures are swallowed so the local-first path always works.
+  void syncFromServerOnce();
   try {
     const [manifest, estimates] = await Promise.all([loadRuntimeManifest(), loadPrintEstimates()]);
     printEstimates = estimates;
@@ -2817,9 +2813,6 @@ async function init() {
     modelListEl.textContent = "Failed to load manifest";
     setError(err instanceof Error ? err.message : String(err));
   }
-  // After the gallery, so a `?plate=` deep link opens over a painted page
-  // rather than a blank one — and so a manifest failure still routes.
-  initPrintRouting();
 }
 
 init();

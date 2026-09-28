@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 import { describe, expect, it } from 'vitest';
-import { LEGACY_ROUTES, legacyTarget } from '../../src/home/legacy-routes.js';
-import { PRINT_ROUTE_PARAMS } from '../../src/print/mount.js';
+import { LEGACY_ROUTES, legacyTarget } from '../../src/shell/legacy-routes.js';
 
 describe('legacy routes', () => {
   it('leaves Home alone when the query names no old route', () => {
@@ -29,6 +28,6 @@ describe('legacy routes', () => {
 
   it('has a row for every panel route the gallery ever answered', () => {
     const params = LEGACY_ROUTES.map((r) => r.param);
-    for (const name of [...PRINT_ROUTE_PARAMS, 'model']) expect(params).toContain(name);
+    for (const name of ['projects', 'plate', 'project', 'dispatch', 'operator', 'settings', 'model']) expect(params).toContain(name);
   });
 });

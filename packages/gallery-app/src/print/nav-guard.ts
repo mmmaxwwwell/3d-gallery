@@ -31,11 +31,6 @@ export function mayLeavePrintUI(): boolean {
   return guard === null || guard();
 }
 
-/** Whether leaving the page now would lose edits. */
-export function hasUnsavedPrintWork(): boolean {
-  return unsaved();
-}
-
 /** Has the browser confirm leaving the page while an editor holds unsaved edits. */
 export function guardPageUnload(): void {
   window.addEventListener('beforeunload', (e) => {
