@@ -5,6 +5,7 @@
 // The live stream only exists while the card is open: MJPEG never stops
 // downloading, and a phone on the fleet's Wi-Fi feels it.
 
+import type { ComponentChildren } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import type { PrinterLiveStatus, Webcam } from '@3d-gallery/print-toolkit';
 import { formatWhen } from '../print/fleet-plan.js';
@@ -34,9 +35,11 @@ interface PrinterCardProps {
   expanded: boolean;
   onToggle(): void;
   onCommand(label: string, run: () => Promise<void>): void;
+  /** The printer's queue, drawn above its controls. */
+  children?: ComponentChildren;
 }
 
-export function PrinterCard({ printer, poll, now, expanded, onToggle, onCommand }: PrinterCardProps) {
+export function PrinterCard({ printer, poll, now, expanded, onToggle, onCommand, children }: PrinterCardProps) {
   const condition = printerCondition(poll);
   const live = poll.live;
   const stale = isStale(poll, now);
@@ -63,6 +66,8 @@ export function PrinterCard({ printer, poll, now, expanded, onToggle, onCommand 
       </div>
 
       {expanded && <Details poll={poll} cam={reachable ? cam : undefined} />}
+
+      {children}
 
       <PrinterControls printer={printer} live={reachable ? live : null} onCommand={onCommand} />
     </article>

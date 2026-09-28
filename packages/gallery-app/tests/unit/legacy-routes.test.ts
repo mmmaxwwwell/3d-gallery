@@ -19,7 +19,7 @@ describe('legacy routes', () => {
     ['?projects=1', 'project/'],
     ['?project=p1', 'project/?id=p1'],
     ['?plate=pl1', 'project/?plate=pl1'],
-    ['?dispatch=p1', 'gallery/?dispatch=p1'],
+    ['?dispatch=p1', 'printers/?project=p1'],
     ['?operator=p1', 'operator/?id=p1'],
     ['?settings=1', 'settings/'],
     ['?model=cube&plate=pl1', 'project/?plate=pl1'],

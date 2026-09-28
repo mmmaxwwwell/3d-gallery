@@ -28,6 +28,9 @@ const toProjects = () => 'project/';
 
 const toSettings = () => 'settings/';
 
+const toPrinters = (query: URLSearchParams) =>
+  `printers/?${new URLSearchParams({ project: query.get('dispatch')! })}`;
+
 /**
  * First match wins, in the precedence `print/mount.tsx` reads its panels in, so
  * a URL naming two routes lands where it used to. Each view's task edits only
@@ -36,7 +39,7 @@ const toSettings = () => 'settings/';
 export const LEGACY_ROUTES: readonly LegacyRoute[] = [
   { param: 'plate', to: toPlate },
   { param: 'project', to: toProject },
-  { param: 'dispatch', to: toGallery },
+  { param: 'dispatch', to: toPrinters },
   { param: 'operator', to: toOperator },
   { param: 'settings', to: toSettings },
   { param: 'projects', to: toProjects },

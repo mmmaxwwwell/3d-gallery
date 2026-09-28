@@ -35,7 +35,8 @@ const RENDERERS: Record<string, RegExp> = {
   settings: /^print-(settings|preset)(-|$)/,
   shell: /^shell-/,
   home: /^home(-|$)/,
-  printers: /^(printers|pc)(-|$)/,
+  printers: /^(printers|pc|pq)(-|$)/,
+  'printers/queue': /^pq(-|$)/,
   operator: /^op(-|$)/,
 };
 
@@ -54,14 +55,13 @@ function classesUsed(dir: string, prefix: RegExp): Set<string> {
   return used;
 }
 
-/** Every stylesheet the app ships: the gallery's, plus one beside each view. */
-function allCss(): string {
-  const sheets = [readFileSync(join(ROOT, 'style.css'), 'utf8')];
-  for (const entry of readdirSync(ROOT, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
-    for (const name of readdirSync(join(ROOT, entry.name))) {
-      if (name.endsWith('.css')) sheets.push(readFileSync(join(ROOT, entry.name, name), 'utf8'));
-    }
+/** Every stylesheet the app ships: the gallery's, plus one beside each view and its parts. */
+function allCss(dir = ROOT): string {
+  const sheets: string[] = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) sheets.push(allCss(path));
+    else if (entry.name.endsWith('.css')) sheets.push(readFileSync(path, 'utf8'));
   }
   return sheets.join('\n');
 }

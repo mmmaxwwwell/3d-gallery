@@ -59,12 +59,13 @@ export function operatorUrl(projectId: string, base = BASE): string {
   return `${base}${viewById('operator').path}?id=${encodeURIComponent(projectId)}`;
 }
 
+/** The Printers page, focused on one project's plan when given one. */
+export function printersUrl(projectId?: string, base = BASE): string {
+  const front = `${base}${viewById('printers').path}`;
+  return projectId ? `${front}?project=${encodeURIComponent(projectId)}` : front;
+}
+
 /** A project's planner. */
 export function projectUrl(projectId: string, base = BASE): string {
   return `${base}${viewById('project').path}?id=${encodeURIComponent(projectId)}`;
-}
-
-/** The Printers page, focused on the jobs a project's plan sent. */
-export function printersUrl(projectId: string, base = BASE): string {
-  return `${base}${viewById('printers').path}?project=${encodeURIComponent(projectId)}`;
 }

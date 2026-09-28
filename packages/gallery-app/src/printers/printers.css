@@ -51,6 +51,12 @@
   gap: 12px;
 }
 
+.printers-title-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 /* Settings is where printers come from, so the way there sits by the title. */
 .printers-gear {
   display: flex;

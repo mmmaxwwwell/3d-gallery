@@ -48,27 +48,34 @@ A project's plates, scheduled across the printer fleet and sent to it.
    `gcode`), keyed by plate and printer, and goes stale when the plate's
    items, arrangement or overrides change.
 4. **Send to printers** writes the plan to the dispatch queue and opens the
-   Printers page on it (`printers/?project=<id>`). Nothing reaches a printer
-   yet.
+   Printers page on it (`printers/?project=<id>`, `src/printers/queue/`).
+   Nothing reaches a printer yet.
    Each job is named `NN-<plate>.gcode`, with NN the plan's start order, and
    carries the `slicedAt` of the slice it sends. Sending again replaces the
    plan. Jobs that are the same slice of the same file on the same printer
    keep their uploads and outcomes, and queued commands for anything else are
    cancelled.
 
-## Printers screen
+## Printers queues
 
-One row per printer. The printer's card is on the left: its camera
-(Moonraker's `/server/webcams/list`, a snapshot refreshed with each probe),
-its readiness checks and a **Print** button. Its plates are queued out to
-the right in print order.
+Each printer's card on the Printers page carries its queue: for every sent
+plan with plates for that printer (oldest plan first), what the plan asks of
+it (from the plan snapshot: filament by spool, hours, stops, touches, swaps),
+its readiness checks, a **Print** button and its plates in print order.
+`queue-watch.ts` follows every plan with a plate on a belt or a command not
+yet settled, plus the one `?project=<id>` names, and gets each its dispatch
+daemon. A plan sent while the page is open joins on the dispatch store's
+change event. `?project=<id>` highlights that plan's plates and puts a bar on
+top: its progress, the way back to Project, the runbook, **Upload all** and
+the whole plan's figures. An old `?dispatch=<id>` link forwards there.
 
-- **Upload all** queues an upload for every job not yet on its printer. The
-  dispatch daemon (`dispatch-daemon.ts`, one per project at module scope)
-  runs uploads one at a time per printer and printers in parallel. They carry
-  on with the screen closed. An upload refuses a slice that isn't the one
-  sent, and a plate that changed since it was sliced.
-- **Readiness** is probed every 10 s while the screen is open: Moonraker
+- **Upload all** queues an upload for every job not yet on its printer (the
+  bar's for the whole plan, a card's for that printer). The dispatch daemon
+  (`dispatch-daemon.ts`, one per project at module scope) runs uploads one
+  at a time per printer and printers in parallel. They carry on while any
+  page that holds the plan's dispatch lock is open. An upload refuses a
+  slice that isn't the one sent, and a plate that changed since it was sliced.
+- **Readiness** is probed every 10 s while the page is open: Moonraker
   reachable, Klipper `ready`, the printer idle, and the next file on it
   (`/server/files/metadata`). The loaded filament is only a warning.
 - **Print** starts the head of the belt once every check passes. It asks
@@ -78,8 +85,9 @@ the right in print order.
   printer's live state when history isn't enabled. A finished job leaves the
   belt. **Skip** / **Mark done** takes a job off by hand, and **Put back**
   returns it.
-- **Queue** lists commands that are queued, running or failed, with Retry,
-  Cancel and Dismiss. **Log** is the last 300 events.
+- **The Queue sheet** (the page header's **Queue** button) lists every
+  plan's commands that are queued, running or failed, with Retry, Cancel and
+  Dismiss, and the log: the last 300 events across the plans.
 
 The queue and log persist in `localStorage['3dg:print:dispatch:<projectId>']`.
 After a reload an interrupted upload runs again. An interrupted start fails,
@@ -89,7 +97,7 @@ because it may have reached the printer, so the operator decides.
 
 The Operator page, `/operator/?id=<projectId>` (`src/operator/`, model in
 `src/print/operator-model.ts`), linked from **Runbook** on the project and
-printers screens. It is a phone screen for the trips to the printers. With no
+on the Printers page's plan bar. It is a phone screen for the trips to the printers. With no
 `id` it opens the runbook last open, else the open project's, else the one
 planned last. The Operator tab's badge is the time to the next trip
 (`tripBadge`): the runbook rewrites it each minute, and the project view
@@ -138,7 +146,7 @@ rewrites it each time it keeps a plan (`operator-badge.ts`).
   the plate id of its first start. Neither depends on the plan's visit
   numbers, so a re-plan keeps the operator's notes on the right stop.
 - **What the printer says** (`print-report.ts`). Whenever the runbook or
-  the printers screen loads, and each minute while the runbook is open,
+  the Printers page loads, and each minute while the runbook is open,
   every recorded start that hasn't settled is checked against its printer:
   Moonraker's job history (the first run of that file since the start: how
   it ended, when, print time, filament used), the live state (progress and
@@ -146,7 +154,7 @@ rewrites it each time it keeps a plan (`operator-badge.ts`).
   (`!!` errors logged during the run). The answer is kept on the print
   record as `report`; a finished, cancelled or failed run is never asked
   about again. The runbook shows it in "Log the last print" and "Start the
-  print"; the printers screen shows it on each job off the queue.
+  print"; the Printers page shows it on each job off the queue.
 
 ## Times
 
@@ -160,7 +168,7 @@ mixed fleet would want per-printer times.
 Printers report their current job through Moonraker (`fetchPrintStatus`). A
 busy printer joins the plan when its current print ends. A paused print never ends on
 its own, so a paused printer is planned as free on the first trip, and the
-itinerary tells the operator to cancel the paused job. The printers screen
+itinerary tells the operator to cancel the paused job. The queue's Print
 won't cancel it or start anything on a paused printer.
 
 ## Scheduling (`print-toolkit/src/print-schedule.ts`)

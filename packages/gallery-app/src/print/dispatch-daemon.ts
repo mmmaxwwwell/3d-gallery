@@ -52,8 +52,24 @@ import {
 
 const POLL_MS = 10_000;
 
+const PREFIX = '3dg:print:dispatch:';
+
 function storageKey(projectId: string): string {
-  return `3dg:print:dispatch:${projectId}`;
+  return PREFIX + projectId;
+}
+
+/** Every project with a queue stored. The Printers page shows them all at once. */
+export function dispatchProjectIds(): string[] {
+  try {
+    const ids: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith(PREFIX)) ids.push(key.slice(PREFIX.length));
+    }
+    return ids;
+  } catch {
+    return [];
+  }
 }
 
 /** The queue as stored, or null when storage can't be read. */
@@ -304,6 +320,9 @@ export class DispatchDaemon {
   // ── Probing ────────────────────────────────────────────
 
   private async poll(): Promise<void> {
+    // The bus can outrun localStorage between tabs: a message may land before
+    // the write it announces is readable here, and nothing announces it again.
+    this.reload();
     await Promise.all(printerIds(this.snap.dispatch).map((id) => this.probe(id)));
   }
 

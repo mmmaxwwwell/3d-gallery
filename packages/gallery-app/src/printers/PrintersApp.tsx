@@ -3,13 +3,14 @@
 // The Printers page: every printer live at once, built for a phone held at
 // the printers. Which printers there are comes from the imported presets and
 // the planner's on/off switch, both of which another page can change while
-// this one is open.
+// this one is open. Each card carries the printer's queue from every sent
+// plan; `?project=<id>` puts one plan in front.
 
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { listPresets, onPresetsChange } from '../print/print-storage.js';
-import { loadPlannerSettings, onPlannerSettingsChange } from '../print/fleet-plan.js';
+import { loadPlannerSettings, onPlannerSettingsChange, savePlannerSettings } from '../print/fleet-plan.js';
 import { setBadge } from '../shell/badges.js';
-import { SETTINGS_PATH } from '../shell/views.js';
+import { printersUrl, SETTINGS_PATH } from '../shell/views.js';
 import {
   EMPTY_POLL,
   fleetPrinters,
@@ -22,6 +23,11 @@ import {
 } from './fleet-model.js';
 import { FleetPoller } from './fleet-poller.js';
 import { PrinterCard } from './PrinterCard.js';
+import { QueueWatch } from './queue/queue-watch.js';
+import { PrinterQueue } from './queue/PrinterQueue.js';
+import { FocusBar } from './queue/FocusBar.js';
+import { QueueSheet } from './queue/QueueSheet.js';
+import { openTasks, unshownPrinters } from './queue/queue-model.js';
 
 const TOAST_MS = 4_000;
 
@@ -43,6 +49,16 @@ export function PrintersApp() {
   const [toast, setToast] = useState<Toast | null>(null);
   const [now, setNow] = useState(Date.now());
   const poller = useRef<FleetPoller | null>(null);
+  const [focusId] = useState(() => new URLSearchParams(location.search).get('project'));
+  const [queues, setQueues] = useState<QueueWatch | null>(null);
+  const [, setQueueTick] = useState(0);
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  useEffect(() => {
+    const watch = new QueueWatch(focusId, () => setQueueTick((n) => n + 1));
+    setQueues(watch);
+    return () => watch.stop();
+  }, [focusId]);
 
   useEffect(() => {
     const p = new FleetPoller((id, poll) => {
@@ -119,6 +135,18 @@ export function PrintersApp() {
 
   if (!fleet) return <main class="printers" aria-busy="true" />;
 
+  const entries = queues?.entries() ?? [];
+  const dispatches = entries.map((e) => e.snap.dispatch);
+  const pending = openTasks(dispatches);
+  const unshown = unshownPrinters(dispatches, new Set(fleet.on.map((p) => p.id)));
+  const loaded = queues?.loaded ?? {};
+  const setLoaded = (printerId: string, material: string) => {
+    const settings = loadPlannerSettings();
+    savePlannerSettings({ ...settings, loaded: { ...settings.loaded, [printerId]: material } });
+  };
+  const nameOf = (printerId: string) =>
+    entries.map((e) => e.snap.printers.get(printerId)?.name).find(Boolean) ?? printerId;
+
   const summary = fleetSummary(conditions);
   const blocked = fleet.on.some((p) => isMixedContentError(polls[p.id]?.error ?? null));
 
@@ -127,9 +155,20 @@ export function PrintersApp() {
       <header class="printers-header">
         <div class="printers-title-row">
           <h1 class="printers-title">Printers</h1>
-          <a class="printers-gear" href={`${import.meta.env.BASE_URL}${SETTINGS_PATH}`} aria-label="Settings" title="Settings: printers and presets">
-            <span aria-hidden="true">⚙️</span>
-          </a>
+          <div class="printers-title-actions">
+            {entries.length > 0 && (
+              <button
+                type="button"
+                class={`pq-btn pq-open-sheet${pending.some((t) => t.state === 'failed') ? ' is-bad' : ''}`}
+                onClick={() => setSheetOpen(true)}
+              >
+                Queue ({pending.length})
+              </button>
+            )}
+            <a class="printers-gear" href={`${import.meta.env.BASE_URL}${SETTINGS_PATH}`} aria-label="Settings" title="Settings: printers and presets">
+              <span aria-hidden="true">⚙️</span>
+            </a>
+          </div>
         </div>
         {fleet.on.length > 0 && (
           <p class="printers-strip" role="status">
@@ -141,6 +180,10 @@ export function PrintersApp() {
           </p>
         )}
       </header>
+
+      {focusId && (
+        <FocusBar projectId={focusId} entry={entries.find((e) => e.projectId === focusId)} allHref={printersUrl()} />
+      )}
 
       {blocked && (
         <p class="printers-banner" role="note">
@@ -172,7 +215,16 @@ export function PrintersApp() {
               expanded={expanded.has(p.id)}
               onToggle={() => toggle(p.id)}
               onCommand={runCommand(p.id)}
-            />
+            >
+              <PrinterQueue
+                printerId={p.id}
+                printerName={p.name}
+                entries={entries}
+                focusId={focusId}
+                loaded={loaded[p.id] ?? ''}
+                onLoaded={(m) => setLoaded(p.id, m)}
+              />
+            </PrinterCard>
           ))}
         </div>
       )}
@@ -180,6 +232,12 @@ export function PrintersApp() {
       {fleet.off.length > 0 && fleet.on.length > 0 && (
         <p class="printers-off">Switched off in the planner: {fleet.off.map((p) => p.name).join(', ')}</p>
       )}
+
+      {unshown.length > 0 && (
+        <p class="pq-unshown">Plates are queued for printers not shown here: {unshown.map(nameOf).join(', ')}.</p>
+      )}
+
+      {sheetOpen && <QueueSheet entries={entries} onClose={() => setSheetOpen(false)} />}
 
       {toast && (
         <p key={toast.id} class={`printers-toast${toast.ok ? '' : ' is-error'}`} role="status" aria-live="polite">
