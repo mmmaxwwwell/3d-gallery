@@ -1,5 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
+// Parallel worktrees each run their own dev server, so the port is overridable.
+const PORT = Number(process.env.E2E_PORT ?? 5173);
+
 // WASM renders are 10–60 s each. Keep parallelism low, timeouts generous.
 export default defineConfig({
   testDir: "tests/e2e",
@@ -10,7 +13,7 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["list"], ["github"]] : "list",
   use: {
-    baseURL: "http://localhost:5173/3d-gallery/",
+    baseURL: `http://localhost:${PORT}/3d-gallery/`,
     trace: "retain-on-failure",
     video: "retain-on-failure",
     screenshot: "only-on-failure",
@@ -21,8 +24,8 @@ export default defineConfig({
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
   ],
   webServer: {
-    command: "npm run dev -- --host 127.0.0.1 --port 5173",
-    url: "http://localhost:5173/3d-gallery/",
+    command: `npm run dev -- --host 127.0.0.1 --port ${PORT} --strictPort`,
+    url: `http://localhost:${PORT}/3d-gallery/`,
     reuseExistingServer: !process.env.CI,
     stdout: "ignore",
     stderr: "pipe",
