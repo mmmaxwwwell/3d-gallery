@@ -1,3 +1,3 @@
 include <../lib/spool-drybox-lib.scad>;
 $fn = 40;
-panel("front");
+ear_plate();

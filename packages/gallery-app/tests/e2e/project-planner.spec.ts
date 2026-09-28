@@ -107,6 +107,8 @@ test('a build\'s plates become a project the planner schedules', async ({ page }
   // Nothing is sliced, so nothing can be sent.
   await expect(planner.getByRole('button', { name: 'Send to printers' })).toBeDisabled();
   await expect(planner.locator('.planner-checks')).toContainText('0/4 plates sliced');
+  // The three bars across the top: sliced, slicing now, printed.
+  await expect(planner.locator('.planner-status .planner-bar-card')).toHaveCount(3);
 
   await planner.getByRole('button', { name: 'Trips' }).click();
   await expect(planner.locator('.planner-visit').first()).toContainText('Now');
@@ -157,7 +159,7 @@ test('the open project is always there, takes parts, and asks before an unsaved 
   const picked = planner.locator('.planner-plate.is-target');
   await expect(picked).toHaveCount(1);
   const pickedId = await picked.getAttribute('data-plate');
-  await page.locator('.print-modal-close').click();
+  await planner.getByRole('button', { name: 'Back to the gallery' }).click();
 
   await loadModel(page, 'filament-spool-roller', { build: '1x', part: 'stand_tiles' });
   const printBtn = page.locator('#print-btn');
@@ -167,7 +169,7 @@ test('the open project is always there, takes parts, and asks before an unsaved 
   await page.locator('#plate-added').getByRole('link', { name: 'Open project' }).click();
   await expect(planner.locator(`.planner-plate[data-plate="${pickedId}"]`)).not.toHaveClass(/is-empty/);
   await expect(planner.locator('.planner-plate.is-empty')).toHaveCount(1);
-  await page.locator('.print-modal-close').click();
+  await planner.getByRole('button', { name: 'Back to the gallery' }).click();
 
   // Loading a build over unsaved work asks; declining keeps it.
   const actions = page.locator('#project-actions');
@@ -180,7 +182,7 @@ test('the open project is always there, takes parts, and asks before an unsaved 
   // Saved, it's on the shelf and replacing it asks nothing.
   await planner.getByRole('button', { name: 'Save', exact: true }).click();
   await expect(planner.locator('.planner-unsaved')).toHaveCount(0);
-  await page.locator('.print-modal-close').click();
+  await planner.getByRole('button', { name: 'Back to the gallery' }).click();
   let asked = false;
   const ask = (d: Dialog) => { asked = true; void d.dismiss(); };
   page.on('dialog', ask);

@@ -6,9 +6,11 @@
 // draft until it is saved — and "Add to project" drops parts on the plate
 // picked here.
 //
-// Desktop shows three panes at once — the plates on the left, the timeline
-// top right, the printers bottom right — under a summary of the whole job
-// that every change recomputes. A phone shows the same panes one at a time.
+// It owns the viewport: the project bar and a status strip (plates sliced,
+// the slice running now, plates printed, and what still stands between the
+// plan and the printers) over a summary of the whole job that every change
+// recomputes. Desktop shows three panes at once — the plates on the left, the
+// timeline top right, the printers bottom right. A phone shows them one at a time.
 // Plates slice on their own, in the background, for whichever printer the
 // timeline gives them — a re-plan that moves a plate slices it again. The way
 // out is Send to printers, which stays shut until every plate is sliced for
@@ -27,7 +29,7 @@ import {
   type SchedulePrinter,
 } from '@3d-gallery/print-toolkit';
 import { materialFamily } from '@3d-gallery/model-core';
-import { Modal } from './Modal.js';
+import { Page } from './Page.js';
 import { listPresets, type PrintPreset } from './print-storage.js';
 import { flattenPresetForSlicer } from './preset-flatten.js';
 import { resolvePlate } from './plate-resolve.js';
@@ -58,6 +60,7 @@ import { loadLastSelections } from './PrintDialog.js';
 import { formatWhen, loadPlannerSettings, operatorBlocks, planFleet, savePlannerSettings, type PlannerSettings } from './fleet-plan.js';
 import {
   collisions,
+  expectedSliceMs,
   formatDuration,
   freshSlices,
   gcodeName,
@@ -70,14 +73,16 @@ import {
   plateSeconds,
   readiness,
   scheduleJobs,
+  sliceFraction,
   sliceSetupKey,
   type Estimates,
   type Measured,
 } from './planner-model.js';
 import { plateThumbnail } from './plate-thumbnail.js';
 import { PlannerGantt } from './PlannerGantt.js';
-import { getDaemon, hasDispatch } from './dispatch-daemon.js';
+import { getDaemon, hasDispatch, type DaemonSnapshot } from './dispatch-daemon.js';
 import type { DispatchJob } from './dispatch-model.js';
+import { savePlanSnapshot } from './plan-snapshot.js';
 
 export interface ProjectPlannerProps {
   projectId: string;
@@ -88,11 +93,25 @@ export interface ProjectPlannerProps {
   onShowProject: (projectId: string) => void;
   onOpenSettings: () => void;
   onOpenDispatch: () => void;
+  /** The operator's runbook for this project's plan. */
+  onOpenOperator?: () => void;
 }
 
 type StatusState = PrintStatus | { error: string } | 'loading';
 type Geometry = { footprints: PlateFootprint[]; thumb: string | null } | { failed: string };
 type Tab = 'plates' | 'timeline' | 'printers';
+
+/** What the slicer is doing now. It reports only its start and end, so the
+ *  bar runs on the clock against how long the slice ought to take. */
+interface Slicing {
+  plateId: string;
+  plateName: string;
+  printerName: string;
+  startedAt: number;
+  expectedMs: number;
+  done: boolean;
+  message?: string;
+}
 
 /** The single-printer yardstick: one machine, every plate in turn. */
 const ONE_PRINTER = '__one';
@@ -114,7 +133,7 @@ async function openCurrentOr(project: Project | undefined): Promise<string> {
 
 // ── Component ────────────────────────────────────────────
 
-export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects, onShowProject, onOpenSettings, onOpenDispatch }: ProjectPlannerProps) {
+export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects, onShowProject, onOpenSettings, onOpenDispatch, onOpenOperator }: ProjectPlannerProps) {
   const [project, setProject] = useState<Project | null>(null);
   const [plates, setPlates] = useState<Plate[] | null>(null);
   const [targetPlate, setTargetPlate] = useState<string | null>(getActivePlateId);
@@ -130,7 +149,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
   const [selections] = useState(loadLastSelections);
   const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState<string | null>(null);
-  const [slicing, setSlicing] = useState<{ plateId: string; pct: number } | null>(null);
+  const [slicing, setSlicing] = useState<Slicing | null>(null);
   const [log, setLog] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [draftAway, setDraftAway] = useState({ start: '', end: '' });
@@ -140,6 +159,20 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
   /** `plateId|printerId|setupKey` → why slicing it failed. Auto-slicing skips these until the Slice button retries. */
   const [sliceFailed, setSliceFailed] = useState<Record<string, string>>({});
   const [sent] = useState(() => hasDispatch(projectId));
+  const [dispatch, setDispatch] = useState<DaemonSnapshot['dispatch'] | null>(null);
+
+  // Plates printed so far, for the status strip. Only a project that was sent has any.
+  useEffect(() => {
+    if (!sent) return;
+    let unsubscribe = () => {};
+    let cancelled = false;
+    void getDaemon(projectId).then((d) => {
+      if (cancelled) return;
+      setDispatch(d.snapshot.dispatch);
+      unsubscribe = d.subscribe(() => setDispatch(d.snapshot.dispatch));
+    });
+    return () => { cancelled = true; unsubscribe(); };
+  }, [projectId, sent]);
 
   const setSettings = (patch: Partial<PlannerSettings>) => {
     setSettingsState((prev) => {
@@ -324,7 +357,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
   }, [plates, fresh, estimates]);
 
   const plans = useMemo(() => {
-    const jobs = scheduleJobs(printable, times, fits);
+    const jobs = scheduleJobs(printable, times, fits, fresh);
     if (jobs.length === 0) return null;
     // Bed fit doesn't apply to the yardstick: it stands for any one of the fleet.
     const one = planFleet(
@@ -338,7 +371,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
       makespan: planFleet(jobs, fleet, settings, unavailable, now, 'makespan'),
       visits: planFleet(jobs, fleet, settings, unavailable, now, 'visits'),
     };
-  }, [printable, times, fits, fleet, settings, unavailable, now]);
+  }, [printable, times, fits, fresh, fleet, settings, unavailable, now]);
 
   const plan = plans?.[settings.objective] ?? null;
   const numbers = useMemo(() => plateNumbers(plan), [plan]);
@@ -371,8 +404,20 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
     const setup = setupFor(plate, printer);
     if ('problem' in setup) throw new Error(`${plate.name}: ${setup.problem}`);
     setBusy(`${label}Slicing ${plate.name} for ${printer.name}…`);
-    setSlicing({ plateId: plate.id, pct: 0 });
-    const sliced = await slicePlate(plate, setup, (_stage, pct) => setSlicing({ plateId: plate.id, pct }));
+    const startedAt = Date.now();
+    setSlicing({
+      plateId: plate.id,
+      plateName: plate.name,
+      printerName: printer.name,
+      startedAt,
+      expectedMs: expectedSliceMs(plate.id, times[plate.id]?.value, map),
+      done: false,
+    });
+    const sliced = await slicePlate(plate, setup, (_stage, pct, message) => setSlicing((prev) => prev && ({
+      ...prev,
+      done: prev.done || pct >= 1,
+      message: message ?? prev.message,
+    })));
     const record = await putSlicedGcode({
       plateId: plate.id,
       printerId: printer.id,
@@ -383,6 +428,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
       seconds: sliced.seconds,
       grams: sliced.grams,
       slicedAt: Date.now(),
+      sliceMs: Date.now() - startedAt,
     });
     const next = { ...map, [plate.id]: [...(map[plate.id] ?? []).filter((s) => s.printerId !== printer.id), record] };
     setSlices(next);
@@ -420,8 +466,12 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
    * again until every plate is sliced where the plan puts it. Waits for every
    * plate's footprint, so bed fit has had its say about where it goes.
    */
+  // Nor does it slice before every printer has reported: a plan made while
+  // they're still loading counts busy printers as free, and would slice
+  // plates for printers the settled plan then takes them off.
+  const statusesSettled = enabledPrinters.every((p) => !p.address || (statuses[p.id] !== undefined && statuses[p.id] !== 'loading'));
   useEffect(() => {
-    if (busy || !plates || printable.some((p) => !geometry[p.id])) return;
+    if (busy || !plates || !statusesSettled || printable.some((p) => !geometry[p.id])) return;
     const todo = ordered
       .filter((plate) => plate.items.length > 0)
       .map((plate) => ({ plate, printer: targetFor(plate) }))
@@ -444,7 +494,44 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
         setSlicing(null);
       }
     })();
-  }, [busy, plates, geometry, plan, fresh, sliceFailed]);
+  }, [busy, plates, geometry, plan, fresh, sliceFailed, statusesSettled]);
+
+  // Keep the plan for the screens that don't compute it: the printers' stats and the runbook.
+  useEffect(() => {
+    if (!plan || !project) return;
+    savePlanSnapshot({
+      projectId,
+      projectName: project.name,
+      savedAt: Date.now(),
+      objective: settings.objective,
+      changeoverMin: settings.changeoverMin,
+      swapMin: settings.swapMin,
+      printers: enabledPrinters.map((p) => ({ id: p.id, name: p.name })),
+      jobs: plan.jobs.map((job) => {
+        const plate = plateById.get(job.jobId)!;
+        const order = numbers.get(job.jobId) ?? 0;
+        return {
+          plateId: plate.id,
+          plateName: plate.name,
+          printerId: job.printerId,
+          order,
+          file: gcodeName(order, plate),
+          start: job.start,
+          end: job.end,
+          visit: job.visit,
+          ...(job.swapFrom ? { swapFrom: job.swapFrom } : {}),
+          material: plateMaterial(plate),
+          materialName: plate.material ?? 'PETG',
+          ...(plate.color ? { color: plate.color } : {}),
+          ...(grams[plate.id] ? { grams: grams[plate.id]!.value } : {}),
+          sliced: times[plate.id]?.source === 'sliced',
+        };
+      }),
+      visits: plan.visits.map((v) => ({ at: v.at, until: v.until, starts: v.starts.map((s) => s.jobId) })),
+      finish: plan.finish,
+      collect: plan.collect,
+    });
+  }, [plan, project?.name, grams, times]);
 
   /** Hand the plan to the printers screen: each printer's jobs, in plan order,
    *  with the slice each one sends. Nothing reaches a printer from here. */
@@ -534,7 +621,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
   });
 
   if (error && !project) {
-    return <Modal title="Project" onClose={onClose}><p class="plate-empty">{error}</p></Modal>;
+    return <Page label="Project" onClose={onClose}><p class="plate-empty">{error}</p></Page>;
   }
 
   // ── Panes ──────────────────────────────────────────────
@@ -588,7 +675,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
               proc={procFor(plate)}
               layerHeight={selections.layerHeight ?? '0.20'}
               bedSurface={selections.bedSurface ?? DEFAULT_BED_SURFACE}
-              slicingPct={slicing?.plateId === plate.id ? slicing.pct : null}
+              slicing={slicing?.plateId === plate.id}
               clash={clashes.has(plate.id)}
               hovered={hovered === plate.id}
               busy={!!busy}
@@ -803,10 +890,14 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
     [ready.clear, ready.clear ? 'No overlapping jobs' : 'Jobs overlap on the timeline'],
   ];
 
+  const printedCount = printable.filter((p) =>
+    dispatch?.jobs.some((j) => j.plateId === p.id && j.outcome?.state === 'printed')).length;
+
   return (
-    <Modal title="Project" onClose={onClose} bleed>
+    <Page label="Project" onClose={onClose}>
       <div class="planner" data-tab={tab}>
         <div class="planner-project">
+          <button type="button" class="btn planner-back" aria-label="Back to the gallery" title="Back to the gallery" onClick={onClose}>←</button>
           <input
             class="planner-project-name"
             aria-label="Project name"
@@ -820,8 +911,49 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
             {project?.draft && <button type="button" class="btn btn-primary" onClick={handleSaveProject}>Save</button>}
             <button type="button" class="btn" onClick={handleNewProject}>New</button>
             <button type="button" class="btn" onClick={onOpenProjects}>Projects…</button>
+            {onOpenOperator && <button type="button" class="btn" onClick={onOpenOperator}>Runbook</button>}
+            {sent && <button type="button" class="btn" onClick={onOpenDispatch}>Printers</button>}
+            <button
+              type="button"
+              class="btn btn-primary planner-send"
+              disabled={!isReady(ready)}
+              title={isReady(ready) ? undefined : 'Every plate has to be sliced for its printer, with a clean timeline'}
+              onClick={handleSend}
+            >
+              Send to printers
+            </button>
           </div>
         </div>
+        <section class="planner-status" aria-label="Progress">
+          <div class="planner-bars">
+            <ProgressCard
+              label="Sliced"
+              value={printable.length ? slicedCount / printable.length : 0}
+              big={`${slicedCount}/${printable.length}`}
+              sub={printable.length === 0 ? 'No plates yet'
+                : slicedCount === printable.length ? 'Every plate, for its printer'
+                  : slicing ? `${printable.length - slicedCount} to go` : 'Waiting to slice'}
+              done={printable.length > 0 && slicedCount === printable.length}
+            />
+            <SliceCard slicing={slicing} />
+            <ProgressCard
+              label="Printed"
+              value={printable.length ? printedCount / printable.length : 0}
+              big={`${printedCount}/${printable.length}`}
+              sub={!sent ? 'Not sent to the printers yet' : printedCount === printable.length && printable.length > 0 ? 'All done' : 'From the printers screen'}
+              done={printable.length > 0 && printedCount === printable.length}
+            />
+          </div>
+          <div class="planner-status-foot">
+            <ul class="planner-checks">
+              {checks.map(([ok, text]) => (
+                <li key={text} class={ok ? 'is-ok' : 'is-todo'}><span aria-hidden="true">{ok ? '✓' : '○'}</span> {text}</li>
+              ))}
+            </ul>
+            {error && <p class="pd-notice is-bad">{error}</p>}
+            {log.length > 0 && !busy && !error && <p class="planner-muted">{log[log.length - 1]}</p>}
+          </div>
+        </section>
         {printable.length > 0 && summary}
         <nav class="planner-tabs" role="tablist">
           {(['plates', 'timeline', 'printers'] as const).map((t) => (
@@ -835,30 +967,63 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
           {timelinePane}
           {printersPane}
         </div>
-        <footer class="planner-footer">
-          <ul class="planner-checks">
-            {checks.map(([ok, text]) => (
-              <li key={text} class={ok ? 'is-ok' : 'is-todo'}><span aria-hidden="true">{ok ? '✓' : '○'}</span> {text}</li>
-            ))}
-          </ul>
-          <div class="planner-footer-status">
-            {busy && <p class="planner-busy">{busy}{slicing ? ` ${Math.round(slicing.pct)}%` : ''}</p>}
-            {error && <p class="pd-notice is-bad">{error}</p>}
-            {log.length > 0 && !busy && <p class="planner-muted">{log[log.length - 1]}</p>}
-          </div>
-          {sent && <button type="button" class="btn" onClick={onOpenDispatch}>Printers</button>}
-          <button
-            type="button"
-            class="btn btn-primary planner-send"
-            disabled={!isReady(ready)}
-            title={isReady(ready) ? undefined : 'Every plate has to be sliced for its printer, with a clean timeline'}
-            onClick={handleSend}
-          >
-            Send to printers
-          </button>
-        </footer>
       </div>
-    </Modal>
+    </Page>
+  );
+}
+
+// ── Status strip ─────────────────────────────────────────
+
+function ProgressCard({ label, value, big, sub, done }: { label: string; value: number; big: string; sub: string; done: boolean }) {
+  return (
+    <div class={`planner-bar-card${done ? ' is-done' : ''}`}>
+      <div class="planner-bar-head">
+        <span class="planner-stat-label">{label}</span>
+        <span class="planner-bar-big">{big}</span>
+      </div>
+      <div class="planner-bar" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(value * 100)}>
+        <div class="planner-bar-fill" style={{ width: `${Math.min(100, value * 100)}%` }} />
+      </div>
+      <div class="planner-stat-sub">{sub}</div>
+    </div>
+  );
+}
+
+/** The plate being sliced now. The slicer only says when it starts and ends,
+ *  so the bar runs on the clock (`sliceFraction`), ticking four times a second. */
+function SliceCard({ slicing }: { slicing: Slicing | null }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!slicing) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 250);
+    return () => window.clearInterval(timer);
+  }, [slicing?.plateId, slicing?.startedAt]);
+  if (!slicing) {
+    return (
+      <div class="planner-bar-card is-idle">
+        <div class="planner-bar-head"><span class="planner-stat-label">Slicing now</span></div>
+        <div class="planner-bar"><div class="planner-bar-fill" style={{ width: '0%' }} /></div>
+        <div class="planner-stat-sub">Nothing — the slicer is idle</div>
+      </div>
+    );
+  }
+  const elapsed = now - slicing.startedAt;
+  const value = slicing.done ? 1 : sliceFraction(elapsed, slicing.expectedMs);
+  const secs = Math.round(elapsed / 1000);
+  return (
+    <div class="planner-bar-card is-busy">
+      <div class="planner-bar-head">
+        <span class="planner-stat-label">Slicing now</span>
+        <span class="planner-bar-big">{Math.floor(value * 100)}%</span>
+      </div>
+      <div class="planner-bar" role="progressbar" aria-label="Slicing now" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.floor(value * 100)}>
+        <div class="planner-bar-fill" style={{ width: `${value * 100}%` }} />
+      </div>
+      <div class="planner-stat-sub planner-bar-what" title={slicing.message}>
+        {slicing.plateName} · {slicing.printerName} · {secs < 60 ? `${secs}s` : `${Math.floor(secs / 60)}m ${String(secs % 60).padStart(2, '0')}s`}
+        {' '}of ~{Math.max(1, Math.round(slicing.expectedMs / 1000))}s
+      </div>
+    </div>
   );
 }
 
@@ -948,7 +1113,7 @@ interface PlateRowProps {
   proc: ProcessSettings;
   layerHeight: string;
   bedSurface: string;
-  slicingPct: number | null;
+  slicing: boolean;
   sliceFailed: string | undefined;
   clash: boolean;
   hovered: boolean;
@@ -973,8 +1138,8 @@ function PlateRow(props: PlateRowProps) {
   const slicedHere = !!target && fresh.some((s) => s.printerId === target.id);
   const status = empty
     ? { cls: 'is-todo', text: props.isTarget ? 'Empty — Add to project puts parts here' : 'Empty' }
-    : props.slicingPct !== null
-    ? { cls: 'is-busy', text: `Slicing… ${Math.round(props.slicingPct)}%` }
+    : props.slicing
+    ? { cls: 'is-busy', text: `Slicing for ${target?.name ?? 'its printer'}…` }
     : slicedHere
       ? { cls: 'is-ok', text: `Sliced for ${target!.name}` }
       : props.sliceFailed

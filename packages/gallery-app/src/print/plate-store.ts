@@ -167,6 +167,8 @@ export interface SlicedGcode {
   seconds?: number;
   grams?: number;
   slicedAt: number;
+  /** How long the slice took, ms — what the next one's progress bar is timed by. */
+  sliceMs?: number;
 }
 
 function getDb(): Promise<IDBPDatabase> {

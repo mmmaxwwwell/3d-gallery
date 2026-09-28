@@ -127,11 +127,13 @@ export {
   fetchKlippyState,
   fileExists,
   fetchJobHistory,
+  fetchConsole,
   listWebcams,
   resolveWebcamUrl,
   type PrintStatus,
   type KlippyState,
   type HistoryJob,
+  type ConsoleLine,
   type Webcam,
 } from './moonraker-api.js';
 

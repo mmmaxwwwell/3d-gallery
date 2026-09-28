@@ -5,6 +5,7 @@ import { PrintDialog } from './PrintDialog.js';
 import { ProjectsPanel } from './ProjectsPanel.js';
 import { ProjectPlanner } from './ProjectPlanner.js';
 import { PrintDispatch } from './PrintDispatch.js';
+import { OperatorApp } from './operator-app.js';
 import { SettingsPanel } from './SettingsPanel.js';
 import { mayLeavePrintUI, setPrintLeaveGuard } from './nav-guard.js';
 import { syncFromServerOnce } from './server-store.js';
@@ -17,7 +18,7 @@ import { currentProject } from './plate-store.js';
  *
  * Which panel is open is part of the URL, alongside the gallery's own
  * `?model=&part=` route: `?projects=1`, `?plate=<id>`, `?project=<id>`,
- * `?dispatch=<id>`, `?settings=1`. That makes
+ * `?dispatch=<id>`, `?operator=<id>`, `?settings=1`. That makes
  * a plate linkable and makes the browser's Back button close a panel instead
  * of leaving the app. `main.ts` excludes these names from the customizer's
  * parameter sweep, so they never reach a model as a param.
@@ -37,11 +38,12 @@ export type PrintRoute =
   | { view: 'plate'; plateId: string }
   | { view: 'project'; projectId: string }
   | { view: 'dispatch'; projectId: string }
+  | { view: 'operator'; projectId: string }
   | { view: 'settings' }
   | null;
 
 /** Query names this module owns. Exported so the gallery router can skip them. */
-export const PRINT_ROUTE_PARAMS = ['projects', 'plate', 'project', 'dispatch', 'settings'] as const;
+export const PRINT_ROUTE_PARAMS = ['projects', 'plate', 'project', 'dispatch', 'operator', 'settings'] as const;
 
 function readRoute(): PrintRoute {
   const params = new URLSearchParams(window.location.search);
@@ -51,6 +53,8 @@ function readRoute(): PrintRoute {
   if (projectId) return { view: 'project', projectId };
   const dispatchId = params.get('dispatch');
   if (dispatchId) return { view: 'dispatch', projectId: dispatchId };
+  const operatorId = params.get('operator');
+  if (operatorId) return { view: 'operator', projectId: operatorId };
   if (params.get('settings')) return { view: 'settings' };
   if (params.get('projects')) return { view: 'projects' };
   return null;
@@ -63,6 +67,7 @@ function routePath(route: PrintRoute): string {
   else if (route?.view === 'plate') url.searchParams.set('plate', route.plateId);
   else if (route?.view === 'project') url.searchParams.set('project', route.projectId);
   else if (route?.view === 'dispatch') url.searchParams.set('dispatch', route.projectId);
+  else if (route?.view === 'operator') url.searchParams.set('operator', route.projectId);
   else if (route?.view === 'settings') url.searchParams.set('settings', '1');
   return url.pathname + url.search;
 }
@@ -115,6 +120,7 @@ function paint(route: PrintRoute): void {
         onShowProject={(id) => openProjectPlanner(id, true)}
         onOpenSettings={() => openSettingsPanel(() => openProjectPlanner(projectId, true), true)}
         onOpenDispatch={() => openPrintDispatch(projectId)}
+        onOpenOperator={() => openOperator(projectId)}
       />,
       portal,
     );
@@ -124,6 +130,20 @@ function paint(route: PrintRoute): void {
     const { projectId } = route;
     render(
       <PrintDispatch
+        key={projectId}
+        projectId={projectId}
+        onClose={() => closePrintUI()}
+        onOpenPlanner={() => openProjectPlanner(projectId)}
+        onOpenOperator={() => openOperator(projectId)}
+      />,
+      portal,
+    );
+    return;
+  }
+  if (route.view === 'operator') {
+    const { projectId } = route;
+    render(
+      <OperatorApp
         key={projectId}
         projectId={projectId}
         onClose={() => closePrintUI()}
@@ -183,6 +203,14 @@ export function openPrintDispatch(projectId: string, replace = false): void {
   plateOnClose = null;
   navigate({ view: 'dispatch', projectId }, replace);
   paint({ view: 'dispatch', projectId });
+}
+
+/** The operator's runbook for a project's plan. */
+export function openOperator(projectId: string, replace = false): void {
+  settingsOnClose = null;
+  plateOnClose = null;
+  navigate({ view: 'operator', projectId }, replace);
+  paint({ view: 'operator', projectId });
 }
 
 export function openSettingsPanel(onClose?: () => void, replace = false): void {

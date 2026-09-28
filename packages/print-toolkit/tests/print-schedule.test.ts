@@ -108,6 +108,25 @@ describe('simulate', () => {
     expect(each.visits).toHaveLength(3);
     expect(gathered.visits).toHaveLength(2);
   });
+
+  it('folds a printer that frees up during the walk into the same trip', () => {
+    // Four beds at 5 min each keep the operator there 20 min; C frees at 10 min.
+    const plan = simulate(
+      [job('a', 5), job('b', 5), job('c', 5), job('d', 5)],
+      [printer('L'), printer('R'), printer('X'), printer('C', 10 / 60)],
+      { ...base, changeoverSec: 300 },
+      0,
+    );
+    expect(plan.visits).toHaveLength(1);
+    expect(plan.jobs.find((j) => j.printerId === 'C')).toMatchObject({ visit: 0, start: NOW + 20 * 60 * MS });
+  });
+
+  it('gives a job to the idle printer it is already sliced for', () => {
+    const jobs = [{ ...job('a', 2), preferred: ['R'] }, { ...job('b', 1), preferred: ['L'] }];
+    const plan = simulate(jobs, [printer('L'), printer('R')], base, 0);
+    const byJob = Object.fromEntries(plan.jobs.map((j) => [j.jobId, j.printerId]));
+    expect(byJob).toEqual({ a: 'R', b: 'L' });
+  });
 });
 
 describe('planSchedule', () => {

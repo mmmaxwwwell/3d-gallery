@@ -4,12 +4,12 @@
 // tag can't jingle, dangle or be pulled off.
 //
 // The collar runs in a channel along the back, enclosed at both ends. The
-// tag presses in through a round opening in the back, a little smaller
-// than the tag, and seats flat against a lip that overlaps its front edge;
+// tag presses in through an opening in the back, past a small catch
+// beside the strap, and seats flat against a lip that overlaps its front edge;
 // the front window leaves the engraving readable. Pressing the collar in
 // behind it holds the tag there.
-// Print it in TPU: the back opening is an interference fit on the tag,
-// and the filament's give is what lets it past.
+// Print it in TPU: the catch is an interference fit on the tag, and the
+// filament's give is what lets it past.
 // END_DESCRIPTION
 
 // BEGIN_PARAMS
@@ -23,11 +23,6 @@ tag_thickness = 1.3;
 // is the tag diameter less twice this.
 tag_overlap = 2;
 
-// How far the back opening overlaps the tag's edge (mm). The tag is
-// pressed past it to go in, and it keeps the tag in beside the strap.
-// Raise it to grip harder, lower it for an easier fit.
-back_overlap = 1;
-
 // Width of the collar strap (mm). 25 is 1 in biothane.
 collar_width = 25;
 
@@ -35,9 +30,10 @@ collar_width = 25;
 // so the strap presses in and pins the tag against the lip.
 collar_thickness = 2.5;
 
-// How long the solid strip at each end is (mm): the stretch past the tag
-// where the back is closed and the strap is fully enclosed. This is what
-// holds the collar on.
+// How far the holder runs past the tag at each end of the strap (mm): the
+// strip where the back is closed and the strap is fully enclosed. This is
+// what holds the collar on. The holder is round, so it runs this far past
+// the tag all the way round.
 capture_length = 6;
 
 // Wall around the tag and the strap, and the front lip (mm).
@@ -50,6 +46,10 @@ tag_clearance = 0.3;
 // Extra depth on the tag pocket. Kept small so the strap, not the pocket,
 // is what stops the tag rattling.
 tag_depth_clearance = 0.1;
+
+// Beside the strap, a flat ledge this wide at the tag's back face, inside the
+// pocket wall. The tag snaps past it going in and it catches the tag's edge.
+tag_catch = 0.75;
 
 // Across the strap only — its thickness is left exact for the press fit.
 collar_clearance = 0.3;
@@ -71,7 +71,7 @@ front_round_r = 1.5;
 // overhang.
 window_chamfer = 0.5;
 
-// 45° chamfer on the channel's four edges where it leaves each end face,
+// 45° chamfer on the channel's four edges where it leaves the rim,
 // so the strap never bends over a square edge.
 channel_chamfer = 0.6;
 
@@ -86,10 +86,6 @@ _eps = 0.01;
 pocket_r = (tag_diameter + tag_clearance) / 2;
 pocket_depth = tag_thickness + tag_depth_clearance;
 window_r = tag_diameter / 2 - tag_overlap;
-opening_r = tag_diameter / 2 - back_overlap;
-// Beside the strap, the back lip's inner face is a 45° cone out to the
-// pocket wall: printed face down, a flat ring there would overhang.
-opening_cone_h = pocket_r - opening_r;
 
 channel_w = collar_width + collar_clearance;
 channel_z0 = lip_height;
@@ -97,85 +93,114 @@ channel_z1 = channel_z0 + collar_thickness;
 pocket_z1 = channel_z1 + pocket_depth;
 body_h = pocket_z1 + wall;
 
-body_l = 2 * (pocket_r + capture_length);
-body_w = 2 * (pocket_r + wall);
-// Leaves each end face flat across the channel and a wall either side of it.
-body_corner_r = pocket_r - channel_w / 2;
+body_r = pocket_r + capture_length;
+// Beside the strap the space behind the tag is filled in, its face a 45°
+// cone out to the pocket wall at the tag's back: printed face down, a flat
+// ring there would overhang. This is its radius where it meets the back.
+fill_r0 = pocket_r - tag_catch - collar_thickness;
 
 assert(window_r > 0, "tag_overlap leaves no window");
-assert(back_overlap > tag_clearance / 2, "back_overlap is inside the pocket's slip, so it holds nothing");
-assert(channel_z0 + opening_cone_h <= channel_z1, "back_overlap is too deep for the strap channel");
-assert(body_corner_r > 0, "the strap must be narrower than the tag");
+assert(fill_r0 > channel_w / 2, "the strap is too wide for the fill beside it to hold the tag");
 assert(back_round_r < lip_height + collar_thickness && front_round_r < wall,
        "edge rounds must stay clear of the channel and the pocket");
 assert(channel_chamfer < lip_height, "channel_chamfer would break through the back");
 
-module _plan() {
-    offset(r = body_corner_r)
-        square([body_l - 2 * body_corner_r, body_w - 2 * body_corner_r], center = true);
-}
-
-module _slice(inset, z) {
-    translate([0, 0, z]) linear_extrude(_eps) offset(delta = -inset) _plan();
-}
-
-// The plan is convex, so the rounded body is the hull of inset slices.
 module _body() {
     steps = 8;
     rb = back_round_r;
     rf = front_round_r;
-    hull() {
-        for (i = [0 : steps]) {
-            a = 90 * i / steps;
-            _slice(rb - rb * cos(a), rb - rb * sin(a));
-        }
-        for (i = [0 : steps]) {
-            a = 45 * i / steps;
-            _slice(rf - rf * cos(a), body_h - rf + rf * sin(a));
-        }
-        _slice(rf * (2 - sqrt(2)), body_h - _eps);
-    }
+    rotate_extrude()
+        polygon(concat(
+            [[0, 0]],
+            [for (i = [steps : -1 : 0]) let(a = 90 * i / steps)
+                [body_r - rb + rb * cos(a), rb - rb * sin(a)]],
+            [for (i = [0 : steps]) let(a = 45 * i / steps)
+                [body_r - rf + rf * cos(a), body_h - rf + rf * sin(a)]],
+            [[body_r - rf * (2 - sqrt(2)), body_h], [0, body_h]]
+        ));
 }
 
 // Full length, so it bores through both end strips. Exactly collar_thickness
 // tall: slack here shows up as a loose strap in the end strips.
 module _channel() {
-    translate([0, 0, channel_z0 + collar_thickness / 2]) {
-        cube([body_l + 2, channel_w, collar_thickness], center = true);
-        for (s = [0, 1])
-            mirror([s, 0, 0])
-                hull() {
-                    translate([body_l / 2 - channel_chamfer, 0, 0])
-                        cube([_eps, channel_w, collar_thickness], center = true);
-                    translate([body_l / 2 + 0.5, 0, 0])
-                        cube([1, channel_w + 2 * (channel_chamfer + 0.5),
-                              collar_thickness + 2 * (channel_chamfer + 0.5)], center = true);
-                }
+    zc = channel_z0 + collar_thickness / 2;
+    translate([0, 0, zc]) cube([2 * body_r + 2, channel_w, collar_thickness], center = true);
+    _channel_flare(zc);
+}
+
+// The exit chamfer on a round rim: the channel's cross-section widens 45°
+// with radius from body_r - channel_chamfer. The rotated profile flares it
+// in Z; the plan region, |y| - channel_w / 2 <= r - (body_r - channel_chamfer),
+// flares it in Y.
+module _channel_flare(zc) {
+    c = channel_chamfer;
+    r0 = body_r - c;
+    k = r0 - channel_w / 2;
+    y_max = channel_w / 2 + c + 2;
+    n = 20;
+    intersection() {
+        rotate_extrude()
+            polygon([
+                [r0 - collar_thickness / 2, zc],
+                [body_r + 2, zc - collar_thickness / 2 - c - 2],
+                [body_r + 2, zc + collar_thickness / 2 + c + 2],
+            ]);
+        linear_extrude(body_h)
+            for (s = [0, 1])
+                mirror([s, 0])
+                    polygon(concat(
+                        [[body_r + 3, -y_max]],
+                        [for (i = [-n : n]) let(y = y_max * i / n)
+                            [sqrt(pow(abs(y) + k, 2) - y * y), y]],
+                        [[body_r + 3, y_max]]
+                    ));
     }
 }
 
-// Back opening, pocket and window, as one (r, z) section. The pocket runs
-// down past the strap to the back lip, so the tag's edge has nothing but
-// the lip to get past on its way in.
+// Pocket and window, as one (r, z) section. Below the tag the pocket is
+// the fill's cone; the channel cut clears it across the strap.
 module _pocket() {
-    rotate_extrude() {
+    rotate_extrude()
         polygon([
-            [0, -1],
-            [opening_r, -1],
-            [opening_r, channel_z0],
-            [pocket_r, channel_z0 + opening_cone_h],
+            [0, channel_z0],
+            [fill_r0, channel_z0],
+            [pocket_r - tag_catch, channel_z1],
+            [pocket_r, channel_z1],
             [pocket_r, pocket_z1],
             [window_r, pocket_z1],
             [window_r, body_h - window_chamfer],
             [window_r + window_chamfer + _eps, body_h + _eps],
             [0, body_h + _eps],
         ]);
-        difference() {
-            translate([opening_r - _eps, -_eps]) square(opening_round_r + _eps);
-            translate([opening_r + opening_round_r, opening_round_r])
-                circle(r = opening_round_r);
-        }
+}
+
+module _opening_plan() {
+    intersection() {
+        circle(r = pocket_r);
+        square([2 * pocket_r + 2, channel_w], center = true);
     }
+}
+
+// Through the back, the pocket's full width along the strap and clipped to
+// the strap's width across it, so only the catch beside the strap holds the tag.
+// It runs on past the tag's back face: the channel's top and the catch's step
+// share that plane, and would leave a film across the strap there. Its rim against the dog
+// is rounded; the round is concave, so it's a union of hulls, not one hull.
+module _opening() {
+    steps = 8;
+    rr = opening_round_r;
+    function e(i) = rr - rr * cos(90 * i / steps);
+    function z(i) = rr - rr * sin(90 * i / steps);
+    module slice(grow, z) {
+        translate([0, 0, z]) linear_extrude(_eps) offset(r = grow) _opening_plan();
+    }
+    for (i = [0 : steps - 1])
+        hull() {
+            slice(e(i), z(i));
+            slice(e(i + 1), z(i + 1));
+        }
+    translate([0, 0, -1]) linear_extrude(channel_z1 + cut_overlap + 1) _opening_plan();
+    translate([0, 0, -1]) linear_extrude(1 + _eps) offset(r = rr) _opening_plan();
 }
 
 // Assembled pose: back at z = 0.
@@ -184,6 +209,7 @@ module holder_body() {
         _body();
         _channel();
         _pocket();
+        _opening();
     }
 }
 

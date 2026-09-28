@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { buildMoonrakerUrl, extractGcodeBlock, extractGcodeSection, parsePrinterConfig, fetchConfigfile, fetchToolhead, fetchRawPrinterCfg, startPrint, fetchPrinterConfig, fetchKlippyState, fileExists, fetchJobHistory, listWebcams, resolveWebcamUrl } from '../src/moonraker-api.js';
+import { buildMoonrakerUrl, extractGcodeBlock, extractGcodeSection, parsePrinterConfig, fetchConfigfile, fetchToolhead, fetchRawPrinterCfg, startPrint, fetchPrinterConfig, fetchKlippyState, fileExists, fetchJobHistory, fetchConsole, listWebcams, resolveWebcamUrl } from '../src/moonraker-api.js';
 
 // ─── Shared fetch mock helpers ───────────────────────────────────────────────
 
@@ -775,5 +775,24 @@ describe('fetchJobHistory', () => {
       'http://printer.local/server/history/list?since=1700000000&limit=100&order=desc',
       expect.anything(),
     );
+  });
+
+  it('keeps when a finished job ended, how long it printed and the filament it used', async () => {
+    globalThis.fetch = mockFetch({ json: { result: { jobs: [{
+      filename: '01-a.gcode', status: 'completed', start_time: 1700000000, end_time: 1700003600, print_duration: 3500, filament_used: 1234.5,
+    }] } } }) as any;
+    expect(await fetchJobHistory('printer.local', 0)).toEqual([{
+      filename: '01-a.gcode', status: 'completed', startTime: 1_700_000_000_000, endTime: 1_700_003_600_000, printDurationSec: 3500, filamentUsedMm: 1234.5,
+    }]);
+  });
+});
+
+describe('fetchConsole', () => {
+  useMockFetch();
+
+  it('reads the console store with ms timestamps', async () => {
+    globalThis.fetch = mockFetch({ json: { result: { gcode_store: [{ message: '!! Move out of range', time: 1700000000.25, type: 'response' }] } } }) as any;
+    expect(await fetchConsole('printer.local', 50)).toEqual([{ message: '!! Move out of range', time: 1_700_000_000_250, type: 'response' }]);
+    expect(globalThis.fetch).toHaveBeenCalledWith('http://printer.local/server/gcode_store?count=50', expect.anything());
   });
 });

@@ -225,16 +225,56 @@ export interface HistoryJob {
   status: string;
   /** Epoch ms, printer clock. */
   startTime: number;
+  /** Epoch ms, printer clock; absent while it runs. */
+  endTime?: number;
+  /** Seconds spent printing, pauses excluded. */
+  printDurationSec?: number;
+  /** Filament pushed, mm. */
+  filamentUsedMm?: number;
+}
+
+interface MoonrakerHistoryJob {
+  filename: string;
+  status: string;
+  start_time: number;
+  end_time?: number | null;
+  print_duration?: number;
+  filament_used?: number;
 }
 
 /** Prints started at or after `sinceMs`, newest first. */
 export async function fetchJobHistory(address: string, sinceMs: number): Promise<HistoryJob[]> {
   const since = Math.floor(sinceMs / 1000);
-  const data = await moonrakerGet<{ result: { jobs: Array<{ filename: string; status: string; start_time: number }> } }>(
+  const data = await moonrakerGet<{ result: { jobs: MoonrakerHistoryJob[] } }>(
     address,
     `/server/history/list?since=${since}&limit=100&order=desc`,
   );
-  return data.result.jobs.map((j) => ({ filename: j.filename, status: j.status, startTime: j.start_time * 1000 }));
+  return data.result.jobs.map((j) => ({
+    filename: j.filename,
+    status: j.status,
+    startTime: j.start_time * 1000,
+    ...(j.end_time ? { endTime: j.end_time * 1000 } : {}),
+    ...(typeof j.print_duration === 'number' ? { printDurationSec: j.print_duration } : {}),
+    ...(typeof j.filament_used === 'number' ? { filamentUsedMm: j.filament_used } : {}),
+  }));
+}
+
+/** One line of the printer's console, as Moonraker keeps it. */
+export interface ConsoleLine {
+  message: string;
+  /** Epoch ms, printer clock. */
+  time: number;
+  /** `command` (sent to Klipper) or `response` (what Klipper said). */
+  type: string;
+}
+
+/** The last `count` console lines (Moonraker keeps 1000 by default), oldest first. */
+export async function fetchConsole(address: string, count = 1000): Promise<ConsoleLine[]> {
+  const data = await moonrakerGet<{ result: { gcode_store: Array<{ message: string; time: number; type: string }> } }>(
+    address,
+    `/server/gcode_store?count=${count}`,
+  );
+  return data.result.gcode_store.map((l) => ({ message: l.message, time: l.time * 1000, type: l.type }));
 }
 
 export interface Webcam {

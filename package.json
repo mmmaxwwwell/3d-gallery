@@ -17,7 +17,7 @@
     "test:e2e": "npm run test:e2e -w @3d-gallery/gallery-app",
     "test:e2e:full": "npm run test:e2e:full -w @3d-gallery/gallery-app",
     "test:e2e:ui": "npm run test:e2e:ui -w @3d-gallery/gallery-app",
-    "test:build": "node --test tests/build/build.test.mjs",
+    "test:build": "node --test tests/build/build.test.mjs tests/build/param-schemas.test.mjs",
     "test:build:baseline": "TEST_UPDATE_BASELINE=1 node --test tests/build/build.test.mjs",
     "preflight": "node scripts/preflight.mjs",
     "apk": "cd packages/android-shell && gradle assembleDebug",
@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.9.1",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "zod": "^4.6.5"
   }
 }

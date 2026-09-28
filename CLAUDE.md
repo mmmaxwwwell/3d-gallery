@@ -1,6 +1,25 @@
 # 3d-gallery
 
-GitHub Pages gallery of 3D-printable OpenSCAD models with an in-browser Three.js viewer. Some models are **customizable** — user tweaks parameters and the model re-renders live via OpenSCAD-WASM.
+A browser-first tool for 3D modelling (OpenSCAD for now), slicing, printing and queuing, published on GitHub Pages. It started as a gallery of 3D-printable OpenSCAD models with an in-browser Three.js viewer. Some models are **customizable** — user tweaks parameters and the model re-renders live via OpenSCAD-WASM. The new-user guide is `docs/user-guide.md`. Keep it true when a view's behaviour changes.
+
+## App shape (target — being migrated to)
+
+Five views, each its own Vite page (own entry, own bundle), sharing config and not code paths. Today everything but the landing page lives in the one gallery SPA as `?projects= / ?project= / ?dispatch= / ?operator= / ?settings=` panels (`src/print/mount.tsx`). Move toward the target. Don't add new panels to that router.
+
+| View | Path (under `/3d-gallery/`) | Job |
+|------|------|-----|
+| **Home** | `/` | What this is, what each view does, a workflow that uses them all. Settings (Orca import, presets) are reached from here. |
+| **Models** | `/gallery/` | Browse, view, customize a model; load its plates or add parts to the open project. Not `/models/` — that prefix is the artifact URL space (`models/<slug>/<file>`, `public/models/`). |
+| **Project** | `/project/?id=` | Plates, automatic slicing, the fleet plan, **Send to printers**. |
+| **Printers** | `/printers/` | Fleet dashboard, phone-first. Every printer live: state, temps, progress, camera, uptime, sensors. Controls, and each printer's queue from the last sent plan. |
+| **Operator** | `/operator/?id=` | The runbook: countdown to the next trip, the session brief, the per-printer stops. |
+
+- **Switching views.** A persistent view switcher is on every page. On phones it's a bottom navigation bar: five labelled icon tabs, thumb-reachable, with badges (Printers: count needing attention; Operator: time to next trip). On wide screens the same items sit in a left navigation rail. A tab reopens the last thing open in that view (last project id, etc.). Views link to each other directly too (Send to printers → Printers; a due stop → Operator).
+- **Loose coupling.** Views never import each other's components. They share state only through the stores all same-origin pages see: presets (`print-storage.ts`), projects/plates (`plate-store.ts`), plan snapshot, dispatch queue, operator store, planner settings. They talk to printers only through `print-toolkit`'s Moonraker API. A change made in one view shows up in another via the store's change events / `storage` events, not via calls.
+- **Old links keep working.** `/?model=…` (and every other legacy query route) forwards to the view that now owns it.
+- **Printer control needs plain HTTP.** Browsers block an HTTPS page from reaching `http://` Moonraker. Printers/Operator controls work when served over HTTP on the LAN (dev server, local build) or inside the Android shell. On HTTPS they explain why they're read-only, not fail silently.
+- **Printers safety rules.** Emergency stop fires instantly, no confirm. Cancel, reboot, power off, firmware restart and mesh-and-save are hold-to-confirm. Anything that would ruin a running print (home, mesh, load/unload, firmware restart, temperature presets) is disabled while printing. Machine controls call the printers' own macros (the fleet runs ZMOD: `LOAD_FILAMENT`, `UNLOAD_FILAMENT`, `AUTO_FULL_BED_LEVEL`, `CLEAR_NOZZLE`, `COLDPULL`, `SET_PAUSE_NEXT_LAYER`, `CAMERA_RESTART`, …) — don't reimplement them in G-code.
+- **Staging.** The swarm brief is `docs/app-split-swarm.md`. 1) Home page + view switcher + Printers dashboard as new pages. 2) Operator moves out. 3) Project moves out, and the per-project printers screen (`PrintDispatch`) folds into Printers, leaving Project with just Send. The gallery SPA ends as the Models view.
 
 ## Stack
 
@@ -16,9 +35,11 @@ models/<slug>/            one directory per model
   lib/<slug>-lib.scad     ALL params + geometry modules. No top-level render.
   parts/*.scad            single-color STLs. 3 lines: include lib, $fn, module_call()
   previews/*.scad         multicolor 3MFs. include lib + top-level color() calls
+  schema.ts               zod input schema for the customizer params (see below)
   build/                  generated (.gitignored artifacts)
   README.md, CLAUDE.md    per-model docs (create both for new models)
 models/manifest.json      source of truth for what appears in the sidebar
+models/schema-kit.ts      shared zod helpers for every schema.ts
 scripts/
   build-models.mjs        renders every part/preview per manifest
   build-multicolor-3mf.mjs multicolor 3MF pipeline (see gotcha below)
@@ -119,7 +140,7 @@ The sidebar, download list, and build queue all come from here.
 3. Add thin `parts/*.scad` and/or `previews/*.scad` files (the 3-line pattern).
 4. Add an entry to `models/manifest.json`.
 5. Write `models/<slug>/README.md` (human-facing) and `models/<slug>/CLAUDE.md` (agent-facing conventions).
-6. If **customizable**: also wire it into `packages/gallery-app/src/customizable-sources.ts` — add `?raw` imports and an entry in `CUSTOMIZABLE_SOURCES` keyed by slug.
+6. If **customizable**: also wire it into `packages/gallery-app/src/customizable-sources.ts` — add `?raw` imports and an entry in `CUSTOMIZABLE_SOURCES` keyed by slug, and write `models/<slug>/schema.ts` (see *Input schema*).
 7. `npm run build:models` to render. `npm run dev` to preview locally.
 8. If adding baseline tests: `npm run test:build:baseline` to seed checksums, then `npm run test:build` to verify.
 
@@ -154,6 +175,16 @@ export const CUSTOMIZABLE_SOURCES: Record<string, { lib: string; previews: Recor
 - For a **preview**: WASM concatenates lib + stripped preview source and renders multicolor 3MF.
 - BOSL2 and qr.scad are pre-loaded in the WASM virtual filesystem.
 - Results cached in `localStorage` under `3dg:${slug}:${hash}`, where `hash` is `SHA-256(scadSource + "\0" + moduleName + "\0" + JSON.stringify(sortedValues))` (keys sorted, null-byte separators). See `computeCacheKey` in `src/main.ts`.
+
+## Input schema (`models/<slug>/schema.ts`)
+
+A customizable model's inputs are declared first class: a default-exported zod `z.strictObject` naming every param in the lib's `BEGIN_PARAMS` block, built from `models/schema-kit.ts` (`between(min, max)`, `wholeBetween(min, max)`). The customizer validates on every edit: a bad field goes red with "<param> must be at least 100 — you entered 2.", Generate is locked, and a link carrying bad values says so on load. Nothing renders from values the schema rejects.
+
+- **Messages are predicates.** The UI prints them after the param name, so a custom one reads "must be wider than dovetail_root_width", not a sentence. A `.refine()` sets `path: ['<param>']` to pin its message to the field it should light.
+- **Ranges are plausibility, not fit.** How the pieces meet stays with the lib's `assert()`s on derived geometry — don't re-derive geometry in TS. A refinement is for a relation between raw inputs the lib takes on trust (a dovetail tip wider than its root).
+- **The lib owns the defaults.** The schema carries no `.default()`s; `tests/build/param-schemas.test.mjs` (part of `npm run test:build`) checks each schema accepts the lib's defaults and every build and variant the manifest renders. Being strict, that also proves it names exactly the lib's params — so a new lib param fails the test until the schema has it.
+- The parser keeps only the **last** assignment under one comment block, so params sharing a comment (`box_width`/`box_depth`/`box_height` in filament-spool-roller) are invisible to the customizer, and the schema must leave them out too.
+- `model-core` stays dependency-free: `validateParams()` takes any [Standard Schema](https://standardschema.dev), which zod implements. Only `models/` imports zod (a root devDependency). The browser picks schemas up by `import.meta.glob` in `packages/gallery-app/src/param-schemas.ts`.
 
 ## `include` vs `use`
 

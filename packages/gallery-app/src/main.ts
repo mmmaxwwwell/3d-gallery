@@ -88,8 +88,8 @@ if (installBtn) {
     });
   }
 }
-import { parseParams, coerceToParamType, mainAssembly, selectBuild, KEY_SCHEMA, describeProfile, recommendedProfile, plateMaterial } from "@3d-gallery/model-core";
-import type { ScadParam, ScadValue, RuntimeManifest, PrintProfileHint } from "@3d-gallery/model-core";
+import { parseParams, coerceToParamType, validateParams, mainAssembly, selectBuild, KEY_SCHEMA, describeProfile, recommendedProfile, plateMaterial } from "@3d-gallery/model-core";
+import type { ScadParam, ScadValue, RuntimeManifest, PrintProfileHint, ParamsSchema } from "@3d-gallery/model-core";
 import {
   createArtifactClient,
   createIdbCache,
@@ -108,6 +108,7 @@ import { openNewProject } from "./print/current-project";
 import { setPlateArtifactClient } from "./print/plate-resolve";
 import { listPresets } from "./print/print-storage";
 import { CUSTOMIZABLE_SOURCES as INITIAL_SOURCES } from "./customizable-sources";
+import { PARAM_SCHEMAS } from "./param-schemas";
 import {
   addItemToPlate,
   createPlatesWithItems,
@@ -1988,6 +1989,8 @@ infoCloseBtn.addEventListener("click", () => setInfoPanelOpen(false));
 
 interface CustomizerProps {
   params: ScadParam[];
+  /** The model's input schema, when it has one. */
+  schema?: ParamsSchema;
   slug: string;
   buildId?: string;
   part: Part;
@@ -2027,7 +2030,7 @@ function formatScadValue(v: ScadValue | undefined): string {
   return JSON.stringify(v);
 }
 
-function Customizer({ params, slug, buildId, part, initialValues, autoGenerate, showsDefault, onValuesChange, onStaleChange, onStart, onProgress, onStage, onFinish, onGenerated, onError }: CustomizerProps) {
+function Customizer({ params, schema, slug, buildId, part, initialValues, autoGenerate, showsDefault, onValuesChange, onStaleChange, onStart, onProgress, onStage, onFinish, onGenerated, onError }: CustomizerProps) {
   const [values, setValues] = useState<Record<string, ScadValue>>(() => {
     const defaults: Record<string, ScadValue> = {};
     const known = new Map(params.map((p) => [p.name, p]));
@@ -2062,6 +2065,17 @@ function Customizer({ params, slug, buildId, part, initialValues, autoGenerate, 
     ? params.filter((p) => JSON.stringify(values[p.name]) !== JSON.stringify(displayed.values[p.name]))
     : [];
   const changedNames = new Set(changed.map((p) => p.name));
+
+  const issues = schema ? validateParams(schema, values) : [];
+  const issuesByParam = new Map<string, string[]>();
+  for (const issue of issues) {
+    if (issue.param === null) continue;
+    issuesByParam.set(issue.param, [...(issuesByParam.get(issue.param) ?? []), issue.message]);
+  }
+  const setIssues = issues.filter((i) => i.param === null);
+  const invalid = issues.length > 0;
+  const describeIssue = (i: (typeof issues)[number]) =>
+    i.param === null ? i.message : `${i.param} ${i.message} — you entered ${formatScadValue(values[i.param])}.`;
   const stale = !generating && !!displayed && changed.length > 0;
 
   useEffect(() => {
@@ -2083,6 +2097,12 @@ function Customizer({ params, slug, buildId, part, initialValues, autoGenerate, 
   const outputFormat = part.format;
 
   const handleGenerate = async (force = false) => {
+    // The buttons are disabled while invalid; this catches an auto-generate.
+    if (invalid) {
+      onFinish();
+      reportInvalid();
+      return;
+    }
     // Edits made while this runs belong to the next Generate, not this one.
     const requested = values;
     const started = performance.now();
@@ -2125,8 +2145,15 @@ function Customizer({ params, slug, buildId, part, initialValues, autoGenerate, 
   // auto-generate effect below fires it with today's params.
   handleGenerateRef.current = handleGenerate;
 
+  // A link can carry values the schema rejects; say so before anyone presses Generate.
+  function reportInvalid() {
+    const more = issues.length > 1 ? ` (and ${issues.length - 1} more)` : "";
+    onError(`These settings can't make a working model: ${describeIssue(issues[0]!)}${more} Fix them under Customize.`);
+  }
+
   useEffect(() => {
     if (autoGenerate) handleGenerateRef.current();
+    else if (invalid) reportInvalid();
     // Only fire once when the Customizer instance mounts. Subsequent
     // clicks on the same legend/cell force a fresh Customizer via the
     // `key={slug}:{part.module}` prop, so this useEffect re-runs then.
@@ -2137,7 +2164,11 @@ function Customizer({ params, slug, buildId, part, initialValues, autoGenerate, 
     h("h3", null, "Customize"),
     params.length > 0 && h("div", { className: "param-list" },
       params.map((param) =>
-        h("div", { key: param.name, className: changedNames.has(param.name) ? "param-field is-changed" : "param-field" },
+        h("div", {
+          key: param.name,
+          className: ["param-field", changedNames.has(param.name) && "is-changed", issuesByParam.has(param.name) && "is-invalid"]
+            .filter(Boolean).join(" "),
+        },
           h("label", { className: "param-label" },
             h("span", { className: "param-name" },
               param.name,
@@ -2193,21 +2224,30 @@ function Customizer({ params, slug, buildId, part, initialValues, autoGenerate, 
                   onInput: (e: Event) => handleChange(param.name, (e.target as HTMLInputElement).value),
                 }),
           ),
+          issuesByParam.get(param.name)?.map((message) =>
+            h("p", { key: message, className: "param-issue", role: "alert" },
+              describeIssue({ param: param.name, message }))),
         ),
       ),
+    ),
+    invalid && h("div", { className: "customizer-invalid", role: "alert" },
+      h("strong", null, "These settings can't make a working model."),
+      issuesByParam.size > 0 &&
+        ` Fix the ${issuesByParam.size === 1 ? "highlighted setting" : `${issuesByParam.size} highlighted settings`} to generate.`,
+      setIssues.map((i) => h("p", { key: i.message }, i.message)),
     ),
     h("div", { className: "customizer-actions" },
       h(CustomizerStatus, { generating, stage, displayed, changed: changed.length }),
       h("button", {
         className: "btn btn-secondary",
         onClick: () => handleGenerate(true),
-        disabled: generating,
+        disabled: generating || invalid,
         title: "Skip the cache and render these settings again with OpenSCAD in your browser",
       }, "Force regenerate"),
       h("button", {
         className: "btn btn-primary",
         onClick: () => handleGenerate(),
-        disabled: generating,
+        disabled: generating || invalid,
       }, generating ? "Working…" : `Generate Custom ${outputFormat.toUpperCase()}`),
     ),
   );
@@ -2272,6 +2312,7 @@ function showCustomizer(model: Model, part: Part, initialValues?: Record<string,
       // never re-fires on subsequent clicks of a different cell.
       key: `${model.slug}:${model.build?.id ?? ""}:${part.module ?? ""}:${JSON.stringify(initialValues ?? null)}`,
       params,
+      schema: PARAM_SCHEMAS[model.slug],
       slug: model.slug,
       buildId: model.build?.id,
       part,

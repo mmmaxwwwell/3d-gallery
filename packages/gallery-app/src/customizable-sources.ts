@@ -59,6 +59,9 @@ import scaffoldCubeLib from "../../../models/scaffold-cube/lib/scaffold-cube-lib
 import scaffoldCubeUnit1u from "../../../models/scaffold-cube/previews/unit-1u.scad?raw";
 import scaffoldCubeStack3x3 from "../../../models/scaffold-cube/previews/stack-3x3.scad?raw";
 import scaffoldCubeCloset from "../../../models/scaffold-cube/previews/closet.scad?raw";
+import servoDuctManifoldLib from "../../../models/servo-duct-manifold/lib/servo-duct-manifold-lib.scad?raw";
+import servoDuctManifoldAssembled from "../../../models/servo-duct-manifold/previews/assembled.scad?raw";
+import servoDuctManifoldInline from "../../../models/servo-duct-manifold/previews/inline.scad?raw";
 
 // Strip include lines from a .scad source (for WASM concatenation with lib)
 function stripIncludes(source: string): string {
@@ -200,6 +203,13 @@ export const CUSTOMIZABLE_SOURCES: Record<string, { lib: string; previews: Recor
       "unit-1u": stripIncludes(scaffoldCubeUnit1u),
       "stack-3x3": stripIncludes(scaffoldCubeStack3x3),
       closet: stripIncludes(scaffoldCubeCloset),
+    },
+  },
+  "servo-duct-manifold": {
+    lib: servoDuctManifoldLib,
+    previews: {
+      assembled: stripIncludes(servoDuctManifoldAssembled),
+      inline: stripIncludes(servoDuctManifoldInline),
     },
   },
 };

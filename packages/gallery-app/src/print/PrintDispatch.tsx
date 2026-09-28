@@ -1,19 +1,25 @@
 // SPDX-License-Identifier: MIT
 /** @jsxImportSource preact */
 //
-// The printers, fed like conveyor belts. Each row is one printer — its state,
-// camera and readiness on the left, its plates queued out to the right in the
-// order it prints them. Uploads run in the background (dispatch-daemon.ts);
-// each printer's Print button starts the plate at the head of its belt once
+// The printers, one card each. A card is the printer's state, camera and
+// readiness, what the plan asks of it (filament by spool, hours, and the
+// operator's stops, touches and swaps there), its Print button, and its queue
+// of plates in the order it prints them. Uploads run in the background
+// (dispatch-daemon.ts); Print starts the plate at the head of the queue once
 // every check passes. Below, the queue of commands and the log of what they did.
+import type { ComponentChildren } from 'preact';
 import { useEffect, useMemo, useState } from 'preact/hooks';
-import { Modal } from './Modal.js';
+import { Page } from './Page.js';
 import { getProject, listPlates, plateSignature } from './plate-store.js';
 import { resolvePlate } from './plate-resolve.js';
 import { buildInstances } from './plate-geometry.js';
 import { plateThumbnail } from './plate-thumbnail.js';
 import { formatWhen, loadPlannerSettings, savePlannerSettings } from './fleet-plan.js';
 import { formatDuration } from './planner-model.js';
+import { loadPlanSnapshot, onPlanSnapshot, type PlanSnapshot } from './plan-snapshot.js';
+import { fleetStats, printerStats, type PrinterStats } from './printer-stats.js';
+import { listPrints, onOperatorChange, type PrintRecord } from './operator-store.js';
+import { latestStart, refreshPrintReports, reportSummary, type PrintReport } from './print-report.js';
 import { getDaemon, type DaemonSnapshot, type DispatchDaemon } from './dispatch-daemon.js';
 import {
   belt,
@@ -35,6 +41,8 @@ export interface PrintDispatchProps {
   projectId: string;
   onClose: () => void;
   onOpenPlanner: () => void;
+  /** The operator's runbook for this project, when the host has one. */
+  onOpenOperator?: () => void;
 }
 
 const PHASE_TEXT: Record<JobPhase, string> = {
@@ -51,13 +59,30 @@ function clock(ms: number): string {
   return new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
-export function PrintDispatch({ projectId, onClose, onOpenPlanner }: PrintDispatchProps) {
+function hours(h: number): string {
+  return h === 0 ? '0h' : formatDuration(h * 3600);
+}
+
+export function PrintDispatch({ projectId, onClose, onOpenPlanner, onOpenOperator }: PrintDispatchProps) {
   const [daemon, setDaemon] = useState<DispatchDaemon | null>(null);
   const [snap, setSnap] = useState<DaemonSnapshot | null>(null);
   const [projectName, setProjectName] = useState('…');
   const [thumbs, setThumbs] = useState<Record<string, string | null>>({});
   const [loaded, setLoadedState] = useState(() => loadPlannerSettings().loaded);
   const [activity, setActivity] = useState<'queue' | 'log'>('queue');
+  const [plan, setPlan] = useState<PlanSnapshot | null>(() => loadPlanSnapshot(projectId));
+
+  const [prints, setPrints] = useState<PrintRecord[]>([]);
+
+  useEffect(() => onPlanSnapshot((id) => { if (id === projectId) setPlan(loadPlanSnapshot(projectId)); }), [projectId]);
+
+  // What the printers said about each print started here — asked on load.
+  useEffect(() => {
+    const load = () => void listPrints(projectId).then(setPrints).catch(() => {});
+    load();
+    void refreshPrintReports(projectId).catch(() => {});
+    return onOperatorChange((id) => { if (id === projectId) load(); });
+  }, [projectId]);
 
   useEffect(() => {
     let unsubscribe = () => {};
@@ -102,10 +127,16 @@ export function PrintDispatch({ projectId, onClose, onOpenPlanner }: PrintDispat
   const dispatch = snap?.dispatch;
   const rows = useMemo(() => (dispatch ? printerIds(dispatch) : []), [dispatch]);
   const materials = useMemo(() => [...new Set([...(dispatch?.jobs ?? []).map((j) => j.material), 'PLA', 'PETG', 'TPU'])], [dispatch]);
+  const stats = useMemo(() => (plan ? printerStats(plan, dispatch?.jobs ?? []) : null), [plan, dispatch]);
+  const fleet = useMemo(() => (plan ? fleetStats(plan, dispatch?.jobs ?? []) : null), [plan, dispatch]);
 
-  if (!daemon || !snap || !dispatch) {
-    return <Modal title="Printers" onClose={onClose} bleed><div class="planner dispatch"><p class="plate-empty">Loading…</p></div></Modal>;
-  }
+  const page = (body: ComponentChildren) => (
+    <Page label={`Printers — ${projectName}`} onClose={onClose}>
+      <div class="planner dispatch">{body}</div>
+    </Page>
+  );
+
+  if (!daemon || !snap || !dispatch) return page(<p class="plate-empty">Loading…</p>);
 
   const toUpload = needsUpload(dispatch).length;
   const failed = dispatch.tasks.filter((t) => t.state === 'failed');
@@ -122,11 +153,12 @@ export function PrintDispatch({ projectId, onClose, onOpenPlanner }: PrintDispat
     daemon.print(printerId);
   };
 
-  return (
-    <Modal title={`Printers — ${projectName}`} onClose={onClose} bleed>
-      <div class="planner dispatch">
-        <header class="dispatch-bar">
-          <button type="button" class="btn" onClick={onOpenPlanner}>← Plan</button>
+  return page(
+    <>
+      <header class="dispatch-bar">
+        <button type="button" class="btn" onClick={onOpenPlanner}>← Plan</button>
+        <div class="dispatch-title">
+          <strong class="dispatch-project">{projectName}</strong>
           <p class="dispatch-tally">
             {dispatch.jobs.length === 0 ? 'Nothing sent yet.' : (
               <>
@@ -137,30 +169,36 @@ export function PrintDispatch({ projectId, onClose, onOpenPlanner }: PrintDispat
               </>
             )}
           </p>
-          <div class="planner-pane-tools">
-            {failed.length > 0 && (
-              <button type="button" class="btn" onClick={() => daemon.retryAllFailed()}>Retry failed ({failed.length})</button>
-            )}
-            <button type="button" class="btn btn-primary" disabled={toUpload === 0} onClick={() => daemon.uploadAll()}>
-              Upload all{toUpload > 0 ? ` (${toUpload})` : ''}
-            </button>
-          </div>
-        </header>
-
-        <div class="dispatch-rows">
-          {rows.length === 0 && (
-            <p class="plate-empty">No plan sent yet — go back to the plan and press Send to printers.</p>
+        </div>
+        <div class="planner-pane-tools">
+          {onOpenOperator && <button type="button" class="btn" onClick={onOpenOperator}>Runbook</button>}
+          {failed.length > 0 && (
+            <button type="button" class="btn" onClick={() => daemon.retryAllFailed()}>Retry failed ({failed.length})</button>
           )}
+          <button type="button" class="btn btn-primary" disabled={toUpload === 0} onClick={() => daemon.uploadAll()}>
+            Upload all{toUpload > 0 ? ` (${toUpload})` : ''}
+          </button>
+        </div>
+      </header>
+
+      <div class="dispatch-rows">
+        {fleet && fleet.jobs > 0 && <FleetStrip stats={fleet} printers={rows.length} />}
+        {rows.length === 0 && (
+          <p class="plate-empty">No plan sent yet — go back to the plan and press Send to printers.</p>
+        )}
+        <div class="dispatch-grid">
           {rows.map((printerId) => (
-            <PrinterBelt
+            <PrinterCard
               key={printerId}
               name={nameOf(printerId)}
               hasAddress={!!snap.printers.get(printerId)?.address}
               jobs={belt(dispatch, printerId)}
               finished={dispatch.jobs.filter((j) => j.printerId === printerId && j.outcome).sort((a, b) => a.order - b.order)}
+              reportOf={(j) => latestStart(prints, j.plateId, j.printerId)?.report}
               next={nextJob(dispatch, printerId)}
               live={snap.live[printerId]}
               cams={snap.cams[printerId] ?? []}
+              stats={stats?.get(printerId)}
               loaded={loaded[printerId] ?? ''}
               materials={materials}
               thumbs={thumbs}
@@ -178,46 +216,90 @@ export function PrintDispatch({ projectId, onClose, onOpenPlanner }: PrintDispat
             />
           ))}
         </div>
-
-        <section class="dispatch-activity" aria-label="Queue and log">
-          <nav class="planner-seg" role="tablist">
-            <button type="button" role="tab" aria-selected={activity === 'queue'} class={activity === 'queue' ? 'is-on' : ''} onClick={() => setActivity('queue')}>
-              Queue ({dispatch.tasks.filter((t) => t.state === 'queued' || t.state === 'running' || t.state === 'failed').length})
-            </button>
-            <button type="button" role="tab" aria-selected={activity === 'log'} class={activity === 'log' ? 'is-on' : ''} onClick={() => setActivity('log')}>
-              Log ({dispatch.log.length})
-            </button>
-          </nav>
-          {activity === 'queue'
-            ? <Queue tasks={dispatch.tasks} nameOf={nameOf} onRetry={(id) => daemon.retry(id)} onCancel={(id) => daemon.cancel(id)} />
-            : (
-              <ol class="dispatch-log">
-                {[...dispatch.log].reverse().map((e, i) => (
-                  <li key={i} class={e.level === 'error' ? 'is-error' : ''}>
-                    <time>{clock(e.at)}</time>
-                    {e.printerId && <strong>{nameOf(e.printerId)}</strong>}
-                    <span>{e.text}</span>
-                  </li>
-                ))}
-                {dispatch.log.length === 0 && <li class="planner-muted">Nothing yet.</li>}
-              </ol>
-            )}
-        </section>
       </div>
-    </Modal>
+
+      <section class="dispatch-activity" aria-label="Queue and log">
+        <nav class="planner-seg" role="tablist">
+          <button type="button" role="tab" aria-selected={activity === 'queue'} class={activity === 'queue' ? 'is-on' : ''} onClick={() => setActivity('queue')}>
+            Queue ({dispatch.tasks.filter((t) => t.state === 'queued' || t.state === 'running' || t.state === 'failed').length})
+          </button>
+          <button type="button" role="tab" aria-selected={activity === 'log'} class={activity === 'log' ? 'is-on' : ''} onClick={() => setActivity('log')}>
+            Log ({dispatch.log.length})
+          </button>
+        </nav>
+        {activity === 'queue'
+          ? <Queue tasks={dispatch.tasks} nameOf={nameOf} onRetry={(id) => daemon.retry(id)} onCancel={(id) => daemon.cancel(id)} />
+          : (
+            <ol class="dispatch-log">
+              {[...dispatch.log].reverse().map((e, i) => (
+                <li key={i} class={e.level === 'error' ? 'is-error' : ''}>
+                  <time>{clock(e.at)}</time>
+                  {e.printerId && <strong>{nameOf(e.printerId)}</strong>}
+                  <span>{e.text}</span>
+                </li>
+              ))}
+              {dispatch.log.length === 0 && <li class="planner-muted">Nothing yet.</li>}
+            </ol>
+          )}
+      </section>
+    </>,
   );
 }
 
-// ── One printer's row ────────────────────────────────────
+// ── Stats ────────────────────────────────────────────────
 
-interface PrinterBeltProps {
+function Figure({ value, label, title }: { value: string | number; label: string; title?: string }) {
+  return (
+    <div class="dispatch-figure" title={title}>
+      <span class="dispatch-figure-value">{value}</span>
+      <span class="dispatch-figure-label">{label}</span>
+    </div>
+  );
+}
+
+function Spools({ stats }: { stats: PrinterStats }) {
+  if (stats.spools.length === 0) return null;
+  return (
+    <ul class="dispatch-spools">
+      {stats.spools.map((s) => (
+        <li key={s.label}>
+          <span>{s.label}</span>
+          <strong>{s.approx ? '≈' : ''}{Math.round(s.grams)} g</strong>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** The whole fleet, one line: what the plan asks of every printer and of the operator. */
+function FleetStrip({ stats, printers }: { stats: PrinterStats; printers: number }) {
+  const grams = stats.spools.reduce((t, s) => t + s.grams, 0);
+  const approx = stats.spools.some((s) => s.approx);
+  return (
+    <section class="dispatch-fleet" aria-label="The whole plan">
+      <Figure value={`${stats.printed}/${stats.jobs}`} label="printed" />
+      <Figure value={hours(stats.hours)} label={`print time on ${printers}`} />
+      <Figure value={`${approx ? '≈' : ''}${Math.round(grams)} g`} label="filament" />
+      <Figure value={stats.stops} label="trips" title="Trips to the printers, counting the final collection" />
+      <Figure value={stats.touches} label="touches" title="Beds cleared plus prints started" />
+      <Figure value={stats.swaps} label="spool swaps" />
+    </section>
+  );
+}
+
+// ── One printer's card ───────────────────────────────────
+
+interface PrinterCardProps {
   name: string;
   hasAddress: boolean;
   jobs: DispatchJob[];
   finished: DispatchJob[];
+  reportOf: (job: DispatchJob) => PrintReport | undefined;
   next: DispatchJob | undefined;
   live: PrinterLive | undefined;
   cams: Webcam[];
+  /** Its share of the plan; absent until the plan view has drawn one. */
+  stats: PrinterStats | undefined;
   loaded: string;
   materials: string[];
   thumbs: Record<string, string | null>;
@@ -230,29 +312,61 @@ interface PrinterBeltProps {
   onRefresh: () => void;
 }
 
-function PrinterBelt(props: PrinterBeltProps) {
-  const { name, jobs, next, live, loaded } = props;
+/** One word for where the printer is, and the class that colours it. */
+function liveState(live: PrinterLive | undefined, hasAddress: boolean): { text: string; cls: string } {
+  if (!hasAddress) return { text: 'No address', cls: 'is-unknown' };
+  if (!live) return { text: 'Checking…', cls: 'is-unknown' };
+  if (live.error) return { text: 'Unreachable', cls: 'is-bad' };
+  if (live.klippy && live.klippy.state !== 'ready') return { text: `Klipper ${live.klippy.state}`, cls: 'is-bad' };
+  const state = live.status?.state;
+  if (state === 'printing') return { text: 'Printing', cls: 'is-busy' };
+  if (state === 'paused') return { text: 'Paused', cls: 'is-warn' };
+  if (state === 'complete') return { text: 'Done — clear the bed', cls: 'is-warn' };
+  if (state === 'error' || state === 'cancelled') return { text: state === 'error' ? 'Error' : 'Cancelled', cls: 'is-bad' };
+  return { text: 'Idle', cls: 'is-ok' };
+}
+
+function PrinterCard(props: PrinterCardProps) {
+  const { name, jobs, next, live, loaded, stats } = props;
   const checks = readinessChecks(live, next, loaded, props.hasAddress);
   const ready = !!next && canStart(checks);
   const status = live?.status;
   const running = status?.state === 'printing' || status?.state === 'paused' ? status : undefined;
   const foreign = running && !jobs.some((j) => j.file === running.filename) ? running : undefined;
+  const state = liveState(live, props.hasAddress);
 
   return (
-    <section class="dispatch-row" data-printer={name}>
-      <div class="dispatch-printer">
-        <header class="dispatch-printer-head">
-          <strong>{name}</strong>
-          <button type="button" class="planner-chip-remove" title="Check again" aria-label={`Check ${name} again`} onClick={props.onRefresh}>↻</button>
-        </header>
-        <Camera cams={props.cams} stamp={live?.checkedAt ?? 0} />
-        <ul class="dispatch-checks">
-          {checks.map((c) => (
-            <li key={c.id} class={c.ok === true ? 'is-ok' : c.ok === false ? 'is-bad' : 'is-unknown'}>
-              <span aria-hidden="true">{c.ok === true ? '✓' : c.ok === false ? '✕' : '?'}</span> {c.text}
-            </li>
-          ))}
-        </ul>
+    <article class="dispatch-card" data-printer={name}>
+      <header class="dispatch-card-head">
+        <strong class="dispatch-card-name">{name}</strong>
+        <span class={`dispatch-state ${state.cls}`}>{state.text}</span>
+        <button type="button" class="planner-chip-remove" title="Check again" aria-label={`Check ${name} again`} onClick={props.onRefresh}>↻</button>
+      </header>
+
+      <Camera cams={props.cams} stamp={live?.checkedAt ?? 0} />
+
+      {stats && stats.jobs > 0 && (
+        <section class="dispatch-stats" aria-label={`What the plan asks of ${name}`}>
+          <div class="dispatch-figures">
+            <Figure value={`${stats.printed}/${stats.jobs}`} label="printed" />
+            <Figure value={hours(stats.hours)} label="printing" title={stats.hoursPrinted > 0 ? `${hours(stats.hoursPrinted)} printed so far` : undefined} />
+            <Figure value={stats.stops} label="stops" title="Trips that start a print here, plus collecting the last one" />
+            <Figure value={stats.touches} label="touches" title={`${stats.clears} beds cleared, ${stats.starts} prints started`} />
+            <Figure value={stats.swaps} label="swaps" title="Spool changes: a new material or colour" />
+          </div>
+          <Spools stats={stats} />
+        </section>
+      )}
+
+      <ul class="dispatch-checks">
+        {checks.map((c) => (
+          <li key={c.id} class={c.ok === true ? 'is-ok' : c.ok === false ? 'is-bad' : 'is-unknown'}>
+            <span aria-hidden="true">{c.ok === true ? '✓' : c.ok === false ? '✕' : '?'}</span> {c.text}
+          </li>
+        ))}
+      </ul>
+
+      <div class="dispatch-card-actions">
         <label class="planner-inline">
           Loaded
           <select value={loaded} onChange={(e) => props.onLoaded((e.target as HTMLSelectElement).value)}>
@@ -269,27 +383,17 @@ function PrinterBelt(props: PrinterBeltProps) {
         >
           {next ? `Print #${String(next.order).padStart(2, '0')}` : 'Nothing to print'}
         </button>
-        {props.finished.length > 0 && (
-          <details class="dispatch-finished">
-            <summary>{props.finished.length} off the belt</summary>
-            <ul>
-              {props.finished.map((j) => (
-                <li key={j.file}>
-                  <span>{j.file} — {j.outcome!.state}</span>
-                  <button type="button" class="btn" onClick={() => props.onOutcome(j, undefined)}>Put back</button>
-                </li>
-              ))}
-            </ul>
-          </details>
-        )}
       </div>
 
       <ol class="dispatch-belt" aria-label={`${name}'s queue`}>
         {foreign && (
           <li class="dispatch-job is-foreign">
-            <div class="dispatch-job-head"><strong>{foreign.filename}</strong></div>
-            <div class="planner-muted">Not from this project · {formatDuration(foreign.remainingSec)} left</div>
-            <Progress value={foreign.progress} />
+            <div class="dispatch-job-thumb" />
+            <div class="dispatch-job-body">
+              <div class="dispatch-job-head"><strong>{foreign.filename}</strong></div>
+              <div class="dispatch-job-meta">Not from this project · {formatDuration(foreign.remainingSec)} left</div>
+              <Progress value={foreign.progress} />
+            </div>
           </li>
         )}
         {jobs.map((job) => {
@@ -301,20 +405,22 @@ function PrinterBelt(props: PrinterBeltProps) {
               <div class="dispatch-job-thumb">
                 {props.thumbs[job.plateId] ? <img src={props.thumbs[job.plateId]!} alt="" /> : null}
               </div>
-              <div class="dispatch-job-head">
-                <span class="planner-plate-num">#{String(job.order).padStart(2, '0')}</span>
-                <strong>{job.plateName}</strong>
+              <div class="dispatch-job-body">
+                <div class="dispatch-job-head">
+                  <span class="planner-plate-num">#{String(job.order).padStart(2, '0')}</span>
+                  <strong>{job.plateName}</strong>
+                </div>
+                <div class="dispatch-job-meta">
+                  <span class="planner-chip">{job.filament}</span>
+                  <span>{formatDuration(job.seconds)}</span>
+                  <span class={`dispatch-phase is-${phase}`}>
+                    {PHASE_TEXT[phase]}
+                    {onPrinter && ` ${Math.round(onPrinter.progress * 100)}% · ${formatDuration(onPrinter.remainingSec)} left`}
+                  </span>
+                </div>
+                {onPrinter && <Progress value={onPrinter.progress} />}
+                {error && <p class="dispatch-job-error">{error}</p>}
               </div>
-              <div class="dispatch-job-meta">
-                <span class="planner-chip">{job.filament}</span>
-                <span>{formatDuration(job.seconds)}</span>
-              </div>
-              <div class={`dispatch-phase is-${phase}`}>
-                {PHASE_TEXT[phase]}
-                {onPrinter && ` ${Math.round(onPrinter.progress * 100)}% · ${formatDuration(onPrinter.remainingSec)} left`}
-              </div>
-              {onPrinter && <Progress value={onPrinter.progress} />}
-              {error && <p class="dispatch-job-error">{error}</p>}
               <div class="dispatch-job-actions">
                 {(phase === 'waiting' || phase === 'failed' || phase === 'uploaded') && (
                   <button type="button" class="btn" onClick={() => props.onUpload(job)}>
@@ -322,7 +428,7 @@ function PrinterBelt(props: PrinterBeltProps) {
                   </button>
                 )}
                 {phase !== 'starting' && (
-                  <button type="button" class="btn" title={phase === 'printing' ? 'Take it off the belt — the printer is not told' : undefined}
+                  <button type="button" class="btn" title={phase === 'printing' ? 'Take it off the queue — the printer is not told' : undefined}
                     onClick={() => props.onOutcome(job, 'skipped')}>
                     {phase === 'printing' ? 'Mark done' : 'Skip'}
                   </button>
@@ -331,9 +437,27 @@ function PrinterBelt(props: PrinterBeltProps) {
             </li>
           );
         })}
-        {jobs.length === 0 && !foreign && <li class="dispatch-belt-empty planner-muted">Belt empty.</li>}
+        {jobs.length === 0 && !foreign && <li class="dispatch-belt-empty planner-muted">Queue empty.</li>}
       </ol>
-    </section>
+
+      {props.finished.length > 0 && (
+        <details class="dispatch-finished">
+          <summary>{props.finished.length} off the queue</summary>
+          <ul>
+            {props.finished.map((j) => (
+              <li key={j.file}>
+                <span>
+                  {j.file} — {j.outcome!.state}
+                  {props.reportOf(j) && <span class="planner-muted"> · {reportSummary(props.reportOf(j)!, Date.now())}</span>}
+                  {props.reportOf(j)?.errors.map((e, i) => <span key={i} class="dispatch-job-error"> {e}</span>)}
+                </span>
+                <button type="button" class="btn" onClick={() => props.onOutcome(j, undefined)}>Put back</button>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+    </article>
   );
 }
 

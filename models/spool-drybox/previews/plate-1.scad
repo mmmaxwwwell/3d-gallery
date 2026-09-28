@@ -1,6 +1,7 @@
 include <../lib/spool-drybox-lib.scad>;
 $fn = 40;
 
-// Plate 1: the left wall on its outside face, its gasket printed in.
-color("#ffdb27") wall_left();
-color("#ff33ce") wall_left_gasket();
+// Plate 1: the left wall's base and lid halves on their outside faces,
+// their gaskets printed in.
+color("#ffdb27") plate_wall(-1, "walls");
+color("#ff33ce") plate_wall(-1, "gaskets");

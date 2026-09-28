@@ -98,7 +98,7 @@ test('a sent plan uploads, starts on Print, and the belt moves on', async ({ pag
 
   await page.goto(`./?dispatch=${projectId}`);
   const screen = page.locator('.dispatch');
-  const row = screen.locator('.dispatch-row[data-printer="Left"]');
+  const row = screen.locator('.dispatch-card[data-printer="Left"]');
   await expect(row.locator('.dispatch-job')).toHaveCount(2);
   await expect(row.locator('.dispatch-checks')).toContainText('Klipper ready');
   await expect(row.getByRole('button', { name: 'Print #00' })).toBeDisabled();
@@ -121,7 +121,7 @@ test('a sent plan uploads, starts on Print, and the belt moves on', async ({ pag
   moonraker.finish();
   await row.getByRole('button', { name: 'Check Left again' }).click();
   await expect(row.locator('.dispatch-job')).toHaveCount(1);
-  await expect(row.locator('.dispatch-finished')).toContainText('1 off the belt');
+  await expect(row.locator('.dispatch-finished')).toContainText('1 off the queue');
   await expect(row.getByRole('button', { name: 'Print #01' })).toBeEnabled();
 
   await screen.getByRole('tab', { name: /Log/ }).click();

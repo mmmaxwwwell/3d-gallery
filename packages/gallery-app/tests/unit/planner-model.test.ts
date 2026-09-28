@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { Schedule } from '@3d-gallery/print-toolkit';
 import {
   collisions,
+  expectedSliceMs,
   freshSlices,
   gcodeName,
   isReady,
@@ -10,6 +11,8 @@ import {
   plateNumbers,
   plateSeconds,
   readiness,
+  scheduleJobs,
+  sliceFraction,
   type Estimates,
 } from '../../src/print/planner-model.js';
 import { plateSignature, type Plate, type SlicedGcode } from '../../src/print/plate-store.js';
@@ -100,5 +103,35 @@ describe('planner model', () => {
     expect(readiness(plates, schedule([['a', 'L', 0, 10]]), 2, has).scheduled).toBe(false);
     expect(readiness(plates, schedule([['a', 'L', 0, 10], ['b', 'L', 5, 10]]), 2, () => true).clear).toBe(false);
     expect(readiness(plates, plan, 0, has).printers).toBe(false);
+  });
+
+  it('prefers the printers a plate is already sliced for', () => {
+    const a = plate('a');
+    const [job] = scheduleJobs([a], { a: { value: 60, source: 'sliced' } }, {}, { a: [slice(a, 'R', 'now')] });
+    expect(job.preferred).toEqual(['R']);
+  });
+
+  it('times a slice by its own last run, else the median slicing rate', () => {
+    const a = plate('a');
+    const b = plate('b');
+    const c = plate('c');
+    const kept = {
+      a: [slice(a, 'L', 'now', { sliceMs: 30_000, seconds: 3600 })],
+      b: [slice(b, 'L', 'now', { sliceMs: 10_000, seconds: 3600 })],
+    };
+    expect(expectedSliceMs('a', 3600, kept)).toBe(30_000);
+    // Rates 10/3600 and 30/3600 ms per print-second; the median of two takes the upper.
+    expect(expectedSliceMs('c', 7200, kept)).toBeCloseTo(60_000);
+    expect(expectedSliceMs(c.id, undefined, {})).toBe(60_000);
+  });
+
+  it('runs a slice bar on the clock and never reaches 100% on its own', () => {
+    expect(sliceFraction(0, 1000)).toBe(0);
+    expect(sliceFraction(500, 1000)).toBeCloseTo(0.45);
+    expect(sliceFraction(1000, 1000)).toBeCloseTo(0.9);
+    const late = sliceFraction(10_000, 1000);
+    expect(late).toBeGreaterThan(0.98);
+    expect(late).toBeLessThan(1);
+    expect(sliceFraction(3000, 1000)).toBeGreaterThan(sliceFraction(2000, 1000));
   });
 });

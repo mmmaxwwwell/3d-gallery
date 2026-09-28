@@ -16,6 +16,7 @@ import {
 } from '@3d-gallery/print-toolkit';
 import { listPresets, type PrintPreset } from './print-storage.js';
 import { getPlate, getSlicedGcode, newId, plateSignature } from './plate-store.js';
+import { recordPrint } from './operator-store.js';
 import {
   belt,
   cancelTask,
@@ -202,6 +203,11 @@ export class DispatchDaemon {
       if (!printer?.address) throw new Error(`${name} has no Moonraker address`);
       if (task.kind === 'upload') await this.doUpload(task, printer.address);
       else await this.doStart(task, printer.address);
+      // The operator's record of what went where; losing it mustn't fail the command.
+      recordPrint({
+        projectId: this.snap.dispatch.projectId, plateId: task.plateId, printerId: task.printerId,
+        file: task.file, at: Date.now(), kind: task.kind, source: 'dispatch',
+      }).catch(() => {});
       this.update((d, now) => log(patchTask(d, task.id, { state: 'done' }, now), {
         at: now, level: 'info', printerId: task.printerId,
         text: task.kind === 'upload' ? `Uploaded ${task.file}.` : `Started ${task.file}.`,

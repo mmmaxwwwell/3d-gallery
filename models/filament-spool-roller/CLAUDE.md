@@ -81,6 +81,11 @@ spool never dips that low. At the default 8 mm ride height it *is* zero, so the
 floor renders unbroken; don't delete the branch, it comes back the moment
 anyone lowers the spool.
 
+`schema.ts` bounds each param on its own and checks the few raw relations the
+lib never asserts (dovetail tip over root, bearing bore under its OD, screw pad
+over its hole). Everything that follows from the derived geometry stays in
+these asserts — don't copy the triangle into the schema.
+
 ## Lane and tile arithmetic
 
 The stand is `lanes` lanes and `lanes + 1` walls. A tile carries **half** a

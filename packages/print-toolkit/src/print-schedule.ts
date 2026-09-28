@@ -25,6 +25,12 @@ export interface ScheduleJob {
   material: string;
   /** Printers this job may go to. Absent means any. */
   printers?: string[];
+  /**
+   * Printers it would rather go to — the ones it is already sliced for. An
+   * idle one of these takes it first, so a re-plan doesn't shuffle plates
+   * between identical printers and throw their slices away.
+   */
+  preferred?: string[];
 }
 
 export interface SchedulePrinter {
@@ -194,13 +200,18 @@ export function simulate(
     const starts: ScheduledJob[] = [];
     // Starting the last ordinary job opens the batch mid-walk, so walk again
     // until nobody idle takes anything.
+    // A printer that finishes while the operator is still on the walk is
+    // part of the same trip, not a second one moments later.
     for (let took = true; took;) {
       took = false;
       for (const p of state) {
-        if (p.freeAt > t) continue;
+        if (p.freeAt > clock) continue;
         const candidates = remaining.filter((j) => mayTake(j, p.id));
         if (candidates.length === 0) continue;
-        const job = candidates.find((j) => !p.material || j.material === p.material) ?? candidates[0];
+        const suits = (j: ScheduleJob) => !p.material || j.material === p.material;
+        const job = candidates.find((j) => suits(j) && j.preferred?.includes(p.id))
+          ?? candidates.find(suits)
+          ?? candidates[0];
         const swap = p.material !== undefined && p.material !== job.material;
         clock += (opts.changeoverSec + (swap ? opts.materialSwapSec : 0)) * 1000;
         const scheduled: ScheduledJob = {

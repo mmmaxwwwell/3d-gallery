@@ -70,8 +70,8 @@
     {
       "slug": "collar-tag-holder",
       "title": "Collar Tag Holder",
-      "description": "Holds a 32 mm round metal ID tag flat against a 25 mm biothane collar. The collar runs in a channel along the back, enclosed at both ends. The tag presses in through a round opening in the back 1 mm smaller than it all round and seats flat against a 2 mm lip that leaves a 28 mm window over the engraving; the collar pressed in behind it holds it there. Every edge is rounded, most of all on the side against the dog. Print in TPU, face down, with no supports.",
-      "filament": [{ "material": "TPU 64D", "color": "any", "note": "The back opening is an interference fit on the tag, so it has to flex" }],
+      "description": "Holds a 32 mm round metal ID tag flat against a 25 mm biothane collar. The collar runs in a channel along the back, enclosed at both ends. The holder is round like the tag. The tag presses in through an opening in the back, past a 0.75 mm catch beside the strap, and seats flat against a 2 mm lip that leaves a 28 mm window over the engraving; the collar pressed in behind it holds it there. Every edge is rounded, most of all on the side against the dog. Print in TPU, face down, with no supports.",
+      "filament": [{ "material": "TPU 64D", "color": "any", "note": "The catch is an interference fit on the tag, so it has to flex" }],
       "parts": [{ "file": "holder.stl", "format": "stl", "label": "Holder", "default": true, "module": "holder" }]
     },
     {
@@ -1520,17 +1520,18 @@
     {
       "slug": "spool-drybox",
       "title": "Spool Dry Box Module",
-      "description": "A sealed dry box for one 200 mm spool, printed in pieces on a Snapmaker U1 with 75A TPU gaskets printed in place. Two round side walls, the spool's diameter plus 2 mm clearance and 3 mm wall each side, with curved 3 mm panels between them. Going round from the top: the hold-down spring module, the lid, the front panel, the front roller module, the underneath panel, the rear roller module and the back panel. Every panel edge flares out to a ridge that presses into a TPU bead in a groove on a rib round the inside of each wall, and M3 cap screws run through the wall, straight down the middle of the TPU channel, into a boss in the panel's edge. Where a panel meets a module or another panel, a TPU strip printed into its end presses on its neighbour. Work in progress: the spring and roller modules, which bolt between the walls, aren't drawn yet, so their places are gaps.",
+      "description": "A sealed dry box for one 200 mm spool, printed in pieces on a Snapmaker U1 with 75A TPU gaskets printed in place. Two round side walls, the spool's diameter plus 2 mm clearance and 3 mm wall each side, with curved 3 mm panels between them. The spool sits on two rollers, as on the filament spool roller, each in an ear that bulges out of the bottom of both walls with its axle moulded into them and an ear plate closing it round. The lid is the top and front half, cut off on a diagonal plane through the axis from just past the front roller to the back: both walls' tops, a third roller in an ear at the top that rests on the spool, and the panels between. It hinges at the back on an M3 and an over-centre draw latch pulls it shut at the front. The cut is sealed like every other joint, with no screws: a ridge on the lid presses into a TPU bead in a groove round the base's side, and the walls carry a lip inward along the cut wide enough for it. Every panel edge flares out to a ridge that presses into a TPU bead in a groove on a rib round the inside of each wall, and M3 cap screws run through the wall, straight down the middle of the TPU channel, into a boss in the panel's edge. Where a panel meets an ear plate, a TPU strip printed into its end presses on it. Work in progress: the top roller has no spring yet, and the walls and panels are 3 mm.",
       "devOnly": true,
       "filament": [
-        { "material": "PETG", "color": "any", "note": "Walls and panels." },
+        { "material": "PETG", "color": "any", "note": "Walls, panels, ear plates, rollers and the latch." },
         {
           "material": "TPU 75A",
           "color": "any",
           "note": "The gaskets, printed in place with the part that holds them.",
           "parts": [
-            "wall-left-gasket.stl", "wall-right-gasket.stl", "panel-lid-gasket.stl",
-            "panel-front-gasket.stl", "panel-under-gasket.stl", "panel-back-gasket.stl"
+            "wall-left-gasket.stl", "wall-right-gasket.stl", "lid-wall-left-gasket.stl", "lid-wall-right-gasket.stl",
+            "panel-lid-back-gasket.stl", "panel-lid-front-gasket.stl", "panel-under-gasket.stl", "panel-back-gasket.stl",
+            "ear-plate-front-gasket.stl"
           ]
         }
       ],
@@ -1538,25 +1539,34 @@
         {
           "file": "assembled.3mf",
           "format": "3mf",
-          "label": "Assembly: one module, lid lifted, spool seated",
+          "label": "Assembly: one module, lid open, spool seated",
           "default": true,
           "legend": [
-            { "color": "#ffdb27", "label": "Walls", "parts": ["wall-left.stl", "wall-right.stl"] },
+            {
+              "color": "#ffdb27",
+              "label": "Walls",
+              "parts": ["wall-left.stl", "wall-right.stl", "lid-wall-left.stl", "lid-wall-right.stl"]
+            },
             {
               "color": "#51ff30",
               "label": "Panels",
-              "note": "Lid lifted clear; the gaps are for the spring and roller modules",
-              "parts": ["panel-lid.stl", "panel-front.stl", "panel-under.stl", "panel-back.stl"]
+              "parts": ["panel-lid-back.stl", "panel-lid-front.stl", "panel-under.stl", "panel-back.stl"]
             },
+            { "color": "#1fedff", "label": "Ear plates", "parts": ["ear-plate.stl", "ear-plate-front.stl"] },
+            { "color": "#ff7d1f", "label": "Rollers", "part": "roller.stl" },
+            { "color": "#9b5cff", "label": "Latch", "note": "Thrown open", "parts": ["latch-lever.stl", "latch-link.stl"] },
             {
               "color": "#ff33ce",
               "label": "Wall gaskets",
-              "parts": ["wall-left-gasket.stl", "wall-right-gasket.stl"]
+              "parts": ["wall-left-gasket.stl", "wall-right-gasket.stl", "lid-wall-left-gasket.stl", "lid-wall-right-gasket.stl"]
             },
             {
               "color": "#ff7fe0",
-              "label": "Seam gaskets",
-              "parts": ["panel-lid-gasket.stl", "panel-front-gasket.stl", "panel-under-gasket.stl", "panel-back-gasket.stl"]
+              "label": "Seam and cut gaskets",
+              "parts": [
+                "panel-lid-back-gasket.stl", "panel-lid-front-gasket.stl", "panel-under-gasket.stl",
+                "panel-back-gasket.stl", "ear-plate-front-gasket.stl"
+              ]
             },
             { "color": "#8a8f98", "label": "Spool", "note": "Reference only, not printed" }
           ],
@@ -1565,75 +1575,394 @@
             { "part": "wall-left-gasket.stl", "qty": 1 },
             { "part": "wall-right.stl", "qty": 1 },
             { "part": "wall-right-gasket.stl", "qty": 1 },
-            { "part": "panel-lid.stl", "qty": 1 },
-            { "part": "panel-lid-gasket.stl", "qty": 1 },
-            { "part": "panel-front.stl", "qty": 1 },
-            { "part": "panel-front-gasket.stl", "qty": 1 },
+            { "part": "lid-wall-left.stl", "qty": 1 },
+            { "part": "lid-wall-left-gasket.stl", "qty": 1 },
+            { "part": "lid-wall-right.stl", "qty": 1 },
+            { "part": "lid-wall-right-gasket.stl", "qty": 1 },
+            { "part": "panel-lid-back.stl", "qty": 1 },
+            { "part": "panel-lid-back-gasket.stl", "qty": 1 },
+            { "part": "panel-lid-front.stl", "qty": 1 },
+            { "part": "panel-lid-front-gasket.stl", "qty": 1 },
             { "part": "panel-under.stl", "qty": 1 },
             { "part": "panel-under-gasket.stl", "qty": 1 },
             { "part": "panel-back.stl", "qty": 1 },
-            { "part": "panel-back-gasket.stl", "qty": 1 }
+            { "part": "panel-back-gasket.stl", "qty": 1 },
+            { "part": "ear-plate.stl", "qty": 2 },
+            { "part": "ear-plate-front.stl", "qty": 1 },
+            { "part": "ear-plate-front-gasket.stl", "qty": 1 },
+            { "part": "roller.stl", "qty": 3 },
+            { "part": "latch-lever.stl", "qty": 1 },
+            { "part": "latch-link.stl", "qty": 1 }
           ]
         },
         {
           "file": "plate-1.3mf",
           "format": "3mf",
-          "label": "U1 plate 1: left wall with its gasket",
+          "label": "U1 plate 1: left wall, base and lid halves, with their gaskets",
           "legend": [
-            { "color": "#ffdb27", "label": "Wall, on its outside face", "part": "wall-left.stl" },
-            { "color": "#ff33ce", "label": "Gasket, TPU 75A", "part": "wall-left-gasket.stl" }
+            { "color": "#ffdb27", "label": "Wall halves, on their outside faces", "parts": ["wall-left.stl", "lid-wall-left.stl"] },
+            { "color": "#ff33ce", "label": "Gaskets, TPU 75A", "parts": ["wall-left-gasket.stl", "lid-wall-left-gasket.stl"] }
           ]
         },
         {
           "file": "plate-2.3mf",
           "format": "3mf",
-          "label": "U1 plate 2: right wall with its gasket",
+          "label": "U1 plate 2: right wall, base and lid halves, with their gaskets",
           "legend": [
-            { "color": "#ffdb27", "label": "Wall, on its outside face", "part": "wall-right.stl" },
-            { "color": "#ff33ce", "label": "Gasket, TPU 75A", "part": "wall-right-gasket.stl" }
+            { "color": "#ffdb27", "label": "Wall halves, on their outside faces", "parts": ["wall-right.stl", "lid-wall-right.stl"] },
+            { "color": "#ff33ce", "label": "Gaskets, TPU 75A", "parts": ["wall-right-gasket.stl", "lid-wall-right-gasket.stl"] }
           ]
         },
         {
           "file": "plate-3.3mf",
           "format": "3mf",
-          "label": "U1 plate 3: all four panels standing on end, seam gaskets in",
+          "label": "U1 plate 3: the lid's two panels standing on end, seam gaskets in",
           "legend": [
-            {
-              "color": "#51ff30",
-              "label": "Panels, nested",
-              "parts": ["panel-lid.stl", "panel-front.stl", "panel-under.stl", "panel-back.stl"]
-            },
+            { "color": "#51ff30", "label": "Lid panels, nested", "parts": ["panel-lid-back.stl", "panel-lid-front.stl"] },
             {
               "color": "#ff7fe0",
               "label": "Seam gaskets, TPU 75A",
-              "parts": ["panel-lid-gasket.stl", "panel-front-gasket.stl", "panel-under-gasket.stl", "panel-back-gasket.stl"]
+              "parts": ["panel-lid-back-gasket.stl", "panel-lid-front-gasket.stl"]
             }
+          ]
+        },
+        {
+          "file": "plate-4.3mf",
+          "format": "3mf",
+          "label": "U1 plate 4: back and underneath panels and the front ear plate, gaskets in",
+          "legend": [
+            {
+              "color": "#51ff30",
+              "label": "Panels and front ear plate, on end",
+              "parts": ["panel-back.stl", "panel-under.stl", "ear-plate-front.stl"]
+            },
+            {
+              "color": "#ff7fe0",
+              "label": "Seam and cut gaskets, TPU 75A",
+              "parts": ["panel-back-gasket.stl", "panel-under-gasket.stl", "ear-plate-front-gasket.stl"]
+            }
+          ]
+        },
+        {
+          "file": "plate-5.3mf",
+          "format": "3mf",
+          "label": "U1 plate 5: top and back ear plates, three rollers, the latch",
+          "legend": [
+            { "color": "#1fedff", "label": "Ear plates", "part": "ear-plate.stl" },
+            { "color": "#ff7d1f", "label": "Rollers", "part": "roller.stl" },
+            { "color": "#9b5cff", "label": "Latch lever and link, flat", "parts": ["latch-lever.stl", "latch-link.stl"] }
           ]
         }
       ],
       "parts": [
-        { "file": "wall-left.stl", "format": "stl", "label": "Left wall (on its outside face)" },
+        { "file": "wall-left.stl", "format": "stl", "label": "Left wall, base half (on its outside face)" },
         { "file": "wall-left-gasket.stl", "format": "stl", "label": "Left wall gasket (TPU 75A, same frame as the wall)" },
-        { "file": "wall-right.stl", "format": "stl", "label": "Right wall (on its outside face)" },
+        { "file": "wall-right.stl", "format": "stl", "label": "Right wall, base half (on its outside face)" },
         { "file": "wall-right-gasket.stl", "format": "stl", "label": "Right wall gasket (TPU 75A)" },
-        { "file": "panel-lid.stl", "format": "stl", "label": "Lid (standing on end)" },
-        { "file": "panel-lid-gasket.stl", "format": "stl", "label": "Lid seam gasket (TPU 75A)" },
-        { "file": "panel-front.stl", "format": "stl", "label": "Front panel (standing on end)" },
-        { "file": "panel-front-gasket.stl", "format": "stl", "label": "Front panel seam gaskets (TPU 75A)" },
+        { "file": "lid-wall-left.stl", "format": "stl", "label": "Left wall, lid half (on its outside face)" },
+        { "file": "lid-wall-left-gasket.stl", "format": "stl", "label": "Left lid wall gasket (TPU 75A)" },
+        { "file": "lid-wall-right.stl", "format": "stl", "label": "Right wall, lid half (on its outside face)" },
+        { "file": "lid-wall-right-gasket.stl", "format": "stl", "label": "Right lid wall gasket (TPU 75A)" },
+        { "file": "panel-lid-back.stl", "format": "stl", "label": "Lid back panel, hinge knuckle (standing on end, upside down)" },
+        { "file": "panel-lid-back-gasket.stl", "format": "stl", "label": "Lid back panel seam gasket (TPU 75A)" },
+        { "file": "panel-lid-front.stl", "format": "stl", "label": "Lid front panel, latch keeper (standing on end)" },
+        { "file": "panel-lid-front-gasket.stl", "format": "stl", "label": "Lid front panel seam gasket (TPU 75A)" },
         { "file": "panel-under.stl", "format": "stl", "label": "Underneath panel (standing on end)" },
         { "file": "panel-under-gasket.stl", "format": "stl", "label": "Underneath panel seam gaskets (TPU 75A)" },
-        { "file": "panel-back.stl", "format": "stl", "label": "Back panel (standing on end)" },
-        { "file": "panel-back-gasket.stl", "format": "stl", "label": "Back panel seam gaskets (TPU 75A)" }
+        { "file": "panel-back.stl", "format": "stl", "label": "Back panel, hinge knuckle (standing on end)" },
+        { "file": "panel-back-gasket.stl", "format": "stl", "label": "Back panel seam and cut gaskets (TPU 75A)" },
+        { "file": "ear-plate.stl", "format": "stl", "label": "Ear plate (standing on end; the top and back ears take one)" },
+        { "file": "ear-plate-front.stl", "format": "stl", "label": "Front ear plate, stops at the cut, latch lug (standing on end)" },
+        { "file": "ear-plate-front-gasket.stl", "format": "stl", "label": "Front ear plate cut gasket (TPU 75A)" },
+        { "file": "roller.stl", "format": "stl", "label": "Roller (on end)" },
+        { "file": "latch-lever.stl", "format": "stl", "label": "Latch lever (flat)" },
+        { "file": "latch-link.stl", "format": "stl", "label": "Latch link (flat)" }
       ],
       "hardware": [
         {
-          "qty": 36,
-          "label": "M3 × 12 socket-head cap screw — through the walls into the panels' edges, down the middle of the seal",
+          "qty": 50,
+          "label": "M3 × 12 socket-head cap screw — through the walls into the panels' and ear plates' edges, down the middle of the seal",
           "usedBy": [
-            { "part": "panel-lid.stl", "each": 10 },
-            { "part": "panel-front.stl", "each": 6 },
-            { "part": "panel-under.stl", "each": 8 },
-            { "part": "panel-back.stl", "each": 12 }
+            { "part": "panel-lid-back.stl", "each": 6 },
+            { "part": "panel-lid-front.stl", "each": 12 },
+            { "part": "panel-under.stl", "each": 6 },
+            { "part": "panel-back.stl", "each": 8 },
+            { "part": "ear-plate.stl", "each": 6 },
+            { "part": "ear-plate-front.stl", "each": 6 }
+          ]
+        },
+        {
+          "qty": 2,
+          "label": "M3 × 12 socket-head cap screw — latch pins: the lever's pivot into the lug, and the link's pin into the lever",
+          "usedBy": [{ "part": "latch-lever.stl", "each": 2 }]
+        },
+        {
+          "qty": 1,
+          "label": "M3 × 40 socket-head cap screw — hinge pin, through the lid's knuckle into the base's",
+          "usedBy": [{ "part": "panel-back.stl", "each": 1 }]
+        },
+        {
+          "qty": 6,
+          "label": "608 bearing (8 × 22 × 7) — two pressed into each roller, running on the pegs moulded into the walls",
+          "usedBy": [{ "part": "roller.stl", "each": 2 }]
+        }
+      ]
+    },
+    {
+      "slug": "servo-duct-manifold",
+      "title": "Servo Duct Valve Manifold (100 mm)",
+      "description": "Servo-driven butterfly valves and manifolds for 100 mm (4\") dryer duct — for pulling exhaust and a slight vacuum from a printer enclosure, and choosing which run the fan draws on. Three kinds of piece bolt together on one round flange (four M3s on the diagonals, nut in one flange's hex pocket, cap-screw head in the other's): a hub with a port per duct, a valve section, and a spigot adapter that takes the duct and a hose clamp behind a bead. The hub prints standing on its trunk flange with its branches leaning out 45°, so every surface inside and out overhangs by 45° at most and nothing needs support; its branch length is solved so a hex key reaches every bolt. Each valve is a tube with a flat butterfly disc turned directly by an SG90 on its shaft axis: the disc slides in edge-on and turns inside a sphere just smaller than the bore, a printed coupler carries the servo's own two-arm horn in a pocket and keys into the disc's rib through the wall, and an M3 cap screw through a boss on the far side is the idle pivot. The coupler goes in through a notch down the servo plate, so nothing needs to be glued or printed in place. Builds: a 3-port hub with valves on both branches and the trunk open to the fan, the same hub valved on every port, a 4-port hub, and a single inline valve. Duct size, wall, flange, port count and lean, disc fit and the servo's and horn's dimensions are all adjustable.",
+      "customizable": true,
+      "devOnly": true,
+      "filament": [
+        { "material": "PETG", "color": "any", "note": "Everything. PETG keeps its shape in warm enclosure exhaust where PLA creeps." }
+      ],
+      "builds": [
+        {
+          "id": "y",
+          "label": "3-port, 2 valves",
+          "default": true,
+          "params": { "ports": 3, "valved_ports": 2 },
+          "previews": [
+            {
+              "file": "assembled.3mf",
+              "format": "3mf",
+              "label": "Assembly: 3-port hub, valves on 2 branches, trunk open to a duct",
+              "default": true,
+              "module": "assembled",
+              "legend": [
+                { "color": "#1fedff", "label": "Hub", "part": "hub.stl" },
+                { "color": "#ffdb27", "label": "Valve sections", "part": "valve-body.stl" },
+                { "color": "#ff7d1f", "label": "Butterfly discs", "part": "valve-disc.stl" },
+                { "color": "#ff33ce", "label": "Drive couplers", "part": "valve-coupler.stl" },
+                { "color": "#51ff30", "label": "Spigot adapters", "part": "spigot-adapter.stl" },
+                { "color": "#8a8f98", "label": "SG90 servos", "note": "Reference only, not printed" }
+              ],
+              "components": [
+                { "part": "hub.stl", "qty": 1 },
+                { "part": "valve-body.stl", "qty": 2 },
+                { "part": "valve-disc.stl", "qty": 2 },
+                { "part": "valve-coupler.stl", "qty": 2 },
+                { "part": "spigot-adapter.stl", "qty": 1 }
+              ]
+            }
+          ],
+          "parts": [
+            { "file": "hub.stl", "format": "stl", "label": "Hub (on its trunk flange)", "module": "hub" },
+            { "file": "valve-body.stl", "format": "stl", "label": "Valve section (on its flange)", "module": "valve_body" },
+            { "file": "valve-disc.stl", "format": "stl", "label": "Butterfly disc (flat, rib up)", "module": "valve_disc" },
+            { "file": "valve-coupler.stl", "format": "stl", "label": "Drive coupler (head down)", "module": "valve_coupler" },
+            { "file": "spigot-adapter.stl", "format": "stl", "label": "Spigot adapter (on its flange)", "module": "spigot_adapter" }
+          ],
+          "hardware": [
+            {
+              "qty": 12,
+              "label": "M3 × 10 socket-head cap screw — four per flange joint, head in one flange's hex pocket",
+              "usedBy": [{ "part": "valve-body.stl", "each": 4 }, { "part": "spigot-adapter.stl", "each": 4 }]
+            },
+            {
+              "qty": 12,
+              "label": "M3 hex nut — in the mating flange's hex pocket",
+              "usedBy": [{ "part": "valve-body.stl", "each": 4 }, { "part": "spigot-adapter.stl", "each": 4 }]
+            },
+            {
+              "qty": 2,
+              "label": "M3 × 16 socket-head cap screw — the disc's idle pivot, threaded into the boss opposite the servo",
+              "usedBy": [{ "part": "valve-body.stl", "each": 1 }]
+            },
+            {
+              "qty": 2,
+              "label": "SG90 or MG90S micro servo — with its straight two-arm horn and two tab screws, from the servo's bag",
+              "usedBy": [{ "part": "valve-body.stl", "each": 1 }]
+            },
+            {
+              "qty": 3,
+              "label": "4\" (100 mm) hose clamp — one per spigot, behind its bead",
+              "usedBy": [{ "part": "valve-body.stl", "each": 1 }, { "part": "spigot-adapter.stl", "each": 1 }]
+            }
+          ]
+        },
+        {
+          "id": "y-all",
+          "label": "3-port, all valved",
+          "params": { "ports": 3, "valved_ports": 3 },
+          "previews": [
+            {
+              "file": "assembled.3mf",
+              "format": "3mf",
+              "label": "Assembly: 3-port hub, a valve on every port",
+              "default": true,
+              "module": "assembled",
+              "legend": [
+                { "color": "#1fedff", "label": "Hub", "part": "hub.stl" },
+                { "color": "#ffdb27", "label": "Valve sections", "part": "valve-body.stl" },
+                { "color": "#ff7d1f", "label": "Butterfly discs", "part": "valve-disc.stl" },
+                { "color": "#ff33ce", "label": "Drive couplers", "part": "valve-coupler.stl" },
+                { "color": "#8a8f98", "label": "SG90 servos", "note": "Reference only, not printed" }
+              ],
+              "components": [
+                { "part": "hub.stl", "qty": 1 },
+                { "part": "valve-body.stl", "qty": 3 },
+                { "part": "valve-disc.stl", "qty": 3 },
+                { "part": "valve-coupler.stl", "qty": 3 }
+              ]
+            }
+          ],
+          "parts": [
+            { "file": "hub.stl", "format": "stl", "label": "Hub (on its trunk flange)", "module": "hub" },
+            { "file": "valve-body.stl", "format": "stl", "label": "Valve section (on its flange)", "module": "valve_body" },
+            { "file": "valve-disc.stl", "format": "stl", "label": "Butterfly disc (flat, rib up)", "module": "valve_disc" },
+            { "file": "valve-coupler.stl", "format": "stl", "label": "Drive coupler (head down)", "module": "valve_coupler" }
+          ],
+          "hardware": [
+            {
+              "qty": 12,
+              "label": "M3 × 10 socket-head cap screw — four per flange joint, head in one flange's hex pocket",
+              "usedBy": [{ "part": "valve-body.stl", "each": 4 }]
+            },
+            {
+              "qty": 12,
+              "label": "M3 hex nut — in the mating flange's hex pocket",
+              "usedBy": [{ "part": "valve-body.stl", "each": 4 }]
+            },
+            {
+              "qty": 3,
+              "label": "M3 × 16 socket-head cap screw — the disc's idle pivot, threaded into the boss opposite the servo",
+              "usedBy": [{ "part": "valve-body.stl", "each": 1 }]
+            },
+            {
+              "qty": 3,
+              "label": "SG90 or MG90S micro servo — with its straight two-arm horn and two tab screws, from the servo's bag",
+              "usedBy": [{ "part": "valve-body.stl", "each": 1 }]
+            },
+            {
+              "qty": 3,
+              "label": "4\" (100 mm) hose clamp — one per spigot, behind its bead",
+              "usedBy": [{ "part": "valve-body.stl", "each": 1 }]
+            }
+          ]
+        },
+        {
+          "id": "x4",
+          "label": "4-port, 3 valves",
+          "params": { "ports": 4, "valved_ports": 3 },
+          "previews": [
+            {
+              "file": "assembled.3mf",
+              "format": "3mf",
+              "label": "Assembly: 4-port hub, valves on 3 branches, trunk open to a duct",
+              "default": true,
+              "module": "assembled",
+              "legend": [
+                { "color": "#1fedff", "label": "Hub", "part": "hub.stl" },
+                { "color": "#ffdb27", "label": "Valve sections", "part": "valve-body.stl" },
+                { "color": "#ff7d1f", "label": "Butterfly discs", "part": "valve-disc.stl" },
+                { "color": "#ff33ce", "label": "Drive couplers", "part": "valve-coupler.stl" },
+                { "color": "#51ff30", "label": "Spigot adapters", "part": "spigot-adapter.stl" },
+                { "color": "#8a8f98", "label": "SG90 servos", "note": "Reference only, not printed" }
+              ],
+              "components": [
+                { "part": "hub.stl", "qty": 1 },
+                { "part": "valve-body.stl", "qty": 3 },
+                { "part": "valve-disc.stl", "qty": 3 },
+                { "part": "valve-coupler.stl", "qty": 3 },
+                { "part": "spigot-adapter.stl", "qty": 1 }
+              ]
+            }
+          ],
+          "parts": [
+            { "file": "hub.stl", "format": "stl", "label": "Hub (on its trunk flange)", "module": "hub" },
+            { "file": "valve-body.stl", "format": "stl", "label": "Valve section (on its flange)", "module": "valve_body" },
+            { "file": "valve-disc.stl", "format": "stl", "label": "Butterfly disc (flat, rib up)", "module": "valve_disc" },
+            { "file": "valve-coupler.stl", "format": "stl", "label": "Drive coupler (head down)", "module": "valve_coupler" },
+            { "file": "spigot-adapter.stl", "format": "stl", "label": "Spigot adapter (on its flange)", "module": "spigot_adapter" }
+          ],
+          "hardware": [
+            {
+              "qty": 16,
+              "label": "M3 × 10 socket-head cap screw — four per flange joint, head in one flange's hex pocket",
+              "usedBy": [{ "part": "valve-body.stl", "each": 4 }, { "part": "spigot-adapter.stl", "each": 4 }]
+            },
+            {
+              "qty": 16,
+              "label": "M3 hex nut — in the mating flange's hex pocket",
+              "usedBy": [{ "part": "valve-body.stl", "each": 4 }, { "part": "spigot-adapter.stl", "each": 4 }]
+            },
+            {
+              "qty": 3,
+              "label": "M3 × 16 socket-head cap screw — the disc's idle pivot, threaded into the boss opposite the servo",
+              "usedBy": [{ "part": "valve-body.stl", "each": 1 }]
+            },
+            {
+              "qty": 3,
+              "label": "SG90 or MG90S micro servo — with its straight two-arm horn and two tab screws, from the servo's bag",
+              "usedBy": [{ "part": "valve-body.stl", "each": 1 }]
+            },
+            {
+              "qty": 4,
+              "label": "4\" (100 mm) hose clamp — one per spigot, behind its bead",
+              "usedBy": [{ "part": "valve-body.stl", "each": 1 }, { "part": "spigot-adapter.stl", "each": 1 }]
+            }
+          ]
+        },
+        {
+          "id": "inline",
+          "label": "Inline valve",
+          "params": {},
+          "previews": [
+            {
+              "file": "inline.3mf",
+              "format": "3mf",
+              "label": "Assembly: one valve with a spigot adapter under it",
+              "default": true,
+              "module": "inline",
+              "legend": [
+                { "color": "#ffdb27", "label": "Valve sections", "part": "valve-body.stl" },
+                { "color": "#ff7d1f", "label": "Butterfly discs", "part": "valve-disc.stl" },
+                { "color": "#ff33ce", "label": "Drive couplers", "part": "valve-coupler.stl" },
+                { "color": "#51ff30", "label": "Spigot adapters", "part": "spigot-adapter.stl" },
+                { "color": "#8a8f98", "label": "SG90 servos", "note": "Reference only, not printed" }
+              ],
+              "components": [
+                { "part": "valve-body.stl", "qty": 1 },
+                { "part": "valve-disc.stl", "qty": 1 },
+                { "part": "valve-coupler.stl", "qty": 1 },
+                { "part": "spigot-adapter.stl", "qty": 1 }
+              ]
+            }
+          ],
+          "parts": [
+            { "file": "valve-body.stl", "format": "stl", "label": "Valve section (on its flange)", "module": "valve_body" },
+            { "file": "valve-disc.stl", "format": "stl", "label": "Butterfly disc (flat, rib up)", "module": "valve_disc" },
+            { "file": "valve-coupler.stl", "format": "stl", "label": "Drive coupler (head down)", "module": "valve_coupler" },
+            { "file": "spigot-adapter.stl", "format": "stl", "label": "Spigot adapter (on its flange)", "module": "spigot_adapter" }
+          ],
+          "hardware": [
+            {
+              "qty": 4,
+              "label": "M3 × 10 socket-head cap screw — four per flange joint, head in one flange's hex pocket",
+              "usedBy": [{ "part": "valve-body.stl", "each": 4 }]
+            },
+            {
+              "qty": 4,
+              "label": "M3 hex nut — in the mating flange's hex pocket",
+              "usedBy": [{ "part": "valve-body.stl", "each": 4 }]
+            },
+            {
+              "qty": 1,
+              "label": "M3 × 16 socket-head cap screw — the disc's idle pivot, threaded into the boss opposite the servo",
+              "usedBy": [{ "part": "valve-body.stl", "each": 1 }]
+            },
+            {
+              "qty": 1,
+              "label": "SG90 or MG90S micro servo — with its straight two-arm horn and two tab screws, from the servo's bag",
+              "usedBy": [{ "part": "valve-body.stl", "each": 1 }]
+            },
+            {
+              "qty": 2,
+              "label": "4\" (100 mm) hose clamp — one per spigot, behind its bead",
+              "usedBy": [{ "part": "valve-body.stl", "each": 1 }, { "part": "spigot-adapter.stl", "each": 1 }]
+            }
           ]
         }
       ]

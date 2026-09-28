@@ -155,11 +155,13 @@ export function plateGrams(plate: Plate, fresh: SlicedGcode[], est: Estimates | 
 
 // ── Plans ────────────────────────────────────────────────
 
-/** The scheduler's jobs: every plate with a time, on the printers it fits. */
+/** The scheduler's jobs: every plate with a time, on the printers it fits,
+ *  preferring the ones it already has a fresh slice for. */
 export function scheduleJobs(
   plates: Plate[],
   times: Record<string, Measured | null>,
   fits: Record<string, string[]>,
+  fresh: Record<string, SlicedGcode[]> = {},
 ): ScheduleJob[] {
   return plates
     .filter((p) => times[p.id])
@@ -169,7 +171,36 @@ export function scheduleJobs(
       seconds: times[p.id]!.value,
       material: plateMaterial(p),
       printers: fits[p.id],
+      preferred: (fresh[p.id] ?? []).map((s) => s.printerId),
     }));
+}
+
+/**
+ * How long slicing `plate` should take, in ms, for a progress bar the slicer
+ * itself can't drive (it reports only start and end). Its own last slice if
+ * it has one, else the median slicing rate of every kept slice applied to
+ * its print time, else a minute.
+ */
+export function expectedSliceMs(
+  plateId: string,
+  printSeconds: number | undefined,
+  slices: Record<string, SlicedGcode[]>,
+): number {
+  const own = (slices[plateId] ?? []).filter((s) => s.sliceMs).map((s) => s.sliceMs!);
+  if (own.length > 0) return Math.max(...own);
+  const rates = Object.values(slices).flat()
+    .filter((s) => s.sliceMs && s.seconds)
+    .map((s) => s.sliceMs! / s.seconds!)
+    .sort((a, b) => a - b);
+  if (rates.length > 0 && printSeconds) return rates[Math.floor(rates.length / 2)] * printSeconds;
+  return 60_000;
+}
+
+/** 0..1 for a slice `elapsed` ms into an `expected` ms job: linear to 90% on
+ *  time, then creeping toward 99% so an overrun still moves and never lies about being done. */
+export function sliceFraction(elapsed: number, expected: number): number {
+  const f = Math.max(0, elapsed) / Math.max(1, expected);
+  return f < 1 ? 0.9 * f : 0.9 + 0.09 * (1 - Math.exp(-(f - 1) * 2));
 }
 
 /** Plate numbers, 0 up, in the order the plan starts them. */

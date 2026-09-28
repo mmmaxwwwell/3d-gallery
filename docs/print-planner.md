@@ -22,14 +22,23 @@ A project's plates, scheduled across the printer fleet and sent to it.
    "Adding here"), else the newest plate, else a new one
    (`ensureTargetPlate`). The project view also makes, renames, duplicates
    and deletes plates. An empty plate is listed but not planned or sliced.
-   The view shows the plan, a Gantt chart per printer, the operator's
-   itinerary, the plates, the printers and the operator's hours.
+   The view owns the whole screen (`Page.tsx`, no title bar; ← and Esc go
+   back). Across the top: the project bar with Send to printers, then three
+   bars (plates sliced, the slice running now, plates printed) over the
+   checks that gate Send. Below: the plan, a Gantt chart per printer, the
+   operator's itinerary, the plates, the printers and the operator's hours.
+   Every plan it draws is kept per project (`plan-snapshot.ts`) for the
+   screens that don't recompute it.
 3. **Slicing is automatic.** Whenever a plate has no fresh slice for the
    printer the plan gives it, the planner slices it, one plate at a time, in
    the background. A slice's real time can move a plate to another printer,
    which re-plans and slices it again there. A plate whose slice fails is
    left alone until its **Retry slice** button. Nothing slices while a plate
-   has no filament preset for its material. Each plate is sliced at its
+   has no filament preset for its material, nor before every printer has
+   reported its status (a plan made before then counts busy printers as
+   free). The slicer reports only its start and end, so the "Slicing now"
+   bar runs on the clock against the plate's last slice time, or the median
+   slicing rate times its print time (`expectedSliceMs`). Each plate is sliced at its
    recommended profile, with the filament preset matched to its material.
    Bed surface, layer height, preheat and centring are the print dialog's
    last selections. The G-code is kept in IndexedDB (plate store v5,
@@ -72,6 +81,65 @@ The queue and log persist in `localStorage['3dg:print:dispatch:<projectId>']`.
 After a reload an interrupted upload runs again. An interrupted start fails,
 because it may have reached the printer, so the operator decides.
 
+## Operator runbook
+
+`?operator=<projectId>` (`operator-app.tsx`, model in `operator-model.ts`),
+opened from **Runbook** on the project and printers screens. It is a phone
+screen for the trips to the printers.
+
+- **Where the plan comes from.** The project view keeps the plan it last
+  drew in `localStorage['3dg:print:plan:<projectId>']` (`plan-snapshot.ts`).
+  The runbook reads that and follows every re-plan, so it can be read
+  while planning, before a session and during one.
+- **Sessions.** Each visit in the plan is a session. The home page counts
+  down to the next one that isn't done and gives its clock time, or shows
+  `--:--` when nothing is planned. Below that is one card per session:
+  when it is, how many printers, how many filament changes, and the
+  planned minutes (or how long it really took).
+- **A session's front page.** Start time, printers touched, filament
+  changes, planned minutes, the filament going on (grams per
+  material · colour), what to bring, and one card per stop ("Stop 1 ·
+  Left — Clear bed · start #05"). A filament change is a print whose
+  material or colour differs from the print before it on the same printer,
+  or the plan's own swap from the loaded filament. What to bring covers
+  only what the stops need: a scraper, gloves, spare beds, bins and a phone
+  when a bed has to be cleared, and a cutter and glasses when there's a swap.
+- **A stop** is one printer. **Start task** / **Stop task** time the
+  operator, and stopping the last stop ends the session. Its steps, each a
+  checkbox:
+  1. Log the last print, with outcome flags (OK, stringing, layer shift,
+     came off the bed, warping, spaghetti, under-extrusion, filament jam,
+     power failure, unknown), a note and photos. Only shown when something
+     is known to be on the bed: an earlier print in the plan, a recorded
+     start, or a finished job that Moonraker reports.
+  2. Clear the bed, by swapping in a spare bed or putting the parts in a
+     bin (a photo of the parts in the bin and one of the bin's label or
+     code, both kept raw and tagged with the plate).
+  3. Fresh, clean bed.
+  4. Filament: the filament and the grams this print needs, with cut /
+     unload / load / purge steps when it's a change.
+  5. Start the print (cancel a paused job first, if Moonraker reports one).
+     Ticking this step records the start.
+  6. Watch the first layer: **Went down OK** or **Problem**, and for a
+     problem a note and a photo.
+- **What's kept** is in its own IndexedDB database, `3dg:print:operator`
+  (`operator-store.ts`): `prints` (every upload and start, from the dispatch
+  daemon or the runbook: what, where, when), `stops` (timing, ticks, outcome,
+  bin, first layer), `sessions` (actual start and end) and `photos` (Blobs).
+  A stop's key is `projectId|plateId it starts|printerId`, and a session's is
+  the plate id of its first start. Neither depends on the plan's visit
+  numbers, so a re-plan keeps the operator's notes on the right stop.
+- **What the printer says** (`print-report.ts`). Whenever the runbook or
+  the printers screen loads, and each minute while the runbook is open,
+  every recorded start that hasn't settled is checked against its printer:
+  Moonraker's job history (the first run of that file since the start: how
+  it ended, when, print time, filament used), the live state (progress and
+  time left, or the outcome when history is off) and the console store
+  (`!!` errors logged during the run). The answer is kept on the print
+  record as `report`; a finished, cancelled or failed run is never asked
+  about again. The runbook shows it in "Log the last print" and "Start the
+  print"; the printers screen shows it on each job off the queue.
+
 ## Times
 
 A plate's time is the slicer's own figure when it has a fresh slice (for any
@@ -96,7 +164,10 @@ changes. Printers keep running through bedtime and away blocks, but nothing
 starts during one.
 
 `simulate(order, gather)` is a decoder. At each visit, each idle printer takes
-the highest-priority job it may print, preferring its loaded material. The
+the highest-priority job it may print, preferring one it is already sliced
+for (`preferred`) in its loaded material, then its loaded material. A printer
+that finishes while the operator is still walking the fleet joins that visit
+rather than making a second trip minutes later. The
 next visit is when the first busy printer with work left finishes. With a
 gather allowance, it is the last printer finishing within that allowance, so
 one trip handles several printers. The time is then pushed out of any block.
