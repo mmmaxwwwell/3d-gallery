@@ -333,6 +333,21 @@ html, body {
   margin: 0 0 6px;
 }
 
+.print-settings-backup {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.print-settings-backup h4 {
+  margin: 0 0 6px;
+}
+
+/* The file input is the label's; the button is what shows. */
+.print-settings-backup-import input {
+  display: none;
+}
+
 .print-settings-server-actions {
   display: flex;
   flex-wrap: wrap;

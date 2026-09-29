@@ -15,6 +15,7 @@ import { parseOrcaPresetFile, parseOrcaConfigTree, type ParsedPreset } from '../
 import { PresetEditor } from './PresetEditor.js';
 import { setOverride } from '../print/preset-edit.js';
 import { exportFilename, exportMergedJson, exportRawJson } from '../print/preset-flatten.js';
+import { backupFilename, exportBackup, importBackup, parseBackup } from '../print/backup.js';
 import {
   clearServerAndUseLocal,
   probeServerStore,
@@ -67,6 +68,9 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
   const [serverBusy, setServerBusy] = useState<boolean>(false);
   const [serverNotice, setServerNotice] = useState<string>('');
   const [serverError, setServerError] = useState<string>('');
+  const [backupBusy, setBackupBusy] = useState<boolean>(false);
+  const [backupNotice, setBackupNotice] = useState<string>('');
+  const [backupError, setBackupError] = useState<string>('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editorDirty, setEditorDirty] = useState<boolean>(false);
   const folderInputRef = useRef<HTMLInputElement | null>(null);
@@ -159,6 +163,41 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
     a.download = exportFilename(preset, variant);
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 0);
+  };
+
+  const handleBackupExport = async () => {
+    setBackupError(''); setBackupNotice(''); setBackupBusy(true);
+    try {
+      const backup = await exportBackup();
+      const blob = new Blob([JSON.stringify(backup)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = backupFilename(backup.exportedAt);
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+    } catch (err) {
+      setBackupError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBackupBusy(false);
+    }
+  };
+
+  const handleBackupImport = async (files: FileList | null) => {
+    const file = files?.[0];
+    if (!file) return;
+    setBackupError(''); setBackupNotice(''); setBackupBusy(true);
+    try {
+      const { records, keys, skipped } = await importBackup(parseBackup(await file.text()));
+      setBackupNotice(`Imported ${records} record${records === 1 ? '' : 's'} and ${keys} setting${keys === 1 ? '' : 's'}. `
+        + 'Reload any other open pages to see them.'
+        + (skipped.length ? ` Skipped (not in this version): ${skipped.join(', ')}.` : ''));
+      await refresh();
+    } catch (err) {
+      setBackupError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBackupBusy(false);
+    }
   };
 
   const handleDeleteAll = async (kind: PresetKind) => {
@@ -369,6 +408,34 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                 {serverError && <div class="print-settings-error">{serverError}</div>}
               </div>
             )}
+            <div class="print-settings-backup">
+              <h4>Move to another browser</h4>
+              <p class="print-settings-help">
+                Everything lives in this browser. Export it all (presets, projects, plates and their
+                slices, sent plans, the operator's logs) as one file, then import that file in the other
+                browser. Importing replaces records with the same id and keeps the rest.
+              </p>
+              <div class="print-settings-server-actions">
+                <button type="button" class="btn btn-secondary" disabled={backupBusy} onClick={() => void handleBackupExport()}>
+                  Export all data
+                </button>
+                <label class="btn btn-secondary print-settings-backup-import">
+                  Import backup…
+                  <input
+                    type="file"
+                    accept=".json,application/json"
+                    disabled={backupBusy}
+                    onChange={(e) => {
+                      const input = e.target as HTMLInputElement;
+                      void handleBackupImport(input.files).then(() => { input.value = ''; });
+                    }}
+                  />
+                </label>
+              </div>
+              {backupBusy && <div class="print-settings-notice">Working…</div>}
+              {backupNotice && <div class="print-settings-notice">{backupNotice}</div>}
+              {backupError && <div class="print-settings-error">{backupError}</div>}
+            </div>
             {warnings.length > 0 && (
               <details class="print-settings-warnings">
                 <summary>{warnings.length} warning{warnings.length === 1 ? '' : 's'}</summary>
