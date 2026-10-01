@@ -340,6 +340,8 @@ export default defineConfig({
           'wasm/libslic3r-wasm64.wasm',
           'models/et300-knob-aide-knurled/knurl-depth-grid.stl',
           'models/folding-panel-divider/strip.stl',
+          'models/spool-drybox/wall-*.stl',
+          'models/lattice-mast/segment-*.stl',
           // Content-addressed artifact tree emitted by scripts/build-models.mjs.
           // Immutable and fetched on demand; precaching it would ship every
           // model twice.
