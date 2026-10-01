@@ -269,8 +269,11 @@ body.sidebar-open #sidebar-backdrop {
   }
 }
 
+/* A model can have many builds; the tabs wrap rather than push the header
+   (and the page) wider than the window. */
 #build-switch {
-  flex-shrink: 0;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 #build-switch[hidden] {
@@ -281,6 +284,7 @@ body.sidebar-open #sidebar-backdrop {
   padding: 4px 10px;
   font-size: 13px;
   font-family: inherit;
+  white-space: nowrap;
 }
 
 #part-select {
@@ -291,7 +295,9 @@ body.sidebar-open #sidebar-backdrop {
   font-family: inherit;
   background: #fff;
   color: #222;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 8em;
+  max-width: 100%;
   display: none;
 }
 

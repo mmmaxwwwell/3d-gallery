@@ -252,6 +252,114 @@
       ]
     },
     {
+      "slug": "heltec-ht-hc33-case",
+      "title": "Heltec HT-HC33 Waterproof Case",
+      "description": "A waterproof case for the Heltec HT-HC33 (ESP32-S3 Wi-Fi HaLow board) and one 18650, in three stacked pieces. At the bottom, the battery case holds the cell between two contact plates, with a channel carrying the far lead back; it wraps the cell in a 45° teardrop that carries its sealing flange, so nothing needs supports. On it, the MCU plate carries the board on pinned standoffs, with a hole under the board's battery socket for the lead. On top, the cover: the SMA bulkhead for a 915 MHz antenna comes straight out of one end face, its inner nut locked in a hex pocket deep in the wall, and the USB-C comes out of the other end face behind a hinged door. The door carries a plug that pushes into the USB opening: a TPU sleeve, slightly oversize, whose ribs pop into matching grooves in the opening's walls, so the seal presses on the opening, not the hinge, and the ribs hold it shut. The hinge pin is a filament offcut. Both joints between the pieces seal on TPU 75A printed in place, and a TPU washer is printed into the face round the SMA. Ten M3 × 16 cap screws run straight down the middle of the seal, three along each side and two in each end: heads up in the battery case's flange, through both seals and into bare pilots in the cover. Round each one the TPU widens to a pad the screw threads through, and the cover's ridge widens to a disc that presses it. 84 × 48 × 38 mm. Not yet test-printed.",
+      "devOnly": true,
+      "filament": [
+        { "material": "PETG", "color": "any", "note": "Battery case, MCU plate and cover" },
+        {
+          "material": "TPU 75A",
+          "color": "any",
+          "note": "The seals and the door's plug sleeve, printed in place with the part that holds them",
+          "parts": ["battery-case-gasket.stl", "mcu-plate-gasket.stl", "cover-gasket.stl", "door-gasket.stl"]
+        }
+      ],
+      "previews": [
+        {
+          "file": "assembled.3mf",
+          "format": "3mf",
+          "label": "Assembled",
+          "default": true,
+          "module": "assembled",
+          "legend": [
+            { "color": "#2f3542", "label": "Battery case", "part": "battery-case.stl" },
+            { "color": "#ff4757", "label": "Battery case seal, TPU", "part": "battery-case-gasket.stl" },
+            { "color": "#57606f", "label": "MCU plate", "part": "mcu-plate.stl" },
+            { "color": "#ff6b81", "label": "MCU plate seal, TPU", "part": "mcu-plate-gasket.stl" },
+            { "color": "#747d8c", "label": "Cover", "part": "cover.stl" },
+            { "color": "#ffa502", "label": "SMA washer, TPU", "part": "cover-gasket.stl" },
+            { "color": "#a4b0be", "label": "USB-C door", "part": "door.stl" },
+            { "color": "#ff7f50", "label": "Door plug sleeve, TPU", "part": "door-gasket.stl" },
+            { "color": "#2ed573", "label": "HT-HC33 board", "note": "Reference only, not printed" },
+            { "color": "#dfe4ea", "label": "18650 cell", "note": "Reference only, not printed" }
+          ],
+          "components": [
+            { "part": "battery-case.stl", "qty": 1 },
+            { "part": "battery-case-gasket.stl", "qty": 1 },
+            { "part": "mcu-plate.stl", "qty": 1 },
+            { "part": "mcu-plate-gasket.stl", "qty": 1 },
+            { "part": "cover.stl", "qty": 1 },
+            { "part": "cover-gasket.stl", "qty": 1 },
+            { "part": "door.stl", "qty": 1 },
+            { "part": "door-gasket.stl", "qty": 1 }
+          ]
+        },
+        {
+          "file": "print.3mf",
+          "format": "3mf",
+          "label": "Every piece as it prints, TPU in place",
+          "module": "print_layout",
+          "legend": [
+            { "color": "#2f3542", "label": "Battery case, floor down", "part": "battery-case.stl" },
+            { "color": "#ff4757", "label": "Its seal", "part": "battery-case-gasket.stl" },
+            { "color": "#57606f", "label": "MCU plate, flat side down", "part": "mcu-plate.stl" },
+            { "color": "#ff6b81", "label": "Its seal", "part": "mcu-plate-gasket.stl" },
+            { "color": "#747d8c", "label": "Cover, top down", "part": "cover.stl" },
+            { "color": "#ffa502", "label": "Its SMA washer", "part": "cover-gasket.stl" },
+            { "color": "#a4b0be", "label": "USB-C door, outer face down, plug up", "part": "door.stl" },
+            { "color": "#ff7f50", "label": "Its plug sleeve", "part": "door-gasket.stl" }
+          ]
+        }
+      ],
+      "parts": [
+        { "file": "battery-case.stl", "format": "stl", "label": "1. Battery case", "module": "battery_case_print" },
+        { "file": "battery-case-gasket.stl", "format": "stl", "label": "1. Battery case seal (TPU, printed in place)", "module": "battery_case_gasket_print" },
+        { "file": "mcu-plate.stl", "format": "stl", "label": "2. MCU plate", "module": "mcu_plate_print" },
+        { "file": "mcu-plate-gasket.stl", "format": "stl", "label": "2. MCU plate seal (TPU, printed in place)", "module": "mcu_plate_gasket_print" },
+        { "file": "cover.stl", "format": "stl", "label": "3. Cover (SMA and USB-C ends)", "module": "cover_part_print" },
+        { "file": "cover-gasket.stl", "format": "stl", "label": "3. Cover SMA washer (TPU, printed in place)", "module": "cover_gasket_print" },
+        { "file": "door.stl", "format": "stl", "label": "USB-C door", "module": "door_part_print" },
+        { "file": "door-gasket.stl", "format": "stl", "label": "USB-C door plug sleeve (TPU, printed in place)", "module": "door_gasket_print" }
+      ],
+      "hardware": [
+        {
+          "qty": 10,
+          "label": "M3 × 16 socket-head cap screw — up from the battery case's flange, through both seals' TPU, threading into the cover's bare pilots",
+          "usedBy": [{ "part": "battery-case.stl", "each": 10 }]
+        },
+        {
+          "qty": 1,
+          "label": "1.75 mm filament offcut, 11 mm — the door's hinge pin, snug in the cover's knuckle",
+          "usedBy": [{ "part": "door.stl", "each": 1 }]
+        },
+        {
+          "qty": 1,
+          "label": "SMA female bulkhead to U.FL (IPEX1) pigtail — 1/4-36 thread, 8 mm nut, through the cover's end to the board's HaLow jack",
+          "usedBy": [{ "part": "cover.stl", "each": 1 }]
+        },
+        {
+          "qty": 1,
+          "label": "18650 spring contact plate, up to 12 mm wide — negative end, in its slot",
+          "usedBy": [{ "part": "battery-case.stl", "each": 1 }]
+        },
+        {
+          "qty": 1,
+          "label": "18650 flat contact plate, up to 12 mm wide — positive end, in its slot",
+          "usedBy": [{ "part": "battery-case.stl", "each": 1 }]
+        },
+        { "qty": 1, "label": "SH1.25 2-pin pigtail — battery leads up through the MCU plate to the board's battery socket" }
+      ],
+      "worksWith": [
+        {
+          "label": "Heltec HT-HC33 Wi-Fi HaLow board",
+          "source": { "url": "https://www.amazon.com/dp/B0FCB2V7XG", "vendor": "Amazon" }
+        },
+        { "label": "915 MHz antenna, SMA male" },
+        { "label": "18650 cell, 65 mm flat top, no tabs" }
+      ]
+    },
+    {
       "slug": "qr-leash-tag",
       "title": "QR Leash Tag",
       "description": "A QR code that slides onto a leash \u2014 one piece, two filaments, no hardware. The webbing threads through a slot across the middle and the code fills the whole 29mm face. Set your leash's width and thickness and the tag wraps itself around it. Prints face down so the code comes out flat and crisp.",
@@ -1710,198 +1818,394 @@
     },
     {
       "slug": "servo-duct-manifold",
-      "title": "Servo Duct Valve Manifold (100 mm)",
-      "description": "Servo-driven butterfly valves and manifolds for 100 mm (4\") dryer duct — for pulling exhaust and a slight vacuum from a printer enclosure, and choosing which run the fan draws on. Three kinds of piece bolt together on one round flange (four M3s on the diagonals, nut in one flange's hex pocket, cap-screw head in the other's): a hub with a port per duct, a valve section, and a spigot adapter that takes the duct and a hose clamp behind a bead. The hub prints standing on its trunk flange with its branches leaning out 45°, so every surface inside and out overhangs by 45° at most and nothing needs support; its branch length is solved so a hex key reaches every bolt. Each valve is a tube with a flat butterfly disc turned directly by an SG90 on its shaft axis: the disc slides in edge-on and turns inside a sphere just smaller than the bore, a printed coupler carries the servo's own two-arm horn in a pocket and keys into the disc's rib through the wall, and an M3 cap screw through a boss on the far side is the idle pivot. The coupler goes in through a notch down the servo plate, so nothing needs to be glued or printed in place. Builds: a 3-port hub with valves on both branches and the trunk open to the fan, the same hub valved on every port, a 4-port hub, and a single inline valve. Duct size, wall, flange, port count and lean, disc fit and the servo's and horn's dimensions are all adjustable.",
+      "title": "Duct Airflow Modules (100 mm)",
+      "description": "A kit of airflow modules for 100 mm (4\") dryer duct — for pulling exhaust and a slight vacuum from printer enclosures and choosing which run the fan draws on — that all join the same way. Every module has a socket at one end and a plug at the other. The plug pushes in, turns 20° to lock, and the lugs ride a ramp that pulls it in half a millimetre onto a TPU 75A liner printed into the socket's floor. A printed key drops into two notches that only line up once it has turned home, so it can't turn back; eight M3 cap-screw spots round each joint can clamp it harder, into self-tapped pilots or nuts. The modules are straight tubes, 45° elbows (two make a 90° bend), duct spigots on a socket or a plug, a socket coupler, servo butterfly valves, and two kinds of manifold. A polar manifold is a hub with a trunk and branches leaning out 45° round it. A cubic manifold is unit cubes laid out cell by cell, with a plug or socket on any face you name, each cell twisting onto the one before it. There are also sensor sections: a sealed cap that holds a cheap breakout board (BME280, SHT31, AHT20, SGP30/40, ENS160 and others) against a window into the duct, and a venturi with pressure taps for a differential pressure sensor to measure the flow. Every part prints in PETG without supports, nothing overhangs past 45°, and the TPU prints in place on a multi-material printer. The butterfly valves are turned by an SG90 on the disc's axis. The original bolt flange is still an option for the hub, valve and duct spigot.",
       "customizable": true,
       "devOnly": true,
       "filament": [
-        { "material": "PETG", "color": "any", "note": "Everything. PETG keeps its shape in warm enclosure exhaust where PLA creeps." }
+        {
+          "material": "PETG",
+          "color": "any",
+          "note": "Every rigid part. PETG keeps its shape in warm enclosure exhaust where PLA creeps."
+        },
+        {
+          "material": "TPU 75A",
+          "color": "any",
+          "note": "The socket liners and the sensor cap's bead, printed in place with the part that holds them (Snapmaker U1).",
+          "parts": [
+            "cube-cell-1-gasket.stl",
+            "cube-cell-2-gasket.stl",
+            "cube-cell-3-gasket.stl",
+            "cube-cell-4-gasket.stl",
+            "elbow-45-gasket.stl",
+            "hub-gasket.stl",
+            "iris-body-gasket.stl",
+            "sensor-cap-gasket.stl",
+            "sensor-section-gasket.stl",
+            "socket-coupler-gasket.stl",
+            "spigot-adapter-gasket.stl",
+            "tube-gasket.stl",
+            "valve-body-gasket.stl",
+            "venturi-gasket.stl"
+          ]
+        }
       ],
       "builds": [
         {
           "id": "y",
-          "label": "3-port, 2 valves",
+          "label": "3-port hub, 2 valves",
           "default": true,
           "params": { "ports": 3, "valved_ports": 2 },
           "previews": [
             {
               "file": "assembled.3mf",
               "format": "3mf",
-              "label": "Assembly: 3-port hub, valves on 2 branches, trunk open to a duct",
+              "label": "Assembly: 3-port hub, 2 valves",
               "default": true,
               "module": "assembled",
               "legend": [
                 { "color": "#1fedff", "label": "Hub", "part": "hub.stl" },
-                { "color": "#ffdb27", "label": "Valve sections", "part": "valve-body.stl" },
+                { "color": "#ffdb27", "label": "Butterfly valve sections", "part": "valve-body.stl" },
                 { "color": "#ff7d1f", "label": "Butterfly discs", "part": "valve-disc.stl" },
                 { "color": "#ff33ce", "label": "Drive couplers", "part": "valve-coupler.stl" },
-                { "color": "#51ff30", "label": "Spigot adapters", "part": "spigot-adapter.stl" },
+                { "color": "#51ff30", "label": "Duct spigots on sockets", "part": "spigot-adapter.stl" },
+                { "color": "#2d7dff", "label": "Duct spigots with plugs", "part": "duct-plug.stl" },
+                {
+                  "color": "#a021ff",
+                  "label": "Socket liners and seals, TPU 75A",
+                  "part": "hub-gasket.stl",
+                  "parts": ["hub-gasket.stl", "valve-body-gasket.stl", "spigot-adapter-gasket.stl"]
+                },
                 { "color": "#8a8f98", "label": "SG90 servos", "note": "Reference only, not printed" }
               ],
               "components": [
                 { "part": "hub.stl", "qty": 1 },
+                { "part": "hub-gasket.stl", "qty": 1 },
                 { "part": "valve-body.stl", "qty": 2 },
+                { "part": "valve-body-gasket.stl", "qty": 2 },
                 { "part": "valve-disc.stl", "qty": 2 },
                 { "part": "valve-coupler.stl", "qty": 2 },
-                { "part": "spigot-adapter.stl", "qty": 1 }
+                { "part": "spigot-adapter.stl", "qty": 2 },
+                { "part": "spigot-adapter-gasket.stl", "qty": 2 },
+                { "part": "duct-plug.stl", "qty": 1 },
+                { "part": "clip.stl", "qty": 5 }
               ]
             }
           ],
           "parts": [
-            { "file": "hub.stl", "format": "stl", "label": "Hub (on its trunk flange)", "module": "hub" },
-            { "file": "valve-body.stl", "format": "stl", "label": "Valve section (on its flange)", "module": "valve_body" },
-            { "file": "valve-disc.stl", "format": "stl", "label": "Butterfly disc (flat, rib up)", "module": "valve_disc" },
-            { "file": "valve-coupler.stl", "format": "stl", "label": "Drive coupler (head down)", "module": "valve_coupler" },
-            { "file": "spigot-adapter.stl", "format": "stl", "label": "Spigot adapter (on its flange)", "module": "spigot_adapter" }
+            { "file": "hub.stl", "format": "stl", "label": "Polar hub (on its trunk socket)", "module": "hub" },
+            {
+              "file": "hub-gasket.stl",
+              "format": "stl",
+              "label": "Hub socket liner (TPU 75A, same frame as the hub)",
+              "module": "hub_gasket"
+            },
+            {
+              "file": "valve-body.stl",
+              "format": "stl",
+              "label": "Butterfly valve section (on its socket)",
+              "module": "valve_body"
+            },
+            {
+              "file": "valve-body-gasket.stl",
+              "format": "stl",
+              "label": "Valve socket liner (TPU 75A)",
+              "module": "valve_body_gasket"
+            },
+            {
+              "file": "valve-disc.stl",
+              "format": "stl",
+              "label": "Butterfly disc (flat, rib up)",
+              "module": "valve_disc"
+            },
+            {
+              "file": "valve-coupler.stl",
+              "format": "stl",
+              "label": "Drive coupler (head down)",
+              "module": "valve_coupler"
+            },
+            {
+              "file": "spigot-adapter.stl",
+              "format": "stl",
+              "label": "Duct spigot on a socket (on its socket)",
+              "module": "spigot_adapter"
+            },
+            {
+              "file": "spigot-adapter-gasket.stl",
+              "format": "stl",
+              "label": "Duct spigot socket liner (TPU 75A)",
+              "module": "spigot_adapter_gasket"
+            },
+            {
+              "file": "duct-plug.stl",
+              "format": "stl",
+              "label": "Duct spigot with a plug (spigot on the bed)",
+              "module": "duct_plug"
+            },
+            { "file": "clip.stl", "format": "stl", "label": "Joint key (on its side)", "module": "clip" }
           ],
           "hardware": [
             {
-              "qty": 12,
-              "label": "M3 × 10 socket-head cap screw — four per flange joint, head in one flange's hex pocket",
-              "usedBy": [{ "part": "valve-body.stl", "each": 4 }, { "part": "spigot-adapter.stl", "each": 4 }]
-            },
-            {
-              "qty": 12,
-              "label": "M3 hex nut — in the mating flange's hex pocket",
-              "usedBy": [{ "part": "valve-body.stl", "each": 4 }, { "part": "spigot-adapter.stl", "each": 4 }]
+              "qty": 2,
+              "label": "SG90 or MG90S micro servo — with its straight two-arm horn and two tab screws, from the servo's bag",
+              "usedBy": [{"part": "valve-body.stl", "each": 1}]
             },
             {
               "qty": 2,
               "label": "M3 × 16 socket-head cap screw — the disc's idle pivot, threaded into the boss opposite the servo",
-              "usedBy": [{ "part": "valve-body.stl", "each": 1 }]
-            },
-            {
-              "qty": 2,
-              "label": "SG90 or MG90S micro servo — with its straight two-arm horn and two tab screws, from the servo's bag",
-              "usedBy": [{ "part": "valve-body.stl", "each": 1 }]
+              "usedBy": [{"part": "valve-body.stl", "each": 1}]
             },
             {
               "qty": 3,
-              "label": "4\" (100 mm) hose clamp — one per spigot, behind its bead",
-              "usedBy": [{ "part": "valve-body.stl", "each": 1 }, { "part": "spigot-adapter.stl", "each": 1 }]
+              "label": "4\" (100 mm) hose clamp — one per duct spigot, behind its bead",
+              "usedBy": [{"part": "spigot-adapter.stl", "each": 1}, {"part": "duct-plug.stl", "each": 1}]
+            },
+            {
+              "qty": 20,
+              "label": "M3 × 10 socket-head cap screw — optional, 4 of a joint's 8 spots: head in the socket's counterbore, threading into the plug (the twist lock and key hold without them)",
+              "usedBy": [
+                { "part": "hub.stl", "each": 4 },
+                { "part": "valve-body.stl", "each": 4 },
+                { "part": "spigot-adapter.stl", "each": 4 }
+              ]
             }
           ]
         },
         {
           "id": "y-all",
-          "label": "3-port, all valved",
+          "label": "3-port hub, all valved",
           "params": { "ports": 3, "valved_ports": 3 },
           "previews": [
             {
               "file": "assembled.3mf",
               "format": "3mf",
-              "label": "Assembly: 3-port hub, a valve on every port",
+              "label": "Assembly: 3-port hub, all valved",
               "default": true,
               "module": "assembled",
               "legend": [
                 { "color": "#1fedff", "label": "Hub", "part": "hub.stl" },
-                { "color": "#ffdb27", "label": "Valve sections", "part": "valve-body.stl" },
+                { "color": "#ffdb27", "label": "Butterfly valve sections", "part": "valve-body.stl" },
                 { "color": "#ff7d1f", "label": "Butterfly discs", "part": "valve-disc.stl" },
                 { "color": "#ff33ce", "label": "Drive couplers", "part": "valve-coupler.stl" },
+                { "color": "#51ff30", "label": "Duct spigots on sockets", "part": "spigot-adapter.stl" },
+                { "color": "#2d7dff", "label": "Duct spigots with plugs", "part": "duct-plug.stl" },
+                {
+                  "color": "#a021ff",
+                  "label": "Socket liners and seals, TPU 75A",
+                  "part": "hub-gasket.stl",
+                  "parts": ["hub-gasket.stl", "valve-body-gasket.stl", "spigot-adapter-gasket.stl"]
+                },
                 { "color": "#8a8f98", "label": "SG90 servos", "note": "Reference only, not printed" }
               ],
               "components": [
                 { "part": "hub.stl", "qty": 1 },
+                { "part": "hub-gasket.stl", "qty": 1 },
                 { "part": "valve-body.stl", "qty": 3 },
+                { "part": "valve-body-gasket.stl", "qty": 3 },
                 { "part": "valve-disc.stl", "qty": 3 },
-                { "part": "valve-coupler.stl", "qty": 3 }
+                { "part": "valve-coupler.stl", "qty": 3 },
+                { "part": "spigot-adapter.stl", "qty": 2 },
+                { "part": "spigot-adapter-gasket.stl", "qty": 2 },
+                { "part": "duct-plug.stl", "qty": 1 },
+                { "part": "clip.stl", "qty": 6 }
               ]
             }
           ],
           "parts": [
-            { "file": "hub.stl", "format": "stl", "label": "Hub (on its trunk flange)", "module": "hub" },
-            { "file": "valve-body.stl", "format": "stl", "label": "Valve section (on its flange)", "module": "valve_body" },
-            { "file": "valve-disc.stl", "format": "stl", "label": "Butterfly disc (flat, rib up)", "module": "valve_disc" },
-            { "file": "valve-coupler.stl", "format": "stl", "label": "Drive coupler (head down)", "module": "valve_coupler" }
+            { "file": "hub.stl", "format": "stl", "label": "Polar hub (on its trunk socket)", "module": "hub" },
+            {
+              "file": "hub-gasket.stl",
+              "format": "stl",
+              "label": "Hub socket liner (TPU 75A, same frame as the hub)",
+              "module": "hub_gasket"
+            },
+            {
+              "file": "valve-body.stl",
+              "format": "stl",
+              "label": "Butterfly valve section (on its socket)",
+              "module": "valve_body"
+            },
+            {
+              "file": "valve-body-gasket.stl",
+              "format": "stl",
+              "label": "Valve socket liner (TPU 75A)",
+              "module": "valve_body_gasket"
+            },
+            {
+              "file": "valve-disc.stl",
+              "format": "stl",
+              "label": "Butterfly disc (flat, rib up)",
+              "module": "valve_disc"
+            },
+            {
+              "file": "valve-coupler.stl",
+              "format": "stl",
+              "label": "Drive coupler (head down)",
+              "module": "valve_coupler"
+            },
+            {
+              "file": "spigot-adapter.stl",
+              "format": "stl",
+              "label": "Duct spigot on a socket (on its socket)",
+              "module": "spigot_adapter"
+            },
+            {
+              "file": "spigot-adapter-gasket.stl",
+              "format": "stl",
+              "label": "Duct spigot socket liner (TPU 75A)",
+              "module": "spigot_adapter_gasket"
+            },
+            {
+              "file": "duct-plug.stl",
+              "format": "stl",
+              "label": "Duct spigot with a plug (spigot on the bed)",
+              "module": "duct_plug"
+            },
+            { "file": "clip.stl", "format": "stl", "label": "Joint key (on its side)", "module": "clip" }
           ],
           "hardware": [
             {
-              "qty": 12,
-              "label": "M3 × 10 socket-head cap screw — four per flange joint, head in one flange's hex pocket",
-              "usedBy": [{ "part": "valve-body.stl", "each": 4 }]
-            },
-            {
-              "qty": 12,
-              "label": "M3 hex nut — in the mating flange's hex pocket",
-              "usedBy": [{ "part": "valve-body.stl", "each": 4 }]
+              "qty": 3,
+              "label": "SG90 or MG90S micro servo — with its straight two-arm horn and two tab screws, from the servo's bag",
+              "usedBy": [{"part": "valve-body.stl", "each": 1}]
             },
             {
               "qty": 3,
               "label": "M3 × 16 socket-head cap screw — the disc's idle pivot, threaded into the boss opposite the servo",
-              "usedBy": [{ "part": "valve-body.stl", "each": 1 }]
+              "usedBy": [{"part": "valve-body.stl", "each": 1}]
             },
             {
               "qty": 3,
-              "label": "SG90 or MG90S micro servo — with its straight two-arm horn and two tab screws, from the servo's bag",
-              "usedBy": [{ "part": "valve-body.stl", "each": 1 }]
+              "label": "4\" (100 mm) hose clamp — one per duct spigot, behind its bead",
+              "usedBy": [{"part": "spigot-adapter.stl", "each": 1}, {"part": "duct-plug.stl", "each": 1}]
             },
             {
-              "qty": 3,
-              "label": "4\" (100 mm) hose clamp — one per spigot, behind its bead",
-              "usedBy": [{ "part": "valve-body.stl", "each": 1 }]
+              "qty": 24,
+              "label": "M3 × 10 socket-head cap screw — optional, 4 of a joint's 8 spots: head in the socket's counterbore, threading into the plug (the twist lock and key hold without them)",
+              "usedBy": [
+                { "part": "hub.stl", "each": 4 },
+                { "part": "valve-body.stl", "each": 4 },
+                { "part": "spigot-adapter.stl", "each": 4 }
+              ]
             }
           ]
         },
         {
           "id": "x4",
-          "label": "4-port, 3 valves",
+          "label": "4-port hub, 3 valves",
           "params": { "ports": 4, "valved_ports": 3 },
           "previews": [
             {
               "file": "assembled.3mf",
               "format": "3mf",
-              "label": "Assembly: 4-port hub, valves on 3 branches, trunk open to a duct",
+              "label": "Assembly: 4-port hub, 3 valves",
               "default": true,
               "module": "assembled",
               "legend": [
                 { "color": "#1fedff", "label": "Hub", "part": "hub.stl" },
-                { "color": "#ffdb27", "label": "Valve sections", "part": "valve-body.stl" },
+                { "color": "#ffdb27", "label": "Butterfly valve sections", "part": "valve-body.stl" },
                 { "color": "#ff7d1f", "label": "Butterfly discs", "part": "valve-disc.stl" },
                 { "color": "#ff33ce", "label": "Drive couplers", "part": "valve-coupler.stl" },
-                { "color": "#51ff30", "label": "Spigot adapters", "part": "spigot-adapter.stl" },
+                { "color": "#51ff30", "label": "Duct spigots on sockets", "part": "spigot-adapter.stl" },
+                { "color": "#2d7dff", "label": "Duct spigots with plugs", "part": "duct-plug.stl" },
+                {
+                  "color": "#a021ff",
+                  "label": "Socket liners and seals, TPU 75A",
+                  "part": "hub-gasket.stl",
+                  "parts": ["hub-gasket.stl", "valve-body-gasket.stl", "spigot-adapter-gasket.stl"]
+                },
                 { "color": "#8a8f98", "label": "SG90 servos", "note": "Reference only, not printed" }
               ],
               "components": [
                 { "part": "hub.stl", "qty": 1 },
+                { "part": "hub-gasket.stl", "qty": 1 },
                 { "part": "valve-body.stl", "qty": 3 },
+                { "part": "valve-body-gasket.stl", "qty": 3 },
                 { "part": "valve-disc.stl", "qty": 3 },
                 { "part": "valve-coupler.stl", "qty": 3 },
-                { "part": "spigot-adapter.stl", "qty": 1 }
+                { "part": "spigot-adapter.stl", "qty": 3 },
+                { "part": "spigot-adapter-gasket.stl", "qty": 3 },
+                { "part": "duct-plug.stl", "qty": 1 },
+                { "part": "clip.stl", "qty": 7 }
               ]
             }
           ],
           "parts": [
-            { "file": "hub.stl", "format": "stl", "label": "Hub (on its trunk flange)", "module": "hub" },
-            { "file": "valve-body.stl", "format": "stl", "label": "Valve section (on its flange)", "module": "valve_body" },
-            { "file": "valve-disc.stl", "format": "stl", "label": "Butterfly disc (flat, rib up)", "module": "valve_disc" },
-            { "file": "valve-coupler.stl", "format": "stl", "label": "Drive coupler (head down)", "module": "valve_coupler" },
-            { "file": "spigot-adapter.stl", "format": "stl", "label": "Spigot adapter (on its flange)", "module": "spigot_adapter" }
+            { "file": "hub.stl", "format": "stl", "label": "Polar hub (on its trunk socket)", "module": "hub" },
+            {
+              "file": "hub-gasket.stl",
+              "format": "stl",
+              "label": "Hub socket liner (TPU 75A, same frame as the hub)",
+              "module": "hub_gasket"
+            },
+            {
+              "file": "valve-body.stl",
+              "format": "stl",
+              "label": "Butterfly valve section (on its socket)",
+              "module": "valve_body"
+            },
+            {
+              "file": "valve-body-gasket.stl",
+              "format": "stl",
+              "label": "Valve socket liner (TPU 75A)",
+              "module": "valve_body_gasket"
+            },
+            {
+              "file": "valve-disc.stl",
+              "format": "stl",
+              "label": "Butterfly disc (flat, rib up)",
+              "module": "valve_disc"
+            },
+            {
+              "file": "valve-coupler.stl",
+              "format": "stl",
+              "label": "Drive coupler (head down)",
+              "module": "valve_coupler"
+            },
+            {
+              "file": "spigot-adapter.stl",
+              "format": "stl",
+              "label": "Duct spigot on a socket (on its socket)",
+              "module": "spigot_adapter"
+            },
+            {
+              "file": "spigot-adapter-gasket.stl",
+              "format": "stl",
+              "label": "Duct spigot socket liner (TPU 75A)",
+              "module": "spigot_adapter_gasket"
+            },
+            {
+              "file": "duct-plug.stl",
+              "format": "stl",
+              "label": "Duct spigot with a plug (spigot on the bed)",
+              "module": "duct_plug"
+            },
+            { "file": "clip.stl", "format": "stl", "label": "Joint key (on its side)", "module": "clip" }
           ],
           "hardware": [
             {
-              "qty": 16,
-              "label": "M3 × 10 socket-head cap screw — four per flange joint, head in one flange's hex pocket",
-              "usedBy": [{ "part": "valve-body.stl", "each": 4 }, { "part": "spigot-adapter.stl", "each": 4 }]
-            },
-            {
-              "qty": 16,
-              "label": "M3 hex nut — in the mating flange's hex pocket",
-              "usedBy": [{ "part": "valve-body.stl", "each": 4 }, { "part": "spigot-adapter.stl", "each": 4 }]
+              "qty": 3,
+              "label": "SG90 or MG90S micro servo — with its straight two-arm horn and two tab screws, from the servo's bag",
+              "usedBy": [{"part": "valve-body.stl", "each": 1}]
             },
             {
               "qty": 3,
               "label": "M3 × 16 socket-head cap screw — the disc's idle pivot, threaded into the boss opposite the servo",
-              "usedBy": [{ "part": "valve-body.stl", "each": 1 }]
-            },
-            {
-              "qty": 3,
-              "label": "SG90 or MG90S micro servo — with its straight two-arm horn and two tab screws, from the servo's bag",
-              "usedBy": [{ "part": "valve-body.stl", "each": 1 }]
+              "usedBy": [{"part": "valve-body.stl", "each": 1}]
             },
             {
               "qty": 4,
-              "label": "4\" (100 mm) hose clamp — one per spigot, behind its bead",
-              "usedBy": [{ "part": "valve-body.stl", "each": 1 }, { "part": "spigot-adapter.stl", "each": 1 }]
+              "label": "4\" (100 mm) hose clamp — one per duct spigot, behind its bead",
+              "usedBy": [{"part": "spigot-adapter.stl", "each": 1}, {"part": "duct-plug.stl", "each": 1}]
+            },
+            {
+              "qty": 28,
+              "label": "M3 × 10 socket-head cap screw — optional, 4 of a joint's 8 spots: head in the socket's counterbore, threading into the plug (the twist lock and key hold without them)",
+              "usedBy": [
+                { "part": "hub.stl", "each": 4 },
+                { "part": "valve-body.stl", "each": 4 },
+                { "part": "spigot-adapter.stl", "each": 4 }
+              ]
             }
           ]
         },
@@ -1913,55 +2217,775 @@
             {
               "file": "inline.3mf",
               "format": "3mf",
-              "label": "Assembly: one valve with a spigot adapter under it",
+              "label": "Assembly: one butterfly valve with a duct end each side",
               "default": true,
               "module": "inline",
               "legend": [
-                { "color": "#ffdb27", "label": "Valve sections", "part": "valve-body.stl" },
+                { "color": "#ffdb27", "label": "Butterfly valve sections", "part": "valve-body.stl" },
                 { "color": "#ff7d1f", "label": "Butterfly discs", "part": "valve-disc.stl" },
                 { "color": "#ff33ce", "label": "Drive couplers", "part": "valve-coupler.stl" },
-                { "color": "#51ff30", "label": "Spigot adapters", "part": "spigot-adapter.stl" },
+                { "color": "#51ff30", "label": "Duct spigots on sockets", "part": "spigot-adapter.stl" },
+                { "color": "#2d7dff", "label": "Duct spigots with plugs", "part": "duct-plug.stl" },
+                {
+                  "color": "#a021ff",
+                  "label": "Socket liners and seals, TPU 75A",
+                  "part": "valve-body-gasket.stl",
+                  "parts": ["valve-body-gasket.stl", "spigot-adapter-gasket.stl"]
+                },
                 { "color": "#8a8f98", "label": "SG90 servos", "note": "Reference only, not printed" }
               ],
               "components": [
                 { "part": "valve-body.stl", "qty": 1 },
+                { "part": "valve-body-gasket.stl", "qty": 1 },
                 { "part": "valve-disc.stl", "qty": 1 },
                 { "part": "valve-coupler.stl", "qty": 1 },
-                { "part": "spigot-adapter.stl", "qty": 1 }
+                { "part": "spigot-adapter.stl", "qty": 1 },
+                { "part": "spigot-adapter-gasket.stl", "qty": 1 },
+                { "part": "duct-plug.stl", "qty": 1 },
+                { "part": "clip.stl", "qty": 2 }
               ]
             }
           ],
           "parts": [
-            { "file": "valve-body.stl", "format": "stl", "label": "Valve section (on its flange)", "module": "valve_body" },
-            { "file": "valve-disc.stl", "format": "stl", "label": "Butterfly disc (flat, rib up)", "module": "valve_disc" },
-            { "file": "valve-coupler.stl", "format": "stl", "label": "Drive coupler (head down)", "module": "valve_coupler" },
-            { "file": "spigot-adapter.stl", "format": "stl", "label": "Spigot adapter (on its flange)", "module": "spigot_adapter" }
+            {
+              "file": "valve-body.stl",
+              "format": "stl",
+              "label": "Butterfly valve section (on its socket)",
+              "module": "valve_body"
+            },
+            {
+              "file": "valve-body-gasket.stl",
+              "format": "stl",
+              "label": "Valve socket liner (TPU 75A)",
+              "module": "valve_body_gasket"
+            },
+            {
+              "file": "valve-disc.stl",
+              "format": "stl",
+              "label": "Butterfly disc (flat, rib up)",
+              "module": "valve_disc"
+            },
+            {
+              "file": "valve-coupler.stl",
+              "format": "stl",
+              "label": "Drive coupler (head down)",
+              "module": "valve_coupler"
+            },
+            {
+              "file": "spigot-adapter.stl",
+              "format": "stl",
+              "label": "Duct spigot on a socket (on its socket)",
+              "module": "spigot_adapter"
+            },
+            {
+              "file": "spigot-adapter-gasket.stl",
+              "format": "stl",
+              "label": "Duct spigot socket liner (TPU 75A)",
+              "module": "spigot_adapter_gasket"
+            },
+            {
+              "file": "duct-plug.stl",
+              "format": "stl",
+              "label": "Duct spigot with a plug (spigot on the bed)",
+              "module": "duct_plug"
+            },
+            { "file": "clip.stl", "format": "stl", "label": "Joint key (on its side)", "module": "clip" }
           ],
           "hardware": [
             {
-              "qty": 4,
-              "label": "M3 × 10 socket-head cap screw — four per flange joint, head in one flange's hex pocket",
-              "usedBy": [{ "part": "valve-body.stl", "each": 4 }]
-            },
-            {
-              "qty": 4,
-              "label": "M3 hex nut — in the mating flange's hex pocket",
-              "usedBy": [{ "part": "valve-body.stl", "each": 4 }]
+              "qty": 1,
+              "label": "SG90 or MG90S micro servo — with its straight two-arm horn and two tab screws, from the servo's bag",
+              "usedBy": [{"part": "valve-body.stl", "each": 1}]
             },
             {
               "qty": 1,
               "label": "M3 × 16 socket-head cap screw — the disc's idle pivot, threaded into the boss opposite the servo",
-              "usedBy": [{ "part": "valve-body.stl", "each": 1 }]
-            },
-            {
-              "qty": 1,
-              "label": "SG90 or MG90S micro servo — with its straight two-arm horn and two tab screws, from the servo's bag",
-              "usedBy": [{ "part": "valve-body.stl", "each": 1 }]
+              "usedBy": [{"part": "valve-body.stl", "each": 1}]
             },
             {
               "qty": 2,
-              "label": "4\" (100 mm) hose clamp — one per spigot, behind its bead",
-              "usedBy": [{ "part": "valve-body.stl", "each": 1 }, { "part": "spigot-adapter.stl", "each": 1 }]
+              "label": "4\" (100 mm) hose clamp — one per duct spigot, behind its bead",
+              "usedBy": [{"part": "spigot-adapter.stl", "each": 1}, {"part": "duct-plug.stl", "each": 1}]
+            },
+            {
+              "qty": 8,
+              "label": "M3 × 10 socket-head cap screw — optional, 4 of a joint's 8 spots: head in the socket's counterbore, threading into the plug (the twist lock and key hold without them)",
+              "usedBy": [{"part": "valve-body.stl", "each": 4}, {"part": "spigot-adapter.stl", "each": 4}]
+            }
+          ]
+        },
+        {
+          "id": "cubic",
+          "label": "Cubic 1 × 4, 4 valves",
+          "params": {},
+          "previews": [
+            {
+              "file": "cubic.3mf",
+              "format": "3mf",
+              "label": "Assembly: four cube cells in a row, a valve on each, the end open to a duct",
+              "default": true,
+              "module": "cubic",
+              "legend": [
+                {
+                  "color": "#1fedff",
+                  "label": "Cube cells",
+                  "part": "cube-cell-1.stl",
+                  "parts": ["cube-cell-1.stl", "cube-cell-2.stl", "cube-cell-3.stl", "cube-cell-4.stl"]
+                },
+                { "color": "#ffdb27", "label": "Butterfly valve sections", "part": "valve-body.stl" },
+                { "color": "#ff7d1f", "label": "Butterfly discs", "part": "valve-disc.stl" },
+                { "color": "#ff33ce", "label": "Drive couplers", "part": "valve-coupler.stl" },
+                { "color": "#51ff30", "label": "Duct spigots on sockets", "part": "spigot-adapter.stl" },
+                { "color": "#2d7dff", "label": "Duct spigots with plugs", "part": "duct-plug.stl" },
+                {
+                  "color": "#a021ff",
+                  "label": "Socket liners and seals, TPU 75A",
+                  "part": "cube-cell-1-gasket.stl",
+                  "parts": [
+                    "cube-cell-1-gasket.stl",
+                    "cube-cell-2-gasket.stl",
+                    "cube-cell-3-gasket.stl",
+                    "cube-cell-4-gasket.stl",
+                    "valve-body-gasket.stl",
+                    "spigot-adapter-gasket.stl"
+                  ]
+                },
+                { "color": "#8a8f98", "label": "SG90 servos", "note": "Reference only, not printed" }
+              ],
+              "components": [
+                { "part": "cube-cell-1.stl", "qty": 1 },
+                { "part": "cube-cell-2.stl", "qty": 1 },
+                { "part": "cube-cell-3.stl", "qty": 1 },
+                { "part": "cube-cell-4.stl", "qty": 1 },
+                { "part": "cube-cell-1-gasket.stl", "qty": 1 },
+                { "part": "cube-cell-2-gasket.stl", "qty": 1 },
+                { "part": "cube-cell-3-gasket.stl", "qty": 1 },
+                { "part": "cube-cell-4-gasket.stl", "qty": 1 },
+                { "part": "valve-body.stl", "qty": 4 },
+                { "part": "valve-body-gasket.stl", "qty": 4 },
+                { "part": "valve-disc.stl", "qty": 4 },
+                { "part": "valve-coupler.stl", "qty": 4 },
+                { "part": "spigot-adapter.stl", "qty": 4 },
+                { "part": "spigot-adapter-gasket.stl", "qty": 4 },
+                { "part": "duct-plug.stl", "qty": 1 },
+                { "part": "clip.stl", "qty": 12 }
+              ]
+            }
+          ],
+          "parts": [
+            {
+              "file": "cube-cell-1.stl",
+              "format": "stl",
+              "label": "Cube cell 1 (standing on an edge)",
+              "module": "cubic_cell_1"
+            },
+            {
+              "file": "cube-cell-2.stl",
+              "format": "stl",
+              "label": "Cube cell 2 (standing on an edge)",
+              "module": "cubic_cell_2"
+            },
+            {
+              "file": "cube-cell-3.stl",
+              "format": "stl",
+              "label": "Cube cell 3 (standing on an edge)",
+              "module": "cubic_cell_3"
+            },
+            {
+              "file": "cube-cell-4.stl",
+              "format": "stl",
+              "label": "Cube cell 4 (standing on an edge)",
+              "module": "cubic_cell_4"
+            },
+            {
+              "file": "cube-cell-1-gasket.stl",
+              "format": "stl",
+              "label": "Cube cell 1 socket liner (TPU 75A)",
+              "module": "cubic_cell_1_gasket"
+            },
+            {
+              "file": "cube-cell-2-gasket.stl",
+              "format": "stl",
+              "label": "Cube cell 2 socket liner (TPU 75A)",
+              "module": "cubic_cell_2_gasket"
+            },
+            {
+              "file": "cube-cell-3-gasket.stl",
+              "format": "stl",
+              "label": "Cube cell 3 socket liner (TPU 75A)",
+              "module": "cubic_cell_3_gasket"
+            },
+            {
+              "file": "cube-cell-4-gasket.stl",
+              "format": "stl",
+              "label": "Cube cell 4 socket liner (TPU 75A)",
+              "module": "cubic_cell_4_gasket"
+            },
+            {
+              "file": "valve-body.stl",
+              "format": "stl",
+              "label": "Butterfly valve section (on its socket)",
+              "module": "valve_body"
+            },
+            {
+              "file": "valve-body-gasket.stl",
+              "format": "stl",
+              "label": "Valve socket liner (TPU 75A)",
+              "module": "valve_body_gasket"
+            },
+            {
+              "file": "valve-disc.stl",
+              "format": "stl",
+              "label": "Butterfly disc (flat, rib up)",
+              "module": "valve_disc"
+            },
+            {
+              "file": "valve-coupler.stl",
+              "format": "stl",
+              "label": "Drive coupler (head down)",
+              "module": "valve_coupler"
+            },
+            {
+              "file": "spigot-adapter.stl",
+              "format": "stl",
+              "label": "Duct spigot on a socket (on its socket)",
+              "module": "spigot_adapter"
+            },
+            {
+              "file": "spigot-adapter-gasket.stl",
+              "format": "stl",
+              "label": "Duct spigot socket liner (TPU 75A)",
+              "module": "spigot_adapter_gasket"
+            },
+            {
+              "file": "duct-plug.stl",
+              "format": "stl",
+              "label": "Duct spigot with a plug (spigot on the bed)",
+              "module": "duct_plug"
+            },
+            { "file": "clip.stl", "format": "stl", "label": "Joint key (on its side)", "module": "clip" }
+          ],
+          "hardware": [
+            {
+              "qty": 4,
+              "label": "SG90 or MG90S micro servo — with its straight two-arm horn and two tab screws, from the servo's bag",
+              "usedBy": [{"part": "valve-body.stl", "each": 1}]
+            },
+            {
+              "qty": 4,
+              "label": "M3 × 16 socket-head cap screw — the disc's idle pivot, threaded into the boss opposite the servo",
+              "usedBy": [{"part": "valve-body.stl", "each": 1}]
+            },
+            {
+              "qty": 5,
+              "label": "4\" (100 mm) hose clamp — one per duct spigot, behind its bead",
+              "usedBy": [{"part": "spigot-adapter.stl", "each": 1}, {"part": "duct-plug.stl", "each": 1}]
+            },
+            {
+              "qty": 32,
+              "label": "M3 × 10 socket-head cap screw — optional, 4 of a joint's 8 spots: head in the socket's counterbore, threading into the plug (the twist lock and key hold without them) (a cube's own sockets have none: the heads would be inside it)",
+              "usedBy": [{"part": "valve-body.stl", "each": 4}, {"part": "spigot-adapter.stl", "each": 4}]
+            }
+          ]
+        },
+        {
+          "id": "iris",
+          "label": "Iris valve",
+          "params": {},
+          "previews": [
+            {
+              "file": "iris.3mf",
+              "format": "3mf",
+              "label": "Assembly: servo iris damper, drawn 60% open",
+              "default": true,
+              "module": "iris",
+              "legend": [
+                { "color": "#1fedff", "label": "Iris housing", "part": "iris-body.stl" },
+                { "color": "#ff7d1f", "label": "Iris blades", "part": "iris-blade.stl" },
+                { "color": "#ffdb27", "label": "Actuator ring", "part": "iris-ring.stl" },
+                { "color": "#51ff30", "label": "Lid", "part": "iris-lid.stl" },
+                { "color": "#ff33ce", "label": "Servo arm", "part": "iris-arm.stl" },
+                {
+                  "color": "#a021ff",
+                  "label": "Socket liners and seals, TPU 75A",
+                  "part": "iris-body-gasket.stl",
+                  "parts": ["iris-body-gasket.stl"]
+                },
+                { "color": "#8a8f98", "label": "SG90 servos", "note": "Reference only, not printed" }
+              ],
+              "components": [
+                { "part": "iris-body.stl", "qty": 1 },
+                { "part": "iris-body-gasket.stl", "qty": 1 },
+                { "part": "iris-blade.stl", "qty": 9 },
+                { "part": "iris-ring.stl", "qty": 1 },
+                { "part": "iris-lid.stl", "qty": 1 },
+                { "part": "iris-arm.stl", "qty": 1 }
+              ]
+            }
+          ],
+          "parts": [
+            { "file": "iris-body.stl", "format": "stl", "label": "Iris housing (on its socket)", "module": "iris_body" },
+            {
+              "file": "iris-body-gasket.stl",
+              "format": "stl",
+              "label": "Iris socket liner (TPU 75A)",
+              "module": "iris_body_gasket"
+            },
+            {
+              "file": "iris-blade.stl",
+              "format": "stl",
+              "label": "Iris blade (flat, drive pin up)",
+              "module": "iris_blade"
+            },
+            { "file": "iris-ring.stl", "format": "stl", "label": "Iris actuator ring (flat)", "module": "iris_ring" },
+            {
+              "file": "iris-lid.stl",
+              "format": "stl",
+              "label": "Iris lid with its plug (on its plate)",
+              "module": "iris_lid"
+            },
+            {
+              "file": "iris-arm.stl",
+              "format": "stl",
+              "label": "Iris servo arm (horn pocket down)",
+              "module": "iris_arm"
+            },
+            { "file": "clip.stl", "format": "stl", "label": "Joint key (on its side)", "module": "clip" }
+          ],
+          "hardware": [
+            {
+              "qty": 1,
+              "label": "SG90 or MG90S micro servo — with its straight two-arm horn and two tab screws, from the servo's bag (the arm replaces the horn's centre screw)",
+              "usedBy": [{"part": "iris-body.stl", "each": 1}]
+            },
+            {
+              "qty": 6,
+              "label": "M3 × 10 socket-head cap screw — six hold the lid to the housing, into pilots",
+              "usedBy": [{"part": "iris-lid.stl", "each": 6}]
+            },
+            {
+              "qty": 4,
+              "label": "M3 × 10 socket-head cap screw — optional, 4 of a joint's 8 spots: head in the socket's counterbore, threading into the plug (the twist lock and key hold without them)",
+              "usedBy": [{"part": "iris-body.stl", "each": 4}]
+            }
+          ]
+        },
+        {
+          "id": "th",
+          "label": "Temperature / humidity sensor",
+          "params": { "sensor_board": "bme280" },
+          "previews": [
+            {
+              "file": "sensor.3mf",
+              "format": "3mf",
+              "label": "Assembly: temperature / humidity sensor section with its cap on",
+              "default": true,
+              "module": "sensor",
+              "legend": [
+                { "color": "#1fedff", "label": "Sensor section", "part": "sensor-section.stl" },
+                { "color": "#ff7d1f", "label": "Sensor cap", "part": "sensor-cap.stl" },
+                {
+                  "color": "#a021ff",
+                  "label": "Socket liners and seals, TPU 75A",
+                  "part": "sensor-section-gasket.stl",
+                  "parts": ["sensor-section-gasket.stl", "sensor-cap-gasket.stl"]
+                },
+                { "color": "#2e8b57", "label": "Sensor board", "note": "Reference only, not printed" }
+              ],
+              "components": [
+                { "part": "sensor-section.stl", "qty": 1 },
+                { "part": "sensor-section-gasket.stl", "qty": 1 },
+                { "part": "sensor-cap.stl", "qty": 1 },
+                { "part": "sensor-cap-gasket.stl", "qty": 1 }
+              ]
+            }
+          ],
+          "parts": [
+            {
+              "file": "sensor-section.stl",
+              "format": "stl",
+              "label": "Sensor section (on its socket)",
+              "module": "sensor_section"
+            },
+            {
+              "file": "sensor-section-gasket.stl",
+              "format": "stl",
+              "label": "Sensor section socket liner (TPU 75A)",
+              "module": "sensor_section_gasket"
+            },
+            {
+              "file": "sensor-cap.stl",
+              "format": "stl",
+              "label": "Sensor cap (on its back, face up)",
+              "module": "sensor_cap"
+            },
+            {
+              "file": "sensor-cap-gasket.stl",
+              "format": "stl",
+              "label": "Sensor cap seal bead (TPU 75A)",
+              "module": "sensor_cap_gasket"
+            },
+            { "file": "clip.stl", "format": "stl", "label": "Joint key (on its side)", "module": "clip" }
+          ],
+          "hardware": [
+            {
+              "qty": 1,
+              "label": "GY-BME280 breakout (the purple 3.3 V 6-pin board) — temperature, humidity and pressure over I2C",
+              "usedBy": [{"part": "sensor-cap.stl", "each": 1}]
+            },
+            {
+              "qty": 4,
+              "label": "M3 × 12 socket-head cap screw — four hold the cap to the pad, into pilots",
+              "usedBy": [{"part": "sensor-cap.stl", "each": 4}]
+            },
+            {
+              "qty": 4,
+              "label": "M3 × 10 socket-head cap screw — optional, 4 of a joint's 8 spots: head in the socket's counterbore, threading into the plug (the twist lock and key hold without them)",
+              "usedBy": [{"part": "sensor-section.stl", "each": 4}]
+            }
+          ]
+        },
+        {
+          "id": "voc",
+          "label": "VOC sensor",
+          "params": { "sensor_board": "ens160_aht21" },
+          "previews": [
+            {
+              "file": "sensor.3mf",
+              "format": "3mf",
+              "label": "Assembly: voc sensor section with its cap on",
+              "default": true,
+              "module": "sensor",
+              "legend": [
+                { "color": "#1fedff", "label": "Sensor section", "part": "sensor-section.stl" },
+                { "color": "#ff7d1f", "label": "Sensor cap", "part": "sensor-cap.stl" },
+                {
+                  "color": "#a021ff",
+                  "label": "Socket liners and seals, TPU 75A",
+                  "part": "sensor-section-gasket.stl",
+                  "parts": ["sensor-section-gasket.stl", "sensor-cap-gasket.stl"]
+                },
+                { "color": "#2e8b57", "label": "Sensor board", "note": "Reference only, not printed" }
+              ],
+              "components": [
+                { "part": "sensor-section.stl", "qty": 1 },
+                { "part": "sensor-section-gasket.stl", "qty": 1 },
+                { "part": "sensor-cap.stl", "qty": 1 },
+                { "part": "sensor-cap-gasket.stl", "qty": 1 }
+              ]
+            }
+          ],
+          "parts": [
+            {
+              "file": "sensor-section.stl",
+              "format": "stl",
+              "label": "Sensor section (on its socket)",
+              "module": "sensor_section"
+            },
+            {
+              "file": "sensor-section-gasket.stl",
+              "format": "stl",
+              "label": "Sensor section socket liner (TPU 75A)",
+              "module": "sensor_section_gasket"
+            },
+            {
+              "file": "sensor-cap.stl",
+              "format": "stl",
+              "label": "Sensor cap (on its back, face up)",
+              "module": "sensor_cap"
+            },
+            {
+              "file": "sensor-cap-gasket.stl",
+              "format": "stl",
+              "label": "Sensor cap seal bead (TPU 75A)",
+              "module": "sensor_cap_gasket"
+            },
+            { "file": "clip.stl", "format": "stl", "label": "Joint key (on its side)", "module": "clip" }
+          ],
+          "hardware": [
+            {
+              "qty": 1,
+              "label": "ENS160 + AHT21 breakout — VOC / eCO2 plus temperature and humidity over I2C",
+              "usedBy": [{"part": "sensor-cap.stl", "each": 1}]
+            },
+            {
+              "qty": 4,
+              "label": "M3 × 12 socket-head cap screw — four hold the cap to the pad, into pilots",
+              "usedBy": [{"part": "sensor-cap.stl", "each": 4}]
+            },
+            {
+              "qty": 4,
+              "label": "M3 × 10 socket-head cap screw — optional, 4 of a joint's 8 spots: head in the socket's counterbore, threading into the plug (the twist lock and key hold without them)",
+              "usedBy": [{"part": "sensor-section.stl", "each": 4}]
+            }
+          ]
+        },
+        {
+          "id": "flow",
+          "label": "Airflow (venturi)",
+          "params": { "sensor_board": "custom" },
+          "previews": [
+            {
+              "file": "flow.3mf",
+              "format": "3mf",
+              "label": "Assembly: venturi flow section with the pressure sensor tray",
+              "default": true,
+              "module": "flow",
+              "legend": [
+                { "color": "#1fedff", "label": "Venturi section", "part": "venturi.stl" },
+                { "color": "#ff7d1f", "label": "Sensor tray", "part": "sensor-tray.stl" },
+                {
+                  "color": "#a021ff",
+                  "label": "Socket liners and seals, TPU 75A",
+                  "part": "venturi-gasket.stl",
+                  "parts": ["venturi-gasket.stl"]
+                },
+                { "color": "#2e8b57", "label": "Pressure sensor board", "note": "Reference only, not printed" }
+              ],
+              "components": [
+                { "part": "venturi.stl", "qty": 1 },
+                { "part": "venturi-gasket.stl", "qty": 1 },
+                { "part": "sensor-tray.stl", "qty": 1 }
+              ]
+            }
+          ],
+          "parts": [
+            {
+              "file": "venturi.stl",
+              "format": "stl",
+              "label": "Venturi flow section (inlet socket on the bed)",
+              "module": "venturi"
+            },
+            {
+              "file": "venturi-gasket.stl",
+              "format": "stl",
+              "label": "Venturi socket liner (TPU 75A)",
+              "module": "venturi_gasket"
+            },
+            {
+              "file": "sensor-tray.stl",
+              "format": "stl",
+              "label": "Pressure sensor tray (on its back)",
+              "module": "sensor_tray"
+            },
+            { "file": "clip.stl", "format": "stl", "label": "Joint key (on its side)", "module": "clip" }
+          ],
+          "hardware": [
+            {
+              "qty": 1,
+              "label": "XGZP6897D differential pressure module, ±500 Pa range (005HPDPN) — I2C; tube its high-pressure port to the inlet barb and its low one to the throat barb",
+              "usedBy": [{"part": "sensor-tray.stl", "each": 1}]
+            },
+            {
+              "qty": 1,
+              "label": "3 mm ID silicone tube, about 300 mm — from the barbs to the pressure sensor",
+              "usedBy": [{"part": "venturi.stl", "each": 1}]
+            },
+            {
+              "qty": 2,
+              "label": "Cable tie, 2.5 mm — two hold the pressure sensor board to its tray",
+              "usedBy": [{"part": "sensor-tray.stl", "each": 2}]
+            },
+            {
+              "qty": 4,
+              "label": "M3 × 10 socket-head cap screw — four hold the tray to the pad, into pilots",
+              "usedBy": [{"part": "sensor-tray.stl", "each": 4}]
+            },
+            {
+              "qty": 4,
+              "label": "M3 × 10 socket-head cap screw — optional, 4 of a joint's 8 spots: head in the socket's counterbore, threading into the plug (the twist lock and key hold without them)",
+              "usedBy": [{"part": "venturi.stl", "each": 4}]
+            }
+          ]
+        },
+        {
+          "id": "run",
+          "label": "A run of modules",
+          "params": {},
+          "previews": [
+            {
+              "file": "run.3mf",
+              "format": "3mf",
+              "label": "Assembly: duct plug, tube, sensor, venturi, two elbows making 90°, duct spigot",
+              "default": true,
+              "module": "run",
+              "legend": [
+                { "color": "#2d7dff", "label": "Duct spigot with a plug", "part": "duct-plug.stl" },
+                { "color": "#1fedff", "label": "Straight tube", "part": "tube.stl" },
+                { "color": "#ffdb27", "label": "Sensor section", "part": "sensor-section.stl" },
+                { "color": "#ff7d1f", "label": "Sensor cap", "part": "sensor-cap.stl" },
+                { "color": "#51ff30", "label": "Venturi section", "part": "venturi.stl" },
+                { "color": "#ff33ce", "label": "Sensor tray", "part": "sensor-tray.stl" },
+                { "color": "#c77dff", "label": "45° elbows", "part": "elbow-45.stl" },
+                { "color": "#00c2a8", "label": "Duct spigot on a socket", "part": "spigot-adapter.stl" },
+                {
+                  "color": "#a021ff",
+                  "label": "Socket liners and seals, TPU 75A",
+                  "part": "tube-gasket.stl",
+                  "parts": [
+                    "tube-gasket.stl",
+                    "sensor-section-gasket.stl",
+                    "sensor-cap-gasket.stl",
+                    "venturi-gasket.stl",
+                    "elbow-45-gasket.stl",
+                    "spigot-adapter-gasket.stl"
+                  ]
+                }
+              ],
+              "components": [
+                { "part": "duct-plug.stl", "qty": 1 },
+                { "part": "tube.stl", "qty": 1 },
+                { "part": "tube-gasket.stl", "qty": 1 },
+                { "part": "sensor-section.stl", "qty": 1 },
+                { "part": "sensor-section-gasket.stl", "qty": 1 },
+                { "part": "sensor-cap.stl", "qty": 1 },
+                { "part": "sensor-cap-gasket.stl", "qty": 1 },
+                { "part": "venturi.stl", "qty": 1 },
+                { "part": "venturi-gasket.stl", "qty": 1 },
+                { "part": "sensor-tray.stl", "qty": 1 },
+                { "part": "elbow-45.stl", "qty": 2 },
+                { "part": "elbow-45-gasket.stl", "qty": 2 },
+                { "part": "spigot-adapter.stl", "qty": 1 },
+                { "part": "spigot-adapter-gasket.stl", "qty": 1 },
+                { "part": "clip.stl", "qty": 6 }
+              ]
+            }
+          ],
+          "parts": [
+            {
+              "file": "duct-plug.stl",
+              "format": "stl",
+              "label": "Duct spigot with a plug (spigot on the bed)",
+              "module": "duct_plug"
+            },
+            { "file": "tube.stl", "format": "stl", "label": "Straight tube (on its socket)", "module": "tube" },
+            {
+              "file": "tube-gasket.stl",
+              "format": "stl",
+              "label": "Tube socket liner (TPU 75A)",
+              "module": "tube_gasket"
+            },
+            {
+              "file": "sensor-section.stl",
+              "format": "stl",
+              "label": "Sensor section (on its socket)",
+              "module": "sensor_section"
+            },
+            {
+              "file": "sensor-section-gasket.stl",
+              "format": "stl",
+              "label": "Sensor section socket liner (TPU 75A)",
+              "module": "sensor_section_gasket"
+            },
+            {
+              "file": "sensor-cap.stl",
+              "format": "stl",
+              "label": "Sensor cap (on its back, face up)",
+              "module": "sensor_cap"
+            },
+            {
+              "file": "sensor-cap-gasket.stl",
+              "format": "stl",
+              "label": "Sensor cap seal bead (TPU 75A)",
+              "module": "sensor_cap_gasket"
+            },
+            {
+              "file": "venturi.stl",
+              "format": "stl",
+              "label": "Venturi flow section (inlet socket on the bed)",
+              "module": "venturi"
+            },
+            {
+              "file": "venturi-gasket.stl",
+              "format": "stl",
+              "label": "Venturi socket liner (TPU 75A)",
+              "module": "venturi_gasket"
+            },
+            {
+              "file": "sensor-tray.stl",
+              "format": "stl",
+              "label": "Pressure sensor tray (on its back)",
+              "module": "sensor_tray"
+            },
+            { "file": "elbow-45.stl", "format": "stl", "label": "45° elbow (on its socket)", "module": "elbow_45" },
+            {
+              "file": "elbow-45-gasket.stl",
+              "format": "stl",
+              "label": "Elbow socket liner (TPU 75A)",
+              "module": "elbow_45_gasket"
+            },
+            {
+              "file": "spigot-adapter.stl",
+              "format": "stl",
+              "label": "Duct spigot on a socket (on its socket)",
+              "module": "spigot_adapter"
+            },
+            {
+              "file": "spigot-adapter-gasket.stl",
+              "format": "stl",
+              "label": "Duct spigot socket liner (TPU 75A)",
+              "module": "spigot_adapter_gasket"
+            },
+            { "file": "clip.stl", "format": "stl", "label": "Joint key (on its side)", "module": "clip" },
+            {
+              "file": "socket-coupler.stl",
+              "format": "stl",
+              "label": "Socket coupler, joins two plugs (on a socket)",
+              "module": "socket_coupler"
+            },
+            {
+              "file": "socket-coupler-gasket.stl",
+              "format": "stl",
+              "label": "Socket coupler liners (TPU 75A)",
+              "module": "socket_coupler_gasket"
+            }
+          ],
+          "hardware": [
+            {
+              "qty": 1,
+              "label": "GY-BME280 breakout — in the sensor cap",
+              "usedBy": [{"part": "sensor-cap.stl", "each": 1}]
+            },
+            {
+              "qty": 1,
+              "label": "XGZP6897D differential pressure module, ±500 Pa range (005HPDPN) — I2C; tube its high-pressure port to the inlet barb and its low one to the throat barb",
+              "usedBy": [{"part": "sensor-tray.stl", "each": 1}]
+            },
+            {
+              "qty": 1,
+              "label": "3 mm ID silicone tube, about 300 mm — from the barbs to the pressure sensor",
+              "usedBy": [{"part": "venturi.stl", "each": 1}]
+            },
+            {
+              "qty": 2,
+              "label": "Cable tie, 2.5 mm — two hold the pressure sensor board to its tray",
+              "usedBy": [{"part": "sensor-tray.stl", "each": 2}]
+            },
+            {
+              "qty": 4,
+              "label": "M3 × 12 socket-head cap screw — four hold the cap to the pad, into pilots",
+              "usedBy": [{"part": "sensor-cap.stl", "each": 4}]
+            },
+            {
+              "qty": 4,
+              "label": "M3 × 10 socket-head cap screw — four hold the tray to the pad",
+              "usedBy": [{"part": "sensor-tray.stl", "each": 4}]
+            },
+            {
+              "qty": 2,
+              "label": "4\" (100 mm) hose clamp — one per duct spigot, behind its bead",
+              "usedBy": [{"part": "duct-plug.stl", "each": 1}, {"part": "spigot-adapter.stl", "each": 1}]
+            },
+            {
+              "qty": 24,
+              "label": "M3 × 10 socket-head cap screw — optional, 4 of a joint's 8 spots: head in the socket's counterbore, threading into the plug (the twist lock and key hold without them)",
+              "usedBy": [
+                { "part": "tube.stl", "each": 4 },
+                { "part": "sensor-section.stl", "each": 4 },
+                { "part": "venturi.stl", "each": 4 },
+                { "part": "elbow-45.stl", "each": 4 },
+                { "part": "spigot-adapter.stl", "each": 4 }
+              ]
             }
           ]
         }

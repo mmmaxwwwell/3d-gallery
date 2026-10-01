@@ -2,7 +2,7 @@
 /* The Operator page: the runbook for trips to the printers (operator-app.tsx).
  * One column of cards, big numbers, big targets, nothing that isn't the next
  * thing to do. The gallery's stylesheet isn't loaded here, so the page brings
- * its own tokens and buttons, in a dark and a light set. */
+ * its own tokens and buttons. Dark only, like Home, Models and Project. */
 
 :root {
   --op-bg: #000000;
@@ -24,30 +24,6 @@
   --op-glow-cyan: 0 0 0 1px rgba(0, 234, 255, 0.40), 0 0 14px rgba(0, 234, 255, 0.28);
   --op-primary: #ff17c7;
   --op-primary-text: #1a0016;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    --op-bg: #f6f4fb;
-    --op-surface: #ffffff;
-    --op-surface-2: #f3eff9;
-    --op-surface-3: #e9e2f5;
-    --op-border: #d9d0ea;
-    --op-border-strong: #9b7fd1;
-    --op-text: #1c1530;
-    --op-text-muted: #5b4f75;
-    --op-text-dim: #6a5f86;
-    --op-magenta: #b3008a;
-    --op-cyan: #0068b3;
-    --op-ok: #1f9d55;
-    --op-ok-text: #13773e;
-    --op-warn: #8a5f00;
-    --op-danger: #d4003a;
-    --op-danger-text: #b00030;
-    --op-glow-cyan: 0 0 0 1px rgba(0, 104, 179, 0.35);
-    --op-primary: #b3008a;
-    --op-primary-text: #ffffff;
-  }
 }
 
 .op {

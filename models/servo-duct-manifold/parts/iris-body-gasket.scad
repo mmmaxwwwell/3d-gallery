@@ -1,0 +1,3 @@
+include <../lib/servo-duct-manifold-lib.scad>;
+$fn = 96;
+iris_body_gasket();
