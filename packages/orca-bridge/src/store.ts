@@ -40,9 +40,19 @@ export interface GalleryPreset {
   updatedAt?: number;
 }
 
+/** A record removed from the store. Browsers that already copied it drop
+ *  their copy on the next sync unless they changed it after `deletedAt` —
+ *  otherwise a removal could never reach a record that was synced. */
+export interface DeletedPreset {
+  kind: PresetKind;
+  name: string;
+  deletedAt: number;
+}
+
 export interface GalleryStore {
   version: 1;
   presets: GalleryPreset[];
+  deleted: DeletedPreset[];
 }
 
 /** Built fresh on every call, never shared. A single module-level default
@@ -50,7 +60,7 @@ export interface GalleryStore {
  *  `upsertPreset`'s push, so an empty store would start returning whatever had
  *  been written since the process booted. */
 function emptyStore(): GalleryStore {
-  return { version: 1, presets: [] };
+  return { version: 1, presets: [], deleted: [] };
 }
 
 export function storePath(repoRoot: string): string {
@@ -62,7 +72,11 @@ export function readStore(repoRoot: string): GalleryStore {
     const parsed: unknown = JSON.parse(readFileSync(storePath(repoRoot), 'utf8'));
     if (!parsed || typeof parsed !== 'object') return emptyStore();
     const store = parsed as Partial<GalleryStore>;
-    return { version: 1, presets: Array.isArray(store.presets) ? store.presets : [] };
+    return {
+      version: 1,
+      presets: Array.isArray(store.presets) ? store.presets : [],
+      deleted: Array.isArray(store.deleted) ? store.deleted : [],
+    };
   } catch {
     return emptyStore();
   }
@@ -91,6 +105,7 @@ export function upsertPreset(
   const replaced = index >= 0;
   if (replaced) store.presets[index] = preset;
   else store.presets.push(preset);
+  store.deleted = store.deleted.filter((d) => presetId(d) !== id);
   writeStore(repoRoot, store);
   return { preset, replaced };
 }
@@ -100,7 +115,7 @@ export function upsertPreset(
  *  truth for that action, and a merge would resurrect records the user deleted
  *  locally. */
 export function replaceAll(repoRoot: string, presets: GalleryPreset[]): GalleryStore {
-  const store: GalleryStore = { version: 1, presets };
+  const store: GalleryStore = { version: 1, presets, deleted: [] };
   writeStore(repoRoot, store);
   return store;
 }
@@ -113,11 +128,17 @@ export function clearStore(repoRoot: string): { removed: number } {
   return { removed };
 }
 
+/** Drop a record and remember the removal, so browsers that synced it drop
+ *  theirs too. Records the removal even when the store no longer holds the
+ *  record: a browser may still have a copy from before. */
 export function removePreset(repoRoot: string, kind: PresetKind, name: string): boolean {
   const store = readStore(repoRoot);
   const id = `${kind}:${name}`;
-  const next = store.presets.filter((p) => presetId(p) !== id);
-  if (next.length === store.presets.length) return false;
-  writeStore(repoRoot, { ...store, presets: next });
-  return true;
+  const presets = store.presets.filter((p) => presetId(p) !== id);
+  const deleted = [
+    ...store.deleted.filter((d) => presetId(d) !== id),
+    { kind, name, deletedAt: Date.now() },
+  ];
+  writeStore(repoRoot, { ...store, presets, deleted });
+  return presets.length !== store.presets.length;
 }

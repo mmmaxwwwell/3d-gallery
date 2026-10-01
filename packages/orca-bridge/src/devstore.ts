@@ -122,7 +122,12 @@ export function createDevStoreMiddleware(repoRoot: string) {
 
       if (method === 'GET') {
         const store = readStore(repoRoot);
-        send(res, 200, { available: true, count: store.presets.length, presets: store.presets });
+        send(res, 200, {
+          available: true,
+          count: store.presets.length,
+          presets: store.presets,
+          deleted: store.deleted,
+        });
         return;
       }
 

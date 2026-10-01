@@ -9,15 +9,17 @@
 // Sync is deliberately asymmetric, because the two directions answer different
 // questions:
 //   push  — "take my local records"        replaces the server's set
-//   pull  — "use the server's values"      upserts into IndexedDB, deletes nothing
-// Pull never deletes, so adopting server values can't silently destroy a preset
-// someone imported locally.
+//   pull  — "use the server's values"      upserts into IndexedDB, and deletes
+//           only what the server removed (its `deleted` list)
+// Pull deletes nothing else, so adopting server values can't silently destroy a
+// preset someone imported locally.
 //
 // The automatic pull on page load is newer-wins per record: a preset edited in
-// this browser after the server copy was written is left alone, or every
-// reload would undo the edit. The explicit "Use server values" button forces.
+// this browser after the server copy was written (or removed) is left alone, or
+// every reload would undo the edit. The explicit "Use server values" button forces.
 
 import {
+  deletePreset,
   getPreset,
   listPresets,
   savePreset,
@@ -50,6 +52,12 @@ interface ServerPreset {
   /** When the server copy was written. Absent on records from before it was
    *  tracked, which count as older than anything local. */
   updatedAt?: number;
+}
+
+interface DeletedPreset {
+  kind: PresetKind;
+  name: string;
+  deletedAt: number;
 }
 
 export interface ServerStoreStatus {
@@ -100,16 +108,21 @@ export async function probeServerStore(): Promise<ServerStoreStatus> {
   }
 }
 
-/** Copy the server's records into IndexedDB. Additive — never deletes.
- *  Without `force`, a record changed locally since the server wrote it is
- *  skipped (see the header). */
+/** Copy the server's records into IndexedDB, and delete the ones the server
+ *  removed. Without `force`, a record changed locally since the server wrote
+ *  or removed it is skipped (see the header). */
 export async function pullFromServer(
   { force = false }: { force?: boolean } = {},
 ): Promise<{ imported: number; skipped: number }> {
   const res = await fetch(endpoint(), { headers: { Accept: 'application/json' } });
   if (!res.ok) throw new Error(`Server store returned ${res.status}.`);
-  const body = await res.json() as { presets?: ServerPreset[] };
+  const body = await res.json() as { presets?: ServerPreset[]; deleted?: DeletedPreset[] };
   const presets = body.presets ?? [];
+  for (const gone of body.deleted ?? []) {
+    const id = `${gone.kind}:${gone.name}`;
+    const local = await getPreset(id);
+    if (local && (force || local.updatedAt < gone.deletedAt)) await deletePreset(id);
+  }
   let imported = 0;
   for (const preset of presets) {
     if (!force) {

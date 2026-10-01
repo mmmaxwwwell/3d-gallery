@@ -180,7 +180,7 @@ and the Import tab renders one button for each:
 |------|--------|-----------|
 | `GET` | — | What does the server have? Also the availability probe. |
 | `PUT` | **Export to server** | Take my local records. **Replaces**, never merges — a merge would resurrect presets deleted locally. |
-| `GET` → upsert | **Use server values** | Copy the server's records into IndexedDB. **Additive** — never deletes a local preset. |
+| `GET` → upsert | **Use server values** | Copy the server's records into IndexedDB, and delete the ones `gallery_remove_preset` removed (unless edited locally since). Deletes no other local preset. |
 | `DELETE` | **Delete from server, use local** | Empty the server store and stop syncing. Local records are untouched. |
 
 "Use server values" also sets an opt-in flag, so later loads pick up anything

@@ -40,7 +40,7 @@ async function call(name: string, args: Record<string, unknown> = {}) {
 
 describe('store file', () => {
   it('reads as empty before anything is written', () => {
-    expect(readStore(repoRoot)).toEqual({ version: 1, presets: [] });
+    expect(readStore(repoRoot)).toEqual({ version: 1, presets: [], deleted: [] });
     expect(existsSync(storePath(repoRoot))).toBe(false);
   });
 
@@ -170,7 +170,24 @@ describe('gallery_list_presets / gallery_remove_preset', () => {
     expect(readStore(repoRoot).presets).toEqual([]);
 
     const miss = await call('gallery_remove_preset', { name: 'Test Printer Left' });
-    expect(miss.isError).toBe(true);
+    expect(miss.isError).toBeFalsy();
+    expect(miss.structuredContent).toMatchObject({ removed: false });
+  });
+
+  it('remembers the removal so synced browsers drop their copy', async () => {
+    await call('gallery_add_printer', { name: 'Test Printer Left' });
+    const before = Date.now();
+    await call('gallery_remove_preset', { name: 'Test Printer Left' });
+    const [gone] = readStore(repoRoot).deleted;
+    expect(gone).toMatchObject({ kind: 'printer', name: 'Test Printer Left' });
+    expect(gone!.deletedAt).toBeGreaterThanOrEqual(before);
+  });
+
+  it('forgets the removal when the record is added back', async () => {
+    await call('gallery_add_printer', { name: 'Test Printer Left' });
+    await call('gallery_remove_preset', { name: 'Test Printer Left' });
+    await call('gallery_add_printer', { name: 'Test Printer Left' });
+    expect(readStore(repoRoot).deleted).toEqual([]);
   });
 });
 
@@ -198,7 +215,7 @@ describe('devstore http', () => {
   it('advertises availability so a client can tell it apart from an SPA fallback', async () => {
     const res = await fetch(url);
     expect(res.headers.get('content-type')).toMatch(/application\/json/);
-    expect(await res.json()).toEqual({ available: true, count: 0, presets: [] });
+    expect(await res.json()).toEqual({ available: true, count: 0, presets: [], deleted: [] });
   });
 
   it('round-trips a pushed set', async () => {

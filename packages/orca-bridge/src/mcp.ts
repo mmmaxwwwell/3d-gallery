@@ -274,8 +274,9 @@ export const TOOLS: ToolDef[] = [
     name: 'gallery_remove_preset',
     title: 'Drop a record from the gallery store',
     description:
-      'Remove a preset record from the gallery store. Does not delete anything already synced '
-      + 'into the browser — the sync is additive and never deletes.',
+      'Remove a preset record from the gallery store, and from every browser that synced it: '
+      + 'on its next page load in dev a browser deletes its copy, unless that copy was edited '
+      + 'there after the removal. Works for a record the store no longer holds, too.',
     inputSchema: {
       type: 'object',
       properties: {

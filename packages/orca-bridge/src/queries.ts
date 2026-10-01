@@ -364,11 +364,11 @@ export function galleryAddFromOrca(paths: OrcaPaths, repoRoot: string, input: Ga
 
 export function galleryRemove(repoRoot: string, kind: PresetKind, name: string) {
   const removed = removePreset(repoRoot, kind, name);
-  if (!removed) throw new OrcaQueryError(`No ${kind} named "${name}" in the gallery store.`);
   return {
-    removed: true,
+    removed,
     id: `${kind}:${name}`,
-    note: 'Removed from the server store. A copy already synced into IndexedDB stays '
-      + 'until deleted in Print settings — the sync never deletes browser records.',
+    note: (removed ? 'Removed from the server store. ' : 'Not in the server store. ')
+      + 'A browser that synced it deletes its copy on the next page load in dev, '
+      + 'unless that copy was edited after this removal.',
   };
 }
