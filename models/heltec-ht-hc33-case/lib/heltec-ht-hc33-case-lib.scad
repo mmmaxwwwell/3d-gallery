@@ -38,6 +38,12 @@ sma_thread_d = 6.35;
 sma_nut_af = 8;
 sma_nut_h = 2;
 sma_panel_t = 2.5;
+// The TPU washer on the panel's inner face, under the inner nut: how thick,
+// how far it stands into the pocket for the nut to squeeze, and how much
+// smaller its hole is than the thread, so it grips it.
+sma_washer_t = 1.2;
+sma_washer_proud = 0.3;
+sma_washer_grip = 0.5;
 // The connector's back behind the inner nut, and the pigtail's bend.
 sma_behind = 10;
 
@@ -66,13 +72,19 @@ usb_gap = 0.3;
 bay = 10;
 floor_t = 1.6;
 top_t = 2.4;
-corner_r = 4;
+corner_r = 6;
+// A 45° chamfer round the cover's top edge, so it doesn't cut into things.
+// The cover prints top down, so it's the edge on the bed.
+top_chamfer = 1.5;
 inner_r = 1;
 usb_open_w = 13.5;
 usb_open_h = 7;
 // The USB opening's corners are 45° chamfers: its lower edge prints as a
 // ceiling, and the door's plug seals against the same outline.
 usb_open_chamfer = 1.5;
+// The opening's mouth flares out at 45° by this much, and the plug sleeve's
+// outer lip flares to fill it, so the lip is pressed into the mouth as well.
+usb_flare = 0.8;
 
 // ---- Seals (TPU 75A printed in place) ---------------------------------------
 // A ridge presses into a groove whose floor is a channel of TPU, with a
@@ -106,12 +118,13 @@ seal_skin = 1.2;
 // shut. A groove is larger than its rib, so the squeezed TPU has somewhere
 // to go.
 door_t = 2.4;
-plug_d = 4.2;
-plug_sleeve_t = 1.2;
-plug_squeeze = 0.2;
+plug_d = 5;
+plug_sleeve_t = 1.8;
+plug_squeeze = 0.3;
 plug_rib = 0.6;
 plug_groove = 1;
-plug_ribs = [-1.2, -3.2];
+// Deep enough that the first groove clears the mouth's flare.
+plug_ribs = [-2, -4];
 // PETG round the opening under the door, and the finger tab past it.
 door_margin = 1.5;
 door_tab = 3;
@@ -230,12 +243,20 @@ assert(power_x + power_hole[0] / 2 < 0 && power_x - power_hole[0] / 2 >= -in_hx,
 assert(sma_z - sma_cavity_r >= cover_z + 1.2 - _eps,
        "the SMA's cavity runs down into the cover's seal ridge");
 assert(sma_z + sma_cavity_r <= cover_top - 1 + _eps, "the SMA's cavity breaks through the cover's top");
+assert(sma_panel_t - (sma_washer_t - sma_washer_proud) >= 1.2,
+       "the SMA washer's recess leaves the panel too thin");
+assert(sma_washer_proud < sma_pocket_x - sma_nut_x - sma_nut_h + _eps,
+       "the SMA washer stands into the pocket further than the nut's clearance");
 assert(sma_nut_x - sma_behind >= board_x0 + board_l + sd_overhang,
        "the SMA's back runs into the board or the micro-SD holder");
 assert(usb_z - usb_open_h / 2 > cover_z + 1, "the USB opening cuts into the cover's sealing rim");
 assert(kt1 - kt0 >= cone_h + hinge_fit + 1.5, "no room for the hinge's top knuckle");
 assert(hinge_u + knuckle_r + hinge_fit <= -usb_open_w / 2 - 0.6, "the hinge's clearance runs into the USB opening");
-assert(plug_d < out_hx - in_hx - (usb_overhang - usb_gap) - 1, "the plug reaches the USB receptacle");
+assert(plug_d <= out_hx - in_hx - (usb_overhang - usb_gap) - 1 + _eps, "the plug reaches the USB receptacle");
+assert(max(plug_ribs) + plug_groove <= -usb_flare - 0.2, "a rib's groove runs into the opening's flared mouth");
+assert(hinge_u + knuckle_r + hinge_fit <= -usb_open_w / 2 - usb_flare - 0.2,
+       "the opening's flared mouth runs into the hinge's clearance");
+assert(corner_r > top_chamfer, "the top chamfer is wider than the corners' radius");
 
 echo(str("footprint ", 2 * out_hx, " x ", 2 * out_hy, ", height ", cover_top,
          " (battery ", case_h, ", plate ", plate_t, ", cover ", cover_top - cover_z,
@@ -243,7 +264,13 @@ echo(str("footprint ", 2 * out_hx, " x ", 2 * out_hy, ", height ", cover_top,
          "; hinge pin ", pin_d, " x ", kt1 - kb0));
 
 // ---- Outline ----------------------------------------------------------------------
-module footprint(h) { linear_extrude(h) rect([2 * out_hx, 2 * out_hy], rounding = corner_r); }
+module footprint(h, chamfer = 0) {
+    module outline() rect([2 * out_hx, 2 * out_hy], rounding = corner_r);
+    hull() {
+        linear_extrude(h - chamfer) outline();
+        if (chamfer > 0) linear_extrude(h) offset(delta = -chamfer) outline();
+    }
+}
 
 // ---- Loops ------------------------------------------------------------------------
 // A loop between offsets a (inside) and b (outside) of a convex 2D outline,
@@ -378,7 +405,7 @@ module cover() {
     difference() {
         union() {
             difference() {
-                translate([0, 0, cover_z]) footprint(h);
+                translate([0, 0, cover_z]) footprint(h, top_chamfer);
                 translate([0, 0, cover_z - 1])
                     linear_extrude(h - top_t + 1)
                         rect([2 * in_hx, 2 * in_hy], rounding = inner_r);
@@ -397,12 +424,13 @@ module cover() {
     }
 }
 
-// Horizontal holes through the +X wall print with a 45° roof: their tips
-// point down in assembly, which is up as the cover prints top down.
+// The thread's hole through the panel is round: it bridges only its own 6.8 mm,
+// and the user prefers it round. The pocket and the cavity behind it print with
+// a 45° roof, tips down in assembly, which is up as the cover prints top down.
 module sma_mount() {
     translate([0, 0, sma_z]) rotate([0, 90, 0]) rotate([0, 0, -90]) {
         translate([0, 0, sma_nut_x - 1]) linear_extrude(out_hx - sma_nut_x + 2)
-            tear_2d(sma_thread_d + 0.45);
+            circle(d = sma_thread_d + 0.45, $fn = 48);
         // A hexagon's roof is only 30° off flat, so it peaks at 45°, capped
         // as a short bridge above the seal ridge.
         translate([0, 0, sma_nut_x]) linear_extrude(sma_pocket_x - sma_nut_x)
@@ -429,16 +457,18 @@ module tear_2d(d, flat) {
     }
 }
 
-// A TPU washer printed into the outer face round the SMA, under the outer nut.
-// Both its edges are teardrops like the thread hole: it prints standing in
-// the face.
+// A TPU washer on the panel's inner face, inside the nut's pocket: the inner
+// nut tightens onto it. It fills a hex recess in the panel and stands
+// `sma_washer_proud` into the pocket. Its hole is `sma_washer_grip` under the
+// thread, so the TPU grips it.
 module sma_seal(gasket) {
-    r = sma_nut_af * 0.6 + 0.6;
-    translate([out_hx - 1, 0, sma_z]) rotate([0, 90, 0]) rotate([0, 0, -90])
-        linear_extrude(1 + (gasket ? 0 : 1)) difference() {
-            tear_2d(2 * r, flat = sma_z - cover_z - 0.6);
-            tear_2d(sma_thread_d + 1.2);
-        }
+    x0 = sma_pocket_x - sma_washer_proud;
+    translate([0, 0, sma_z]) rotate([0, 90, 0]) rotate([0, 0, -90])
+        translate([0, 0, x0 - (gasket ? 0 : 1)])
+            linear_extrude(sma_washer_t + (gasket ? 0 : 1)) difference() {
+                hexagon(or = sma_nut_r, spin = 90);
+                if (gasket) circle(d = sma_thread_d - sma_washer_grip, $fn = 48);
+            }
 }
 
 module cover_gasket() { sma_seal(true); }
@@ -474,9 +504,10 @@ module plug_diamond(w, d) {
     hull() { ring(w - d, 0); ring(w, d); ring(w + d - _eps, 0); }
 }
 
-// Cut from the cover's face: the grooves the plug's ribs pop into, and room
-// for the door's knuckles.
+// Cut from the cover's face: the opening's flared mouth, the grooves the
+// plug's ribs pop into, and room for the door's knuckles.
 module door_cuts() {
+    plug_flare(0);
     for (w = plug_ribs) plug_diamond(w, plug_groove);
     rc = knuckle_r + hinge_fit;
     top = v_top + 1;
@@ -540,16 +571,25 @@ module plug_core() {
     }
 }
 
-// The TPU round the core: squeeze-oversize, a 45° lead-in at the tip, and
-// the ribs.
-module plug_sleeve(grow = 0) {
+// The opening's mouth, flaring out at 45° to usb_flare at the face (w = 0),
+// grown by o all round: 0 for the cut, plug_squeeze for the sleeve's lip.
+module plug_flare(o) {
+    module ring(z, d) translate([0, 0, z]) linear_extrude(_eps) offset(r = d, $fn = 32) usb_open_2d();
+    hull() { ring(-usb_flare, o); ring(-_eps, usb_flare + o); }
+    if (o == 0) hull() { ring(-_eps, usb_flare); ring(1, usb_flare + 1); }
+}
+
+// The TPU round the core: squeeze-oversize, a 45° lead-in at the tip, the
+// ribs, and the lip flaring out into the opening's mouth.
+module plug_sleeve() {
     module ring(z, o) translate([0, 0, z]) linear_extrude(_eps) offset(r = o, $fn = 32) usb_open_2d();
     hull() {
         ring(-plug_d, plug_squeeze - 0.6);
         ring(-plug_d + 0.6, plug_squeeze);
-        ring(grow - _eps, plug_squeeze);
+        ring(-_eps, plug_squeeze);
     }
     for (w = plug_ribs) plug_diamond(w, plug_rib + plug_squeeze);
+    plug_flare(plug_squeeze);
 }
 
 module door_gasket() {

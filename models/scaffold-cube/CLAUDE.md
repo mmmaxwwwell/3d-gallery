@@ -2,7 +2,7 @@
 
 The 1U cube of a printed building-block system, plus the assemblies built from it. Two printable parts, 24 type params (6 walls + 12 edges + 6 joins) on top of 12 dimension params. Fully customizable via the WASM customizer.
 
-Currently `devOnly: true` in `models/manifest.json` — it renders in `npm run dev` but is never built, mirrored, published, or fingerprinted. Drop the flag to ship it, and only then seed a baseline.
+Published: built, mirrored and fingerprinted like any other model.
 
 ## File layout
 

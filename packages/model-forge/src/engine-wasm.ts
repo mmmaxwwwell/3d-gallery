@@ -2,7 +2,14 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'no
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseColorString, parseInstanceEcho, type ArtifactFormat, type InstanceAnchor } from '@3d-gallery/model-core';
+import {
+  parseColorString,
+  parseExtruderEcho,
+  parseInstanceEcho,
+  type ArtifactFormat,
+  type ExtruderSlot,
+  type InstanceAnchor,
+} from '@3d-gallery/model-core';
 import { NoEngineError, RenderFailedError, type RenderEngine, type RenderOptions } from './engine.ts';
 // @ts-expect-error — plain-JS build script shared with the native engine and the root CLI.
 import { build3mf, parseStl } from '../../../scripts/build-multicolor-3mf.mjs';
@@ -170,7 +177,9 @@ export function createWasmEngine(options: WasmEngineOptions = {}): RenderEngine 
    * requires top-level `color()` literals in preview files — this path doesn't
    * care where they live, but both must agree, so don't rely on the difference.
    */
-  async function discoverColors(source: string): Promise<{ colors: DiscoveredColor[]; instances: InstanceAnchor[] | null }> {
+  async function discoverColors(
+    source: string,
+  ): Promise<{ colors: DiscoveredColor[]; instances: InstanceAnchor[] | null; extruders: ExtruderSlot[] | null }> {
     const tag = `colorid_${instanceCounter}`;
     // This pass deliberately renders nothing — color() is replaced by an echo —
     // so OpenSCAD exits non-zero complaining about an empty top-level object.
@@ -212,8 +221,8 @@ export function createWasmEngine(options: WasmEngineOptions = {}): RenderEngine 
       }
       return 0;
     });
-    // The preview's top-level echo still runs with color() stubbed out.
-    return { colors, instances: parseInstanceEcho(logs) };
+    // The preview's top-level echoes still run with color() stubbed out.
+    return { colors, instances: parseInstanceEcho(logs), extruders: parseExtruderEcho(logs) };
   }
 
   /**
@@ -269,7 +278,7 @@ export function createWasmEngine(options: WasmEngineOptions = {}): RenderEngine 
 
       // Multicolor: one pass to learn the palette, then one pass per colour,
       // assembled by the same builder the native engine uses.
-      const { colors, instances } = await discoverColors(source);
+      const { colors, instances, extruders } = await discoverColors(source);
       const dir = mkdtempSync(join(tmpdir(), 'forge-wasm-'));
       try {
         const meshes = [];
@@ -279,7 +288,7 @@ export function createWasmEngine(options: WasmEngineOptions = {}): RenderEngine 
           writeFileSync(path, stl);
           meshes.push({ key: color.raw, rgba: color.rgba, mesh: parseStl(path) });
         }
-        return build3mf(meshes, { asAssembly: opts.asAssembly ?? false, instances });
+        return build3mf(meshes, { asAssembly: opts.asAssembly ?? false, instances, extruders });
       } finally {
         rmSync(dir, { recursive: true, force: true });
       }

@@ -254,10 +254,9 @@
     {
       "slug": "heltec-ht-hc33-case",
       "title": "Heltec HT-HC33 Waterproof Case",
-      "description": "A waterproof case for the Heltec HT-HC33 (ESP32-S3 Wi-Fi HaLow board) and one 18650, in three stacked pieces. At the bottom, the battery case holds the cell between two contact plates, with a channel carrying the far lead back; it wraps the cell in a 45° teardrop that carries its sealing flange, so nothing needs supports. On it, the MCU plate carries the board on pinned standoffs, with a hole under the board's battery socket for the lead. On top, the cover: the SMA bulkhead for a 915 MHz antenna comes straight out of one end face, its inner nut locked in a hex pocket deep in the wall, and the USB-C comes out of the other end face behind a hinged door. The door carries a plug that pushes into the USB opening: a TPU sleeve, slightly oversize, whose ribs pop into matching grooves in the opening's walls, so the seal presses on the opening, not the hinge, and the ribs hold it shut. The hinge pin is a filament offcut. Both joints between the pieces seal on TPU 75A printed in place, and a TPU washer is printed into the face round the SMA. Ten M3 × 16 cap screws run straight down the middle of the seal, three along each side and two in each end: heads up in the battery case's flange, through both seals and into bare pilots in the cover. Round each one the TPU widens to a pad the screw threads through, and the cover's ridge widens to a disc that presses it. 84 × 48 × 38 mm. Not yet test-printed.",
-      "devOnly": true,
+      "description": "A waterproof case for the Heltec HT-HC33 (ESP32-S3 Wi-Fi HaLow board) and one 18650, in three stacked pieces. At the bottom, the battery case holds the cell between two contact plates, with a channel carrying the far lead back; it wraps the cell in a 45° teardrop that carries its sealing flange, so nothing needs supports. On it, the MCU plate carries the board on pinned standoffs, with a hole under the board's battery socket for the lead. On top, the cover: the SMA bulkhead for a 915 MHz antenna comes straight out of one end face, its inner nut locked in a hex pocket deep in the wall, and the USB-C comes out of the other end face behind a hinged door. The door carries a plug that pushes into the USB opening: a TPU sleeve, slightly oversize, whose ribs pop into matching grooves in the opening's walls, so the seal presses on the opening, not the hinge, and the ribs hold it shut. The hinge pin is a filament offcut. Both joints between the pieces seal on TPU 75A printed in place, and a TPU washer is printed into the panel under the SMA's inner nut. Ten M3 × 16 cap screws run straight down the middle of the seal, three along each side and two in each end: heads up in the battery case's flange, through both seals and into bare pilots in the cover. Round each one the TPU widens to a pad the screw threads through, and the cover's ridge widens to a disc that presses it. 84 × 48 × 38 mm. Not yet test-printed.",
       "filament": [
-        { "material": "PETG", "color": "any", "note": "Battery case, MCU plate and cover" },
+        { "material": "PETG", "color": "black", "note": "Battery case, MCU plate, cover and USB-C door" },
         {
           "material": "TPU 75A",
           "color": "any",
@@ -301,14 +300,10 @@
           "label": "Every piece as it prints, TPU in place",
           "module": "print_layout",
           "legend": [
-            { "color": "#2f3542", "label": "Battery case, floor down", "part": "battery-case.stl" },
-            { "color": "#ff4757", "label": "Its seal", "part": "battery-case-gasket.stl" },
-            { "color": "#57606f", "label": "MCU plate, flat side down", "part": "mcu-plate.stl" },
-            { "color": "#ff6b81", "label": "Its seal", "part": "mcu-plate-gasket.stl" },
-            { "color": "#747d8c", "label": "Cover, top down", "part": "cover.stl" },
-            { "color": "#ffa502", "label": "Its SMA washer", "part": "cover-gasket.stl" },
-            { "color": "#a4b0be", "label": "USB-C door, outer face down, plug up", "part": "door.stl" },
-            { "color": "#ff7f50", "label": "Its plug sleeve", "part": "door-gasket.stl" }
+            { "color": "#222222", "label": "PETG, black: battery case floor down, MCU plate flat side down, cover top down, USB-C door outer face down", "part": "battery-case.stl",
+              "parts": ["battery-case.stl", "mcu-plate.stl", "cover.stl", "door.stl"] },
+            { "color": "#ff4757", "label": "TPU 75A: the seals, the SMA washer and the door's plug sleeve, printed in place", "part": "battery-case-gasket.stl",
+              "parts": ["battery-case-gasket.stl", "mcu-plate-gasket.stl", "cover-gasket.stl", "door-gasket.stl"] }
           ]
         }
       ],
@@ -759,7 +754,6 @@
       "title": "Scaffold Cube (1U)",
       "description": "The 1U cube of a printed building-block system \u2014 a 200 mm cube, the largest square that fits a Flashforge Adventurer 5M bed. Each of the 6 walls is independently solid, empty, or a hex lattice, and each of the 12 edges is independently bare or braced with an equal-leg right-triangle prism. Mix the 18 types to get an open frame, a closed box, a tray, a chimney, or anything between.",
       "customizable": true,
-      "devOnly": true,
       "previews": [
         { "file": "unit-1u.3mf", "format": "3mf", "label": "Assembly: 1U, single block", "default": true, "module": "block",
           "legend": [
@@ -1629,7 +1623,6 @@
       "slug": "spool-drybox",
       "title": "Spool Dry Box Module",
       "description": "A sealed dry box for one 200 mm spool, printed in pieces on a Snapmaker U1 with 75A TPU gaskets printed in place. Two round side walls, the spool's diameter plus 2 mm clearance and 3 mm wall each side, with curved 3 mm panels between them. The spool sits on two rollers, as on the filament spool roller, each in an ear that bulges out of the bottom of both walls with its axle moulded into them and an ear plate closing it round. The lid is the top and front half, cut off on a diagonal plane through the axis from just past the front roller to the back: both walls' tops, a third roller in an ear at the top that rests on the spool, and the panels between. It hinges at the back on an M3 and an over-centre draw latch pulls it shut at the front. The cut is sealed like every other joint, with no screws: a ridge on the lid presses into a TPU bead in a groove round the base's side, and the walls carry a lip inward along the cut wide enough for it. Every panel edge flares out to a ridge that presses into a TPU bead in a groove on a rib round the inside of each wall, and M3 cap screws run through the wall, straight down the middle of the TPU channel, into a boss in the panel's edge. Where a panel meets an ear plate, a TPU strip printed into its end presses on it. Work in progress: the top roller has no spring yet, and the walls and panels are 3 mm.",
-      "devOnly": true,
       "filament": [
         { "material": "PETG", "color": "any", "note": "Walls, panels, ear plates, rollers and the latch." },
         {
@@ -1821,7 +1814,6 @@
       "title": "Duct Airflow Modules (100 mm)",
       "description": "A kit of airflow modules for 100 mm (4\") dryer duct — for pulling exhaust and a slight vacuum from printer enclosures and choosing which run the fan draws on — that all join the same way. Every module has a socket at one end and a plug at the other. The plug pushes in, turns 20° to lock, and the lugs ride a ramp that pulls it in half a millimetre onto a TPU 75A liner printed into the socket's floor. A printed key drops into two notches that only line up once it has turned home, so it can't turn back; eight M3 cap-screw spots round each joint can clamp it harder, into self-tapped pilots or nuts. The modules are straight tubes, 45° elbows (two make a 90° bend), duct spigots on a socket or a plug, a socket coupler, servo butterfly valves, and two kinds of manifold. A polar manifold is a hub with a trunk and branches leaning out 45° round it. A cubic manifold is unit cubes laid out cell by cell, with a plug or socket on any face you name, each cell twisting onto the one before it. There are also sensor sections: a sealed cap that holds a cheap breakout board (BME280, SHT31, AHT20, SGP30/40, ENS160 and others) against a window into the duct, and a venturi with pressure taps for a differential pressure sensor to measure the flow. Every part prints in PETG without supports, nothing overhangs past 45°, and the TPU prints in place on a multi-material printer. The butterfly valves are turned by an SG90 on the disc's axis. The original bolt flange is still an option for the hub, valve and duct spigot.",
       "customizable": true,
-      "devOnly": true,
       "filament": [
         {
           "material": "PETG",
@@ -2989,6 +2981,71 @@
             }
           ]
         }
+      ]
+    },
+    {
+      "slug": "telescoping-mast",
+      "devOnly": true,
+      "title": "Telescoping Antenna Mast",
+      "description": "A print-in-place telescoping mast for a small 915 MHz antenna. Five thin round tubes print nested in one 250 mm-tall piece (sized for a Qidi Q2) and reach 1.1 m. To raise a section, pull it to its stop, twist it 60\u00b0 and let go: three lugs drop into dips in the teeth below and hold its weight. To lower it, lift, twist back and push down. The outer tube's foot and the inner tube's top are 45\u00b0 threads, so two prints and a coupler make a 2.2 m mast.",
+      "filament": [ { "material": "PETG", "color": "any" } ],
+      "previews": [
+        { "file": "extended.3mf", "format": "3mf", "label": "Assembly: two prints and a coupler, every section locked out (2.2 m)", "default": true,
+          "legend": [
+            { "color": "#2f7fd8", "label": "Mast section (5 nested tubes, printed as one)", "part": "mast-section.stl" },
+            { "color": "#f2a33a", "label": "Coupler", "part": "coupler.stl" }
+          ],
+          "components": [ { "part": "mast-section.stl", "qty": 2 }, { "part": "coupler.stl", "qty": 1 } ]
+        },
+        { "file": "cutaway.3mf", "format": "3mf", "label": "Cutaway: one print collapsed, as it comes off the bed",
+          "legend": [
+            { "color": "#2f7fd8", "label": "Mast section", "part": "mast-section.stl" }
+          ]
+        }
+      ],
+      "parts": [
+        { "file": "mast-section.stl", "format": "stl", "label": "Mast section \u2014 5 nested tubes, print standing, 250 mm tall" },
+        { "file": "coupler.stl", "format": "stl", "label": "Coupler \u2014 joins two sections, print small end down" }
+      ]
+    },
+    {
+      "slug": "lattice-mast",
+      "customizable": true,
+      "title": "Lattice Antenna Mast",
+      "description": "A 2 m antenna mast that tapers from 100 mm at the foot to 15 mm at the top, printed as eleven segments about 200 mm tall on an Adventurer 5M. The outside is a plain cone apart from the screw heads, and the 3.5 mm wall is an open honeycomb, so it is light and wind passes through it. At each joint two solid rings overlap by one hexagon: the upper segment's foot ring over a full-thickness sleeve on the segment below, inside its bore. Push the upper segment down and turn it: a 45\u00b0 climb draws the foot down onto the joint, a level run keeps it turning, and it pops into its stop with the screw holes in line. M3 cap screws then clamp the foot onto the sleeve. The taper is a list of [height, diameter] points in the lib.",
+      "filament": [ { "material": "PETG", "color": "any" } ],
+      "previews": [
+        { "file": "assembled.3mf", "format": "3mf", "label": "Assembly: all eleven segments seated (2 m)", "default": true, "module": "assembled",
+          "legend": [
+            { "color": "#2f7fd8", "label": "Mast segments, each printed standing", "part": "segment-01.stl", "shades": ["#6aa9ec"],
+              "parts": ["segment-01.stl", "segment-02.stl", "segment-03.stl", "segment-04.stl", "segment-05.stl", "segment-06.stl", "segment-07.stl", "segment-08.stl", "segment-09.stl", "segment-10.stl", "segment-11.stl"] }
+          ],
+          "components": [ { "part": "segment-01.stl", "qty": 1 }, { "part": "segment-02.stl", "qty": 1 }, { "part": "segment-03.stl", "qty": 1 }, { "part": "segment-04.stl", "qty": 1 }, { "part": "segment-05.stl", "qty": 1 }, { "part": "segment-06.stl", "qty": 1 }, { "part": "segment-07.stl", "qty": 1 }, { "part": "segment-08.stl", "qty": 1 }, { "part": "segment-09.stl", "qty": 1 }, { "part": "segment-10.stl", "qty": 1 }, { "part": "segment-11.stl", "qty": 1 } ]
+        },
+        { "file": "joint-cutaway.3mf", "format": "3mf", "label": "Cutaway: segment 2 seated on segment 1's sleeve, with its lock screws", "module": "joint_cutaway",
+          "legend": [
+            { "color": "#2f7fd8", "label": "Segment 1 \u2014 sleeve", "part": "segment-01.stl" },
+            { "color": "#f2a33a", "label": "Segment 2 \u2014 foot", "part": "segment-02.stl" },
+            { "color": "#333333", "label": "M3 \u00d7 6 cap screws" }
+          ]
+        }
+      ],
+      "parts": [
+        { "file": "segment-01.stl", "format": "stl", "label": "Segment 1 (foot) \u2014 100 mm, plain foot on the bed, sleeve on top", "module": "segment_01" },
+        { "file": "segment-02.stl", "format": "stl", "label": "Segment 2", "module": "segment_02" },
+        { "file": "segment-03.stl", "format": "stl", "label": "Segment 3", "module": "segment_03" },
+        { "file": "segment-04.stl", "format": "stl", "label": "Segment 4", "module": "segment_04" },
+        { "file": "segment-05.stl", "format": "stl", "label": "Segment 5", "module": "segment_05" },
+        { "file": "segment-06.stl", "format": "stl", "label": "Segment 6", "module": "segment_06" },
+        { "file": "segment-07.stl", "format": "stl", "label": "Segment 7", "module": "segment_07" },
+        { "file": "segment-08.stl", "format": "stl", "label": "Segment 8", "module": "segment_08" },
+        { "file": "segment-09.stl", "format": "stl", "label": "Segment 9", "module": "segment_09" },
+        { "file": "segment-10.stl", "format": "stl", "label": "Segment 10", "module": "segment_10" },
+        { "file": "segment-11.stl", "format": "stl", "label": "Segment 11 (top) \u2014 ends at 15 mm in a plain rim", "module": "segment_11" }
+      ],
+      "hardware": [
+        { "qty": 46, "label": "M3 \u00d7 6 socket-head cap screw \u2014 2 to 7 per joint, head seated 1.5 mm into the upper segment's foot ring, clamping its last 2 mm onto the sleeve below and threading through the sleeve",
+          "usedBy": [ { "part": "segment-01.stl", "each": 7 }, { "part": "segment-02.stl", "each": 7 }, { "part": "segment-03.stl", "each": 6 }, { "part": "segment-04.stl", "each": 6 }, { "part": "segment-05.stl", "each": 5 }, { "part": "segment-06.stl", "each": 4 }, { "part": "segment-07.stl", "each": 4 }, { "part": "segment-08.stl", "each": 3 }, { "part": "segment-09.stl", "each": 2 }, { "part": "segment-10.stl", "each": 2 } ] }
       ]
     }
   ]

@@ -85,6 +85,15 @@ export interface Viewer {
    */
   setColorDisplay(display: Record<string, ColorDisplay>): void;
   getView(): ViewState;
+  /** Put the camera at `view`, or re-frame the loaded model as a fresh load would when it's omitted. */
+  setView(view?: ViewState): void;
+  /**
+   * Listen for the camera coming to rest after the user moved it: once the
+   * drag, pinch or wheel has ended and the damping has coasted out. A press
+   * that didn't move the camera (a click on a piece) doesn't fire it, and
+   * neither do load() or setView().
+   */
+  onViewSettled(cb: (view: ViewState) => void): () => void;
 }
 
 const GHOST_OPACITY = 0.2;
@@ -660,6 +669,20 @@ export function createViewer(container: HTMLElement): Viewer {
   controls.enableDamping = true;
   controls.dampingFactor = 0.1;
 
+  // A user move runs from the controls' `start` until update() stops moving
+  // the camera after their `end` — the damping's coast. `moveFrom` is the view
+  // at `start`, so a press that never moved the camera settles nothing.
+  const settledListeners = new Set<(view: ViewState) => void>();
+  let dragging = false;
+  let moveFrom: ViewState | null = null;
+  controls.addEventListener("start", () => {
+    dragging = true;
+    moveFrom ??= getView();
+  });
+  controls.addEventListener("end", () => {
+    dragging = false;
+  });
+
   // Near-white key so filament colours read true, with a violet ambient and a
   // cyan rim: the neon comes off the scene, not out of the model's own colour.
   //
@@ -900,7 +923,18 @@ export function createViewer(container: HTMLElement): Viewer {
   let animId = 0;
   const animate = () => {
     animId = requestAnimationFrame(animate);
-    controls.update();
+    const before = moveFrom && !dragging ? camera.position.clone() : null;
+    const moved = controls.update();
+    // Damping halves the motion every few frames but takes seconds to reach
+    // the controls' own epsilon; a frame that shifts the camera by less than a
+    // ten-thousandth of its distance already reads as stopped.
+    const resting = !moved || (before !== null && before.distanceTo(camera.position) < camera.position.distanceTo(controls.target) * 1e-4);
+    if (moveFrom && !dragging && resting) {
+      const from = moveFrom;
+      moveFrom = null;
+      const view = getView();
+      if (!sameView(from, view)) for (const cb of settledListeners) cb(view);
+    }
     renderer.render(scene, camera);
   };
   animate();
@@ -1024,23 +1058,42 @@ export function createViewer(container: HTMLElement): Viewer {
 
     camera.near = maxDim * 0.001;
     camera.far = maxDim * 100;
-    if (opts.preserveView) {
-      // Keep the camera where it is.
-    } else if (opts.view) {
-      camera.position.fromArray(opts.view.position);
-      controls.target.fromArray(opts.view.target);
-    } else {
-      const fitDistance = maxDim / (2 * Math.tan((Math.PI * camera.fov) / 360));
+    framing = { maxDim, height: size.y };
+    if (!opts.preserveView) setView(opts.view);
+    else {
+      camera.updateProjectionMatrix();
+      controls.update();
+    }
+  }
+
+  /** What setView() re-frames to: the loaded model's size, set by load(). */
+  let framing: { maxDim: number; height: number } | null = null;
+
+  function setView(view?: ViewState) {
+    // Whatever the user was coasting through is overruled, not settled.
+    moveFrom = null;
+    if (view) {
+      camera.position.fromArray(view.position);
+      controls.target.fromArray(view.target);
+    } else if (framing) {
+      const fitDistance = framing.maxDim / (2 * Math.tan((Math.PI * camera.fov) / 360));
       // Shallow elevation: enough to read the top of a part, low enough that
       // the backdrop's horizon and sun stay in frame.
       // Orbit about the middle of the model, not the floor under it, so the
       // model sits centred in the frame rather than above it.
-      const midY = size.y / 2;
+      const midY = framing.height / 2;
       camera.position.set(fitDistance * 1.2, midY + fitDistance * 0.42, fitDistance * 1.2);
       controls.target.set(0, midY, 0);
     }
-    camera.updateProjectionMatrix();
+    // Damping would otherwise carry the old momentum on from the new spot.
     controls.update();
+    controls.update();
+    camera.updateProjectionMatrix();
+  }
+
+  function onViewSettled(cb: (view: ViewState) => void) {
+    settledListeners.add(cb);
+    return () => settledListeners.delete(cb);
   }
 
   function dispose() {
@@ -1161,7 +1214,14 @@ export function createViewer(container: HTMLElement): Viewer {
   return {
     load, clear, dispose, onHover, onClick, setHighlight, getPartColors, getScreenPositionForColor,
     resolveInstances, getScreenPositionForInstance, getMeshStlByColor, setColorDisplay, getView,
+    setView, onViewSettled,
   };
+}
+
+/** Within a hundredth of a millimetre on every axis — what a URL round-trip keeps. */
+function sameView(a: ViewState, b: ViewState): boolean {
+  const near = (x: number[], y: number[]) => x.every((v, i) => Math.abs(v - y[i]!) < 0.01);
+  return near(a.position, b.position) && near(a.target, b.target);
 }
 
 /**

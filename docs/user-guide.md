@@ -25,6 +25,9 @@ notes, hardware and print times.
   model re-renders in your browser. A bad value is outlined red with the
   reason, and nothing renders until it's fixed. Your values are part of the
   link, so you can share them.
+- **Back and Forward** step through what you looked at. Opening a part is
+  one step and each camera move is another, saved once the view coasts to a
+  stop. The camera is part of the link too.
 - **Parts list.** Every printed piece, how many to make, what it's printed
   in, and the screws, magnets and other hardware it needs. Hover a piece's
   id to highlight it in the 3D view.

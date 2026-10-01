@@ -2,8 +2,8 @@
 
 A kit of airflow modules for 100 mm dryer duct. They all join with one twist
 joint: a plug turns 20° into a socket, a ramp pulls it onto a TPU liner, and
-a printed key holds it. `devOnly: true` until the user has test-fitted a
-joint, a servo and a duct. Customizable, with `schema.ts`. It has ten
+a printed key holds it. Published (no longer `devOnly`), though no joint,
+servo or duct has been test-fitted yet. Customizable, with `schema.ts`. It has ten
 `builds`:
 
 - polar: y, y-all, x4
@@ -203,5 +203,5 @@ Checks done:
   than 45°. The same was true of the original bolt flange.
 - Particulate sensors (PMS5003, SPS30) were left out. Both makers say to
   keep them out of the flow, so they need a bleed pocket, not a window.
-- No baseline fingerprints: devOnly models are excluded. Once it ships, run
-  `npm run test:build:baseline`.
+- Fingerprinted in `tests/build/baseline.json`. Re-capture with
+  `npm run test:build:baseline` after an intentional change.

@@ -67,6 +67,9 @@ import servoDuctManifoldSensor from "../../../models/servo-duct-manifold/preview
 import servoDuctManifoldFlow from "../../../models/servo-duct-manifold/previews/flow.scad?raw";
 import servoDuctManifoldRun from "../../../models/servo-duct-manifold/previews/run.scad?raw";
 import servoDuctManifoldIris from "../../../models/servo-duct-manifold/previews/iris.scad?raw";
+import latticeMastLib from "../../../models/lattice-mast/lib/lattice-mast-lib.scad?raw";
+import latticeMastAssembled from "../../../models/lattice-mast/previews/assembled.scad?raw";
+import latticeMastJointCutaway from "../../../models/lattice-mast/previews/joint-cutaway.scad?raw";
 
 // Strip include lines from a .scad source (for WASM concatenation with lib)
 function stripIncludes(source: string): string {
@@ -220,6 +223,13 @@ export const CUSTOMIZABLE_SOURCES: Record<string, { lib: string; previews: Recor
       flow: stripIncludes(servoDuctManifoldFlow),
       run: stripIncludes(servoDuctManifoldRun),
       iris: stripIncludes(servoDuctManifoldIris),
+    },
+  },
+  "lattice-mast": {
+    lib: latticeMastLib,
+    previews: {
+      assembled: stripIncludes(latticeMastAssembled),
+      "joint-cutaway": stripIncludes(latticeMastJointCutaway),
     },
   },
 };

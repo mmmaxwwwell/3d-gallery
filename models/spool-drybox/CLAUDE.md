@@ -1,6 +1,6 @@
 # spool-drybox
 
-A sealed single-spool dry-box module. `devOnly: true`. Printed on a
+A sealed single-spool dry-box module. Published. Printed on a
 Snapmaker U1 (270 mm cube, tool changer), so a part and its 75A TPU
 gasket print together.
 

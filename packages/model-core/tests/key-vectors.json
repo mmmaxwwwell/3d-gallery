@@ -1,10 +1,10 @@
 {
-  "keySchema": "3dg-artifact/2",
+  "keySchema": "3dg-artifact/3",
   "keys": {
-    "defaults": "243263460878f06bb1048628dd510e02f497bd16f01143efe80a693690b96728",
-    "one-number": "9ee4b847d3844b0a1471b9836cfc6d1d77a70ccca5dcccf5c6740f7674478181",
-    "enum-and-string": "276d84c278d8100ea6d0151f32f8da4b5afd6ad0e645e298c04f4e60f8631824",
-    "stl-part": "2643aefe98a5024398edacd5638592413172efbe9014f0dd93280d87d1ecbbc3",
-    "unicode": "d11e44e9c7074005b12e9a8c0776e0238d73acbaac9ff192ca6291bee069b210"
+    "defaults": "7a1a5d6e9b419f825659fe667a9add776d3f8e0caeeb6a5a9223f230d551fc68",
+    "one-number": "7570fadb8301884d32af2548d767db8b9aa6a70118b45401bda2ed6eebc15b86",
+    "enum-and-string": "c9680d700b6804a485a186637bbfc920a639966954149269a6b12eaca3b93a98",
+    "stl-part": "5af4cb44705af0647fc649569ffa5faac379d5b5750878a7a89b7f93df10b62e",
+    "unicode": "3b672c58f9100c1b275ee4f564394234bab1e3f306cf794305e00f4e735bd2f6"
   }
 }

@@ -147,7 +147,7 @@ async function runOpenSCAD(
   return { exitCode, output };
 }
 
-import { NAMED_COLORS, parseColorString, parseInstanceEcho } from '@3d-gallery/model-core';
+import { NAMED_COLORS, parseColorString, parseExtruderEcho, parseInstanceEcho } from '@3d-gallery/model-core';
 
 async function discoverColors(
   scadSource: string,
@@ -349,7 +349,7 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       }
 
       sendLog('Merging into multi-color 3MF...');
-      const merged = merge3mf(coloredModels, parseInstanceEcho(csgStderr));
+      const merged = merge3mf(coloredModels, parseInstanceEcho(csgStderr), parseExtruderEcho(csgStderr));
 
       const buf = merged.buffer.byteLength === merged.byteLength
         ? merged.buffer as ArrayBuffer

@@ -553,6 +553,23 @@ viewer.onClick((hex) => {
   if (row?.classList.contains("legend-clickable")) row.click();
 });
 
+// Each time a camera move coasts to rest it becomes a history entry, so Back
+// and Forward step through the views as well as the parts.
+viewer.onViewSettled((view) => {
+  if (!currentModel || !currentPart) return;
+  // The bare landing URL names no part; give it one first, so Back from the
+  // new entry re-frames this model rather than reloading it.
+  if (!new URLSearchParams(window.location.search).has("model")) {
+    const path = buildUrl(currentModel.slug, partKeyOf(currentModel, currentPart), undefined, currentModel.build?.id);
+    history.replaceState({ slug: currentModel.slug, build: currentModel.build?.id, part: currentPart.module }, "", path);
+  }
+  const here = window.location.pathname + window.location.search;
+  const encoded = encodeView(view);
+  if (new URLSearchParams(window.location.search).get("view") === encoded) return;
+  history.pushState(history.state, "", withView(here, encoded));
+  markShown();
+});
+
 // Redraw the leader line each animation frame while a part is active so it
 // tracks camera orbit without needing a viewer event.
 function leaderTick() {
@@ -685,11 +702,51 @@ function hideViewerPrompt() {
 
 // Everything else in the query is a customizer parameter. The old print-panel
 // queries never get this far: init() forwards them to their pages first.
-const ROUTE_PARAMS = new Set(["model", "build", "part"]);
+const ROUTE_PARAMS = new Set(["model", "build", "part", "view"]);
+
+/** `view=px,py,pz,tx,ty,tz`: camera position and orbit target, to the hundredth of a millimetre. */
+function encodeView(view: ViewState): string {
+  return [...view.position, ...view.target].map((n) => String(Math.round(n * 100) / 100)).join(",");
+}
+
+function decodeView(raw: string | null): ViewState | undefined {
+  if (!raw) return undefined;
+  const n = raw.split(",").map(Number);
+  if (n.length !== 6 || !n.every(Number.isFinite)) return undefined;
+  return { position: [n[0]!, n[1]!, n[2]!], target: [n[3]!, n[4]!, n[5]!] };
+}
+
+/** The current URL with its `view` set to `view`, or dropped when that's null. */
+function withView(path: string, view: string | null): string {
+  const url = new URL(path, window.location.origin);
+  if (view) url.searchParams.set("view", view);
+  else url.searchParams.delete("view");
+  return url.pathname + url.search;
+}
+
+/**
+ * What a URL puts on screen apart from the camera: two history entries with
+ * the same scene differ only in `view`, so moving between them moves the
+ * camera and keeps the mesh. The bare landing URL is the empty scene.
+ */
+function sceneOf(path: string): string {
+  const url = new URL(path, window.location.origin);
+  if (!url.searchParams.has("model")) return "";
+  url.searchParams.delete("view");
+  url.searchParams.sort();
+  return url.search;
+}
+
+/** The scene on screen — what popstate compares the URL it lands on against. */
+let shownScene = "";
+
+function markShown() {
+  shownScene = sceneOf(window.location.pathname + window.location.search);
+}
 
 function buildUrl(
   slug: string,
-  partModule?: string,
+  partKey?: string,
   customValues?: Record<string, ScadValue>,
   buildId?: string,
 ): string {
@@ -698,7 +755,7 @@ function buildUrl(
   url.search = "";
   url.searchParams.set("model", slug);
   if (buildId) url.searchParams.set("build", buildId);
-  if (partModule) url.searchParams.set("part", partModule);
+  if (partKey) url.searchParams.set("part", partKey);
   if (customValues) {
     for (const [k, v] of Object.entries(customValues)) {
       if (v !== undefined && v !== null && v !== "") {
@@ -718,31 +775,49 @@ function isSameRoute(a: string, b: string): boolean {
   return canon(a) === canon(b);
 }
 
-function pushRoute(slug: string, partModule?: string, customValues?: Record<string, ScadValue>, buildId?: string) {
-  const path = buildUrl(slug, partModule, customValues, buildId);
+/**
+ * How `part=` names a part: by its module where that picks it out alone, else
+ * by its file. Plenty of parts have no module (prebuilt files), and some share
+ * one with a sibling that differs only by params, so a module-only URL would
+ * reopen the model's default part on reload or Back.
+ */
+function partKeyOf(model: Model, part: Part): string {
+  const shared = allItemsFor(model).filter((i) => part.module && i.part.module === part.module).length;
+  return shared === 1 ? part.module! : part.file;
+}
+
+/** The part a `part=` names. Modules first: links made before files could be named carry those. */
+function findPartByKey(items: { part: Part }[], key: string): Part | undefined {
+  return items.find((i) => i.part.module === key)?.part ?? items.find((i) => i.part.file === key)?.part;
+}
+
+function pushRoute(slug: string, partKey?: string, customValues?: Record<string, ScadValue>, buildId?: string) {
+  const path = buildUrl(slug, partKey, customValues, buildId);
   // A pasted link may order its params differently from buildUrl. Same route,
   // different order — pushing it would stack a Back step that goes nowhere.
   if (!isSameRoute(window.location.pathname + window.location.search, path)) {
-    history.pushState({ slug, build: buildId, part: partModule, custom: customValues }, "", path);
+    history.pushState({ slug, build: buildId, part: partKey, custom: customValues }, "", path);
   }
+  markShown();
 }
 
 function getRouteFromUrl(): {
   slug: string;
   buildId?: string;
-  partModule?: string;
+  partKey?: string;
   customValues: Record<string, string>;
+  view?: ViewState;
 } | null {
   const params = new URLSearchParams(window.location.search);
   const slug = params.get("model");
   if (!slug) return null;
   const buildId = params.get("build") ?? undefined;
-  const partModule = params.get("part") ?? undefined;
+  const partKey = params.get("part") ?? undefined;
   const customValues: Record<string, string> = {};
   for (const [k, v] of params.entries()) {
     if (!ROUTE_PARAMS.has(k)) customValues[k] = v;
   }
-  return { slug, buildId, partModule, customValues };
+  return { slug, buildId, partKey, customValues, view: decodeView(params.get("view")) };
 }
 
 // ── Builds ───────────────────────────────────────────────
@@ -2289,7 +2364,18 @@ function CustomizerStatus({ generating, stage, displayed, changed }: {
   );
 }
 
-function showCustomizer(model: Model, part: Part, initialValues?: Record<string, ScadValue>, autoGenerate = false, showsDefault = true) {
+/**
+ * Bumped whenever the Customizer is replaced or removed. A Generate still
+ * running in the old one (the user pressed Back mid-render) finishes into
+ * nothing instead of drawing its mesh over the view they went back to.
+ */
+let customizerSession = 0;
+
+function showCustomizer(model: Model, part: Part, initialValues?: Record<string, ScadValue>, autoGenerate = false, showsDefault = true, initialView?: ViewState) {
+  const session = ++customizerSession;
+  const live = () => session === customizerSession;
+  // The camera a history entry carried applies to the first mesh only; a later Generate re-frames.
+  let firstView = initialView;
   const sources = customizableSources[model.slug];
   if (!sources || !part.module) {
     hideCustomizer();
@@ -2320,42 +2406,53 @@ function showCustomizer(model: Model, part: Part, initialValues?: Record<string,
       autoGenerate,
       showsDefault,
       onValuesChange: (vals) => {
-        const path = buildUrl(model.slug, part.module, vals, model.build?.id);
+        if (!live()) return;
+        const view = new URLSearchParams(window.location.search).get("view");
+        const path = withView(buildUrl(model.slug, partKeyOf(model, part), vals, model.build?.id), view);
         history.replaceState({ slug: model.slug, build: model.build?.id, part: part.module, custom: vals }, "", path);
+        markShown();
       },
       onStaleChange: (stale) => {
-        staleBadge.hidden = !stale;
+        if (live()) staleBadge.hidden = !stale;
       },
       onStart: () => {
+        if (!live()) return;
         setCustomizerOpen(false);
         hideViewerPrompt();
         viewer.clear();
         showLoadingOverlay("Checking the cache…");
       },
       onProgress: (status) => {
+        if (!live()) return;
         showLoadingOverlay(status, !loadingNote.hidden);
       },
       onStage: (stage) => {
+        if (!live()) return;
         showLoadingOverlay(STAGE_STATUS[stage], stage === "local render" || stage === "server render");
       },
       onFinish: () => {
-        hideLoadingOverlay();
+        if (live()) hideLoadingOverlay();
       },
       onGenerated: (data, format, filename, request, origin) => {
+        if (!live()) return;
         lastCustomizerRequest = request;
-        viewer.load(data, format);
+        viewer.load(data, format, { view: firstView });
+        firstView = undefined;
         resolvePartColors();
         setDownloadBlob(data, filename);
         setCustomizedBadge(true, origin);
         setError(null);
       },
-      onError: (msg) => setError(msg || null),
+      onError: (msg) => {
+        if (live()) setError(msg || null);
+      },
     }),
     customizerEl,
   );
 }
 
 function hideCustomizer() {
+  customizerSession++;
   customizerEl.hidden = true;
   staleBadge.hidden = true;
   customizeBtn.hidden = true;
@@ -2417,7 +2514,12 @@ interface LoadPartOptions {
   initialValues?: Record<string, ScadValue>;
   promptOnly?: boolean;
   skipPush?: boolean;
+  /** Frame the part from this camera (a history entry's `view`) instead of auto-fitting. */
+  view?: ViewState;
 }
+
+/** Bumped by every loadPart, so a fetch that lands after the user moved on is dropped. */
+let loadSeq = 0;
 
 /**
  * Prefer the content-addressed artifact over the static path: that is the copy
@@ -2473,6 +2575,8 @@ async function loadPart(model: Model, part: Part, opts: LoadPartOptions = {}) {
 
   // Taken up front so a stash can't outlive this load and ambush a later one.
   const stashedView = takeStashedView(model, part);
+  const view = stashedView ?? opts.view;
+  const seq = ++loadSeq;
   currentPart = part;
   lastCustomizerRequest = null;
   setCustomizedBadge(false);
@@ -2481,7 +2585,7 @@ async function loadPart(model: Model, part: Part, opts: LoadPartOptions = {}) {
   renderInfoPanel(model, part);
 
   if (!opts.skipPush) {
-    pushRoute(model.slug, part.module, opts.initialValues, model.build?.id);
+    pushRoute(model.slug, partKeyOf(model, part), opts.initialValues, model.build?.id);
   }
 
   const ext = part.file.split(".").pop();
@@ -2494,7 +2598,7 @@ async function loadPart(model: Model, part: Part, opts: LoadPartOptions = {}) {
   const autoGenerate = !!opts.initialValues && !!model.customizable;
 
   if (model.customizable) {
-    showCustomizer(model, part, opts.initialValues, autoGenerate, !autoGenerate && !opts.promptOnly);
+    showCustomizer(model, part, opts.initialValues, autoGenerate, !autoGenerate && !opts.promptOnly, view);
     if (autoGenerate || opts.promptOnly) {
       downloadLink.hidden = true;
       updatePrintButtonVisibility();
@@ -2526,15 +2630,15 @@ async function loadPart(model: Model, part: Part, opts: LoadPartOptions = {}) {
     setError(null);
     showLoadingOverlay("Loading model…");
     const buf = await fetchPartBytes(model, part, url);
-    if (currentPart !== part) return;
-    viewer.load(buf, format, { view: stashedView });
+    if (seq !== loadSeq) return;
+    viewer.load(buf, format, { view });
     resolvePartColors();
   } catch (err) {
-    if (currentPart !== part) return;
+    if (seq !== loadSeq) return;
     viewer.clear();
     setError(err instanceof Error ? err.message : String(err));
   } finally {
-    if (currentPart === part) hideLoadingOverlay();
+    if (seq === loadSeq) hideLoadingOverlay();
   }
 }
 
@@ -2670,24 +2774,29 @@ printBtn?.addEventListener("click", () => {
 
 let models: Model[] = [];
 
-function navigateToRoute(route: ReturnType<typeof getRouteFromUrl>, skipPush = false) {
+/**
+ * Open what a URL names. `fromHistory` is Back/Forward onto an entry the user
+ * has already seen: its customizer values render straight away, as the click
+ * that made the entry did. A link opened cold only fills the form and waits
+ * for Generate.
+ */
+function navigateToRoute(route: ReturnType<typeof getRouteFromUrl>, skipPush = false, fromHistory = false) {
   if (!route) return false;
   const found = models.find((m) => m.slug === route.slug);
   if (!found) return false;
   const model = viewOf(found, route.buildId);
 
   const items = allItemsFor(model);
-  let targetPart = route.partModule
-    ? items.find((i) => i.part.module === route.partModule)?.part
-    : undefined;
+  let targetPart = route.partKey ? findPartByKey(items, route.partKey) : undefined;
   if (!targetPart) targetPart = defaultItemFor(model)?.part;
   if (!targetPart) return false;
 
   const hasCustomValues = Object.keys(route.customValues).length > 0;
   selectModel(model, targetPart, {
     initialValues: hasCustomValues ? route.customValues : undefined,
-    promptOnly: hasCustomValues,
+    promptOnly: hasCustomValues && !fromHistory,
     skipPush,
+    view: route.view,
   });
   return true;
 }
@@ -2762,6 +2871,7 @@ function renderSidebar(manifest: Manifest) {
   setDevShown(import.meta.env.DEV || readShowDev());
 
   // Check URL route first
+  markShown();
   const route = getRouteFromUrl();
   if (route && navigateToRoute(route, true)) return;
 
@@ -2772,8 +2882,15 @@ function renderSidebar(manifest: Manifest) {
 // Handle browser back/forward
 window.addEventListener("popstate", () => {
   const route = getRouteFromUrl();
+  const scene = sceneOf(window.location.pathname + window.location.search);
+  // Only the camera differs: move it and keep the mesh, with no reload.
+  if (scene === shownScene && currentPart) {
+    viewer.setView(route?.view);
+    return;
+  }
+  shownScene = scene;
   if (route) {
-    navigateToRoute(route, true);
+    navigateToRoute(route, true, true);
   } else {
     const landing = landingModel();
     if (landing) selectModel(viewOf(landing), undefined, { skipPush: true });

@@ -9,8 +9,9 @@
 //      render its children only when the color matches a `selected_color`
 //      variable passed on the CLI via `-D`.
 //   3. Merge the per-color STLs into a single 3MF with <colorgroup> metadata.
-//      One <object> per color, each pid'd to its colorgroup. Browser-side
-//      ThreeMFLoader assigns vertex colors based on that.
+//      The colours regroup into print objects — touching solids are one
+//      object, one part per colour (model-core print-objects.ts) — each part
+//      pid'd to its colorgroup. Browser-side ThreeMFLoader colours by that.
 //
 // This is a CLI port of the techniques used in
 // openscad-web-generator/src/lib/merge-3mf.ts.
@@ -24,6 +25,8 @@ import { zipSync } from "fflate";
 
 import { OPENSCAD_ARGS } from "./openscad-args.mjs";
 import { INSTANCE_ANCHORS_PATH, parseInstanceEcho } from "../packages/model-core/src/instances.ts";
+import { groupPrintObjects, printObjectsXml } from "../packages/model-core/src/print-objects.ts";
+import { assignExtruders, parseExtruderEcho } from "../packages/model-core/src/extruders.ts";
 
 const execFileAsync = promisify(execFile);
 
@@ -285,120 +288,25 @@ function rgbaToHex(rgba) {
   return `#${c(rgba[0])}${c(rgba[1])}${c(rgba[2])}${c(rgba[3])}`;
 }
 
-export function build3mf(perColorMeshes, { asAssembly = false, instances = null } = {}) {
+export function build3mf(perColorMeshes, { asAssembly = false, instances = null, extruders = null } = {}) {
   // perColorMeshes: [{ key, rgba, mesh:{vertices,triangles} }]
   // instances: the preview's echoed per-piece anchors, carried as JSON at
   // INSTANCE_ANCHORS_PATH for the viewer (see model-core instances.ts).
-  // asAssembly: when true, wrap all color-objects inside one component
-  // assembly and put ONLY the assembly in <build>. Bambu Studio / OrcaSlicer
-  // treat each top-level build item as an independently-arrangeable
-  // printable, so multi-material single parts must be assembled — otherwise
-  // the slicer moves the body and the color-overlay apart on the plate.
-  let nextId = 1;
-  const colorGroups = [];
-  const objects = [];
-  for (const entry of perColorMeshes) {
-    if (entry.mesh.triangles.length === 0) continue;
-    const cgId = nextId++;
+  // The colour meshes are regrouped into print objects (model-core
+  // print-objects.ts): solids that touch are one object, one part per colour.
+  // asAssembly: make the whole render one object, touching or not.
+  // extruders: the preview's echoed filament slots (model-core extruders.ts).
+  const palette = assignExtruders(perColorMeshes.map((entry) => {
     const hex = rgbaToHex(entry.rgba);
-    colorGroups.push({ id: cgId, hex, label: entry.key });
-    const objId = nextId++;
-    // Label the object by its color name (e.g. "name:red" → "red") so the
-    // slicer shows readable part names; fall back to the hex.
-    const label = entry.key.startsWith("name:") ? entry.key.slice(5) : hex;
-    objects.push({ id: objId, pid: cgId, mesh: entry.mesh, label });
-  }
-  if (objects.length === 0) throw new Error("No geometry produced for any color");
-
-  const assemblyId = asAssembly ? nextId++ : null;
-
-  const lines = [
-    '<?xml version="1.0" encoding="UTF-8"?>',
-    '<model unit="millimeter" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">',
-    '  <metadata name="Application">3D Gallery</metadata>',
-    '  <resources>',
-  ];
-  for (const cg of colorGroups) {
-    lines.push(`    <colorgroup id="${cg.id}">`);
-    lines.push(`      <color color="${cg.hex}" />`);
-    lines.push(`    </colorgroup>`);
-  }
-  for (const obj of objects) {
-    lines.push(`    <object id="${obj.id}" type="model" pid="${obj.pid}" pindex="0">`);
-    lines.push('      <mesh>');
-    lines.push('        <vertices>');
-    for (const v of obj.mesh.vertices) {
-      lines.push(`          <vertex x="${v[0]}" y="${v[1]}" z="${v[2]}" />`);
-    }
-    lines.push('        </vertices>');
-    lines.push('        <triangles>');
-    for (const t of obj.mesh.triangles) {
-      lines.push(`          <triangle v1="${t[0]}" v2="${t[1]}" v3="${t[2]}" />`);
-    }
-    lines.push('        </triangles>');
-    lines.push('      </mesh>');
-    lines.push('    </object>');
-  }
-  if (asAssembly) {
-    lines.push(`    <object id="${assemblyId}" type="model">`);
-    lines.push('      <components>');
-    for (const obj of objects) {
-      lines.push(`        <component objectid="${obj.id}" />`);
-    }
-    lines.push('      </components>');
-    lines.push('    </object>');
-  }
-  lines.push('  </resources>');
-  lines.push('  <build>');
-  if (asAssembly) {
-    lines.push(`    <item objectid="${assemblyId}" />`);
-  } else {
-    for (const obj of objects) {
-      lines.push(`    <item objectid="${obj.id}" />`);
-    }
-  }
-  lines.push('  </build>');
-  lines.push('</model>');
-  const modelXml = lines.join("\n");
-
-  // Slicer metadata — assigns a distinct extruder/filament per object.
-  // The <colorgroup>/pid color above is only a display tint; Bambu Studio,
-  // OrcaSlicer, and PrusaSlicer assign filaments from this config, not from
-  // colorgroups. Without it every part imports as the same filament.
-  //
-  // In assembly mode we describe the assembly object with each color-object
-  // listed as an inner <part> — that's what tells the slicer "these are
-  // pieces of one printable, each pinned to its own extruder."
-  const metaLines = [
-    '<?xml version="1.0" encoding="UTF-8"?>',
-    '<config>',
-  ];
-  if (asAssembly) {
-    metaLines.push(`  <object id="${assemblyId}">`);
-    metaLines.push('    <metadata key="name" value="multicolor assembly" />');
-    objects.forEach((obj, i) => {
-      const extruder = i + 1;
-      metaLines.push(`    <part id="${obj.id}" subtype="normal_part">`);
-      metaLines.push(`      <metadata key="name" value="${escXml(obj.label)}" />`);
-      metaLines.push(`      <metadata key="extruder" value="${extruder}" />`);
-      metaLines.push('    </part>');
-    });
-    metaLines.push('  </object>');
-  } else {
-    objects.forEach((obj, i) => {
-      const extruder = i + 1;
-      metaLines.push(`  <object id="${obj.id}">`);
-      metaLines.push(`    <metadata key="name" value="${escXml(obj.label)}" />`);
-      metaLines.push(`    <metadata key="extruder" value="${extruder}" />`);
-      metaLines.push(`    <part id="0" subtype="normal_part">`);
-      metaLines.push(`      <metadata key="name" value="${escXml(obj.label)}" />`);
-      metaLines.push(`      <metadata key="extruder" value="${extruder}" />`);
-      metaLines.push('    </part>');
-      metaLines.push('  </object>');
-    });
-  }
-  metaLines.push('</config>');
-  const modelSettings = metaLines.join("\n");
+    // Label parts by their color name (e.g. "name:red" → "red") so the
+    // slicer shows readable part names; fall back to the hex, without its
+    // "#": slicers name the G-code after the object, and Klipper reads a
+    // "#" in a filename as a comment, so SDCARD_PRINT_FILE gets an empty
+    // name and shuts the printer down.
+    return { hex, label: entry.key.startsWith("name:") ? entry.key.slice(5) : hex.slice(1) };
+  }), extruders);
+  const objects = groupPrintObjects(perColorMeshes.map((e) => e.mesh), { single: asAssembly });
+  const { model: modelXml, settings: modelSettings } = printObjectsXml(palette, objects);
 
   const contentTypes = [
     '<?xml version="1.0" encoding="UTF-8"?>',
@@ -426,13 +334,6 @@ export function build3mf(perColorMeshes, { asAssembly = false, instances = null 
       ...(instances ? { [basename(INSTANCE_ANCHORS_PATH)]: enc.encode(JSON.stringify(instances)) } : {}),
     },
   });
-}
-
-// Minimal XML attribute escaper for the slicer metadata.
-function escXml(s) {
-  return String(s)
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
 }
 
 // ---------- entry point ----------
@@ -472,6 +373,7 @@ export async function buildMulticolor3mf({ scadPath, scadSource, sourceDir, outP
     const flatCsgPath = join(tmpDir, "flat.csg");
     const { stderr } = await execFileAsync("openscad", [...OPENSCAD_ARGS, "-o", flatCsgPath, inputPath], execOpts);
     const instances = parseInstanceEcho(stderr.split("\n"));
+    const extruders = parseExtruderEcho(stderr.split("\n"));
 
     // 2. Rewrite relative paths in `import(file = "...")` calls to absolute
     //    paths anchored at the source directory. The CSG is about to be
@@ -498,7 +400,7 @@ export async function buildMulticolor3mf({ scadPath, scadSource, sourceDir, outP
         .then(() => ({ key, rgba, mesh: parseStl(outStl) }));
     });
     const perColorMeshes = await Promise.all(jobs);
-    const zipped = build3mf(perColorMeshes, { asAssembly, instances });
+    const zipped = build3mf(perColorMeshes, { asAssembly, instances, extruders });
     writeFileSync(outPath, zipped);
   } finally {
     rmSync(tmpDir, { recursive: true, force: true });

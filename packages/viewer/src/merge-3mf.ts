@@ -1,5 +1,14 @@
 import { zipSync, unzipSync } from 'fflate';
-import { INSTANCE_ANCHORS_PATH, type InstanceAnchor } from '@3d-gallery/model-core';
+import {
+  INSTANCE_ANCHORS_PATH,
+  assignExtruders,
+  groupPrintObjects,
+  printObjectsXml,
+  type ExtruderSlot,
+  type IndexedMesh,
+  type InstanceAnchor,
+  type Vec3,
+} from '@3d-gallery/model-core';
 
 export interface ColorGroup {
   index: number;
@@ -124,11 +133,6 @@ export interface ColoredModel {
   data: Uint8Array;
 }
 
-interface Mesh {
-  vertices: { x: number; y: number; z: number }[];
-  triangles: { v1: number; v2: number; v3: number }[];
-}
-
 function linearToSRGB(linear: number): number {
   if (linear <= 0.0031308) return linear * 12.92;
   return 1.055 * Math.pow(linear, 1 / 2.4) - 0.055;
@@ -143,13 +147,9 @@ function colorToHex(color: [number, number, number, number]): string {
   return `#${toHex(linearToSRGB(color[0]))}${toHex(linearToSRGB(color[1]))}${toHex(linearToSRGB(color[2]))}${toHex(color[3])}`;
 }
 
-function escXml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-function extractMeshFromSTL(data: Uint8Array): Mesh {
-  const vertices: Mesh['vertices'] = [];
-  const triangles: Mesh['triangles'] = [];
+function extractMeshFromSTL(data: Uint8Array): IndexedMesh {
+  const vertices: Vec3[] = [];
+  const triangles: Vec3[] = [];
   const vertexMap = new Map<string, number>();
 
   function addVertex(x: number, y: number, z: number): number {
@@ -157,7 +157,7 @@ function extractMeshFromSTL(data: Uint8Array): Mesh {
     const existing = vertexMap.get(key);
     if (existing !== undefined) return existing;
     const idx = vertices.length;
-    vertices.push({ x, y, z });
+    vertices.push([x, y, z]);
     vertexMap.set(key, idx);
     return idx;
   }
@@ -171,7 +171,7 @@ function extractMeshFromSTL(data: Uint8Array): Mesh {
       const v1 = addVertex(parseFloat(m[1]), parseFloat(m[2]), parseFloat(m[3]));
       const v2 = addVertex(parseFloat(m[4]), parseFloat(m[5]), parseFloat(m[6]));
       const v3 = addVertex(parseFloat(m[7]), parseFloat(m[8]), parseFloat(m[9]));
-      triangles.push({ v1, v2, v3 });
+      triangles.push([v1, v2, v3]);
     }
   } else {
     const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
@@ -181,91 +181,30 @@ function extractMeshFromSTL(data: Uint8Array): Mesh {
       const v1 = addVertex(view.getFloat32(offset + 12, true), view.getFloat32(offset + 16, true), view.getFloat32(offset + 20, true));
       const v2 = addVertex(view.getFloat32(offset + 24, true), view.getFloat32(offset + 28, true), view.getFloat32(offset + 32, true));
       const v3 = addVertex(view.getFloat32(offset + 36, true), view.getFloat32(offset + 40, true), view.getFloat32(offset + 44, true));
-      triangles.push({ v1, v2, v3 });
+      triangles.push([v1, v2, v3]);
     }
   }
 
   return { vertices, triangles };
 }
 
-/** `instances`: the preview's echoed per-piece anchors (see model-core instances.ts). */
-export function merge3mf(inputs: ColoredModel[], instances: InstanceAnchor[] | null = null): Uint8Array {
+/**
+ * `instances`: the preview's echoed per-piece anchors (see model-core instances.ts).
+ * `extruders`: its echoed filament slots (see model-core extruders.ts).
+ */
+export function merge3mf(
+  inputs: ColoredModel[],
+  instances: InstanceAnchor[] | null = null,
+  extruders: ExtruderSlot[] | null = null,
+): Uint8Array {
   if (inputs.length === 0) throw new Error('No inputs to merge');
 
-  let nextId = 1;
-
-  interface MeshEntry {
-    colorGroupId: number;
-    mesh: Mesh;
-    color: [number, number, number, number];
-    colorHex: string;
-    colorLabel: string;
-  }
-
-  const entries: MeshEntry[] = [];
-  for (const input of inputs) {
-    const mesh = extractMeshFromSTL(input.data);
-    if (mesh.vertices.length === 0) continue;
-    const colorGroupId = nextId++;
-    const colorHex = colorToHex(input.color);
-    const colorLabel = `[${input.color.join(', ')}]`;
-    entries.push({ colorGroupId, mesh, color: input.color, colorHex, colorLabel });
-  }
-
-  const objectIds: number[] = [];
-  for (let i = 0; i < entries.length; i++) objectIds.push(nextId++);
-
-  const lines: string[] = [];
-  lines.push('<?xml version="1.0" encoding="UTF-8"?>');
-  lines.push('<model unit="millimeter" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">');
-  lines.push('  <metadata name="Application">3D Gallery</metadata>');
-  lines.push('  <resources>');
-
-  for (const entry of entries) {
-    lines.push(`    <colorgroup id="${entry.colorGroupId}">`);
-    lines.push(`      <color color="${entry.colorHex}" />`);
-    lines.push(`    </colorgroup>`);
-  }
-
-  for (let i = 0; i < entries.length; i++) {
-    const entry = entries[i];
-    const objId = objectIds[i];
-    lines.push(`    <object id="${objId}" type="model" pid="${entry.colorGroupId}" pindex="0">`);
-    lines.push('      <mesh>');
-    lines.push('        <vertices>');
-    for (const v of entry.mesh.vertices) lines.push(`          <vertex x="${v.x}" y="${v.y}" z="${v.z}" />`);
-    lines.push('        </vertices>');
-    lines.push('        <triangles>');
-    for (const t of entry.mesh.triangles) lines.push(`          <triangle v1="${t.v1}" v2="${t.v2}" v3="${t.v3}" />`);
-    lines.push('        </triangles>');
-    lines.push('      </mesh>');
-    lines.push('    </object>');
-  }
-
-  lines.push('  </resources>');
-  lines.push('  <build>');
-  for (const objId of objectIds) lines.push(`    <item objectid="${objId}" />`);
-  lines.push('  </build>');
-  lines.push('</model>');
-
-  const modelXml = lines.join('\n');
-
-  const metaLines: string[] = [];
-  metaLines.push('<?xml version="1.0" encoding="UTF-8"?>');
-  metaLines.push('<config>');
-  for (let i = 0; i < entries.length; i++) {
-    const entry = entries[i];
-    const objId = objectIds[i];
-    metaLines.push(`  <object id="${objId}">`);
-    metaLines.push(`    <metadata key="name" value="${escXml(entry.colorLabel)}" />`);
-    metaLines.push(`    <metadata key="extruder" value="${i + 1}" />`);
-    metaLines.push(`    <part id="0" subtype="normal_part">`);
-    metaLines.push(`      <metadata key="name" value="${escXml(entry.colorLabel)}" />`);
-    metaLines.push(`      <metadata key="extruder" value="${i + 1}" />`);
-    metaLines.push('    </part>');
-    metaLines.push('  </object>');
-  }
-  metaLines.push('</config>');
+  const meshes = inputs.map((input) => extractMeshFromSTL(input.data));
+  const palette = assignExtruders(inputs.map((input) => ({
+    hex: colorToHex(input.color),
+    label: `[${input.color.join(', ')}]`,
+  })), extruders);
+  const { model: modelXml, settings } = printObjectsXml(palette, groupPrintObjects(meshes));
 
   const contentTypes = [
     '<?xml version="1.0" encoding="UTF-8"?>',
@@ -290,7 +229,7 @@ export function merge3mf(inputs: ColoredModel[], instances: InstanceAnchor[] | n
     '_rels': { '.rels': enc.encode(rels) },
     '3D': { '3dmodel.model': enc.encode(modelXml) },
     'Metadata': {
-      'model_settings.config': enc.encode(metaLines.join('\n')),
+      'model_settings.config': enc.encode(settings),
       ...(instances ? { [INSTANCE_ANCHORS_PATH.split('/')[1]]: enc.encode(JSON.stringify(instances)) } : {}),
     },
   });

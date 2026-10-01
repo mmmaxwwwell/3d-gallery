@@ -13,8 +13,10 @@ import type { ArtifactFormat, RenderRequest, ScadParam } from './types.ts';
  *
  * /2: the multicolour 3MF writer stopped gamma-encoding OpenSCAD's already-sRGB
  * colour channels, so every stored .3mf carried washed-out mid-tones.
+ * /3: the multicolour 3MF writer groups touching solids into print objects, one
+ * part per colour, instead of writing one object per colour (print-objects.ts).
  */
-export const KEY_SCHEMA = '3dg-artifact/2';
+export const KEY_SCHEMA = '3dg-artifact/3';
 
 const NUL = '\0';
 

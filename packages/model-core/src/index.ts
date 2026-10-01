@@ -25,3 +25,18 @@ export {
   parseInstanceEcho,
   type InstanceAnchor,
 } from './instances.ts';
+export {
+  EXTRUDER_ECHO,
+  parseExtruderEcho,
+  assignExtruders,
+  type ExtruderSlot,
+} from './extruders.ts';
+export {
+  splitSolids,
+  groupPrintObjects,
+  printObjectsXml,
+  type IndexedMesh,
+  type PrintObject,
+  type PaletteEntry,
+  type Vec3,
+} from './print-objects.ts';

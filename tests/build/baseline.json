@@ -1407,6 +1407,399 @@
       ]
     ]
   },
+  "heltec-ht-hc33-case/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2ED573FF",
+      "#2F3542FF",
+      "#57606FFF",
+      "#747D8CFF",
+      "#A4B0BEFF",
+      "#DFE4EAFF",
+      "#FF4757FF",
+      "#FF6B81FF",
+      "#FF7F50FF",
+      "#FFA502FF"
+    ],
+    "triangleCount": 28064,
+    "bbox": [
+      [
+        -44.79,
+        -23.95,
+        0
+      ],
+      [
+        42.39,
+        23.95,
+        37.6
+      ]
+    ]
+  },
+  "heltec-ht-hc33-case/battery-case-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 5106,
+    "bbox": [
+      [
+        -40.25,
+        -22.35,
+        19.4
+      ],
+      [
+        40.25,
+        22.35,
+        21.4
+      ]
+    ]
+  },
+  "heltec-ht-hc33-case/battery-case.stl": {
+    "format": "stl",
+    "triangleCount": 4750,
+    "bbox": [
+      [
+        -42.39,
+        -23.95,
+        0
+      ],
+      [
+        42.39,
+        23.95,
+        20.8
+      ]
+    ]
+  },
+  "heltec-ht-hc33-case/cover-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 216,
+    "bbox": [
+      [
+        39.59,
+        -4.2,
+        1.35
+      ],
+      [
+        40.79,
+        4.2,
+        11.05
+      ]
+    ]
+  },
+  "heltec-ht-hc33-case/cover.stl": {
+    "format": "stl",
+    "triangleCount": 5076,
+    "bbox": [
+      [
+        -44.79,
+        -23.95,
+        0
+      ],
+      [
+        42.39,
+        23.95,
+        13.6
+      ]
+    ]
+  },
+  "heltec-ht-hc33-case/door-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 1116,
+    "bbox": [
+      [
+        -7.85,
+        -4.6,
+        2.4
+      ],
+      [
+        7.85,
+        4.6,
+        7.4
+      ]
+    ]
+  },
+  "heltec-ht-hc33-case/door.stl": {
+    "format": "stl",
+    "triangleCount": 752,
+    "bbox": [
+      [
+        -14.15,
+        -6,
+        0
+      ],
+      [
+        11.25,
+        5.3,
+        7.4
+      ]
+    ]
+  },
+  "heltec-ht-hc33-case/mcu-plate-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 5128,
+    "bbox": [
+      [
+        -40.25,
+        -22.35,
+        1.6
+      ],
+      [
+        40.25,
+        22.35,
+        3.8
+      ]
+    ]
+  },
+  "heltec-ht-hc33-case/mcu-plate.stl": {
+    "format": "stl",
+    "triangleCount": 6440,
+    "bbox": [
+      [
+        -42.39,
+        -23.95,
+        0
+      ],
+      [
+        42.39,
+        23.95,
+        9.69
+      ]
+    ]
+  },
+  "heltec-ht-hc33-case/print.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#222222FF",
+      "#FF4757FF"
+    ],
+    "triangleCount": 27738,
+    "bbox": [
+      [
+        -44.79,
+        -85.95,
+        0
+      ],
+      [
+        42.39,
+        105.3,
+        21.4
+      ]
+    ]
+  },
+  "lattice-mast/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2F7FD8FF",
+      "#6AA9ECFF"
+    ],
+    "triangleCount": 325800,
+    "bbox": [
+      [
+        -50,
+        -50,
+        0
+      ],
+      [
+        50,
+        50,
+        1999.998
+      ]
+    ]
+  },
+  "lattice-mast/joint-cutaway.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2F7FD8FF",
+      "#333333FF",
+      "#F2A33AFF"
+    ],
+    "triangleCount": 13228,
+    "bbox": [
+      [
+        -46.774,
+        -46.772,
+        151.818
+      ],
+      [
+        47.347,
+        46.772,
+        229.932
+      ]
+    ]
+  },
+  "lattice-mast/segment-01.stl": {
+    "format": "stl",
+    "triangleCount": 37214,
+    "bbox": [
+      [
+        -50,
+        -50,
+        0
+      ],
+      [
+        50,
+        50,
+        199.932
+      ]
+    ]
+  },
+  "lattice-mast/segment-02.stl": {
+    "format": "stl",
+    "triangleCount": 36534,
+    "bbox": [
+      [
+        -46.136,
+        -46.136,
+        0
+      ],
+      [
+        46.136,
+        46.136,
+        199.923
+      ]
+    ]
+  },
+  "lattice-mast/segment-03.stl": {
+    "format": "stl",
+    "triangleCount": 34962,
+    "bbox": [
+      [
+        -42.273,
+        -42.273,
+        0
+      ],
+      [
+        42.273,
+        42.273,
+        199.912
+      ]
+    ]
+  },
+  "lattice-mast/segment-04.stl": {
+    "format": "stl",
+    "triangleCount": 32910,
+    "bbox": [
+      [
+        -38.409,
+        -38.409,
+        0
+      ],
+      [
+        38.409,
+        38.409,
+        199.899
+      ]
+    ]
+  },
+  "lattice-mast/segment-05.stl": {
+    "format": "stl",
+    "triangleCount": 31802,
+    "bbox": [
+      [
+        -34.545,
+        -34.545,
+        0
+      ],
+      [
+        34.545,
+        34.545,
+        199.882
+      ]
+    ]
+  },
+  "lattice-mast/segment-06.stl": {
+    "format": "stl",
+    "triangleCount": 28960,
+    "bbox": [
+      [
+        -30.682,
+        -30.682,
+        0
+      ],
+      [
+        30.682,
+        30.682,
+        199.86
+      ]
+    ]
+  },
+  "lattice-mast/segment-07.stl": {
+    "format": "stl",
+    "triangleCount": 27580,
+    "bbox": [
+      [
+        -26.818,
+        -26.818,
+        0
+      ],
+      [
+        26.818,
+        26.818,
+        199.83
+      ]
+    ]
+  },
+  "lattice-mast/segment-08.stl": {
+    "format": "stl",
+    "triangleCount": 26090,
+    "bbox": [
+      [
+        -22.955,
+        -22.955,
+        0
+      ],
+      [
+        22.955,
+        22.955,
+        199.787
+      ]
+    ]
+  },
+  "lattice-mast/segment-09.stl": {
+    "format": "stl",
+    "triangleCount": 23776,
+    "bbox": [
+      [
+        -19.091,
+        -19.091,
+        0
+      ],
+      [
+        19.091,
+        19.091,
+        199.719
+      ]
+    ]
+  },
+  "lattice-mast/segment-10.stl": {
+    "format": "stl",
+    "triangleCount": 21682,
+    "bbox": [
+      [
+        -15.227,
+        -15.227,
+        0
+      ],
+      [
+        15.227,
+        15.227,
+        196.634
+      ]
+    ]
+  },
+  "lattice-mast/segment-11.stl": {
+    "format": "stl",
+    "triangleCount": 17766,
+    "bbox": [
+      [
+        -11.364,
+        -11.364,
+        0
+      ],
+      [
+        11.364,
+        11.364,
+        181.818
+      ]
+    ]
+  },
   "parametric-qr-case/case.3mf": {
     "format": "3mf",
     "colors": [
@@ -1469,7 +1862,7 @@
       "#000000FF",
       "#FFFFFFFF"
     ],
-    "triangleCount": 15790,
+    "triangleCount": 15792,
     "bbox": [
       [
         -26.915,
@@ -1559,6 +1952,1800 @@
       ]
     ]
   },
+  "scaffold-cube/block.stl": {
+    "format": "stl",
+    "triangleCount": 15418,
+    "bbox": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        200,
+        200,
+        200
+      ]
+    ]
+  },
+  "scaffold-cube/closet.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#00EAFFFF",
+      "#FF17C7FF"
+    ],
+    "triangleCount": 227496,
+    "bbox": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        1000,
+        200,
+        1000
+      ]
+    ]
+  },
+  "scaffold-cube/stack-3x3.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#00EAFFFF",
+      "#FF17C7FF"
+    ],
+    "triangleCount": 112860,
+    "bbox": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        600,
+        200,
+        600
+      ]
+    ]
+  },
+  "scaffold-cube/unit-1u.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#00EAFFFF"
+    ],
+    "triangleCount": 15500,
+    "bbox": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        200,
+        200,
+        200
+      ]
+    ]
+  },
+  "servo-duct-manifold/cubic/clip.stl": {
+    "format": "stl",
+    "triangleCount": 20,
+    "bbox": [
+      [
+        0,
+        -4.85,
+        0
+      ],
+      [
+        12.8,
+        4.85,
+        3.9
+      ]
+    ]
+  },
+  "servo-duct-manifold/cubic/cube-cell-1-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -74.006,
+        17.211
+      ],
+      [
+        49.7,
+        -2.871,
+        88.346
+      ]
+    ]
+  },
+  "servo-duct-manifold/cubic/cube-cell-1.stl": {
+    "format": "stl",
+    "triangleCount": 7570,
+    "bbox": [
+      [
+        -67.5,
+        -91.217,
+        0
+      ],
+      [
+        67.5,
+        91.217,
+        182.434
+      ]
+    ]
+  },
+  "servo-duct-manifold/cubic/cube-cell-2-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -74.006,
+        17.211
+      ],
+      [
+        49.7,
+        -2.871,
+        88.346
+      ]
+    ]
+  },
+  "servo-duct-manifold/cubic/cube-cell-2.stl": {
+    "format": "stl",
+    "triangleCount": 7570,
+    "bbox": [
+      [
+        -67.5,
+        -91.217,
+        0
+      ],
+      [
+        67.5,
+        91.217,
+        182.434
+      ]
+    ]
+  },
+  "servo-duct-manifold/cubic/cube-cell-3-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -74.006,
+        17.211
+      ],
+      [
+        49.7,
+        -2.871,
+        88.346
+      ]
+    ]
+  },
+  "servo-duct-manifold/cubic/cube-cell-3.stl": {
+    "format": "stl",
+    "triangleCount": 7570,
+    "bbox": [
+      [
+        -67.5,
+        -91.217,
+        0
+      ],
+      [
+        67.5,
+        91.217,
+        182.434
+      ]
+    ]
+  },
+  "servo-duct-manifold/cubic/cube-cell-4-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -74.006,
+        17.211
+      ],
+      [
+        49.7,
+        -2.871,
+        88.346
+      ]
+    ]
+  },
+  "servo-duct-manifold/cubic/cube-cell-4.stl": {
+    "format": "stl",
+    "triangleCount": 5322,
+    "bbox": [
+      [
+        -67.5,
+        -91.217,
+        0
+      ],
+      [
+        67.5,
+        91.217,
+        182.434
+      ]
+    ]
+  },
+  "servo-duct-manifold/cubic/cubic.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#1FEDFFFF",
+      "#2D7DFFFF",
+      "#51FF30FF",
+      "#8A8F98FF",
+      "#A021FFFF",
+      "#FF33CEFF",
+      "#FF7D1FFF",
+      "#FFDB27FF"
+    ],
+    "triangleCount": 109414,
+    "bbox": [
+      [
+        -85.3,
+        -134.4,
+        -67.5
+      ],
+      [
+        67.5,
+        472.5,
+        230.777
+      ]
+    ]
+  },
+  "servo-duct-manifold/cubic/duct-plug.stl": {
+    "format": "stl",
+    "triangleCount": 3432,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        63.9,
+        63.9,
+        79.94
+      ]
+    ]
+  },
+  "servo-duct-manifold/cubic/spigot-adapter-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -49.7,
+        10.833
+      ],
+      [
+        49.7,
+        49.7,
+        15.23
+      ]
+    ]
+  },
+  "servo-duct-manifold/cubic/spigot-adapter.stl": {
+    "format": "stl",
+    "triangleCount": 5822,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        63.9,
+        63.9,
+        51
+      ]
+    ]
+  },
+  "servo-duct-manifold/cubic/valve-body-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -49.7,
+        10.833
+      ],
+      [
+        49.7,
+        49.7,
+        15.23
+      ]
+    ]
+  },
+  "servo-duct-manifold/cubic/valve-body.stl": {
+    "format": "stl",
+    "triangleCount": 8478,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        69.3,
+        63.9,
+        125.316
+      ]
+    ]
+  },
+  "servo-duct-manifold/cubic/valve-coupler.stl": {
+    "format": "stl",
+    "triangleCount": 432,
+    "bbox": [
+      [
+        -19,
+        -5,
+        0
+      ],
+      [
+        19,
+        5,
+        21.29
+      ]
+    ]
+  },
+  "servo-duct-manifold/cubic/valve-disc.stl": {
+    "format": "stl",
+    "triangleCount": 960,
+    "bbox": [
+      [
+        -46.463,
+        -46.475,
+        0
+      ],
+      [
+        46.423,
+        46.475,
+        10.311
+      ]
+    ]
+  },
+  "servo-duct-manifold/flow/clip.stl": {
+    "format": "stl",
+    "triangleCount": 20,
+    "bbox": [
+      [
+        0,
+        -4.85,
+        0
+      ],
+      [
+        12.8,
+        4.85,
+        3.9
+      ]
+    ]
+  },
+  "servo-duct-manifold/flow/flow.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#1FEDFFFF",
+      "#2E8B57FF",
+      "#A021FFFF",
+      "#FF7D1FFF"
+    ],
+    "triangleCount": 13282,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        63.9,
+        63.9,
+        178.558
+      ]
+    ]
+  },
+  "servo-duct-manifold/flow/sensor-tray.stl": {
+    "format": "stl",
+    "triangleCount": 852,
+    "bbox": [
+      [
+        -21.9,
+        -12.6,
+        0
+      ],
+      [
+        21.9,
+        34.6,
+        4
+      ]
+    ]
+  },
+  "servo-duct-manifold/flow/venturi-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -49.7,
+        10.833
+      ],
+      [
+        49.7,
+        49.7,
+        15.23
+      ]
+    ]
+  },
+  "servo-duct-manifold/flow/venturi.stl": {
+    "format": "stl",
+    "triangleCount": 11350,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        63.9,
+        63.9,
+        178.558
+      ]
+    ]
+  },
+  "servo-duct-manifold/inline/clip.stl": {
+    "format": "stl",
+    "triangleCount": 20,
+    "bbox": [
+      [
+        0,
+        -4.85,
+        0
+      ],
+      [
+        12.8,
+        4.85,
+        3.9
+      ]
+    ]
+  },
+  "servo-duct-manifold/inline/duct-plug.stl": {
+    "format": "stl",
+    "triangleCount": 3432,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        63.9,
+        63.9,
+        79.94
+      ]
+    ]
+  },
+  "servo-duct-manifold/inline/inline.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2D7DFFFF",
+      "#51FF30FF",
+      "#8A8F98FF",
+      "#A021FFFF",
+      "#FF33CEFF",
+      "#FF7D1FFF",
+      "#FFDB27FF"
+    ],
+    "triangleCount": 21880,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        -66.9
+      ],
+      [
+        85.3,
+        63.9,
+        163.277
+      ]
+    ]
+  },
+  "servo-duct-manifold/inline/spigot-adapter-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -49.7,
+        10.833
+      ],
+      [
+        49.7,
+        49.7,
+        15.23
+      ]
+    ]
+  },
+  "servo-duct-manifold/inline/spigot-adapter.stl": {
+    "format": "stl",
+    "triangleCount": 5822,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        63.9,
+        63.9,
+        51
+      ]
+    ]
+  },
+  "servo-duct-manifold/inline/valve-body-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -49.7,
+        10.833
+      ],
+      [
+        49.7,
+        49.7,
+        15.23
+      ]
+    ]
+  },
+  "servo-duct-manifold/inline/valve-body.stl": {
+    "format": "stl",
+    "triangleCount": 8478,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        69.3,
+        63.9,
+        125.316
+      ]
+    ]
+  },
+  "servo-duct-manifold/inline/valve-coupler.stl": {
+    "format": "stl",
+    "triangleCount": 432,
+    "bbox": [
+      [
+        -19,
+        -5,
+        0
+      ],
+      [
+        19,
+        5,
+        21.29
+      ]
+    ]
+  },
+  "servo-duct-manifold/inline/valve-disc.stl": {
+    "format": "stl",
+    "triangleCount": 960,
+    "bbox": [
+      [
+        -46.463,
+        -46.475,
+        0
+      ],
+      [
+        46.423,
+        46.475,
+        10.311
+      ]
+    ]
+  },
+  "servo-duct-manifold/iris/clip.stl": {
+    "format": "stl",
+    "triangleCount": 20,
+    "bbox": [
+      [
+        0,
+        -4.85,
+        0
+      ],
+      [
+        12.8,
+        4.85,
+        3.9
+      ]
+    ]
+  },
+  "servo-duct-manifold/iris/iris-arm.stl": {
+    "format": "stl",
+    "triangleCount": 188,
+    "bbox": [
+      [
+        -19,
+        -5,
+        0
+      ],
+      [
+        32,
+        5,
+        13.3
+      ]
+    ]
+  },
+  "servo-duct-manifold/iris/iris-blade.stl": {
+    "format": "stl",
+    "triangleCount": 1832,
+    "bbox": [
+      [
+        -27.236,
+        -10.02,
+        0
+      ],
+      [
+        72,
+        72,
+        4.5
+      ]
+    ]
+  },
+  "servo-duct-manifold/iris/iris-body-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -49.7,
+        10.833
+      ],
+      [
+        49.7,
+        49.7,
+        15.23
+      ]
+    ]
+  },
+  "servo-duct-manifold/iris/iris-body.stl": {
+    "format": "stl",
+    "triangleCount": 9180,
+    "bbox": [
+      [
+        -84,
+        -84,
+        0
+      ],
+      [
+        127.2,
+        84,
+        58.03
+      ]
+    ]
+  },
+  "servo-duct-manifold/iris/iris-lid.stl": {
+    "format": "stl",
+    "triangleCount": 4296,
+    "bbox": [
+      [
+        -84,
+        -84,
+        0
+      ],
+      [
+        84,
+        84,
+        39.94
+      ]
+    ]
+  },
+  "servo-duct-manifold/iris/iris-ring.stl": {
+    "format": "stl",
+    "triangleCount": 5992,
+    "bbox": [
+      [
+        -77.7,
+        -77.7,
+        0
+      ],
+      [
+        109.397,
+        77.7,
+        4
+      ]
+    ]
+  },
+  "servo-duct-manifold/iris/iris.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#1FEDFFFF",
+      "#51FF30FF",
+      "#8A8F98FF",
+      "#A021FFFF",
+      "#FF33CEFF",
+      "#FF7D1FFF",
+      "#FFDB27FF"
+    ],
+    "triangleCount": 38092,
+    "bbox": [
+      [
+        -84,
+        -84,
+        0
+      ],
+      [
+        137.53,
+        84,
+        97.97
+      ]
+    ]
+  },
+  "servo-duct-manifold/run/clip.stl": {
+    "format": "stl",
+    "triangleCount": 20,
+    "bbox": [
+      [
+        0,
+        -4.85,
+        0
+      ],
+      [
+        12.8,
+        4.85,
+        3.9
+      ]
+    ]
+  },
+  "servo-duct-manifold/run/duct-plug.stl": {
+    "format": "stl",
+    "triangleCount": 3432,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        63.9,
+        63.9,
+        79.94
+      ]
+    ]
+  },
+  "servo-duct-manifold/run/elbow-45-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -49.7,
+        10.833
+      ],
+      [
+        49.7,
+        49.7,
+        15.23
+      ]
+    ]
+  },
+  "servo-duct-manifold/run/elbow-45.stl": {
+    "format": "stl",
+    "triangleCount": 13236,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        74.176,
+        63.9,
+        123.472
+      ]
+    ]
+  },
+  "servo-duct-manifold/run/run.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#00C2A8FF",
+      "#1FEDFFFF",
+      "#2D7DFFFF",
+      "#51FF30FF",
+      "#A021FFFF",
+      "#C77DFFFF",
+      "#FF33CEFF",
+      "#FF7D1FFF",
+      "#FFDB27FF"
+    ],
+    "triangleCount": 69438,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        155.961,
+        63.9,
+        605.589
+      ]
+    ]
+  },
+  "servo-duct-manifold/run/sensor-cap-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 32,
+    "bbox": [
+      [
+        -12.25,
+        -21.45,
+        12
+      ],
+      [
+        12.25,
+        5.2,
+        14.6
+      ]
+    ]
+  },
+  "servo-duct-manifold/run/sensor-cap.stl": {
+    "format": "stl",
+    "triangleCount": 1298,
+    "bbox": [
+      [
+        -19.65,
+        -28.85,
+        0
+      ],
+      [
+        19.65,
+        12.6,
+        14
+      ]
+    ]
+  },
+  "servo-duct-manifold/run/sensor-section-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -49.7,
+        10.833
+      ],
+      [
+        49.7,
+        49.7,
+        15.23
+      ]
+    ]
+  },
+  "servo-duct-manifold/run/sensor-section.stl": {
+    "format": "stl",
+    "triangleCount": 6750,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        63.9,
+        63.9,
+        109.12
+      ]
+    ]
+  },
+  "servo-duct-manifold/run/sensor-tray.stl": {
+    "format": "stl",
+    "triangleCount": 852,
+    "bbox": [
+      [
+        -19.65,
+        -12.6,
+        0
+      ],
+      [
+        19.65,
+        28.85,
+        4
+      ]
+    ]
+  },
+  "servo-duct-manifold/run/socket-coupler-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 1536,
+    "bbox": [
+      [
+        -49.7,
+        -49.7,
+        10.833
+      ],
+      [
+        49.7,
+        49.7,
+        20.92
+      ]
+    ]
+  },
+  "servo-duct-manifold/run/socket-coupler.stl": {
+    "format": "stl",
+    "triangleCount": 9390,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        63.9,
+        63.9,
+        33.46
+      ]
+    ]
+  },
+  "servo-duct-manifold/run/spigot-adapter-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -49.7,
+        10.833
+      ],
+      [
+        49.7,
+        49.7,
+        15.23
+      ]
+    ]
+  },
+  "servo-duct-manifold/run/spigot-adapter.stl": {
+    "format": "stl",
+    "triangleCount": 5822,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        63.9,
+        63.9,
+        51
+      ]
+    ]
+  },
+  "servo-duct-manifold/run/tube-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -49.7,
+        10.833
+      ],
+      [
+        49.7,
+        49.7,
+        15.23
+      ]
+    ]
+  },
+  "servo-duct-manifold/run/tube.stl": {
+    "format": "stl",
+    "triangleCount": 7222,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        63.9,
+        63.9,
+        113.04
+      ]
+    ]
+  },
+  "servo-duct-manifold/run/venturi-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -49.7,
+        10.833
+      ],
+      [
+        49.7,
+        49.7,
+        15.23
+      ]
+    ]
+  },
+  "servo-duct-manifold/run/venturi.stl": {
+    "format": "stl",
+    "triangleCount": 11350,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        63.9,
+        63.9,
+        178.558
+      ]
+    ]
+  },
+  "servo-duct-manifold/th/clip.stl": {
+    "format": "stl",
+    "triangleCount": 20,
+    "bbox": [
+      [
+        0,
+        -4.85,
+        0
+      ],
+      [
+        12.8,
+        4.85,
+        3.9
+      ]
+    ]
+  },
+  "servo-duct-manifold/th/sensor-cap-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 32,
+    "bbox": [
+      [
+        -12.25,
+        -21.45,
+        12
+      ],
+      [
+        12.25,
+        5.2,
+        14.6
+      ]
+    ]
+  },
+  "servo-duct-manifold/th/sensor-cap.stl": {
+    "format": "stl",
+    "triangleCount": 1298,
+    "bbox": [
+      [
+        -19.65,
+        -28.85,
+        0
+      ],
+      [
+        19.65,
+        12.6,
+        14
+      ]
+    ]
+  },
+  "servo-duct-manifold/th/sensor-section-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -49.7,
+        10.833
+      ],
+      [
+        49.7,
+        49.7,
+        15.23
+      ]
+    ]
+  },
+  "servo-duct-manifold/th/sensor-section.stl": {
+    "format": "stl",
+    "triangleCount": 6750,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        63.9,
+        63.9,
+        109.12
+      ]
+    ]
+  },
+  "servo-duct-manifold/th/sensor.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#1FEDFFFF",
+      "#2E8B57FF",
+      "#A021FFFF",
+      "#FF7D1FFF"
+    ],
+    "triangleCount": 9408,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        67,
+        63.9,
+        109.12
+      ]
+    ]
+  },
+  "servo-duct-manifold/voc/clip.stl": {
+    "format": "stl",
+    "triangleCount": 20,
+    "bbox": [
+      [
+        0,
+        -4.85,
+        0
+      ],
+      [
+        12.8,
+        4.85,
+        3.9
+      ]
+    ]
+  },
+  "servo-duct-manifold/voc/sensor-cap-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 32,
+    "bbox": [
+      [
+        -17,
+        -34.4,
+        12
+      ],
+      [
+        17,
+        5.2,
+        14.6
+      ]
+    ]
+  },
+  "servo-duct-manifold/voc/sensor-cap.stl": {
+    "format": "stl",
+    "triangleCount": 1300,
+    "bbox": [
+      [
+        -24.4,
+        -41.8,
+        0
+      ],
+      [
+        24.4,
+        12.6,
+        14
+      ]
+    ]
+  },
+  "servo-duct-manifold/voc/sensor-section-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -49.7,
+        10.833
+      ],
+      [
+        49.7,
+        49.7,
+        15.23
+      ]
+    ]
+  },
+  "servo-duct-manifold/voc/sensor-section.stl": {
+    "format": "stl",
+    "triangleCount": 6736,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        63.9,
+        63.9,
+        122.07
+      ]
+    ]
+  },
+  "servo-duct-manifold/voc/sensor.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#1FEDFFFF",
+      "#2E8B57FF",
+      "#A021FFFF",
+      "#FF7D1FFF"
+    ],
+    "triangleCount": 9472,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        67,
+        63.9,
+        122.07
+      ]
+    ]
+  },
+  "servo-duct-manifold/x4/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#1FEDFFFF",
+      "#2D7DFFFF",
+      "#51FF30FF",
+      "#8A8F98FF",
+      "#A021FFFF",
+      "#FF33CEFF",
+      "#FF7D1FFF",
+      "#FFDB27FF"
+    ],
+    "triangleCount": 75870,
+    "bbox": [
+      [
+        -138.743,
+        -198.812,
+        -66.9
+      ],
+      [
+        219.301,
+        198.812,
+        262.312
+      ]
+    ]
+  },
+  "servo-duct-manifold/x4/clip.stl": {
+    "format": "stl",
+    "triangleCount": 20,
+    "bbox": [
+      [
+        0,
+        -4.85,
+        0
+      ],
+      [
+        12.8,
+        4.85,
+        3.9
+      ]
+    ]
+  },
+  "servo-duct-manifold/x4/duct-plug.stl": {
+    "format": "stl",
+    "triangleCount": 3432,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        63.9,
+        63.9,
+        79.94
+      ]
+    ]
+  },
+  "servo-duct-manifold/x4/hub-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -49.7,
+        10.833
+      ],
+      [
+        49.7,
+        49.7,
+        15.23
+      ]
+    ]
+  },
+  "servo-duct-manifold/x4/hub.stl": {
+    "format": "stl",
+    "triangleCount": 15912,
+    "bbox": [
+      [
+        -94.018,
+        -109.81,
+        0
+      ],
+      [
+        113.629,
+        109.81,
+        156.64
+      ]
+    ]
+  },
+  "servo-duct-manifold/x4/spigot-adapter-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -49.7,
+        10.833
+      ],
+      [
+        49.7,
+        49.7,
+        15.23
+      ]
+    ]
+  },
+  "servo-duct-manifold/x4/spigot-adapter.stl": {
+    "format": "stl",
+    "triangleCount": 5822,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        63.9,
+        63.9,
+        51
+      ]
+    ]
+  },
+  "servo-duct-manifold/x4/valve-body-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -49.7,
+        10.833
+      ],
+      [
+        49.7,
+        49.7,
+        15.23
+      ]
+    ]
+  },
+  "servo-duct-manifold/x4/valve-body.stl": {
+    "format": "stl",
+    "triangleCount": 8478,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        69.3,
+        63.9,
+        125.316
+      ]
+    ]
+  },
+  "servo-duct-manifold/x4/valve-coupler.stl": {
+    "format": "stl",
+    "triangleCount": 432,
+    "bbox": [
+      [
+        -19,
+        -5,
+        0
+      ],
+      [
+        19,
+        5,
+        21.29
+      ]
+    ]
+  },
+  "servo-duct-manifold/x4/valve-disc.stl": {
+    "format": "stl",
+    "triangleCount": 960,
+    "bbox": [
+      [
+        -46.463,
+        -46.475,
+        0
+      ],
+      [
+        46.423,
+        46.475,
+        10.311
+      ]
+    ]
+  },
+  "servo-duct-manifold/y-all/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#1FEDFFFF",
+      "#2D7DFFFF",
+      "#51FF30FF",
+      "#8A8F98FF",
+      "#A021FFFF",
+      "#FF33CEFF",
+      "#FF7D1FFF",
+      "#FFDB27FF"
+    ],
+    "triangleCount": 65044,
+    "bbox": [
+      [
+        -207.378,
+        -85.3,
+        -179.177
+      ],
+      [
+        207.378,
+        85.3,
+        250.389
+      ]
+    ]
+  },
+  "servo-duct-manifold/y-all/clip.stl": {
+    "format": "stl",
+    "triangleCount": 20,
+    "bbox": [
+      [
+        0,
+        -4.85,
+        0
+      ],
+      [
+        12.8,
+        4.85,
+        3.9
+      ]
+    ]
+  },
+  "servo-duct-manifold/y-all/duct-plug.stl": {
+    "format": "stl",
+    "triangleCount": 3432,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        63.9,
+        63.9,
+        79.94
+      ]
+    ]
+  },
+  "servo-duct-manifold/y-all/hub-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -49.7,
+        10.833
+      ],
+      [
+        49.7,
+        49.7,
+        15.23
+      ]
+    ]
+  },
+  "servo-duct-manifold/y-all/hub.stl": {
+    "format": "stl",
+    "triangleCount": 12154,
+    "bbox": [
+      [
+        -101.706,
+        -63.9,
+        0
+      ],
+      [
+        101.706,
+        63.9,
+        144.717
+      ]
+    ]
+  },
+  "servo-duct-manifold/y-all/spigot-adapter-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -49.7,
+        10.833
+      ],
+      [
+        49.7,
+        49.7,
+        15.23
+      ]
+    ]
+  },
+  "servo-duct-manifold/y-all/spigot-adapter.stl": {
+    "format": "stl",
+    "triangleCount": 5822,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        63.9,
+        63.9,
+        51
+      ]
+    ]
+  },
+  "servo-duct-manifold/y-all/valve-body-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -49.7,
+        10.833
+      ],
+      [
+        49.7,
+        49.7,
+        15.23
+      ]
+    ]
+  },
+  "servo-duct-manifold/y-all/valve-body.stl": {
+    "format": "stl",
+    "triangleCount": 8478,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        69.3,
+        63.9,
+        125.316
+      ]
+    ]
+  },
+  "servo-duct-manifold/y-all/valve-coupler.stl": {
+    "format": "stl",
+    "triangleCount": 432,
+    "bbox": [
+      [
+        -19,
+        -5,
+        0
+      ],
+      [
+        19,
+        5,
+        21.29
+      ]
+    ]
+  },
+  "servo-duct-manifold/y-all/valve-disc.stl": {
+    "format": "stl",
+    "triangleCount": 960,
+    "bbox": [
+      [
+        -46.463,
+        -46.475,
+        0
+      ],
+      [
+        46.423,
+        46.475,
+        10.311
+      ]
+    ]
+  },
+  "servo-duct-manifold/y/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#1FEDFFFF",
+      "#2D7DFFFF",
+      "#51FF30FF",
+      "#8A8F98FF",
+      "#A021FFFF",
+      "#FF33CEFF",
+      "#FF7D1FFF",
+      "#FFDB27FF"
+    ],
+    "triangleCount": 53268,
+    "bbox": [
+      [
+        -207.378,
+        -85.3,
+        -66.9
+      ],
+      [
+        207.378,
+        85.3,
+        250.389
+      ]
+    ]
+  },
+  "servo-duct-manifold/y/clip.stl": {
+    "format": "stl",
+    "triangleCount": 20,
+    "bbox": [
+      [
+        0,
+        -4.85,
+        0
+      ],
+      [
+        12.8,
+        4.85,
+        3.9
+      ]
+    ]
+  },
+  "servo-duct-manifold/y/duct-plug.stl": {
+    "format": "stl",
+    "triangleCount": 3432,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        63.9,
+        63.9,
+        79.94
+      ]
+    ]
+  },
+  "servo-duct-manifold/y/hub-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -49.7,
+        10.833
+      ],
+      [
+        49.7,
+        49.7,
+        15.23
+      ]
+    ]
+  },
+  "servo-duct-manifold/y/hub.stl": {
+    "format": "stl",
+    "triangleCount": 12154,
+    "bbox": [
+      [
+        -101.706,
+        -63.9,
+        0
+      ],
+      [
+        101.706,
+        63.9,
+        144.717
+      ]
+    ]
+  },
+  "servo-duct-manifold/y/spigot-adapter-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -49.7,
+        10.833
+      ],
+      [
+        49.7,
+        49.7,
+        15.23
+      ]
+    ]
+  },
+  "servo-duct-manifold/y/spigot-adapter.stl": {
+    "format": "stl",
+    "triangleCount": 5822,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        63.9,
+        63.9,
+        51
+      ]
+    ]
+  },
+  "servo-duct-manifold/y/valve-body-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 768,
+    "bbox": [
+      [
+        -49.7,
+        -49.7,
+        10.833
+      ],
+      [
+        49.7,
+        49.7,
+        15.23
+      ]
+    ]
+  },
+  "servo-duct-manifold/y/valve-body.stl": {
+    "format": "stl",
+    "triangleCount": 8478,
+    "bbox": [
+      [
+        -63.9,
+        -63.9,
+        0
+      ],
+      [
+        69.3,
+        63.9,
+        125.316
+      ]
+    ]
+  },
+  "servo-duct-manifold/y/valve-coupler.stl": {
+    "format": "stl",
+    "triangleCount": 432,
+    "bbox": [
+      [
+        -19,
+        -5,
+        0
+      ],
+      [
+        19,
+        5,
+        21.29
+      ]
+    ]
+  },
+  "servo-duct-manifold/y/valve-disc.stl": {
+    "format": "stl",
+    "triangleCount": 960,
+    "bbox": [
+      [
+        -46.463,
+        -46.475,
+        0
+      ],
+      [
+        46.423,
+        46.475,
+        10.311
+      ]
+    ]
+  },
   "split-tray-500/assembled-2x2.3mf": {
     "format": "3mf",
     "colors": [
@@ -1620,6 +3807,485 @@
         258,
         258,
         74.961
+      ]
+    ]
+  },
+  "spool-drybox/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#1FEDFFFF",
+      "#51FF30FF",
+      "#8A8F98FF",
+      "#9B5CFFFF",
+      "#FF33CEFF",
+      "#FF7D1FFF",
+      "#FF7FE0FF",
+      "#FFDB27FF"
+    ],
+    "triangleCount": 427880,
+    "bbox": [
+      [
+        -129.796,
+        -37.966,
+        0
+      ],
+      [
+        130.994,
+        37.966,
+        350.095
+      ]
+    ]
+  },
+  "spool-drybox/ear-plate-front-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 28,
+    "bbox": [
+      [
+        -13.888,
+        -25.061,
+        1.5
+      ],
+      [
+        -11.071,
+        -21.51,
+        61.231
+      ]
+    ]
+  },
+  "spool-drybox/ear-plate-front.stl": {
+    "format": "stl",
+    "triangleCount": 36346,
+    "bbox": [
+      [
+        -17.423,
+        -33.229,
+        0
+      ],
+      [
+        28.112,
+        30.905,
+        62.731
+      ]
+    ]
+  },
+  "spool-drybox/ear-plate.stl": {
+    "format": "stl",
+    "triangleCount": 29392,
+    "bbox": [
+      [
+        -17.423,
+        -30.905,
+        0
+      ],
+      [
+        22.873,
+        30.905,
+        62.731
+      ]
+    ]
+  },
+  "spool-drybox/latch-lever.stl": {
+    "format": "stl",
+    "triangleCount": 652,
+    "bbox": [
+      [
+        -7.34,
+        -27.766,
+        0
+      ],
+      [
+        5.5,
+        5.5,
+        8
+      ]
+    ]
+  },
+  "spool-drybox/latch-link.stl": {
+    "format": "stl",
+    "triangleCount": 452,
+    "bbox": [
+      [
+        -7.147,
+        -4.5,
+        0
+      ],
+      [
+        9.653,
+        28.312,
+        5
+      ]
+    ]
+  },
+  "spool-drybox/lid-wall-left-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 20656,
+    "bbox": [
+      [
+        -85.185,
+        -137.523,
+        4.39
+      ],
+      [
+        105.387,
+        61.737,
+        7.6
+      ]
+    ]
+  },
+  "spool-drybox/lid-wall-left.stl": {
+    "format": "stl",
+    "triangleCount": 37224,
+    "bbox": [
+      [
+        -87.343,
+        -138.888,
+        0
+      ],
+      [
+        107.966,
+        63.302,
+        13.466
+      ]
+    ]
+  },
+  "spool-drybox/lid-wall-right-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 20656,
+    "bbox": [
+      [
+        -85.185,
+        -61.737,
+        4.39
+      ],
+      [
+        105.387,
+        137.523,
+        7.6
+      ]
+    ]
+  },
+  "spool-drybox/lid-wall-right.stl": {
+    "format": "stl",
+    "triangleCount": 37224,
+    "bbox": [
+      [
+        -87.343,
+        -63.302,
+        0
+      ],
+      [
+        107.966,
+        138.888,
+        13.466
+      ]
+    ]
+  },
+  "spool-drybox/panel-back-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 68,
+    "bbox": [
+      [
+        38.089,
+        -1.2,
+        0
+      ],
+      [
+        105.3,
+        98.435,
+        62.731
+      ]
+    ]
+  },
+  "spool-drybox/panel-back.stl": {
+    "format": "stl",
+    "triangleCount": 7936,
+    "bbox": [
+      [
+        36.312,
+        0,
+        0
+      ],
+      [
+        106.465,
+        110.368,
+        62.731
+      ]
+    ]
+  },
+  "spool-drybox/panel-lid-back-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 40,
+    "bbox": [
+      [
+        81.971,
+        -63.923,
+        0
+      ],
+      [
+        85.333,
+        -60.284,
+        62.731
+      ]
+    ]
+  },
+  "spool-drybox/panel-lid-back.stl": {
+    "format": "stl",
+    "triangleCount": 5302,
+    "bbox": [
+      [
+        81.486,
+        -63.873,
+        0
+      ],
+      [
+        117.966,
+        4.609,
+        62.731
+      ]
+    ]
+  },
+  "spool-drybox/panel-lid-front-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 40,
+    "bbox": [
+      [
+        102.9,
+        -1.2,
+        0
+      ],
+      [
+        105.3,
+        2,
+        62.731
+      ]
+    ]
+  },
+  "spool-drybox/panel-lid-front.stl": {
+    "format": "stl",
+    "triangleCount": 12850,
+    "bbox": [
+      [
+        -45.223,
+        0,
+        0
+      ],
+      [
+        106.465,
+        138.122,
+        62.731
+      ]
+    ]
+  },
+  "spool-drybox/panel-under-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 80,
+    "bbox": [
+      [
+        71.104,
+        -1.2,
+        0
+      ],
+      [
+        105.3,
+        76.082,
+        62.731
+      ]
+    ]
+  },
+  "spool-drybox/panel-under.stl": {
+    "format": "stl",
+    "triangleCount": 5656,
+    "bbox": [
+      [
+        70.916,
+        0,
+        0
+      ],
+      [
+        106.465,
+        76.333,
+        62.731
+      ]
+    ]
+  },
+  "spool-drybox/plate-1.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#FF33CEFF",
+      "#FFDB27FF"
+    ],
+    "triangleCount": 147658,
+    "bbox": [
+      [
+        -107.966,
+        -127.745,
+        0
+      ],
+      [
+        111.488,
+        127.984,
+        13.466
+      ]
+    ]
+  },
+  "spool-drybox/plate-2.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#FF33CEFF",
+      "#FFDB27FF"
+    ],
+    "triangleCount": 147658,
+    "bbox": [
+      [
+        -107.966,
+        -127.984,
+        0
+      ],
+      [
+        111.488,
+        127.745,
+        13.466
+      ]
+    ]
+  },
+  "spool-drybox/plate-3.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#51FF30FF",
+      "#FF7FE0FF"
+    ],
+    "triangleCount": 18070,
+    "bbox": [
+      [
+        -101.544,
+        -23.776,
+        0
+      ],
+      [
+        100.396,
+        23.21,
+        62.731
+      ]
+    ]
+  },
+  "spool-drybox/plate-4.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#51FF30FF",
+      "#FF7FE0FF"
+    ],
+    "triangleCount": 49610,
+    "bbox": [
+      [
+        -68.748,
+        -98.229,
+        0
+      ],
+      [
+        60.193,
+        96.21,
+        62.731
+      ]
+    ]
+  },
+  "spool-drybox/plate-5.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#1FEDFFFF",
+      "#9B5CFFFF",
+      "#FF7D1FFF"
+    ],
+    "triangleCount": 62984,
+    "bbox": [
+      [
+        -50.769,
+        -81.766,
+        0
+      ],
+      [
+        50.873,
+        81.905,
+        63.4
+      ]
+    ]
+  },
+  "spool-drybox/roller.stl": {
+    "format": "stl",
+    "triangleCount": 960,
+    "bbox": [
+      [
+        -15.923,
+        -15.923,
+        0
+      ],
+      [
+        15.923,
+        15.923,
+        63.4
+      ]
+    ]
+  },
+  "spool-drybox/wall-left-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 31880,
+    "bbox": [
+      [
+        -105.54,
+        -61.737,
+        1.783
+      ],
+      [
+        95.143,
+        109.318,
+        8.1
+      ]
+    ]
+  },
+  "spool-drybox/wall-left.stl": {
+    "format": "stl",
+    "triangleCount": 57968,
+    "bbox": [
+      [
+        -107.966,
+        -63.302,
+        0
+      ],
+      [
+        97.809,
+        111.984,
+        13.466
+      ]
+    ]
+  },
+  "spool-drybox/wall-right-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 31880,
+    "bbox": [
+      [
+        -105.54,
+        -109.318,
+        1.783
+      ],
+      [
+        95.143,
+        61.737,
+        8.1
+      ]
+    ]
+  },
+  "spool-drybox/wall-right.stl": {
+    "format": "stl",
+    "triangleCount": 57968,
+    "bbox": [
+      [
+        -107.966,
+        -111.984,
+        0
+      ],
+      [
+        97.809,
+        63.302,
+        13.466
       ]
     ]
   },
