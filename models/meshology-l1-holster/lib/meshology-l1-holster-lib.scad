@@ -124,7 +124,11 @@ module cutout_edge_rod() {
   e = cutout_edge_radius;
   cz = cutout_bottom + r;
   for (sx = [-1, 1]) {
-    translate([sx * (cutout_half + e), front_wall_mid, cz]) cylinder(r = e, h = cutout_top - cz);
+    // Up to the rim rod's height, where a ball turns it into the rim's round.
+    translate([sx * (cutout_half + e), front_wall_mid, cz]) {
+      cylinder(r = e, h = wall + pocket_depth - e - cz);
+      translate([0, 0, wall + pocket_depth - e - cz]) sphere(r = e);
+    }
     translate([sx * (cutout_half - r), front_wall_mid, cz])
       rotate([90, 0, 0]) rotate([0, 0, sx < 0 ? 180 : 270])
         rotate_extrude(angle = 90) translate([r + e, 0]) circle(r = e);
@@ -143,10 +147,28 @@ module front_cutout() {
   }
 }
 
+// The rim is rounded the same way: a rod along the wall's mid-line, its top
+// flush with the rim, on a shell that stops one edge-radius short.
+module rim_rod() {
+  e = cutout_edge_radius;
+  translate([0, 0, wall + pocket_depth - e])
+    minkowski() {
+      linear_extrude(0.01, center = true)
+        difference() {
+          offset(r = wall / 2 + 0.005) pocket_outline();
+          offset(r = wall / 2 - 0.005) pocket_outline();
+        }
+      sphere(r = e - 0.005);
+    }
+}
+
 module holster() {
   difference() {
-    linear_extrude(wall + pocket_depth)
-      offset(r = wall) pocket_outline();
+    union() {
+      linear_extrude(wall + pocket_depth - cutout_edge_radius)
+        offset(r = wall) pocket_outline();
+      rim_rod();
+    }
     pocket();
     front_cutout();
   }

@@ -1,6 +1,6 @@
 # Meshology L1 Holster
 
-A holster for the Meshology L1 Meshtastic radio, printed in TPU 64D. The radio slides down into it from the top. The back, sides and floor are solid; the front is a big cutout so the controls stay visible and usable, with 8 mm of wall reaching in from each side (and 8 mm of sill above the floor) to hold the radio in. The edge of the front opening is rounded over so it isn't sharp.
+A holster for the Meshology L1 Meshtastic radio, printed in TPU 64D. The radio slides down into it from the top. The back, sides and floor are solid; the front is a big cutout so the controls stay visible and usable, with 8 mm of wall reaching in from each side (and 8 mm of sill above the floor) to hold the radio in. The edge of the front opening and the rim round the top are rounded over so they aren't sharp.
 
 A MOLLE mount for the back is still to come.
 

@@ -17,6 +17,7 @@ The front and back faces are bevelled the same way on their top and bottom edges
 - `front_lip` is measured in from the radio's side faces, not the holster's outside, and must reach past the diagonal face onto the front face (asserted).
 - The front cutout leaves `front_sill` above the floor; its lower corners are R11 (`cutout_corner_radius`), matching the radio's.
 - The cutout's edge is a full half-round across the wall (`cutout_edge_radius = wall / 2`): the band within that radius of the opening is cut away, less a rod along the edge in the wall's mid-plane (`cutout_edge_rod()`). It only works because the whole edge runs on the flat front wall, clear of the face's corner arcs and the floor ramps. Check that again if `front_lip`, `front_sill` or the corner radii change.
+- The rim is the same half-round: the shell stops one edge-radius short of the top and `rim_rod()` (a thin ring along the wall's mid-line, minkowski'd with a sphere) caps it. At each lip top the edge rod ends in a ball at the rim rod's height, so the two rounds meet in a ball end, not a crease. Every round is the top half of a rod over its wall, so nothing overhangs.
 - Prints standing on the floor. All walls are vertical and the floor's corner fillets and ramps face up, so it's support-free.
 
 ## Checking fit
