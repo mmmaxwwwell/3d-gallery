@@ -21,9 +21,10 @@ radio_corner_radius = 11;
 tolerance = 0.3;
 // Wall, back and floor thickness
 wall = 2.4;
-// The rim slants: at the front wall it's this far below the radio's top;
-// at the back wall it's level with the top edge of the radio's back face
-rim_front_drop = 30;
+// The rim slopes down from back to front at this angle (degrees). At the
+// back wall it's level with the top corners' centres, where the radio's
+// straight sides end and its top rounds over
+rim_angle = 43.8;
 // How far the front walls reach in from the radio's sides
 front_lip = 8;
 // Front wall left standing above the floor
@@ -41,7 +42,6 @@ assert(radio_corner_radius > radio_chamfer_width, "face corners would be sharper
 assert(radio_corner_radius * 2 < radio_width - 2 * radio_chamfer_width, "face corners would meet side to side");
 assert(front_lip > radio_chamfer_width, "front lip must reach past the diagonal face onto the front face");
 assert(front_lip * 2 < radio_width, "front lips would close the front");
-assert(front_sill + cutout_corner_radius < radio_height - rim_front_drop, "cutout corner taller than the front wall");
 
 module radio_outline() {
   w = radio_width / 2;
@@ -106,9 +106,11 @@ cutout_edge_radius = wall / 2;
 // The rim's top along the wall's mid-line is a plane sloping up front to back.
 wall_mid_y = radio_thickness / 2 + tolerance + wall / 2;
 radio_bottom_z = wall + tolerance;
-rim_front_z = radio_bottom_z + radio_height - rim_front_drop;
-rim_back_z = radio_bottom_z + radio_height - radio_chamfer_width;
-rim_slope = atan((rim_back_z - rim_front_z) / (2 * wall_mid_y));
+rim_back_z = radio_bottom_z + radio_height - radio_corner_radius;
+rim_front_z = rim_back_z - 2 * wall_mid_y * tan(rim_angle);
+rim_slope = rim_angle;
+
+assert(cutout_bottom + cutout_corner_radius < rim_front_z - cutout_edge_radius, "cutout corner taller than the front wall");
 
 // The cutout seen from the front, in (x, z), grown by g.
 module cutout_profile(g = 0) {
