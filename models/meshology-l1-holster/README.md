@@ -13,7 +13,7 @@ It bolts to a 3x2 Kanix belt clip.
 
 The top slopes from front to back. The rim drops at about 44° from the back to the front lips, which stop about 41 mm below the radio's top and keep sloping down toward the opening. That leaves the top of the radio out where you can grab it.
 
-A U-notch in the left side (seen from the front) clears a USB-C plug in the radio's side port.
+A U-notch in the right side (seen from the front) clears a USB-C plug in the radio's side port.
 
 ## Locking tabs
 

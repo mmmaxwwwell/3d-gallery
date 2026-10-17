@@ -54,7 +54,7 @@ drain_hole_spacing = 12;
 // Kanix plate bolt grid on the back: columns across, rows up
 kanix_cols = 3;
 kanix_rows = 2;
-// USB-C plug opening in the +x side (the user's left): its centre above the
+// USB-C plug opening in the -x side (the user's right): its centre above the
 // radio's bottom face and back from its front face, and its size, standing
 // upright (the side between the bevels is too narrow for it lying down)
 usb_z = 38;
@@ -247,7 +247,7 @@ usb_notch_bottom = radio_bottom_z + usb_z - usb_height / 2;
 assert(usb_notch_bottom - cutout_edge_radius > lip_rim_z(cutout_half) - cutout_edge_radius - 2, "USB notch reaches below the rolled walls");
 module usb_notch(g) {
   r = usb_width / 2;
-  rotate([90, 0, 90]) linear_extrude(2 * radio_width)
+  mirror([1, 0, 0]) rotate([90, 0, 90]) linear_extrude(2 * radio_width)
     hull() {
       translate([usb_notch_y, usb_notch_bottom + r]) circle(r = r + g);
       translate([usb_notch_y - r - g, usb_notch_bottom + r]) square([2 * (r + g), 2 * radio_height]);
