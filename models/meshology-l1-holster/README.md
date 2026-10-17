@@ -17,11 +17,11 @@ A U-notch in the left side (seen from the front) clears a USB-C plug in the radi
 
 ## Locking tabs
 
-The back wall comes up over the back of the radio, following the rounded corners of its back face. Two 10 mm tabs across the top bend over the radio's top back bevel to keep it in; the third place, on the left, is left solid because something on the radio is in the way there. Guards stand either side of the tabs, level with their tops, so a strap or branch can't catch them. Slits, chamfered at the edges, let each tab spring back: push the radio down and it clicks in; pull the tabs back to lift it out.
+The back wall comes up over the back of the radio, following the rounded corners of its back face. Two 10 mm tabs across the top bend over the radio's top back bevel to keep it in; the third place, on the left, is left solid because something on the radio is in the way there. Guards stand either side of the tabs, level with their tops, so a strap or branch can't catch them. Slits, rounded over at the edges like the rim, let each tab spring back: push the radio down and it clicks in; pull the tabs back to lift it out.
 
 ## Mounting
 
-The back carries a pad for a 3x2 Kanix belt clip (three across, two up): six M5x10 button-head screws through the clip into 4.2 mm pilot holes. The pad is thick enough that the screw tips stop 1.2 mm short of the radio.
+The back carries a pad for a 3x2 Kanix belt clip (three across, two up): six M5x10 button-head screws through the clip into 4.2 mm pilot holes. The pilot holes are 8 mm deep, running through the pad into the wall, and stop 0.8 mm short of the radio.
 
 ## Fit
 

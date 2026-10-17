@@ -314,13 +314,14 @@ kanix_pilot = 4.2;
 kanix_margin = 7;
 kanix_screw_reach = 10 - (5 - 2.4);
 kanix_pilot_depth = kanix_screw_reach + 0.6;
-kanix_skin = 1.2;
+kanix_skin = 0.8;
 kanix_pad = kanix_pilot_depth + kanix_skin - wall;
 kanix_face_w = kanix_pitch * (kanix_cols - 1) + 2 * kanix_margin;
 // Kanix plates are as tall as their belt: 38 mm for 2 rows, 52 for 3.
 kanix_face_h = kanix_rows == 2 ? 38 : kanix_pitch * (kanix_rows - 1) + 2 * kanix_margin;
 kanix_pad_round = 2;
-kanix_pad_top = back_top_z - slit_length - slit_width;
+// Below the slits' rounded edges.
+kanix_pad_top = back_top_z - slit_length - slit_width / 2 - cutout_edge_radius - 0.5;
 kanix_face_top = kanix_pad_top - kanix_pad_round;
 kanix_grid_z = kanix_face_top - kanix_face_h / 2;
 back_outer_y = radio_thickness / 2 + tolerance + wall;
@@ -371,7 +372,8 @@ module outside() {
       radio_body(tolerance);
       sphere(r = wall);
     }
-    translate([-fx, -fy, 0]) cube([2 * fx, 2 * fy, 0.01]);
+    // Rounded so the skirt sweeps round the bottom's corners.
+    linear_extrude(0.01) offset(r = 5) offset(delta = -5) square([2 * fx, 2 * fy], center = true);
   }
 }
 
@@ -420,7 +422,9 @@ module tab_profile() {
   ]);
 }
 
-tab_edge_radius = 0.6;
+// Nearly a half-round across the wall, so the tabs' sides match the
+// slits' rounded edges below them.
+tab_edge_radius = cutout_edge_radius - 0.05;
 
 module tabs() {
   r = tab_edge_radius;
@@ -434,24 +438,38 @@ module tabs() {
 
 // Cut down from above the back wall's top, round-bottomed so they don't
 // tear: one either side of every tab, shared between neighbours. Their edges
-// are chamfered on both faces, the round bottom included.
-slit_chamfer = 0.5;
+// are a half-round across the wall like the rim's and the front opening's:
+// the band within an edge-radius of each slit is cut through the wall, less
+// a rod along its edge in the wall's mid-plane.
+slit_bottom_z = back_top_z - slit_length;
+slit_top_z = tab_top_z + 2 * wall;
 
-module slit_section(half) {
-  yi = radio_thickness / 2 + tolerance;
-  yo = yi + wall;
-  w = slit_width / 2;
-  c = slit_chamfer;
-  pts = [[0, yi - 1], [w + c + 1, yi - 1], [w + c, yi], [w, yi + c],
-         [w, yo - c], [w + c, yo], [w + c + 1, yo + 1], [0, yo + 1]];
-  polygon(half ? pts : concat(pts, [for (i = [len(pts) - 1 : -1 : 0]) [-pts[i][0], pts[i][1]]]));
+module slit_profile(g) {
+  hull() {
+    circle(d = slit_width + 2 * g);
+    translate([-slit_width / 2 - g, 0]) square([slit_width + 2 * g, slit_top_z - slit_bottom_z]);
+  }
+}
+
+module slit_edge_rod() {
+  e = cutout_edge_radius;
+  rr = slit_width / 2 + e;
+  for (sx = [-1, 1])
+    translate([sx * rr, 0, 0]) cylinder(r = e, h = slit_top_z - slit_bottom_z);
+  rotate([90, 0, 0]) rotate([0, 0, 180]) rotate_extrude(angle = 180) translate([rr, 0]) circle(r = e);
 }
 
 module slits() {
+  e = cutout_edge_radius;
+  yi = radio_thickness / 2 + tolerance;
+  mid = yi + wall / 2;
   for (i = tab_places, sx = [-1, 1]) let (x = tab_x(i) + sx * tab_pitch / 2)
-    translate([x, 0, back_top_z - slit_length]) {
-      linear_extrude(slit_length + 2 * wall) slit_section(false);
-      rotate([-90, 0, 0]) rotate_extrude(angle = 180) slit_section(true);
+    translate([x, mid, slit_bottom_z]) {
+      rotate([90, 0, 0]) linear_extrude(wall + 2, center = true) slit_profile(0);
+      difference() {
+        rotate([90, 0, 0]) linear_extrude(wall + 0.02, center = true) slit_profile(e);
+        slit_edge_rod();
+      }
     }
 }
 
