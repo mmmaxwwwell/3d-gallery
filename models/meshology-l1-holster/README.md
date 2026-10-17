@@ -12,6 +12,10 @@ A MOLLE mount for the back is still to come.
 
 The top slopes from front to back. The back wall comes up to where the radio's sides start rounding over at the top (11 mm below its top), and the rim drops at about 44° to the front lips, which stop about 37 mm below the radio's top and keep sloping down toward the opening. That leaves the top of the radio out where you can grab it.
 
+## Locking tab
+
+The back wall comes up over the back of the radio, and a 10 mm tab in the middle hooks over the radio's top back edge to keep it in. The two slits either side let the tab spring back: push the radio down and it clicks in; pull the tab back to lift it out.
+
 ## Fit
 
 The channel is the radio's shape plus 0.3 mm on every face (`tolerance`), including its rounded corners (R11 seen from the front) and the bevels round its front and back faces. The floor curves up into the corners and ramps up the bevels to meet them. The diagonal faces' size hasn't been measured yet (it's a 6 mm guess front-to-back per face), so check that first on a test print.

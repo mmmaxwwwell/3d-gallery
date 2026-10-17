@@ -23,6 +23,13 @@ The front and back faces are bevelled the same way on their top and bottom edges
 - At each lip top the edge rod ends in a ball at the rim's height, so the two rounds meet in a ball end, not a crease. Every round sits on top of its wall, and a sloping top edge on a vertical wall never overhangs.
 - Prints standing on the floor. All walls are vertical and the floor's corner fillets and ramps face up, so it's support-free.
 
+## Back and locking tab
+
+- From behind, the back wall's top is level at `rim_back_z` until it meets the radio back face's rounded outline (`back_rise_x`), then rises at 45° to the face's top edge (`back_top_z`) and runs flat across the middle (`under_back_rise()`). It's the user's spec: "come up at 45 degrees as soon as it touches the back 4 cylinder face, to the top edge".
+- In the middle a `tab_width` (10) tab carries the back wall up, with a barb (`tab_profile()`) over the radio's top back edge. The barb's underside starts `tolerance` above that edge and rises forward at 45°. That's steeper than the 32.5° bevel, so it clears the bevel and catches the edge, and it prints without supports. Its top falls forward at 45° as a lead-in: the radio coming down pushes the tab back. `tab_reach` (2, my pick for the user's "a little") is how far forward it reaches. The tab is unioned after the pocket is cut, because the barb reaches into the pocket's space.
+- Two `slit_width` slits, `slit_length` (20, the user's number) down from `back_top_z`, round-bottomed, free a 10 mm tongue so the tab can spring.
+- Overhang check: no facet of the STL faces down past 45° except at the bed. Run it on the exported STL (facet normals), since OpenSCAD's preview drops faces of the minkowski parts.
+
 ## Checking fit
 
 `intersection() { holster(); radio(); }` must render empty.

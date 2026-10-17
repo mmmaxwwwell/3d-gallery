@@ -31,6 +31,14 @@ front_lip = 8;
 front_sill = 8;
 // Radius of the front cutout's lower corners, matching the radio's
 cutout_corner_radius = 11;
+// Width of the locking tab at the top of the back wall
+tab_width = 10;
+// How far the tab's barb reaches forward over the radio's top back bevel
+tab_reach = 2;
+// The slits either side of the tab: how far down from the back wall's top
+slit_length = 20;
+// and how wide
+slit_width = 1.5;
 // END_PARAMS
 
 // The diagonal face rises radio_chamfer_depth over this much width.
@@ -116,6 +124,14 @@ function lip_rim_z(x) = rim_front_z - (front_face_x - abs(x)) * tan(rim_angle);
 
 assert(cutout_bottom + cutout_corner_radius < lip_rim_z(cutout_half) - cutout_edge_radius, "cutout corner taller than the front lips");
 
+// The back wall rises over the radio's back face: level until it meets the
+// face's rounded outline, then up at 45° to the face's top edge.
+back_top_z = radio_bottom_z + radio_height - radio_chamfer_width;
+back_corner_x = radio_width / 2 - radio_chamfer_width - radio_corner_radius;
+back_rise_x = back_corner_x + sqrt(pow(radio_corner_radius, 2) - pow(radio_chamfer_width, 2));
+back_flat_x = back_rise_x - (back_top_z - rim_back_z);
+assert(back_flat_x > tab_width / 2 + slit_width + cutout_edge_radius, "back wall's raised top too narrow for the tab and slits");
+
 // The cutout seen from the front, in (x, z), grown by g.
 module cutout_profile(g = 0) {
   r = cutout_corner_radius;
@@ -185,6 +201,17 @@ module under_rim() {
   }
 }
 
+// The raised back, one edge-radius under its top, over the back wall only.
+module under_back_rise() {
+  e = cutout_edge_radius;
+  translate([0, 2 * radio_thickness, 0]) rotate([90, 0, 0])
+    linear_extrude(2 * radio_thickness)
+      polygon([
+        [-back_rise_x, 0], [-back_rise_x, rim_back_z - e], [-back_flat_x, back_top_z - e],
+        [back_flat_x, back_top_z - e], [back_rise_x, rim_back_z - e], [back_rise_x, 0]
+      ]);
+}
+
 // The radio's shape grown by tolerance + wall: the holster's outside, a
 // wall thick everywhere. Printed standing, its underside would overhang
 // under the bottom corners and bevels, so it's hulled to a footprint set
@@ -217,23 +244,65 @@ module walls() {
   }
   minkowski() {
     intersection() {
-      translate([0, 0, z_lo]) linear_extrude(rim_back_z - z_lo)
+      translate([0, 0, z_lo]) linear_extrude(back_top_z - z_lo)
         difference() {
           offset(r = wall / 2 + 0.1) pocket_outline();
           offset(r = wall / 2 - 0.1) pocket_outline();
         }
-      under_rim();
+      union() {
+        under_rim();
+        under_back_rise();
+      }
     }
     sphere(r = e - 0.1);
   }
 }
 
+// The tab seen from the side, in (y, z): the back wall carried up, with a
+// barb over the radio's top back edge. The barb's underside starts a
+// tolerance above that edge and rises forward at 45°, clear of the
+// shallower bevel, so it catches the edge and prints without supports. Its
+// top falls forward at 45°, so the radio, coming down, pushes the tab back.
+module tab_profile() {
+  yi = radio_thickness / 2 + tolerance;
+  yo = yi + wall;
+  zc = back_top_z + tolerance;
+  base = back_top_z - 2 * wall;
+  polygon([
+    [yo, base], [yi, base], [yi, zc], [yi - tab_reach, zc + tab_reach],
+    [yo, zc + 2 * tab_reach + wall]
+  ]);
+}
+
+tab_edge_radius = 0.6;
+
+module tab() {
+  r = tab_edge_radius;
+  minkowski() {
+    rotate([90, 0, 90]) linear_extrude(tab_width - 2 * r, center = true)
+      offset(delta = -r) tab_profile();
+    sphere(r = r);
+  }
+}
+
+// Cut down from above the back wall's top, round-bottomed so they don't tear.
+module slits() {
+  for (sx = [-1, 1])
+    translate([sx * (tab_width + slit_width) / 2, radio_thickness / 2, back_top_z - slit_length]) {
+      rotate([-90, 0, 0]) cylinder(d = slit_width, h = tolerance + wall + 1);
+      translate([-slit_width / 2, 0, 0]) cube([slit_width, tolerance + wall + 1, slit_length + 2 * wall]);
+    }
+}
+
+// The tab goes on after the pocket is cut, since its barb reaches into it.
 module holster() {
   difference() {
     walls();
     pocket();
     front_cutout();
+    slits();
   }
+  tab();
 }
 
 // Reference body for the preview: the radio seated on the floor.
