@@ -7,7 +7,9 @@ A MOLLE mount for the back is still to come.
 ## Printing
 
 - TPU 64D, one piece, standing on its floor with the open top up. No supports: every wall is vertical.
-- The channel is 65 mm deep, so the top 13 mm of the radio stands proud to grab.
+- About 35 g of TPU.
+
+The top slopes from front to back. The back wall comes up level with the top of the radio's back face; the front lips stop 30 mm below the radio's top, so most of the radio's top is out where you can grab it.
 
 ## Fit
 

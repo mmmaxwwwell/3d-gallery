@@ -12,12 +12,15 @@ The front and back faces are bevelled the same way on their top and bottom edges
 
 ## Holster
 
-- Pocket = `radio_body(tolerance, pocket_depth)`, its top lifted past the rim so the channel is open, on a `wall`-thick floor. The floor rises into the R11 bottom corners and ramps up the bottom bevels front and back, so the radio is cradled with `tolerance` all round.
+- Pocket = `radio_body(tolerance, radio_height)`, its top lifted far past the rim so the channel is open, on a `wall`-thick floor. The floor rises into the R11 bottom corners and ramps up the bottom bevels front and back, so the radio is cradled with `tolerance` all round.
 - Shell = the pocket's cross-section (`pocket_outline()`) + `wall`, rounded outside corners, flat outside bottom.
 - `front_lip` is measured in from the radio's side faces, not the holster's outside, and must reach past the diagonal face onto the front face (asserted).
 - The front cutout leaves `front_sill` above the floor; its lower corners are R11 (`cutout_corner_radius`), matching the radio's.
 - The cutout's edge is a full half-round across the wall (`cutout_edge_radius = wall / 2`): the band within that radius of the opening is cut away, less a rod along the edge in the wall's mid-plane (`cutout_edge_rod()`). It only works because the whole edge runs on the flat front wall, clear of the face's corner arcs and the floor ramps. Check that again if `front_lip`, `front_sill` or the corner radii change.
-- The rim is the same half-round: the shell stops one edge-radius short of the top and `rim_rod()` (a thin ring along the wall's mid-line, minkowski'd with a sphere) caps it. At each lip top the edge rod ends in a ball at the rim rod's height, so the two rounds meet in a ball end, not a crease. Every round is the top half of a rod over its wall, so nothing overhangs.
+- The rim slopes up from front to back (the user's spec). Along the walls' mid-line it's a plane: at the front wall `rim_front_drop` (30) below the radio's top, and at the back wall level with the top edge of the radio's back face (radio top − bevel width). That's about 44°.
+- `walls()`: below the rim's low point the walls are a plain shell. Above it they're a ball (radius `wall / 2`) rolled over a sheet on the wall's mid-line, cut one radius under the rim plane (`under_rim()`). So every wall keeps vertical faces and the rim is a half-round on top of it, whichever way the wall runs. Cutting the shell with the tilted plane and capping it with a rod instead leaves a notch on the low side of the front and back walls, because the plane crosses those walls' thickness.
+- OpenSCAD's preview of that minkowski drops the sheet's faces, so the side walls look missing above the low point. The exported STL is whole; check by importing the STL or by slicing (`projection(cut = true)`).
+- At each lip top the edge rod ends in a ball at the rim's height, so the two rounds meet in a ball end, not a crease. Every round sits on top of its wall, and a sloping top edge on a vertical wall never overhangs.
 - Prints standing on the floor. All walls are vertical and the floor's corner fillets and ramps face up, so it's support-free.
 
 ## Checking fit
