@@ -22,8 +22,8 @@ tolerance = 0.3;
 // Wall, back and floor thickness
 wall = 2.4;
 // The rim slopes down from back to front at this angle (degrees). At the
-// back wall it's level with the top corners' centres, where the radio's
-// straight sides end and its top rounds over
+// back wall it's level with the back face's top corner centres, where the
+// raised back's curve starts
 rim_angle = 43.8;
 // How far the front walls reach in from the radio's sides
 front_lip = 8;
@@ -120,7 +120,7 @@ cutout_edge_radius = wall / 2;
 // The rim's top along the wall's mid-line is a plane sloping up front to back.
 wall_mid_y = radio_thickness / 2 + tolerance + wall / 2;
 radio_bottom_z = wall + tolerance;
-rim_back_z = radio_bottom_z + radio_height - radio_corner_radius;
+rim_back_z = radio_bottom_z + radio_height - radio_chamfer_width - radio_corner_radius;
 rim_front_z = rim_back_z - 2 * wall_mid_y * tan(rim_angle);
 rim_slope = rim_angle;
 // Where the front wall's flat face ends at the corner, on its mid-line. The
@@ -213,7 +213,9 @@ module under_rim() {
 module under_back_rise() {
   e = cutout_edge_radius;
   r = radio_corner_radius - e;
-  a0 = asin((rim_back_z - e - back_corner_z) / r);
+  // The rim sits at the arc's centre height, so the arc starts straight up
+  // off it, the way the face's outline does.
+  a0 = max(0, asin((rim_back_z - e - back_corner_z) / r));
   steps = 24;
   arc = [for (i = [0 : steps]) let (a = a0 + (90 - a0) * i / steps)
     [back_corner_x + r * cos(a), back_corner_z + r * sin(a)]];
