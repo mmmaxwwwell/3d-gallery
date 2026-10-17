@@ -15,7 +15,7 @@ The top slopes from front to back. The rim drops at about 44° from the back to 
 
 ## Locking tab
 
-The back wall comes up over the back of the radio, following the rounded corners of its back face, and three 10 mm tabs across the top bend over the radio's top back edge to keep it in. Slits between and beside them let each tab spring back: push the radio down and it clicks in; pull the tabs back to lift it out.
+The back wall comes up over the back of the radio, following the rounded corners of its back face, and three 10 mm tabs across the top bend over the radio's top back bevel to keep it in. The back's shoulders rise to guards either side of the tabs, level with their tops, so a strap or branch can't catch them. Slits between and beside them let each tab spring back: push the radio down and it clicks in; pull the tabs back to lift it out.
 
 ## Fit
 

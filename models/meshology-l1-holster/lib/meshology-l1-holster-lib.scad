@@ -139,6 +139,13 @@ assert(drain_hole_diameter / 2 < radio_thickness / 2 - radio_chamfer_depth, "dra
 back_top_z = radio_bottom_z + radio_height - radio_chamfer_width;
 back_corner_x = radio_width / 2 - radio_chamfer_width - radio_corner_radius;
 back_corner_z = back_top_z - radio_corner_radius;
+// The radio's top bevel rises at this angle off horizontal, front to back.
+bevel_angle = atan(radio_chamfer_width / radio_chamfer_depth);
+// Where each tab's bend starts on the back wall's inner face: a tolerance
+// off the bevel, measured square to it.
+tab_bend_z = back_top_z + tolerance * (1 / cos(bevel_angle) - tan(bevel_angle));
+// The top of each tab's bend, where it ends a wall thick over the bevel.
+tab_top_z = tab_bend_z + tab_reach * tan(bevel_angle) + wall * cos(bevel_angle);
 // Neighbouring tabs share a slit, so they sit a tab and a slit apart.
 tab_pitch = tab_width + slit_width;
 function tab_x(i) = (i - (tabs - 1) / 2) * tab_pitch;
@@ -216,23 +223,32 @@ module under_rim() {
 // The raised back over the back wall only. The ball rolls along an arc an
 // edge-radius inside the face's corner, so the rounded top lands on it. From
 // the corner where the side slope arrives, a straight ramp runs up into the
-// arc, tangent to it, so the rim keeps climbing with no level step.
+// arc, tangent to it, so the rim keeps climbing with no level step. Beside
+// the tabs the arc leaves along a tangent and climbs on, to a guard a wall
+// wide that stands just above the tabs' tops so they don't snag.
 module under_back_rise() {
   e = cutout_edge_radius;
   r = radio_corner_radius - e;
-  p = [front_face_x, rim_back_z - e];
   c = [back_corner_x, back_corner_z];
-  d = norm(p - c);
-  assert(d > r, "back corner inside the face's corner arc");
-  a0 = atan2(p[1] - c[1], p[0] - c[0]) + acos(r / d);
-  steps = 24;
-  arc = [for (i = [0 : steps]) let (a = a0 + (90 - a0) * i / steps)
-    c + r * [cos(a), sin(a)]];
+  function tangent_angle(q, side) =
+    atan2(q[1] - c[1], q[0] - c[0]) + side * acos(r / norm(q - c));
+  p = [front_face_x, rim_back_z - e];
+  slit_outer = tab_x(tabs - 1) + tab_width / 2 + slit_width;
+  slit_mid = slit_outer - slit_width / 2;
+  q = [slit_outer + wall, tab_top_z - e];
+  a0 = tangent_angle(p, 1);
+  a1 = tangent_angle(q, -1);
+  assert(norm(p - c) > r && norm(q - c) > r && a1 > a0, "back guard doesn't fit the face's corner arc");
+  steps = 16;
+  arc = [for (i = [0 : steps]) let (a = a0 + (a1 - a0) * i / steps) c + r * [cos(a), sin(a)]];
+  m = [-1, 1];
   translate([0, 2 * radio_thickness, 0]) rotate([90, 0, 0])
     linear_extrude(2 * radio_thickness)
       polygon(concat(
         [[-p[0], 0], [-p[0], p[1]]],
         [for (i = [0 : steps]) [-arc[i][0], arc[i][1]]],
+        [[-q[0], q[1]], [-slit_mid, q[1]], [-slit_mid, back_top_z - e],
+         [slit_mid, back_top_z - e], [slit_mid, q[1]], q],
         [for (i = [steps : -1 : 0]) arc[i]],
         [p, [p[0], 0]]
       ));
@@ -270,7 +286,7 @@ module walls() {
   }
   minkowski() {
     intersection() {
-      translate([0, 0, z_lo]) linear_extrude(back_top_z - z_lo)
+      translate([0, 0, z_lo]) linear_extrude(max(back_top_z, tab_top_z) - z_lo)
         difference() {
           offset(r = wall / 2 + 0.1) pocket_outline();
           offset(r = wall / 2 - 0.1) pocket_outline();
@@ -284,22 +300,22 @@ module walls() {
   }
 }
 
-// The tab seen from the side, in (y, z): the back wall carried up to a
-// tolerance above the radio's top back edge, then bent forward over the
-// bevel, a wall thick. It bends at 45° rather than along the 32.5° bevel,
-// which would overhang, so it catches the edge and prints without
-// supports. Its end faces up and forward at 45°: the radio, coming down,
-// pushes it back.
+// The tab seen from the side, in (y, z): the back wall carried up to the
+// radio's top back edge, then bent forward along the bevel, a tolerance off
+// it and a wall thick (the user's "bend with the chamfer"). Its underside
+// overhangs 57.5° for tab_reach, past the 45° rule; the user chose the
+// bevel's angle. Its end is square to the bend, facing up and forward: the
+// radio, coming down, pushes it back.
 module tab_profile() {
   yi = radio_thickness / 2 + tolerance;
   yo = yi + wall;
-  zc = back_top_z + tolerance;
   base = back_top_z - 2 * wall;
-  k = wall / sqrt(2);
-  tip = [yi - tab_reach, zc + tab_reach];
+  b = bevel_angle;
+  tip = [yi - tab_reach, tab_bend_z + tab_reach * tan(b)];
+  tip_top = tip + wall * [sin(b), cos(b)];
   polygon([
-    [yo, base], [yi, base], [yi, zc], tip, tip + [k, k],
-    [yo, zc + 2 * k - wall]
+    [yo, base], [yi, base], [yi, tab_bend_z], tip, tip_top,
+    [yo, tip_top[1] - (yo - tip_top[0]) * tan(b)]
   ]);
 }
 
