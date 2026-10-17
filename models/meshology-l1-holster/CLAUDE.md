@@ -25,10 +25,14 @@ The front and back faces are bevelled the same way on their top and bottom edges
 
 ## Back and locking tab
 
-- From behind, the back wall's top is level at `rim_back_z` until it meets the radio back face's rounded outline (`back_rise_x`), then rises at 45° to the face's top edge (`back_top_z`) and runs flat across the middle (`under_back_rise()`). It's the user's spec: "come up at 45 degrees as soon as it touches the back 4 cylinder face, to the top edge".
-- In the middle a `tab_width` (10) tab carries the back wall up, with a barb (`tab_profile()`) over the radio's top back edge. The barb's underside starts `tolerance` above that edge and rises forward at 45°. That's steeper than the 32.5° bevel, so it clears the bevel and catches the edge, and it prints without supports. Its top falls forward at 45° as a lead-in: the radio coming down pushes the tab back. `tab_reach` (2, my pick for the user's "a little") is how far forward it reaches. The tab is unioned after the pocket is cut, because the barb reaches into the pocket's space.
+- From behind, the back wall's top is level at `rim_back_z` until it meets the radio back face's rounded outline. Then it follows that outline, the face's R11 corner arcs, up to the face's top edge (`back_top_z`), and runs flat across the middle (`under_back_rise()`). The user first asked for a 45° rise, then for the curve. The ball rolls on an arc `cutout_edge_radius` inside the corner, so the rounded top lands on the outline itself.
+- In the middle a `tab_width` (10) tab carries the back wall up to `tolerance` above the radio's top back edge. There it bends forward over the bevel (`tab_profile()`), a wall thick, for `tab_reach` (2, my pick for the user's "a little"). The user wanted just "a little bend with the chamfer", not a raised barb. It bends at 45° rather than along the 32.5° bevel, which would overhang. So it catches the edge, clears the bevel and prints without supports, and its top stays level with the radio's top. Its end faces up and forward at 45°: the radio's bottom back bevel, coming down, pushes it back. The tab is unioned after the pocket is cut, because the bend reaches into the pocket's space.
 - Two `slit_width` slits, `slit_length` (20, the user's number) down from `back_top_z`, round-bottomed, free a 10 mm tongue so the tab can spring.
 - Overhang check: no facet of the STL faces down past 45° except at the bed. Run it on the exported STL (facet normals), since OpenSCAD's preview drops faces of the minkowski parts.
+
+## Drainage
+
+`drain_holes` (4) holes of `drain_hole_diameter` (5) at `drain_hole_spacing` (12) in a row across the floor's flat, clear of the corner arcs and bevel ramps (asserted). Both edges are chamfered 0.6 mm at 45°; the bed side's chamfer is a 45° overhang.
 
 ## Checking fit
 

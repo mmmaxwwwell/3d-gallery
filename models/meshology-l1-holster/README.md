@@ -8,13 +8,14 @@ A MOLLE mount for the back is still to come.
 
 - TPU 64D, one piece, standing on its floor with the open top up. No supports: every wall is vertical.
 - About 28 g of TPU.
+- Four 5 mm drainage holes in the floor, edges chamfered.
 - The wall is 2.4 mm all the way round, bottom corners included, except a 45° skirt where the rounded bottom meets the bed, so it prints without supports.
 
 The top slopes from front to back. The back wall comes up to where the radio's sides start rounding over at the top (11 mm below its top), and the rim drops at about 44° to the front lips, which stop about 37 mm below the radio's top and keep sloping down toward the opening. That leaves the top of the radio out where you can grab it.
 
 ## Locking tab
 
-The back wall comes up over the back of the radio, and a 10 mm tab in the middle hooks over the radio's top back edge to keep it in. The two slits either side let the tab spring back: push the radio down and it clicks in; pull the tab back to lift it out.
+The back wall comes up over the back of the radio, following the rounded corners of its back face, and a 10 mm tab in the middle bends over the radio's top back edge to keep it in. The two slits either side let the tab spring back: push the radio down and it clicks in; pull the tab back to lift it out.
 
 ## Fit
 

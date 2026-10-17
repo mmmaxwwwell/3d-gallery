@@ -33,12 +33,18 @@ front_sill = 8;
 cutout_corner_radius = 11;
 // Width of the locking tab at the top of the back wall
 tab_width = 10;
-// How far the tab's barb reaches forward over the radio's top back bevel
+// How far the tab bends forward over the radio's top back bevel
 tab_reach = 2;
 // The slits either side of the tab: how far down from the back wall's top
 slit_length = 20;
 // and how wide
 slit_width = 1.5;
+// Drainage holes through the floor: how many, in a row side to side
+drain_holes = 4;
+// their diameter
+drain_hole_diameter = 5;
+// and their spacing
+drain_hole_spacing = 12;
 // END_PARAMS
 
 // The diagonal face rises radio_chamfer_depth over this much width.
@@ -123,14 +129,15 @@ front_face_x = radio_width / 2 - radio_chamfer_width + tolerance * tan((180 - ra
 function lip_rim_z(x) = rim_front_z - (front_face_x - abs(x)) * tan(rim_angle);
 
 assert(cutout_bottom + cutout_corner_radius < lip_rim_z(cutout_half) - cutout_edge_radius, "cutout corner taller than the front lips");
+assert((drain_holes - 1) * drain_hole_spacing / 2 + drain_hole_diameter / 2 < radio_width / 2 - radio_corner_radius, "drain holes reach the floor's curved corners");
+assert(drain_hole_diameter / 2 < radio_thickness / 2 - radio_chamfer_depth, "drain holes reach the floor's bevel ramps");
 
 // The back wall rises over the radio's back face: level until it meets the
-// face's rounded outline, then up at 45° to the face's top edge.
+// face's rounded outline, then along that outline to the face's top edge.
 back_top_z = radio_bottom_z + radio_height - radio_chamfer_width;
 back_corner_x = radio_width / 2 - radio_chamfer_width - radio_corner_radius;
-back_rise_x = back_corner_x + sqrt(pow(radio_corner_radius, 2) - pow(radio_chamfer_width, 2));
-back_flat_x = back_rise_x - (back_top_z - rim_back_z);
-assert(back_flat_x > tab_width / 2 + slit_width + cutout_edge_radius, "back wall's raised top too narrow for the tab and slits");
+back_corner_z = back_top_z - radio_corner_radius;
+assert(back_corner_x > tab_width / 2 + slit_width + cutout_edge_radius, "back wall's flat top too narrow for the tab and slits");
 
 // The cutout seen from the front, in (x, z), grown by g.
 module cutout_profile(g = 0) {
@@ -201,15 +208,24 @@ module under_rim() {
   }
 }
 
-// The raised back, one edge-radius under its top, over the back wall only.
+// The raised back over the back wall only. The ball rolls along an arc an
+// edge-radius inside the face's corner, so the rounded top lands on it.
 module under_back_rise() {
   e = cutout_edge_radius;
+  r = radio_corner_radius - e;
+  a0 = asin((rim_back_z - e - back_corner_z) / r);
+  steps = 24;
+  arc = [for (i = [0 : steps]) let (a = a0 + (90 - a0) * i / steps)
+    [back_corner_x + r * cos(a), back_corner_z + r * sin(a)]];
+  x0 = arc[0][0];
   translate([0, 2 * radio_thickness, 0]) rotate([90, 0, 0])
     linear_extrude(2 * radio_thickness)
-      polygon([
-        [-back_rise_x, 0], [-back_rise_x, rim_back_z - e], [-back_flat_x, back_top_z - e],
-        [back_flat_x, back_top_z - e], [back_rise_x, rim_back_z - e], [back_rise_x, 0]
-      ]);
+      polygon(concat(
+        [[-x0, 0]],
+        [for (i = [steps : -1 : 0]) [-arc[steps - i][0], arc[steps - i][1]]],
+        [for (i = [steps : -1 : 0]) arc[i]],
+        [[x0, 0]]
+      ));
 }
 
 // The radio's shape grown by tolerance + wall: the holster's outside, a
@@ -258,19 +274,22 @@ module walls() {
   }
 }
 
-// The tab seen from the side, in (y, z): the back wall carried up, with a
-// barb over the radio's top back edge. The barb's underside starts a
-// tolerance above that edge and rises forward at 45°, clear of the
-// shallower bevel, so it catches the edge and prints without supports. Its
-// top falls forward at 45°, so the radio, coming down, pushes the tab back.
+// The tab seen from the side, in (y, z): the back wall carried up to a
+// tolerance above the radio's top back edge, then bent forward over the
+// bevel, a wall thick. It bends at 45° rather than along the 32.5° bevel,
+// which would overhang, so it catches the edge and prints without
+// supports. Its end faces up and forward at 45°: the radio, coming down,
+// pushes it back.
 module tab_profile() {
   yi = radio_thickness / 2 + tolerance;
   yo = yi + wall;
   zc = back_top_z + tolerance;
   base = back_top_z - 2 * wall;
+  k = wall / sqrt(2);
+  tip = [yi - tab_reach, zc + tab_reach];
   polygon([
-    [yo, base], [yi, base], [yi, zc], [yi - tab_reach, zc + tab_reach],
-    [yo, zc + 2 * tab_reach + wall]
+    [yo, base], [yi, base], [yi, zc], tip, tip + [k, k],
+    [yo, zc + 2 * k - wall]
   ]);
 }
 
@@ -294,6 +313,21 @@ module slits() {
     }
 }
 
+drain_hole_chamfer = 0.6;
+
+// In the flat of the floor, clear of the corners and the bevel ramps, with
+// both edges chamfered at 45° (the bed side's chamfer is a 45° overhang).
+module drain_holes() {
+  r = drain_hole_diameter / 2;
+  c = drain_hole_chamfer;
+  for (i = [0 : drain_holes - 1])
+    translate([(i - (drain_holes - 1) / 2) * drain_hole_spacing, 0, 0]) {
+      translate([0, 0, -1]) cylinder(r = r, h = wall + 2);
+      translate([0, 0, -1]) cylinder(r1 = r + c + 1, r2 = r, h = c + 1);
+      translate([0, 0, wall - c]) cylinder(r1 = r, r2 = r + c + 1, h = c + 1);
+    }
+}
+
 // The tab goes on after the pocket is cut, since its barb reaches into it.
 module holster() {
   difference() {
@@ -301,6 +335,7 @@ module holster() {
     pocket();
     front_cutout();
     slits();
+    drain_holes();
   }
   tab();
 }
