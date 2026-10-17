@@ -209,24 +209,27 @@ module under_rim() {
 }
 
 // The raised back over the back wall only. The ball rolls along an arc an
-// edge-radius inside the face's corner, so the rounded top lands on it.
+// edge-radius inside the face's corner, so the rounded top lands on it. From
+// the corner where the side slope arrives, a straight ramp runs up into the
+// arc, tangent to it, so the rim keeps climbing with no level step.
 module under_back_rise() {
   e = cutout_edge_radius;
   r = radio_corner_radius - e;
-  // The rim sits at the arc's centre height, so the arc starts straight up
-  // off it, the way the face's outline does.
-  a0 = max(0, asin((rim_back_z - e - back_corner_z) / r));
+  p = [front_face_x, rim_back_z - e];
+  c = [back_corner_x, back_corner_z];
+  d = norm(p - c);
+  assert(d > r, "back corner inside the face's corner arc");
+  a0 = atan2(p[1] - c[1], p[0] - c[0]) + acos(r / d);
   steps = 24;
   arc = [for (i = [0 : steps]) let (a = a0 + (90 - a0) * i / steps)
-    [back_corner_x + r * cos(a), back_corner_z + r * sin(a)]];
-  x0 = arc[0][0];
+    c + r * [cos(a), sin(a)]];
   translate([0, 2 * radio_thickness, 0]) rotate([90, 0, 0])
     linear_extrude(2 * radio_thickness)
       polygon(concat(
-        [[-x0, 0]],
-        [for (i = [steps : -1 : 0]) [-arc[steps - i][0], arc[steps - i][1]]],
+        [[-p[0], 0], [-p[0], p[1]]],
+        [for (i = [0 : steps]) [-arc[i][0], arc[i][1]]],
         [for (i = [steps : -1 : 0]) arc[i]],
-        [[x0, 0]]
+        [p, [p[0], 0]]
       ));
 }
 
