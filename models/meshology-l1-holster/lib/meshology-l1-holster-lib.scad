@@ -31,7 +31,9 @@ front_lip = 8;
 front_sill = 8;
 // Radius of the front cutout's lower corners, matching the radio's
 cutout_corner_radius = 11;
-// Width of the locking tab at the top of the back wall
+// Locking tabs across the top of the back wall: how many
+tabs = 3;
+// and how wide each is
 tab_width = 10;
 // How far the tab bends forward over the radio's top back bevel
 tab_reach = 2;
@@ -137,7 +139,10 @@ assert(drain_hole_diameter / 2 < radio_thickness / 2 - radio_chamfer_depth, "dra
 back_top_z = radio_bottom_z + radio_height - radio_chamfer_width;
 back_corner_x = radio_width / 2 - radio_chamfer_width - radio_corner_radius;
 back_corner_z = back_top_z - radio_corner_radius;
-assert(back_corner_x > tab_width / 2 + slit_width + cutout_edge_radius, "back wall's flat top too narrow for the tab and slits");
+// Neighbouring tabs share a slit, so they sit a tab and a slit apart.
+tab_pitch = tab_width + slit_width;
+function tab_x(i) = (i - (tabs - 1) / 2) * tab_pitch;
+assert(back_corner_x >= tab_x(tabs - 1) + tab_width / 2 + slit_width, "back wall's flat top too narrow for the tabs and slits");
 
 // The cutout seen from the front, in (x, z), grown by g.
 module cutout_profile(g = 0) {
@@ -300,19 +305,21 @@ module tab_profile() {
 
 tab_edge_radius = 0.6;
 
-module tab() {
+module tabs() {
   r = tab_edge_radius;
-  minkowski() {
-    rotate([90, 0, 90]) linear_extrude(tab_width - 2 * r, center = true)
-      offset(delta = -r) tab_profile();
-    sphere(r = r);
-  }
+  for (i = [0 : tabs - 1])
+    translate([tab_x(i), 0, 0]) minkowski() {
+      rotate([90, 0, 90]) linear_extrude(tab_width - 2 * r, center = true)
+        offset(delta = -r) tab_profile();
+      sphere(r = r);
+    }
 }
 
-// Cut down from above the back wall's top, round-bottomed so they don't tear.
+// Cut down from above the back wall's top, round-bottomed so they don't
+// tear: one either side of every tab, shared between neighbours.
 module slits() {
-  for (sx = [-1, 1])
-    translate([sx * (tab_width + slit_width) / 2, radio_thickness / 2, back_top_z - slit_length]) {
+  for (i = [0 : tabs]) let (x = tab_x(i) - tab_pitch / 2)
+    translate([x, radio_thickness / 2, back_top_z - slit_length]) {
       rotate([-90, 0, 0]) cylinder(d = slit_width, h = tolerance + wall + 1);
       translate([-slit_width / 2, 0, 0]) cube([slit_width, tolerance + wall + 1, slit_length + 2 * wall]);
     }
@@ -333,7 +340,7 @@ module drain_holes() {
     }
 }
 
-// The tab goes on after the pocket is cut, since its barb reaches into it.
+// The tabs go on after the pocket is cut, since their bends reach into it.
 module holster() {
   difference() {
     walls();
@@ -342,7 +349,7 @@ module holster() {
     slits();
     drain_holes();
   }
-  tab();
+  tabs();
 }
 
 // Reference body for the preview: the radio seated on the floor.
