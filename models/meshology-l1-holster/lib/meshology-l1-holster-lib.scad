@@ -20,7 +20,7 @@ radio_corner_radius = 11;
 // Gap between radio and holster, per side
 tolerance = 0.3;
 // Wall, back and floor thickness
-wall = 2.4;
+wall = 3;
 // The rim slopes down from back to front at this angle (degrees). At the
 // back wall it's level with the back face's top corner centres, where the
 // raised back's curve starts
@@ -33,6 +33,10 @@ front_sill = 8;
 cutout_corner_radius = 11;
 // Locking tabs across the top of the back wall: how many
 tabs = 3;
+// Tab places left without a tab, counted from -x: something on the radio is
+// in the way at the +x one (the user's left). That side's guard runs flat
+// across the gap instead.
+tabs_left_out = [2];
 // and how wide each is
 tab_width = 10;
 // How far the tab bends forward over the radio's top back bevel
@@ -47,6 +51,16 @@ drain_holes = 4;
 drain_hole_diameter = 5;
 // and their spacing
 drain_hole_spacing = 12;
+// Kanix plate bolt grid on the back: columns across, rows up
+kanix_cols = 3;
+kanix_rows = 2;
+// USB-C plug opening in the +x side (the user's left): its centre above the
+// radio's bottom face and back from its front face, and its size, standing
+// upright (the side between the bevels is too narrow for it lying down)
+usb_z = 38;
+usb_y = 7;
+usb_width = 8;
+usb_height = 14;
 // END_PARAMS
 
 // The diagonal face rises radio_chamfer_depth over this much width.
@@ -149,6 +163,7 @@ tab_top_z = tab_bend_z + tab_reach * tan(bevel_angle) + wall * cos(bevel_angle);
 // Neighbouring tabs share a slit, so they sit a tab and a slit apart.
 tab_pitch = tab_width + slit_width;
 function tab_x(i) = (i - (tabs - 1) / 2) * tab_pitch;
+tab_places = [for (i = [0 : tabs - 1]) if (len(search(i, tabs_left_out)) == 0) i];
 assert(back_corner_x >= tab_x(tabs - 1) + tab_width / 2 + slit_width, "back wall's flat top too narrow for the tabs and slits");
 
 // The cutout seen from the front, in (x, z), grown by g.
@@ -201,6 +216,7 @@ module front_cutout() {
 module under_rim() {
   big = 4 * radio_height;
   e = cutout_edge_radius;
+  difference() {
   intersection() {
     translate([0, -wall_mid_y, rim_front_z - e]) rotate([rim_slope, 0, 0])
       translate([-big / 2, -big / 2, -big]) cube(big);
@@ -218,6 +234,24 @@ module under_rim() {
       }
     }
   }
+  usb_notch(e);
+  }
+}
+
+// The USB-C opening would reach above the rim where it sits, so it's a
+// U-notch down from the rim, its round bottom where the opening's bottom
+// would be. It's cut from the rim's ball path grown by g, so the rolled
+// rim rounds its edges like the rest.
+usb_notch_y = -radio_thickness / 2 + usb_y;
+usb_notch_bottom = radio_bottom_z + usb_z - usb_height / 2;
+assert(usb_notch_bottom - cutout_edge_radius > lip_rim_z(cutout_half) - cutout_edge_radius - 2, "USB notch reaches below the rolled walls");
+module usb_notch(g) {
+  r = usb_width / 2;
+  rotate([90, 0, 90]) linear_extrude(2 * radio_width)
+    hull() {
+      translate([usb_notch_y, usb_notch_bottom + r]) circle(r = r + g);
+      translate([usb_notch_y - r - g, usb_notch_bottom + r]) square([2 * (r + g), 2 * radio_height]);
+    }
 }
 
 // The raised back over the back wall only. The ball rolls along an arc an
@@ -233,25 +267,92 @@ module under_back_rise() {
   function tangent_angle(q, side) =
     atan2(q[1] - c[1], q[0] - c[0]) + side * acos(r / norm(q - c));
   p = [front_face_x, rim_back_z - e];
-  slit_outer = tab_x(tabs - 1) + tab_width / 2 + slit_width;
-  slit_mid = slit_outer - slit_width / 2;
-  q = [slit_outer + wall, tab_top_z - e];
-  a0 = tangent_angle(p, 1);
-  a1 = tangent_angle(q, -1);
-  assert(norm(p - c) > r && norm(q - c) > r && a1 > a0, "back guard doesn't fit the face's corner arc");
+  // The guard's top is round, radius `wall`, level with the tabs'. Its
+  // outer end sits where the outer slit of a full row of tabs would be; on
+  // a side whose outer tab is left out it runs flat in to the slit of the
+  // nearest tab. The climb runs along the line tangent to both the corner
+  // arc and the guard's outer round.
+  full_slit_outer = tab_x(tabs - 1) + tab_width / 2 + slit_width;
+  function slit_inner(sx) =
+    max([for (i = tab_places) sx * tab_x(i) + tab_width / 2 + slit_width]);
+  rg = wall - e;
   steps = 16;
-  arc = [for (i = [0 : steps]) let (a = a0 + (a1 - a0) * i / steps) c + r * [cos(a), sin(a)]];
-  m = [-1, 1];
+  function guard_side(sx) = let (
+      go = [full_slit_outer + wall, tab_top_z - wall],
+      gi = [slit_inner(sx) + wall, tab_top_z - wall],
+      a0 = tangent_angle(p, 1),
+      a1 = atan2(go[1] - c[1], go[0] - c[0]) - acos((r - rg) / norm(go - c)),
+      arc = [for (i = [0 : steps]) let (a = a0 + (a1 - a0) * i / steps) c + r * [cos(a), sin(a)]],
+      cap_o = [for (i = [0 : steps]) let (a = a1 + (90 - a1) * i / steps) go + rg * [cos(a), sin(a)]],
+      cap_i = [for (i = [0 : steps]) let (a = 90 + 90 * i / steps) gi + rg * [cos(a), sin(a)]]
+    )
+    assert(norm(p - c) > r && a1 > a0, "back guard doesn't fit the face's corner arc")
+    concat(arc, cap_o, cap_i, [[gi[0] - rg, back_top_z - e]]);
+  right = guard_side(1);
+  left = guard_side(-1);
   translate([0, 2 * radio_thickness, 0]) rotate([90, 0, 0])
     linear_extrude(2 * radio_thickness)
       polygon(concat(
         [[-p[0], 0], [-p[0], p[1]]],
-        [for (i = [0 : steps]) [-arc[i][0], arc[i][1]]],
-        [[-q[0], q[1]], [-slit_mid, q[1]], [-slit_mid, back_top_z - e],
-         [slit_mid, back_top_z - e], [slit_mid, q[1]], q],
-        [for (i = [steps : -1 : 0]) arc[i]],
+        [for (pt = left) [-pt[0], pt[1]]],
+        [for (i = [len(right) - 1 : -1 : 0]) right[i]],
         [p, [p[0], 0]]
       ));
+}
+
+// Kanix plate mount: a pad hulled onto the back with the Kanix bolt grid
+// (M5 self-tapping, 19.05 mm pitch, 4.2 mm pilots), drilled blind from the
+// clip side. An M5x10 through the clip (5 mm plate, 2.4 mm head
+// counterbore) reaches 7.4 mm into the pad; the pilots go a little past
+// that, and the pad is sized to leave a skin before the pocket, so no screw
+// reaches the radio. The pad's face is the Kanix plate's size; its flanks
+// spread into the back wall, at 45° underneath so it prints without
+// overhangs, and only a rounding's width at the sides and top, so it fits
+// the back's flat and stays below the slits, where the tabs still flex.
+kanix_pitch = 19.05;
+kanix_pilot = 4.2;
+kanix_margin = 7;
+kanix_screw_reach = 10 - (5 - 2.4);
+kanix_pilot_depth = kanix_screw_reach + 0.6;
+kanix_skin = 1.2;
+kanix_pad = kanix_pilot_depth + kanix_skin - wall;
+kanix_face_w = kanix_pitch * (kanix_cols - 1) + 2 * kanix_margin;
+// Kanix plates are as tall as their belt: 38 mm for 2 rows, 52 for 3.
+kanix_face_h = kanix_rows == 2 ? 38 : kanix_pitch * (kanix_rows - 1) + 2 * kanix_margin;
+kanix_pad_round = 2;
+kanix_pad_top = back_top_z - slit_length - slit_width;
+kanix_face_top = kanix_pad_top - kanix_pad_round;
+kanix_grid_z = kanix_face_top - kanix_face_h / 2;
+back_outer_y = radio_thickness / 2 + tolerance + wall;
+assert(kanix_grid_z - kanix_pitch * (kanix_rows - 1) / 2 - kanix_pilot > wall, "Kanix grid runs into the floor");
+assert(kanix_face_w / 2 + kanix_pad_round < radio_width / 2 - radio_chamfer_width, "Kanix pad wider than the back's flat");
+
+module kanix_pad() {
+  r = kanix_pad_round;
+  t = kanix_pad;
+  y_face = back_outer_y + t - r;
+  y_base = back_outer_y - wall / 2;
+  fw = kanix_face_w / 2 - r;
+  bw = fw + r;
+  f_top = kanix_face_top - r;
+  f_bot = kanix_face_top - kanix_face_h + r;
+  intersection() {
+    hull() {
+      for (sx = [-1, 1]) {
+        for (z = [f_bot, f_top]) translate([sx * fw, y_face, z]) sphere(r = r);
+        for (z = [f_bot - t, kanix_pad_top - r]) translate([sx * bw, y_base, z]) sphere(r = r);
+      }
+    }
+    translate([-radio_width, 0, 0]) cube([2 * radio_width, 2 * radio_width, radio_height]);
+  }
+}
+
+module kanix_pilots() {
+  for (i = [0 : kanix_cols - 1], j = [0 : kanix_rows - 1])
+    translate([(i - (kanix_cols - 1) / 2) * kanix_pitch,
+               back_outer_y + kanix_pad + 1,
+               kanix_grid_z + (j - (kanix_rows - 1) / 2) * kanix_pitch])
+      rotate([90, 0, 0]) cylinder(d = kanix_pilot, h = kanix_pilot_depth + 1);
 }
 
 // The radio's shape grown by tolerance + wall: the holster's outside, a
@@ -323,7 +424,7 @@ tab_edge_radius = 0.6;
 
 module tabs() {
   r = tab_edge_radius;
-  for (i = [0 : tabs - 1])
+  for (i = tab_places)
     translate([tab_x(i), 0, 0]) minkowski() {
       rotate([90, 0, 90]) linear_extrude(tab_width - 2 * r, center = true)
         offset(delta = -r) tab_profile();
@@ -332,12 +433,25 @@ module tabs() {
 }
 
 // Cut down from above the back wall's top, round-bottomed so they don't
-// tear: one either side of every tab, shared between neighbours.
+// tear: one either side of every tab, shared between neighbours. Their edges
+// are chamfered on both faces, the round bottom included.
+slit_chamfer = 0.5;
+
+module slit_section(half) {
+  yi = radio_thickness / 2 + tolerance;
+  yo = yi + wall;
+  w = slit_width / 2;
+  c = slit_chamfer;
+  pts = [[0, yi - 1], [w + c + 1, yi - 1], [w + c, yi], [w, yi + c],
+         [w, yo - c], [w + c, yo], [w + c + 1, yo + 1], [0, yo + 1]];
+  polygon(half ? pts : concat(pts, [for (i = [len(pts) - 1 : -1 : 0]) [-pts[i][0], pts[i][1]]]));
+}
+
 module slits() {
-  for (i = [0 : tabs]) let (x = tab_x(i) - tab_pitch / 2)
-    translate([x, radio_thickness / 2, back_top_z - slit_length]) {
-      rotate([-90, 0, 0]) cylinder(d = slit_width, h = tolerance + wall + 1);
-      translate([-slit_width / 2, 0, 0]) cube([slit_width, tolerance + wall + 1, slit_length + 2 * wall]);
+  for (i = tab_places, sx = [-1, 1]) let (x = tab_x(i) + sx * tab_pitch / 2)
+    translate([x, 0, back_top_z - slit_length]) {
+      linear_extrude(slit_length + 2 * wall) slit_section(false);
+      rotate([-90, 0, 0]) rotate_extrude(angle = 180) slit_section(true);
     }
 }
 
@@ -359,11 +473,15 @@ module drain_holes() {
 // The tabs go on after the pocket is cut, since their bends reach into it.
 module holster() {
   difference() {
-    walls();
+    union() {
+      walls();
+      kanix_pad();
+    }
     pocket();
     front_cutout();
     slits();
     drain_holes();
+    kanix_pilots();
   }
   tabs();
 }

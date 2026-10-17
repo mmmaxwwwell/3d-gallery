@@ -13,7 +13,7 @@ The front and back faces are bevelled the same way on their top and bottom edges
 ## Holster
 
 - Pocket = `radio_body(tolerance, radio_height)`, its top lifted far past the rim so the channel is open, on a `wall`-thick floor. The floor rises into the R11 bottom corners and ramps up the bottom bevels front and back, so the radio is cradled with `tolerance` all round.
-- Outside (`outside()`) = the pocket's `radio_body()` minkowski'd with a `wall` sphere: the user wanted the bottom to follow the radio so the wall is the same thickness all the way round. Printed standing, that underside would overhang under the R11 corners and the bottom bevels, so it's hulled to a footprint set back just far enough that the skirt rises at exactly 45° (tangent to the corner arc, and to the round over the bevel's top edge). The wall is thicker only in that skirt.
+- `wall` is 3 (the user asked for a thicker model). Outside (`outside()`) = the pocket's `radio_body()` minkowski'd with a `wall` sphere: the user wanted the bottom to follow the radio so the wall is the same thickness all the way round. Printed standing, that underside would overhang under the R11 corners and the bottom bevels, so it's hulled to a footprint set back just far enough that the skirt rises at exactly 45° (tangent to the corner arc, and to the round over the bevel's top edge). The wall is thicker only in that skirt.
 - `front_lip` is measured in from the radio's side faces, not the holster's outside, and must reach past the diagonal face onto the front face (asserted).
 - The front cutout leaves `front_sill` above the floor; its lower corners are R11 (`cutout_corner_radius`), matching the radio's.
 - The cutout's edge is a full half-round across the wall (`cutout_edge_radius = wall / 2`): the band within that radius of the opening is cut away, less a rod along the edge in the wall's mid-plane (`cutout_edge_rod()`). It only works because the whole edge runs on the flat front wall, clear of the face's corner arcs and the floor ramps. Check that again if `front_lip`, `front_sill` or the corner radii change.
@@ -23,21 +23,33 @@ The front and back faces are bevelled the same way on their top and bottom edges
 - At each lip top the edge rod ends in a ball at the rim's height, so the two rounds meet in a ball end, not a crease. Every round sits on top of its wall, and a sloping top edge on a vertical wall never overhangs.
 - Prints standing on the floor. All walls are vertical and the floor's corner fillets and ramps face up, so it's support-free.
 
-## Back and locking tab
+## Back and locking tabs
 
-- From behind, the back wall's top rises from the back corner, where the side slope arrives at `rim_back_z`, along a straight ramp (~67°) tangent to the radio back face's R11 corner arc. It follows the arc, then leaves it along a tangent and climbs straight to a guard beside the tabs (`under_back_rise()`). The guard is a wall wide and level with the tabs' tops (`tab_top_z`), so the tabs don't snag (the user's ask). Between the outer slits the wall stops at the face's top edge (`back_top_z`) and the tabs carry on from there. The user asked for a transition with no level step: first the arc started off a short level run, which they called out. The user first asked for a 45° rise, then for the curve. The ball rolls on an arc `cutout_edge_radius` inside the corner, so the rounded top lands on the outline itself.
-- `tabs` (3) tabs, each `tab_width` (10), carry the back wall up to the radio's top back edge. Each then bends forward along the bevel (`tab_profile()`), `tolerance` off it (measured square to it) and a wall thick, for `tab_reach` (2, my pick for the user's "a little"). The user asked for "a little bend with the chamfer", and called my 45° bend the wrong angle. So the bend's underside overhangs 57.5° over 2 mm, past the 45° rule, by the user's choice. It's the only overhang past 45°; the facet check finds just those. The bend's end is square to it, facing up and forward: the radio's bottom back bevel, coming down, pushes it back. The tabs are unioned after the pocket is cut, because the bends reach into the pocket's space.
-- `slit_width` slits, `slit_length` (20, the user's number) down from `back_top_z` and round-bottomed, sit either side of every tab, so each tab is a free 10 mm tongue. Neighbours share a slit (`tab_pitch` = tab + slit): three tabs and four slits fill the back's flat top (±18 of ±18.2), which is why there's no wall between them. More or wider tabs fail the assert.
-- Overhang check: no facet of the STL faces down past 45° except at the bed. Run it on the exported STL (facet normals), since OpenSCAD's preview drops faces of the minkowski parts.
+- From behind, the back wall's top rises from the back corner, where the side slope arrives at `rim_back_z`, along a straight ramp (~67°) tangent to the radio back face's R11 corner arc (`under_back_rise()`). It follows the arc, then leaves it along a tangent and climbs to a guard. The user asked for each step: the curve instead of 45°, no level step, and a guard so the tabs don't get torn off. The ball rolls on an arc `cutout_edge_radius` inside the corner, so the rounded top lands on the outline itself.
+- Guards: tops round (radius `wall`) and level with the tabs' tops (`tab_top_z`). Each guard's outer end sits where the outer slit of a full row of three tabs would be. On a side whose outer tab is left out (`tabs_left_out`), the guard runs flat at full height in to the slit of the nearest tab (the user: the flat part "isn't tall enough"). Elsewhere between the slits the wall stops at the face's top edge (`back_top_z`) and the tabs carry on from there.
+- `tabs` (3) places, each `tab_width` (10), minus `tabs_left_out` (`[2]`, the +x one: something on the radio is in the way there). **The user's left is +x**: I first removed the −x tab and they said it was the other side. Each tab carries the back wall up to the radio's top back edge, then bends forward along the bevel (`tab_profile()`): `tolerance` off it (measured square to it), a wall thick, for `tab_reach` (2, my pick for the user's "a little"). The user asked for "a little bend with the chamfer" and called my 45° bend the wrong angle. So the bend's underside overhangs 57.5° over 2 mm, past the 45° rule, by the user's choice. The bend's end is square to it, facing up and forward: the radio's bottom back bevel, coming down, pushes it back. The tabs are unioned after the pocket is cut, because the bends reach into the pocket's space.
+- `slit_width` slits, `slit_length` (20, the user's number) down from `back_top_z` and round-bottomed, sit either side of every tab, so each tab is a free 10 mm tongue. Neighbours share a slit (`tab_pitch` = tab + slit): three places fill the back's flat top, so there's no wall between them, and more or wider tabs fail the assert. The slits' edges are chamfered `slit_chamfer` (0.5) on both faces, the round bottom included (`slit_section()`, extruded and half-revolved).
+
+## Kanix plate mount
+
+The holster bolts to a Kanix belt clip (the user's own system, `~/git/kanix/scad`). Only the interface is taken, not Kanix code, which is CC BY-NC-ND. That interface is an M5 grid at 19.05 mm pitch with 4.2 mm self-tap pilots, drilled blind from the clip side. Plates are as tall as their belt: 38 mm for 2 rows, 52 for 3. The width is pitch × (cols − 1) + 14.
+
+- `kanix_cols` × `kanix_rows` = 3 × 2 (the user's pick, the long side horizontal), centred on the back, its pad's top just below the slits so the tabs still flex.
+- An M5×10 through the clip (5 mm plate, 2.4 mm head counterbore) reaches 7.4 mm in. The pilots go 8 mm, and the pad (`kanix_pad`, 6.2) is sized to leave `kanix_skin` (1.2) before the pocket, so no screw tip reaches the radio (the user's concern). That's also why `wall` went from 2.4 to 3.
+- The pad (`kanix_pad()`) is a hull of rounded corners. Its face is the plate's size; its flanks spread into the back wall at 45° underneath (no overhang) and only a rounding's width at the sides and top, to fit the back's flat and stay clear of the slits. Pilots are plain round holes; the user dropped my teardrops, so their tops bridge.
+
+## USB-C opening
+
+In the +x side (the user's left), centred `usb_z` (38) above the radio's bottom face and `usb_y` (7) back from its front face, `usb_width` (8) × `usb_height` (14), standing upright. A 9 mm-wide port lying front-to-back would run onto the bevel there; that's my inference, not measured. The rim at that spot is lower than the opening's top, so it's a U-notch down from the rim (`usb_notch()`), cut from the rim's ball path (grown by the edge radius) so the rolled rim rounds its edges.
 
 ## Drainage
 
 `drain_holes` (4) holes of `drain_hole_diameter` (5) at `drain_hole_spacing` (12) in a row across the floor's flat, clear of the corner arcs and bevel ramps (asserted). Both edges are chamfered 0.6 mm at 45°; the bed side's chamfer is a 45° overhang.
 
+## Overhangs
+
+Run the facet check on the exported STL (facet normals), since OpenSCAD's preview drops faces of the minkowski parts. Past 45°, only the tabs' bends (57.5°) and the round pilots' tops should show, both the user's calls.
+
 ## Checking fit
 
 `intersection() { holster(); radio(); }` must render empty.
-
-## Next
-
-A MOLLE mount goes on the back. The back's outside still follows the octagon (chamfered corners); the mount will want a flat back face.
