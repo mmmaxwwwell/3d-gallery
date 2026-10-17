@@ -109,8 +109,12 @@ radio_bottom_z = wall + tolerance;
 rim_back_z = radio_bottom_z + radio_height - radio_corner_radius;
 rim_front_z = rim_back_z - 2 * wall_mid_y * tan(rim_angle);
 rim_slope = rim_angle;
+// Where the front wall's flat face ends at the corner, on its mid-line. The
+// lips' tops keep sloping down from there toward the opening at rim_angle.
+front_face_x = radio_width / 2 - radio_chamfer_width + tolerance * tan((180 - radio_corner_angle) / 2);
+function lip_rim_z(x) = rim_front_z - (front_face_x - abs(x)) * tan(rim_angle);
 
-assert(cutout_bottom + cutout_corner_radius < rim_front_z - cutout_edge_radius, "cutout corner taller than the front wall");
+assert(cutout_bottom + cutout_corner_radius < lip_rim_z(cutout_half) - cutout_edge_radius, "cutout corner taller than the front lips");
 
 // The cutout seen from the front, in (x, z), grown by g.
 module cutout_profile(g = 0) {
@@ -136,8 +140,8 @@ module cutout_edge_rod() {
   for (sx = [-1, 1]) {
     // Up to the rim's round, where a ball turns it into the rim's.
     translate([sx * (cutout_half + e), front_wall_mid, cz]) {
-      cylinder(r = e, h = rim_front_z - e - cz);
-      translate([0, 0, rim_front_z - e - cz]) sphere(r = e);
+      cylinder(r = e, h = lip_rim_z(cutout_half + e) - e - cz);
+      translate([0, 0, lip_rim_z(cutout_half + e) - e - cz]) sphere(r = e);
     }
     translate([sx * (cutout_half - r), front_wall_mid, cz])
       rotate([90, 0, 0]) rotate([0, 0, sx < 0 ? 180 : 270])
@@ -157,11 +161,48 @@ module front_cutout() {
   }
 }
 
-// Everything below the plane one edge-radius under the rim.
+// Everything one edge-radius under the rim: the plane sloping up to the
+// back, and across the front face the lips sloping down toward the opening.
 module under_rim() {
   big = 4 * radio_height;
-  translate([0, -wall_mid_y, rim_front_z - cutout_edge_radius]) rotate([rim_slope, 0, 0])
-    translate([-big / 2, -big / 2, -big]) cube(big);
+  e = cutout_edge_radius;
+  intersection() {
+    translate([0, -wall_mid_y, rim_front_z - e]) rotate([rim_slope, 0, 0])
+      translate([-big / 2, -big / 2, -big]) cube(big);
+    union() {
+      for (sx = [-1, 1])
+        intersection() {
+          translate([sx * front_face_x, 0, rim_front_z - e]) rotate([0, -sx * rim_angle, 0])
+            translate([-big / 2, -big / 2, -big]) cube(big);
+          translate([sx > 0 ? 0 : -front_face_x, -big, -big]) cube([front_face_x, big, 2 * big]);
+        }
+      // The rest of the walls: the sides, the corners and the back.
+      difference() {
+        translate([-big / 2, -big / 2, -big]) cube(2 * big);
+        translate([-front_face_x, -big, -big]) cube([2 * front_face_x, big, 2 * big]);
+      }
+    }
+  }
+}
+
+// The radio's shape grown by tolerance + wall: the holster's outside, a
+// wall thick everywhere. Printed standing, its underside would overhang
+// under the bottom corners and bevels, so it's hulled to a footprint set
+// back just far enough that the skirt there rises at 45°: under the R11
+// corners, where a 45° line touches their arc; under the bevels, where it
+// touches the round over the bevel's top edge.
+module outside() {
+  ro = radio_corner_radius + tolerance + wall;
+  bevel = grown_bevel(radio_chamfer_width, radio_chamfer_depth, tolerance);
+  fx = radio_width / 2 + tolerance + wall - ro * (2 - sqrt(2));
+  fy = radio_thickness / 2 + tolerance + wall - (bevel[0] + wall * (2 - sqrt(2)));
+  hull() {
+    translate([0, 0, wall + tolerance]) minkowski() {
+      radio_body(tolerance);
+      sphere(r = wall);
+    }
+    translate([-fx, -fy, 0]) cube([2 * fx, 2 * fy, 0.01]);
+  }
 }
 
 // The walls are a ball rolled along a sheet on the wall's mid-line, cut
@@ -169,8 +210,11 @@ module under_rim() {
 // them wherever it runs. Below the rim's low point they're a plain shell.
 module walls() {
   e = cutout_edge_radius;
-  z_lo = rim_front_z - e - 2;
-  linear_extrude(z_lo) offset(r = wall) pocket_outline();
+  z_lo = lip_rim_z(cutout_half) - e - 2;
+  intersection() {
+    outside();
+    translate([-radio_width, -radio_width, 0]) cube([2 * radio_width, 2 * radio_width, z_lo]);
+  }
   minkowski() {
     intersection() {
       translate([0, 0, z_lo]) linear_extrude(rim_back_z - z_lo)
