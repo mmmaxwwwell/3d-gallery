@@ -1,11 +1,13 @@
 # lattice-mast
 
-A tapered mast in segments, with an open honeycomb wall. Published, though no joint pair has been printed and tried yet.
+A guyed, tapered mast in segments (20 ft by default, a ThinkNode M6 solar node on top), with a honeycomb wall sized to the wind. Published, though no joint pair has been printed and tried yet.
 
 ## Rules from the user
 
 - **The outside is a perfect cone.** Anything a joint needs goes on the inside. Check: no STL vertex lies outside `outer_r(z)`. The protruding screw heads are the one exception.
-- **Joints don't thin the wall.** The upper segment stays a full-thickness tube. The lower segment's sleeve is a full `wall` thick, set inside the bore.
+- **Joints don't thin the wall.** The upper segment stays a full-thickness tube. The lower segment's sleeve is a full `wall(z)` thick, set inside the bore.
+- **Guyed, two levels.** The user chose two guy points over a free-standing mast: free-standing at 20 ft needs a base wider than the bed.
+- **The honeycomb adapts to the load.** The user asked for it to be sized by simulation, not by hand.
 - **Joint shape.** The overlap is ONE hexagon (`sleeve_h = 1.5 · row_pitch`, a cell's full height). Both rings there are solid, with no cells. There are 2 to 7 screws per joint, evenly spread.
 - **Screw holes are plain round holes, not teardrops.** The user's call, overriding the 45° rule for these holes.
 - **Seating.** A short 45° turn to a backstop, where the screw holes line up.
@@ -14,15 +16,19 @@ A tapered mast in segments, with an open honeycomb wall. Published, though no jo
 
 ## Geometry
 
-- **Customizable.** `bottom_diameter`, `top_diameter`, `mast_length`, `wall` and `section_height` are what the user asked to set; the rest of `BEGIN_PARAMS` comes along. `schema.ts` must name every param. The customizer can't parse a nested list, which is why the taper is two diameters, not a `[height, diameter]` profile.
-- **Taper.** `outer_r(z)` comes from `lookup()` on `diameter_profile`, built from the two diameters; `bore_r(z)` is `wall` inside it.
-- **Segments.** `segments = ceil(mast_length / (section_height - 1.5·(cell_pitch + 1)))`, all equal (`seg_len`). A sleeve is 1.5 row pitches. Each `parts/segment-NN.scad` calls `segment_NN()` (the customizer needs a module with no arguments), which is `mast_segment(NN-1)`. The part files are fixed at 11: fewer segments make the extra parts fail their assert, more are only in the assembly.
+- **Customizable.** `bottom_diameter`, `top_diameter`, `mast_length`, `wall_bottom`, `wall_top` and `section_height` are what the user asked to set; the rest of `BEGIN_PARAMS` comes along. `schema.ts` must name every param. The customizer can't parse a nested list, which is why the taper is two diameters, not a `[height, diameter]` profile.
+- **Taper.** `outer_r(z)` comes from `lookup()` on `diameter_profile`, built from the two diameters; `bore_r(z)` is `wall(z)` inside it, the wall tapering in a straight line from `wall_bottom` to `wall_top`.
+- **Segments.** `segments = ceil(mast_length / (section_height - 1.5·(cell_pitch + 1)))`, all equal (`seg_len`). A sleeve is 1.5 row pitches. Each `parts/segment-NN.scad` calls `segment_NN()` (the customizer needs a module with no arguments), which is `mast_segment(NN-1)`. The part files are fixed at 32: fewer segments make the extra parts fail their assert, more are only in the assembly.
 - **Joint j** is at the foot of segment j.
   - **Upper segment's foot:** a solid ring `sleeve_h(j)` tall, at full wall.
   - **Lower segment's top:** a solid sleeve of the same height, from `sleeve_in` to `sleeve_out`, with both top edges rounded by `sleeve_round` as a lead-in. Its outside is `fit_slop` inside the upper segment's bore at the sleeve's top.
   - **The flare:** the sleeve's bore runs `neck_length` below the joint plane, then flares out at 45° to the wall (`flare_z`). All of this is in `segment_body`'s profile. The flare is inside the bore, and the cells are cut from the axis right through it, so the top rows' ribs are as deep as wall plus flare. That's what the user wants: beefier supports there. The user also wants the cells left where they are, so make the flare bigger inward, never by moving the honeycomb. If cells ever stop at the bore instead, cut past it, because the faceted bore leaves 0.01 mm skins over them.
   - **Honeycomb:** segment j's starts at the ring's top. Segment j-1's runs up to the joint plane.
-- **Body cells.** `honeycomb()` stretches row pitch to fill its window.
+- **Body cells.** `honeycomb()` stretches row pitch to fill its window. A segment's windows (`honeycomb_windows`) run from its foot ring to its top, broken by guy bands; one under two rows tall stays solid.
+- **Wind load.** The lib solves the mast as a beam at `load_n + 1` stations: drag Cd 1.2 on the outline and on `payload_area` at the top, at `design_wind`, held at the foot and the guy points (`linear_solve`, stiffness ∝ r³·wall). The foot is solved clamped and pinned, and `design_moment` takes the larger at each height.
+- **Rib sizing.** A level cut through a row of cells crosses only the upright ribs, so the honeycomb keeps rib / cell width of the solid wall's section modulus. `rib_of(k)` is the widest rib any height in segment k needs to stay under `allowable_stress` (never under `rib`); past 0.6 of a cell width the segment goes solid (`solid_segment`). The default renders to about 7 MPa at the worst section when the STLs are sliced and loaded.
+- **Guy points.** A solid band `guy_band` tall round each guy height, in the segment it falls in, clamped clear of the foot ring and the mount band. Three guys at 90/210/330°, each a pair of teardrop cord holes `guy_post` apart (the cord loops round the post between them), so the cone stays clean.
+- **Mount band.** The top `mount_length` of the top segment is solid, for the payload's hose clamps.
 - **Lock screws.**
   - `screw_count(j) = clamp(round(n/3), 2, 7)`, evenly round the ring, at mid-ring height.
   - Each pocket's floor is `screw_floor_r` = outside − `head_seat`, which is in the foot ring. Below it is an M3 clearance hole through the rest of the foot, then a pilot through the whole sleeve. The screw is an M3 × 6, which comes out flush with the sleeve's bore.

@@ -342,6 +342,12 @@ export default defineConfig({
           'models/folding-panel-divider/strip.stl',
           'models/spool-drybox/wall-*.stl',
           'models/lattice-mast/segment-*.stl',
+          // The model list is fetched network-first (runtimeCaching below).
+          // Precached, it would show the previous deploy's list until the new
+          // worker finished downloading every changed model, so a newly
+          // published model looked missing until a hard refresh.
+          'models/manifest.json',
+          'models/print-estimates.json',
           // Content-addressed artifact tree emitted by scripts/build-models.mjs.
           // Immutable and fetched on demand; precaching it would ship every
           // model twice.
@@ -356,6 +362,14 @@ export default defineConfig({
         navigateFallback: undefined,
         ignoreURLParametersMatching: [/.*/],
         cleanupOutdatedCaches: true,
+        // Fresh when online, the last copy seen when offline.
+        runtimeCaching: [
+          {
+            urlPattern: /\/models\/(manifest|print-estimates)\.json$/,
+            handler: 'NetworkFirst',
+            options: { cacheName: 'model-index', networkTimeoutSeconds: 4 },
+          },
+        ],
       },
       manifest: {
         id: '/3d-gallery/',

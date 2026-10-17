@@ -741,6 +741,25 @@
       ]
     },
     {
+      "slug": "meshology-l1-holster",
+      "devOnly": true,
+      "title": "Meshology L1 Holster",
+      "description": "A TPU holster for the Meshology L1 Meshtastic radio. The radio slides down into an eight-sided channel shaped like its body: solid back, sides and floor, open top, and a big cutout in the front so you can see and use the controls. The front walls reach 8 mm in from each side to hold it. A MOLLE mount for the back comes next.",
+      "filament": [ { "material": "TPU 64D", "color": "any" } ],
+      "previews": [
+        { "file": "assembled.3mf", "format": "3mf", "label": "Radio seated in the holster", "default": true,
+          "legend": [
+            { "color": "#2f7fd8", "label": "Holster", "part": "holster.stl" },
+            { "color": "#9aa0a6", "label": "Meshology L1 (reference)" }
+          ],
+          "components": [ { "part": "holster.stl", "qty": 1 } ]
+        }
+      ],
+      "parts": [
+        { "file": "holster.stl", "format": "stl", "label": "Holster — print standing on its floor, open top up" }
+      ]
+    },
+    {
       "slug": "test-cube-xyz",
       "devOnly": true,
       "title": "XYZ Test Cube",
@@ -3012,40 +3031,551 @@
       "slug": "lattice-mast",
       "customizable": true,
       "title": "Lattice Antenna Mast",
-      "description": "A 2 m antenna mast that tapers from 100 mm at the foot to 15 mm at the top, printed as eleven segments about 200 mm tall on an Adventurer 5M. The outside is a plain cone apart from the screw heads, and the 3.5 mm wall is an open honeycomb, so it is light and wind passes through it. At each joint two solid rings overlap by one hexagon: the upper segment's foot ring over a full-thickness sleeve on the segment below, inside its bore. Push the upper segment down and turn it: a 45\u00b0 climb draws the foot down onto the joint, a level run keeps it turning, and it pops into its stop with the screw holes in line. M3 cap screws then clamp the foot onto the sleeve. The taper is a list of [height, diameter] points in the lib.",
-      "filament": [ { "material": "PETG", "color": "any" } ],
+      "description": "A 20 ft guyed antenna mast for a solar mesh node, tapering from 100 mm at the foot to 35 mm at the top, printed as 32 segments about 209 mm tall on an Adventurer 5M. The outside is a plain cone apart from the screw heads. The wall thickens from 3.5 mm at the foot to 4 mm at the top, and is a honeycomb whose ribs the lib sizes to the wind: it works out the bending along the mast for a design gust, the payload's wind area and the two guy points, and widens each segment's ribs until the printed wall stays under the allowable stress, going solid where a segment needs more. Each guy point is a solid band with three pairs of cord holes, and the top 150 mm is solid for the payload's hose clamps. At each joint two solid rings overlap by one hexagon: the upper segment's foot ring over a full-thickness sleeve on the segment below, inside its bore. Push the upper segment down and turn it: a 45\u00b0 climb draws the foot down onto the joint, a level run keeps it turning, and it pops into its stop with the screw holes in line. M3 cap screws then clamp the foot onto the sleeve.",
+      "filament": [
+        {
+          "material": "PETG",
+          "color": "any"
+        }
+      ],
       "previews": [
-        { "file": "assembled.3mf", "format": "3mf", "label": "Assembly: all eleven segments seated (2 m)", "default": true, "module": "assembled",
+        {
+          "file": "assembled.3mf",
+          "format": "3mf",
+          "label": "Assembly: all 32 segments seated (20 ft)",
+          "default": true,
+          "module": "assembled",
           "legend": [
-            { "color": "#2f7fd8", "label": "Mast segments, each printed standing", "part": "segment-01.stl", "shades": ["#6aa9ec"],
-              "parts": ["segment-01.stl", "segment-02.stl", "segment-03.stl", "segment-04.stl", "segment-05.stl", "segment-06.stl", "segment-07.stl", "segment-08.stl", "segment-09.stl", "segment-10.stl", "segment-11.stl"] }
+            {
+              "color": "#2f7fd8",
+              "label": "Mast segments, each printed standing",
+              "part": "segment-01.stl",
+              "shades": [
+                "#6aa9ec"
+              ],
+              "parts": [
+                "segment-01.stl",
+                "segment-02.stl",
+                "segment-03.stl",
+                "segment-04.stl",
+                "segment-05.stl",
+                "segment-06.stl",
+                "segment-07.stl",
+                "segment-08.stl",
+                "segment-09.stl",
+                "segment-10.stl",
+                "segment-11.stl",
+                "segment-12.stl",
+                "segment-13.stl",
+                "segment-14.stl",
+                "segment-15.stl",
+                "segment-16.stl",
+                "segment-17.stl",
+                "segment-18.stl",
+                "segment-19.stl",
+                "segment-20.stl",
+                "segment-21.stl",
+                "segment-22.stl",
+                "segment-23.stl",
+                "segment-24.stl",
+                "segment-25.stl",
+                "segment-26.stl",
+                "segment-27.stl",
+                "segment-28.stl",
+                "segment-29.stl",
+                "segment-30.stl",
+                "segment-31.stl",
+                "segment-32.stl"
+              ]
+            }
           ],
-          "components": [ { "part": "segment-01.stl", "qty": 1 }, { "part": "segment-02.stl", "qty": 1 }, { "part": "segment-03.stl", "qty": 1 }, { "part": "segment-04.stl", "qty": 1 }, { "part": "segment-05.stl", "qty": 1 }, { "part": "segment-06.stl", "qty": 1 }, { "part": "segment-07.stl", "qty": 1 }, { "part": "segment-08.stl", "qty": 1 }, { "part": "segment-09.stl", "qty": 1 }, { "part": "segment-10.stl", "qty": 1 }, { "part": "segment-11.stl", "qty": 1 } ]
+          "components": [
+            {
+              "part": "segment-01.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-02.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-03.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-04.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-05.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-06.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-07.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-08.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-09.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-10.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-11.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-12.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-13.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-14.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-15.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-16.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-17.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-18.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-19.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-20.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-21.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-22.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-23.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-24.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-25.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-26.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-27.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-28.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-29.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-30.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-31.stl",
+              "qty": 1
+            },
+            {
+              "part": "segment-32.stl",
+              "qty": 1
+            }
+          ]
         },
-        { "file": "joint-cutaway.3mf", "format": "3mf", "label": "Cutaway: segment 2 seated on segment 1's sleeve, with its lock screws", "module": "joint_cutaway",
+        {
+          "file": "joint-cutaway.3mf",
+          "format": "3mf",
+          "label": "Cutaway: segment 2 seated on segment 1's sleeve, with its lock screws",
+          "module": "joint_cutaway",
           "legend": [
-            { "color": "#2f7fd8", "label": "Segment 1 \u2014 sleeve", "part": "segment-01.stl" },
-            { "color": "#f2a33a", "label": "Segment 2 \u2014 foot", "part": "segment-02.stl" },
-            { "color": "#333333", "label": "M3 \u00d7 6 cap screws" }
+            {
+              "color": "#2f7fd8",
+              "label": "Segment 1 \u2014 sleeve",
+              "part": "segment-01.stl"
+            },
+            {
+              "color": "#f2a33a",
+              "label": "Segment 2 \u2014 foot",
+              "part": "segment-02.stl"
+            },
+            {
+              "color": "#333333",
+              "label": "M3 \u00d7 6 cap screws"
+            }
           ]
         }
       ],
       "parts": [
-        { "file": "segment-01.stl", "format": "stl", "label": "Segment 1 (foot) \u2014 100 mm, plain foot on the bed, sleeve on top", "module": "segment_01" },
-        { "file": "segment-02.stl", "format": "stl", "label": "Segment 2", "module": "segment_02" },
-        { "file": "segment-03.stl", "format": "stl", "label": "Segment 3", "module": "segment_03" },
-        { "file": "segment-04.stl", "format": "stl", "label": "Segment 4", "module": "segment_04" },
-        { "file": "segment-05.stl", "format": "stl", "label": "Segment 5", "module": "segment_05" },
-        { "file": "segment-06.stl", "format": "stl", "label": "Segment 6", "module": "segment_06" },
-        { "file": "segment-07.stl", "format": "stl", "label": "Segment 7", "module": "segment_07" },
-        { "file": "segment-08.stl", "format": "stl", "label": "Segment 8", "module": "segment_08" },
-        { "file": "segment-09.stl", "format": "stl", "label": "Segment 9", "module": "segment_09" },
-        { "file": "segment-10.stl", "format": "stl", "label": "Segment 10", "module": "segment_10" },
-        { "file": "segment-11.stl", "format": "stl", "label": "Segment 11 (top) \u2014 ends at 15 mm in a plain rim", "module": "segment_11" }
+        {
+          "file": "segment-01.stl",
+          "format": "stl",
+          "label": "Segment 1 (foot) \u2014 100 mm, plain foot on the bed, sleeve on top",
+          "module": "segment_01"
+        },
+        {
+          "file": "segment-02.stl",
+          "format": "stl",
+          "label": "Segment 2",
+          "module": "segment_02"
+        },
+        {
+          "file": "segment-03.stl",
+          "format": "stl",
+          "label": "Segment 3",
+          "module": "segment_03"
+        },
+        {
+          "file": "segment-04.stl",
+          "format": "stl",
+          "label": "Segment 4",
+          "module": "segment_04"
+        },
+        {
+          "file": "segment-05.stl",
+          "format": "stl",
+          "label": "Segment 5",
+          "module": "segment_05"
+        },
+        {
+          "file": "segment-06.stl",
+          "format": "stl",
+          "label": "Segment 6",
+          "module": "segment_06"
+        },
+        {
+          "file": "segment-07.stl",
+          "format": "stl",
+          "label": "Segment 7",
+          "module": "segment_07"
+        },
+        {
+          "file": "segment-08.stl",
+          "format": "stl",
+          "label": "Segment 8",
+          "module": "segment_08"
+        },
+        {
+          "file": "segment-09.stl",
+          "format": "stl",
+          "label": "Segment 9",
+          "module": "segment_09"
+        },
+        {
+          "file": "segment-10.stl",
+          "format": "stl",
+          "label": "Segment 10",
+          "module": "segment_10"
+        },
+        {
+          "file": "segment-11.stl",
+          "format": "stl",
+          "label": "Segment 11",
+          "module": "segment_11"
+        },
+        {
+          "file": "segment-12.stl",
+          "format": "stl",
+          "label": "Segment 12",
+          "module": "segment_12"
+        },
+        {
+          "file": "segment-13.stl",
+          "format": "stl",
+          "label": "Segment 13",
+          "module": "segment_13"
+        },
+        {
+          "file": "segment-14.stl",
+          "format": "stl",
+          "label": "Segment 14",
+          "module": "segment_14"
+        },
+        {
+          "file": "segment-15.stl",
+          "format": "stl",
+          "label": "Segment 15",
+          "module": "segment_15"
+        },
+        {
+          "file": "segment-16.stl",
+          "format": "stl",
+          "label": "Segment 16 \u2014 lower guy point (3 m)",
+          "module": "segment_16"
+        },
+        {
+          "file": "segment-17.stl",
+          "format": "stl",
+          "label": "Segment 17",
+          "module": "segment_17"
+        },
+        {
+          "file": "segment-18.stl",
+          "format": "stl",
+          "label": "Segment 18",
+          "module": "segment_18"
+        },
+        {
+          "file": "segment-19.stl",
+          "format": "stl",
+          "label": "Segment 19",
+          "module": "segment_19"
+        },
+        {
+          "file": "segment-20.stl",
+          "format": "stl",
+          "label": "Segment 20",
+          "module": "segment_20"
+        },
+        {
+          "file": "segment-21.stl",
+          "format": "stl",
+          "label": "Segment 21",
+          "module": "segment_21"
+        },
+        {
+          "file": "segment-22.stl",
+          "format": "stl",
+          "label": "Segment 22",
+          "module": "segment_22"
+        },
+        {
+          "file": "segment-23.stl",
+          "format": "stl",
+          "label": "Segment 23",
+          "module": "segment_23"
+        },
+        {
+          "file": "segment-24.stl",
+          "format": "stl",
+          "label": "Segment 24",
+          "module": "segment_24"
+        },
+        {
+          "file": "segment-25.stl",
+          "format": "stl",
+          "label": "Segment 25",
+          "module": "segment_25"
+        },
+        {
+          "file": "segment-26.stl",
+          "format": "stl",
+          "label": "Segment 26",
+          "module": "segment_26"
+        },
+        {
+          "file": "segment-27.stl",
+          "format": "stl",
+          "label": "Segment 27",
+          "module": "segment_27"
+        },
+        {
+          "file": "segment-28.stl",
+          "format": "stl",
+          "label": "Segment 28",
+          "module": "segment_28"
+        },
+        {
+          "file": "segment-29.stl",
+          "format": "stl",
+          "label": "Segment 29",
+          "module": "segment_29"
+        },
+        {
+          "file": "segment-30.stl",
+          "format": "stl",
+          "label": "Segment 30",
+          "module": "segment_30"
+        },
+        {
+          "file": "segment-31.stl",
+          "format": "stl",
+          "label": "Segment 31 \u2014 upper guy point (5.8 m)",
+          "module": "segment_31"
+        },
+        {
+          "file": "segment-32.stl",
+          "format": "stl",
+          "label": "Segment 32 (top) \u2014 35 mm, solid top 150 mm for the payload's hose clamps",
+          "module": "segment_32"
+        }
       ],
       "hardware": [
-        { "qty": 46, "label": "M3 \u00d7 6 socket-head cap screw \u2014 2 to 7 per joint, head seated 1.5 mm into the upper segment's foot ring, clamping its last 2 mm onto the sleeve below and threading through the sleeve",
-          "usedBy": [ { "part": "segment-01.stl", "each": 7 }, { "part": "segment-02.stl", "each": 7 }, { "part": "segment-03.stl", "each": 6 }, { "part": "segment-04.stl", "each": 6 }, { "part": "segment-05.stl", "each": 5 }, { "part": "segment-06.stl", "each": 4 }, { "part": "segment-07.stl", "each": 4 }, { "part": "segment-08.stl", "each": 3 }, { "part": "segment-09.stl", "each": 2 }, { "part": "segment-10.stl", "each": 2 } ] }
+        {
+          "qty": 173,
+          "label": "M3 \u00d7 6 socket-head cap screw \u2014 2 to 7 per joint, head seated 1.5 mm into the upper segment's foot ring, clamping its last 2 mm onto the sleeve below and threading through the sleeve",
+          "usedBy": [
+            {
+              "part": "segment-01.stl",
+              "each": 7
+            },
+            {
+              "part": "segment-02.stl",
+              "each": 7
+            },
+            {
+              "part": "segment-03.stl",
+              "each": 7
+            },
+            {
+              "part": "segment-04.stl",
+              "each": 7
+            },
+            {
+              "part": "segment-05.stl",
+              "each": 7
+            },
+            {
+              "part": "segment-06.stl",
+              "each": 7
+            },
+            {
+              "part": "segment-07.stl",
+              "each": 7
+            },
+            {
+              "part": "segment-08.stl",
+              "each": 7
+            },
+            {
+              "part": "segment-09.stl",
+              "each": 7
+            },
+            {
+              "part": "segment-10.stl",
+              "each": 7
+            },
+            {
+              "part": "segment-11.stl",
+              "each": 7
+            },
+            {
+              "part": "segment-12.stl",
+              "each": 7
+            },
+            {
+              "part": "segment-13.stl",
+              "each": 6
+            },
+            {
+              "part": "segment-14.stl",
+              "each": 6
+            },
+            {
+              "part": "segment-15.stl",
+              "each": 6
+            },
+            {
+              "part": "segment-16.stl",
+              "each": 6
+            },
+            {
+              "part": "segment-17.stl",
+              "each": 6
+            },
+            {
+              "part": "segment-18.stl",
+              "each": 5
+            },
+            {
+              "part": "segment-19.stl",
+              "each": 5
+            },
+            {
+              "part": "segment-20.stl",
+              "each": 5
+            },
+            {
+              "part": "segment-21.stl",
+              "each": 5
+            },
+            {
+              "part": "segment-22.stl",
+              "each": 5
+            },
+            {
+              "part": "segment-23.stl",
+              "each": 5
+            },
+            {
+              "part": "segment-24.stl",
+              "each": 4
+            },
+            {
+              "part": "segment-25.stl",
+              "each": 4
+            },
+            {
+              "part": "segment-26.stl",
+              "each": 4
+            },
+            {
+              "part": "segment-27.stl",
+              "each": 4
+            },
+            {
+              "part": "segment-28.stl",
+              "each": 4
+            },
+            {
+              "part": "segment-29.stl",
+              "each": 3
+            },
+            {
+              "part": "segment-30.stl",
+              "each": 3
+            },
+            {
+              "part": "segment-31.stl",
+              "each": 3
+            }
+          ]
+        },
+        {
+          "qty": 6,
+          "label": "Guy line, about 1.2\u00d7 its anchor distance \u2014 paracord or 2 mm Dyneema, three at each guy point, looped out of one hole and back in the next. At a 78 mph gust the lower guys pull up to about 215 N, the upper about 85 N"
+        },
+        {
+          "qty": 2,
+          "label": "Hose clamp sized for 35 mm \u2014 holds the node's bracket to the solid top band"
+        }
       ]
     }
   ]
