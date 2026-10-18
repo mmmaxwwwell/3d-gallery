@@ -15,7 +15,8 @@ Everything heavy is in the box, low between the two points the lines pull from, 
   - **Gear train:** behind the wall, each pinion drives two idlers onto an output gear on the reel's axis. The idlers turn on print-in-place roller bearings in their hubs.
   - **Output:** each output gear's hub goes out through a lip seal in the box's back slab into a hex in the reel's hub.
   - **Gear size:** module 2.25 and 16 mm wide 30° herringbones, sized up so the printed parts run at low stress.
-  - **Covers:** a small bolt-on cover each side (130 × 91 mm) protects the gears and carries their pins. The box is sealed at its wall and slab, so the covers don't need to seal.
+  - **Covers:** a small bolt-on cover each side (130 × 99 mm) protects the gears, on six M5 × 25s through solid 18 mm bosses. The box is sealed at its wall and slab, so the covers don't need to seal.
+  - **Support:** every gear is held both sides. The idlers' pins run from the cover into sockets in the slab, the output gear sits on its pin behind with its hub in the slab in front, and the pinion's back rides on a peg in the cover.
 - **Reels:** one either side of the box. Each holds 150–200 ft (about 56 m) of 1/8" Dacron. The line's end wedges into a V jam cleat at the core's front end, under the front flange.
   - **Support:** each reel's hub turns in a bearing bore in its rear plate, and its front axle in the front plate.
 - **Reel holders (PCTG):** two big flat skeleton plates per reel, each inside 220 × 220 mm.
@@ -78,7 +79,7 @@ No supports. Every hole is round, with no teardrops.
 | Panel spine | PCTG | flat | 1 |
 | Panel bar | PCTG | flat | 2 |
 
-The holder plates are 161 × 201 mm and the gear covers 130 × 91. The box is the widest piece, 264 mm across its back slab, just inside the U1's 270.
+The holder plates are 161 × 201 mm and the gear covers 130 × 99. The box is the widest piece, 264 mm across its back slab, just inside the U1's 270.
 
 ## Wiring
 
@@ -106,5 +107,5 @@ Plus:
 - two JGY-370 12 V worm motors with Hall encoders, two DRV8871 drivers, a Pololu U3V40F12 boost, and a XIAO nRF52840 Sense
 - two 50–60 m lengths of 1/8" Dacron
 - your 5/8" connector
-- seventy-seven M5 × 10 cap screws, two M5 × 25s, four M5 × 75s, four M5 × 90s, sixteen M5 washers and two M3 grub screws
+- sixty-five M5 × 10 cap screws, fourteen M5 × 25s, four M5 × 75s, four M5 × 90s, sixteen M5 washers and two M3 grub screws
 - silicone oil, four zip ties and foam tape

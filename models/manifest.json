@@ -884,7 +884,7 @@
         { "qty": 1, "label": "Pololu U3V40F12 boost regulator, 3.2 V to 12 V \u2014 on only while a motor runs", "usedBy": [ { "part": "front-door.stl", "each": 1 } ] },
         { "qty": 2, "label": "M3x5 grub screw \u2014 pinion onto the motor's shaft flat", "usedBy": [ { "part": "pinion.stl", "each": 1 } ] },
         { "qty": 14, "label": "M5x10 cap screw \u2014 front door, in its flange", "usedBy": [ { "part": "front-door.stl", "each": 14 } ] },
-        { "qty": 12, "label": "M5x10 cap screw \u2014 gear covers into the back slab and the floor", "usedBy": [ { "part": "gear-cover.stl", "each": 6 }, { "part": "gear-cover-left.stl", "each": 6 } ] },
+        { "qty": 12, "label": "M5x25 cap screw \u2014 gear covers, through their bosses into the back slab and the floor", "usedBy": [ { "part": "gear-cover.stl", "each": 6 }, { "part": "gear-cover-left.stl", "each": 6 } ] },
         { "qty": 16, "label": "M5x10 cap screw \u2014 holder plates, at 45\u00b0 through their edges into their channels", "usedBy": [ { "part": "front-plate.stl", "each": 4 }, { "part": "front-plate-left.stl", "each": 4 }, { "part": "rear-plate.stl", "each": 4 }, { "part": "rear-plate-left.stl", "each": 4 } ] },
         { "qty": 16, "label": "M5x10 cap screw \u2014 crossmembers' ends, through the plates", "usedBy": [ { "part": "link-bar.stl", "each": 2 } ] },
         { "qty": 16, "label": "M5x10 cap screw \u2014 roller cheeks' tenons, through the plates", "usedBy": [ { "part": "fairlead-cheek.stl", "each": 4 }, { "part": "fairlead-cheek-inner.stl", "each": 4 } ] },

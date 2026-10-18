@@ -67,7 +67,9 @@ The user wants independent control of the reels with an IMU to level the node ("
   - **Output gear:** too small for a bearing inside its teeth, it turns on an `out_pin_d` pin. Its hub goes out through the slab into the reel's hub.
   - **Parts:** a herringbone turned over is the other hand, so the idlers and pinions are one part each. The output gears carry a hub on one side, so there's a right and a left.
   - **Check the mesh** by rendering `pinion()`, `idler(0)`, `idler(1)` and `output_gear()` separately: they must not intersect.
-- **Gear covers** (`gear_cover(s)`, the user's "two separate parts"): a floor and rim round each train, clipped at the middle where the two meet, with bosses round six screws into the slab and the floor. Pins in the floor carry the idlers and the output gear. They don't seal: the box is sealed at its wall and slab.
+- **Gear covers** (`gear_cover(s)`, the user's "two separate parts"): a floor and rim round each train, clipped at the middle where the two meet. They don't seal: the box is sealed at its wall and slab.
+  - **Screws:** six M5 × 25s in solid `cover_boss_d` bosses (the user: "more meaty"), heads in shallow counterbores at the back. The bosses sit `cover_screw_out` past the lobe's edge so they clear the teeth.
+  - **Support both sides** (the user's): the idlers' pins run on into `pin_socket`-deep sockets in the slab, the output gear rides its pin with its hub in the slab's seal, and the pinion's rear pocket rides the cover's `pinion_peg_d` peg.
 - **Reel:** `spool()` has an integral rear flange and a hex spigot at the front for `reel_flange()`. Its rear has a hex socket (45° cone roof) for `reel_hub()`. The hub's journal turns in the rear plate's bore, and the output gear's hex tip goes into the hub.
 - **Holder plates** (`holder_2d()`, the user's "220x220 flat large skeleton pieces"). Each fits inside 220 × 220 (asserted).
   - **Shape:** a ring round the reel with a bar across at the axle round a boss, four spokes, the flat outer part up to the roller window, and the flat inner edge.

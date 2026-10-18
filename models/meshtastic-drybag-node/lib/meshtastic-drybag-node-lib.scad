@@ -145,6 +145,12 @@ gear_pin_d = 7;
 out_pin_d = 10;
 // The idlers' bearings' hub radius (the other sizes are the rollers' bearings')
 idler_hub_r = 6.25;
+// Every gear is held both sides: the idlers' pins run on into sockets this
+// deep in the back slab, and the pinion's back rides on a peg this wide in a
+// pocket this deep in its rear face.
+pin_socket = 3.5;
+pinion_peg_d = 8;
+pinion_peg_len = 4;
 // The gear covers: floor, wall and gap round the gears; and the slab's
 // outline round them (the old tray's wall and gap set how big it is)
 cover_floor = 2;
@@ -368,12 +374,16 @@ door_screws = concat(
   [for (sx = [-1, 1], z = door_side_zs) [sx * door_x, z]],
   [for (x = door_top_xs, z = [-ear_out, box_h + ear_out]) [x, z]]);
 // Each gear cover's screws (right side), [x, z], into the back slab: along
-// the lobe's edges, and one under the pinion into the box's floor.
-// Any that would crowd a holder plate's 45° bolt are left out.
+// the lobe's edges, far enough out for a solid boss clear of the teeth, and
+// one under the pinion into the box's floor. Any that would crowd a holder
+// plate's 45° bolt are left out.
+function lobe_z_at(x) = shaft_z + (x - spool_x) * tan(gear_th);
+cover_boss_d = 18;
+cover_screw_out = cover_boss_d / 2 + 2 - tray_wall;
 cover_screws_all = concat(
-  [for (i = [1, 2], side = [-1, 1]) lobe_cs[i] + side * (lobe_rs[i] + ear_out) * gear_n],
-  [for (side = [-1, 1]) lobe_cs[1] - 30 * gear_u + side * (lobe_rs[1] + ear_out) * gear_n],
-  [[pinion_c[0], floor_t / 2]]);
+  [for (i = [1, 2], side = [-1, 1]) lobe_cs[i] + side * (lobe_rs[i] + cover_screw_out) * gear_n],
+  [for (side = [-1, 1]) lobe_cs[1] - 30 * gear_u + side * (lobe_rs[1] + cover_screw_out) * gear_n],
+  [[pinion_c[0], floor_t / 2 - 1]]);
 // The holder plates' bolts into their V channels, [z]: between the door
 // screws; and the channel's steps outward, between those.
 seat_zs = [for (k = [0 : door_side_screws - 2]) (door_side_zs[k] + door_side_zs[k + 1]) / 2];
@@ -449,6 +459,8 @@ assert(gear_len > gear_dx, "the gear train can't reach the reel's axis");
 assert(2 * lobe_x1 + 2 <= 268, "the box's slab doesn't fit the U1's bed");
 assert(pitch_r(idler_z) - 1.25 * gear_m - pipr_o(idler_hub_r) - pip_b >= 2.5, "the idlers' bearings leave too little gear round them");
 assert(idler_hub_r - pip_b - pip_c - gear_pin_d / 2 >= 1.4, "the idlers' bearing hubs are too thin on their pins");
+for (c = idlers_c) assert(c[0] - gear_pin_d / 2 > box_half + 1, "an idler's pin socket would break into the box");
+assert(pitch_r(pinion_z) - 1.25 * gear_m - pinion_peg_d / 2 > 3, "the pinion's peg pocket leaves too little gear");
 assert(pinion_c[1] - tip_r(pinion_z) - tray_gap - cover_wall > floor_t / 2 + m5_head_d / 2, "the pinion crowds its cover's floor screw");
 assert(box_d - flange_len - flange_h >= front_y1, "the front flange runs into the front plates");
 assert(abs(seat_zs[0] - door_side_zs[0]) > m5_head_d + 2, "the plates' screws crowd the door screws");
@@ -649,6 +661,8 @@ module frame() {
     for (sx = [-1, 1], p = cover_screws) y_cyl([sx * p[0], p[1]], -1, pilot_depth, m5_pilot_d, 24);
     // The pinions' hubs through the back wall: a tight hole, so the TPU seals round them.
     for (sx = [-1, 1]) y_cyl([sx * pinion_c[0], pinion_c[1]], -1, plate_t + 1, hub_d - hub_seal, 48);
+    // Sockets for the idlers' pins, so each idler is held both sides.
+    for (sx = [-1, 1], c = idlers_c) y_cyl([sx * c[0], c[1]], -1, pin_socket, gear_pin_d + 0.4, 32);
     // The output gears' hubs through the slab: a tight hole, so the TPU seals round them.
     for (sx = [-1, 1]) y_cyl([sx * ring_c[0], ring_c[1]], -1, flange_len + 1, out_hub_d - hub_seal, 48);
     // The plates' own screws into their seats.
@@ -711,7 +725,9 @@ module front_door() {
 // Gear cover (s = +1 right, -1 left, a mirror image), the user's small
 // bolt-on one: a floor and a rim round one gear train, clipped at the
 // middle where the two meet, bosses round its screws into the back slab,
-// and pins in its floor for the idlers and the output gear. It doesn't
+// and pins in its floor: the idlers' run on into sockets in the slab, the
+// output gear's into its rear, and a peg into the pinion's back, so every
+// gear is held both sides. It doesn't
 // seal: the box is sealed at the back wall and the slab.
 module cover_hull_2d() {
   hull() {
@@ -729,14 +745,21 @@ module gear_cover(s = 1) {
           intersection() { cover_hull_2d(); translate([0.25, -500]) square([1000, 1000]); }
           intersection() { offset(-cover_wall) cover_hull_2d(); translate([-1, -500]) square([1000, 1000]); }
         }
-        for (p = cover_screws) hull() {
-          y_cyl(p, cover_y0, -0.5, 13);
-          y_cyl(p + 6 * ((p[1] < pinion_c[1] ? [0, 1] : (lobe_z_at(p[0]) > p[1] ? gear_n : -gear_n))), cover_y0, -0.5, 4);
-        }
-        for (c = idlers_c) y_cyl(c, cover_y0 + 0.01, gear_y1 - 0.3, gear_pin_d, 32);
+        // Each screw's boss, solid round the shank, blended into the rim.
+        for (p = cover_screws) let(d = cover_boss_d, inward = p[1] < pinion_c[1] - tip_r(pinion_z) ? [0, 1] : (lobe_z_at(p[0]) > p[1] ? gear_n : -gear_n))
+          hull() {
+            y_cyl(p, cover_y0, -0.5, p[1] < pinion_c[1] - tip_r(pinion_z) ? 16 : d);
+            for (t = [-1, 1]) y_cyl(p + (d / 2 - 2) * inward + t * (d / 2 - 2) * [inward[1], -inward[0]], cover_y0, -0.5, 2);
+          }
+        for (c = idlers_c) y_cyl(c, cover_y0 + 0.01, pin_socket - 0.3, gear_pin_d, 32);
         y_cyl(ring_c, cover_y0 + 0.01, gear_y1 - 0.3, out_pin_d, 32);
+        y_cyl(pinion_c, cover_y0 + 0.01, gear_y0 + pinion_peg_len - 0.3, pinion_peg_d, 32);
       }
-      for (p = cover_screws) plate_screw([p[0], -0.5, p[1]], [0, -1, 0], -0.5 - cover_y0);
+      // M5 x 25s, their heads in a shallow counterbore at the back.
+      for (p = cover_screws) {
+        y_cyl(p, cover_y0 - 1, 0.5, m5_clear_d, 32);
+        y_cyl(p, cover_y0 - 1, cover_y0 + 3, m5_head_d, 32);
+      }
     }
 }
 
@@ -783,7 +806,7 @@ module reel_flange() {
 }
 
 // Pinion on the motor's D-shaft, behind the back wall, its hub through the
-// wall's lip seal. An M3 grub screw from the root between two teeth, at the
+// wall's lip seal, its back on the cover's peg. An M3 grub screw from the root between two teeth, at the
 // gear's mid-plane, on the shaft's flat, holds it and pulls the motor onto
 // the back wall.
 module pinion() {
@@ -799,6 +822,8 @@ module pinion() {
         translate([-shaft_d / 2 - 0.1, -shaft_d]) square([shaft_flat + 0.15, 2 * shaft_d]);
       }
     translate([pinion_c[0], (gear_y0 + gear_y1) / 2, pinion_c[1]]) rotate([0, -(pinion_psi + grub), 0]) rotate([0, 90, 0]) cylinder(d = 2.5, h = pitch_r(pinion_z) + 2, $fn = 16);
+    // Its back rides on the cover's peg.
+    y_cyl(pinion_c, gear_y0 - 1, gear_y0 + pinion_peg_len, pinion_peg_d + 0.4, 32);
   }
 }
 
