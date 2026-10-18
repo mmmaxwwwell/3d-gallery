@@ -33,24 +33,16 @@ front_sill = 8;
 cutout_corner_radius = 11;
 // Locking tabs across the top of the back wall: how many
 tabs = 3;
-// Tab places left without a tab, counted from -x. A side whose outer tab is
-// left out has its guard run flat across the gap instead.
-tabs_left_out = [];
-// Tabs whose top corners are rounded off (seen from behind), counted from -x
-tabs_rounded = [2];
-// and by how much
-tab_corner_radius = 3;
-// and how wide each is
-tab_width = 12.3;
+// Where the row starts: this far in from the radio's +x side (the user's
+// left, seen from the back). It runs from there to the -x corner
+tab_start = 23;
+// and this far round that corner's curve (degrees), the last tab following it
+tab_wrap = 45;
 // How far the tab bends forward over the radio's top back bevel, front to
 // back: the bevel's whole depth
 tab_reach = 6;
 // How far above the radio's top back edge each tab's bend starts
 tab_lift = 3;
-// On the +x side (the user's left, seen from the back) the radio's top back
-// edge runs straight this much further before its corner curves down, so
-// that corner is this much tighter than radio_corner_radius
-back_edge_extra = 7;
 // The slits either side of the tab: how far down from the back wall's top
 slit_length = 20;
 // and how wide
@@ -168,11 +160,8 @@ assert(drain_hole_diameter / 2 < radio_thickness / 2 - radio_chamfer_depth, "dra
 // The back wall rises over the radio's back face: level until it meets the
 // face's rounded outline, then along that outline to the face's top edge.
 back_top_z = radio_bottom_z + radio_height - radio_chamfer_width;
-// Per side: sx = -1 or 1.
-function back_corner_radius(sx) = radio_corner_radius - (sx > 0 ? back_edge_extra : 0);
-function back_corner_x(sx) = radio_width / 2 - radio_chamfer_width - back_corner_radius(sx);
-function back_corner_z(sx) = back_top_z - back_corner_radius(sx);
-assert(back_corner_radius(1) > cutout_edge_radius, "back's +x corner tighter than the rim's round");
+back_corner_x = radio_width / 2 - radio_chamfer_width - radio_corner_radius;
+back_corner_z = back_top_z - radio_corner_radius;
 // The radio's top bevel rises at this angle off horizontal, front to back.
 bevel_angle = atan(radio_chamfer_width / radio_chamfer_depth);
 // Where each tab's bend starts on the back wall's inner face: a tolerance
@@ -180,14 +169,16 @@ bevel_angle = atan(radio_chamfer_width / radio_chamfer_depth);
 tab_bend_z = back_top_z + tab_lift + tolerance * (1 / cos(bevel_angle) - tan(bevel_angle));
 // The top of each tab's bend, where it ends a wall thick over the bevel.
 tab_top_z = tab_bend_z + tab_reach * tan(bevel_angle) + wall * cos(bevel_angle);
-// Neighbouring tabs share a slit, so they sit a tab and a slit apart.
-tab_pitch = tab_width + slit_width;
-// The row is centred on the back's straight top edge.
-function tab_x(i) = (i - (tabs - 1) / 2) * tab_pitch + back_edge_extra / 2;
-tab_places = [for (i = [0 : tabs - 1]) if (len(search(i, tabs_left_out)) == 0) i];
-// Where a full row's outer slit ends on the sx side.
-function full_slit_outer(sx) = sx * tab_x(sx > 0 ? tabs - 1 : 0) + tab_width / 2 + slit_width;
-assert(back_corner_x(1) >= full_slit_outer(1) && back_corner_x(-1) >= full_slit_outer(-1), "back wall's flat top too narrow for the tabs and slits");
+// The row, slits at both ends included, from tab_start in on +x to tab_wrap
+// round the -x corner. Neighbouring tabs share a slit.
+tab_row_hi = radio_width / 2 - tab_start;
+tab_row_lo = -(back_corner_x + radio_corner_radius * sin(tab_wrap));
+tab_pitch = (tab_row_hi - tab_row_lo - slit_width) / tabs;
+tab_width = tab_pitch - slit_width;
+// Slit k's centre, k = 0 at +x; tab i sits between slits i and i + 1.
+function slit_x(k) = tab_row_hi - slit_width / 2 - k * tab_pitch;
+function tab_x(i) = slit_x(i) - tab_pitch / 2;
+assert(tab_row_hi <= back_corner_x, "tab row starts past the back's straight top edge");
 
 // The cutout seen from the front, in (x, z), grown by g.
 module cutout_profile(g = 0) {
@@ -280,45 +271,40 @@ module usb_notch(g) {
 // The raised back over the back wall only. The ball rolls along an arc an
 // edge-radius inside the face's corner, so the rounded top lands on it. From
 // the corner where the side slope arrives, a straight ramp runs up into the
-// arc, tangent to it, so the rim keeps climbing with no level step. Beside
-// the tabs the arc leaves along a tangent and climbs on, to a guard a wall
-// wide that stands just above the tabs' tops so they don't snag.
+// arc, tangent to it, so the rim keeps climbing with no level step. On -x the
+// tab row runs onto the arc, so the wall just follows it up to the face's top
+// edge. On +x a guard a wall wide stands beside the row's first slit, just
+// above the tabs' tops so they don't snag; the arc leaves along a tangent and
+// climbs to it.
 module under_back_rise() {
   e = cutout_edge_radius;
   p = [front_face_x, rim_back_z - e];
-  // The guard's top is round, radius `wall`, level with the tabs'. Its
-  // outer end sits where the outer slit of a full row of tabs would be; on
-  // a side whose outer tab is left out it runs flat in to the slit of the
-  // nearest tab. The climb runs along the line tangent to both the corner
-  // arc and the guard's outer round.
-  function slit_inner(sx) =
-    max([for (i = tab_places) sx * tab_x(i) + tab_width / 2 + slit_width]);
+  r = radio_corner_radius - e;
+  c = [back_corner_x, back_corner_z];
+  a0 = atan2(p[1] - c[1], p[0] - c[0]) + acos(r / norm(p - c));
+  assert(norm(p - c) > r, "back rim's ramp doesn't fit the face's corner arc");
   rg = wall - e;
   steps = 16;
-  function guard_side(sx) = let (
-      r = back_corner_radius(sx) - e,
-      c = [back_corner_x(sx), back_corner_z(sx)],
-      go = [full_slit_outer(sx) + wall, tab_top_z - wall],
-      gi = [slit_inner(sx) + wall, tab_top_z - wall],
-      a0 = atan2(p[1] - c[1], p[0] - c[0]) + acos(r / norm(p - c)),
-      a1 = atan2(go[1] - c[1], go[0] - c[0]) - acos((r - rg) / norm(go - c)),
-      // A guard tall enough that the climb from p clears the corner arc
-      // goes straight to it, tangent to its round.
+  // The guard's top is round, radius `wall`, level with the tabs'. The climb
+  // runs along the line tangent to both the corner arc and the guard's round;
+  // a guard tall enough that the climb from p clears the arc gets a straight
+  // ramp from p instead.
+  function guard_side() = let (
+      g = [tab_row_hi + wall, tab_top_z - wall],
+      a1 = atan2(g[1] - c[1], g[0] - c[0]) - acos((r - rg) / norm(g - c)),
       on_arc = a1 > a0,
-      ag = on_arc ? a1 : atan2(p[1] - go[1], p[0] - go[0]) + acos(rg / norm(p - go)),
+      ag = on_arc ? a1 : atan2(p[1] - g[1], p[0] - g[0]) + acos(rg / norm(p - g)),
       arc = on_arc ? [for (i = [0 : steps]) let (a = a0 + (a1 - a0) * i / steps) c + r * [cos(a), sin(a)]] : [],
-      cap_o = [for (i = [0 : steps]) let (a = ag + (90 - ag) * i / steps) go + rg * [cos(a), sin(a)]],
-      cap_i = [for (i = [0 : steps]) let (a = 90 + 90 * i / steps) gi + rg * [cos(a), sin(a)]]
+      cap = [for (i = [0 : 2 * steps]) let (a = ag + (180 - ag) * i / (2 * steps)) g + rg * [cos(a), sin(a)]]
     )
-    assert(norm(p - c) > r, "back guard doesn't fit the face's corner arc")
-    concat(arc, cap_o, cap_i, [[gi[0] - rg, back_top_z - e]]);
-  right = guard_side(1);
-  left = guard_side(-1);
+    concat(arc, cap, [[g[0] - rg, back_top_z - e]]);
+  corner_side = [for (i = [0 : steps]) let (a = a0 + (90 - a0) * i / steps) c + r * [cos(a), sin(a)]];
+  right = guard_side();
   translate([0, 2 * radio_thickness, 0]) rotate([90, 0, 0])
     linear_extrude(2 * radio_thickness)
       polygon(concat(
         [[-p[0], 0], [-p[0], p[1]]],
-        [for (pt = left) [-pt[0], pt[1]]],
+        [for (pt = corner_side) [-pt[0], pt[1]]],
         [for (i = [len(right) - 1 : -1 : 0]) right[i]],
         [p, [p[0], 0]]
       ));
@@ -450,23 +436,26 @@ module tab_profile() {
 // slits' rounded edges below them.
 tab_edge_radius = cutout_edge_radius - 0.05;
 
+// Each tab is tab_profile() run along the back face's top edge: straight
+// across the top, and swept round the -x corner's arc where the row runs
+// onto it, so the last tab's bend follows the curved bevel.
 module tabs() {
   r = tab_edge_radius;
-  rc = tab_corner_radius;
-  for (i = tab_places)
-    translate([tab_x(i), 0, 0]) intersection() {
-      minkowski() {
-        rotate([90, 0, 90]) linear_extrude(tab_width - 2 * r, center = true)
-          offset(delta = -r) tab_profile();
-        sphere(r = r);
+  big = 2 * radio_width;
+  swap = [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 1, 0]];
+  for (i = [0 : tabs - 1])
+    minkowski() {
+      intersection() {
+        translate([tab_x(i) - tab_width / 2 + r, -big, -big]) cube([tab_width - 2 * r, 2 * big, 2 * big]);
+        union() {
+          translate([-back_corner_x, 0, 0]) rotate([90, 0, 90]) linear_extrude(big)
+            offset(delta = -r) tab_profile();
+          translate([-back_corner_x, 0, back_corner_z]) rotate([-90, 0, 0]) rotate([0, 0, 180])
+            rotate_extrude(angle = 90)
+              translate([-back_corner_z, 0]) multmatrix(swap) offset(delta = -r) tab_profile();
+        }
       }
-      if (len(search(i, tabs_rounded)) > 0)
-        // Seen from behind, the top corners rounded off.
-        rotate([-90, 0, 0]) linear_extrude(2 * radio_thickness, center = true)
-          hull() {
-            for (sx = [-1, 1]) translate([sx * (tab_width / 2 - rc), -(tab_top_z - rc)]) circle(r = rc);
-            translate([-tab_width / 2, -(tab_top_z - rc)]) square([tab_width, tab_top_z - rc]);
-          }
+      sphere(r = r, $fn = 16);
     }
 }
 
@@ -497,8 +486,8 @@ module slits() {
   e = cutout_edge_radius;
   yi = radio_thickness / 2 + tolerance;
   mid = yi + wall / 2;
-  for (i = tab_places, sx = [-1, 1]) let (x = tab_x(i) + sx * tab_pitch / 2)
-    translate([x, mid, slit_bottom_z]) {
+  for (k = [0 : tabs])
+    translate([slit_x(k), mid, slit_bottom_z]) {
       rotate([90, 0, 0]) linear_extrude(wall + 2, center = true) slit_profile(0);
       difference() {
         rotate([90, 0, 0]) linear_extrude(wall + 0.02, center = true) slit_profile(e);
