@@ -706,7 +706,9 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
           description:
             'Change a plate: its name, material (PLA, PETG, PCTG, TPU…, which picks the filament preset '
             + 'it slices with), colour (#rrggbb), whether it is in the plan (skip), and which of its parts '
-            + 'print (items: {itemId: skip}). The plate re-slices on its own afterwards.',
+            + 'print (items: {itemId: skip}). The plate re-slices on its own afterwards. For a Bambu '
+            + 'printer, copy the type and colour of the AMS tray it should use (printers.status): the '
+            + 'proxy matches both exactly.',
           writes: true,
           args: {
             type: 'object',
