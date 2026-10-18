@@ -9,11 +9,11 @@ One PETG frame, a flat T, that carries a Meshtastic node inside a 2 L dry bag hu
 
 ## Load-bearing choices
 
-- **The bulkhead clamps through a thin wall on its panel nut** (Superbat B08ZYK5SL9: N female, hex nut and O-ring, not a flange). The nut is underneath and the jack's body and the coax are in `rear_gap` under the cell. `bulkhead_wall_t` is kept thin so the nut leaves thread for the antenna's coupling nut. `antenna_y` clears the nut's corners as it turns.
+- **The bulkhead clamps through a thin wall on its panel nut** (Superbat B08ZYK5SL9: N female, hex nut and O-ring, not a flange). The nut is underneath and the jack's body and the coax are in `rear_gap` under the cell. `bulkhead_wall_t` is kept thin so the nut leaves thread for the antenna's coupling nut; the user confirmed 4 mm. `antenna_y` clears the nut's corners as it turns.
 - **Saddles stop at the centreline** (no wrap, no snap), and zip ties do the holding. The user rejects snap fingers.
 - **Boards stand on ledges** along their bottom edge (their weight as it hangs) and inboard edge; their outboard edge is open, since the charge board's USB ports are there.
 - Reference geometry (`cell()`, `antenna()`, `boards()`) is preview only.
 
 ## Unmeasured
 
-`board_w`/`board_h` (from the photo, scaled off the cell's 32 mm; the Kingboss 15000 mAh LiFePO4 bank's 150 × 40 × 50 case bounds the board at about 37 × 47, standing across one end. Err wide: a board wider than `board_w` covers the outboard tie slot), `bulkhead_wall_t` against the jack's actual thread length, `rear_gap`, `kit_t`, and the Zanhour 2 L bag's size.
+`board_w`/`board_h` (from the photo, scaled off the cell's 32 mm; the Kingboss 15000 mAh LiFePO4 bank's 150 × 40 × 50 case bounds the board at about 37 × 47, standing across one end. Err wide: a board wider than `board_w` covers the outboard tie slot), `rear_gap`, `kit_t`, and the Zanhour 2 L bag's size.

@@ -19,7 +19,7 @@ plate_t = 3;
 n_thread_d = 15.9;
 n_hole_clear = 0.5;
 n_nut_af = 19.05;
-// Wall the bulkhead clamps through. Thin, so the panel nut leaves the antenna enough thread (not measured)
+// Wall the bulkhead clamps through. Thin, so the panel nut leaves the antenna enough thread (user confirmed 4 mm)
 bulkhead_wall_t = 4;
 // Room between the wall and the cell for the jack's body and the coax's bend (not measured)
 rear_gap = 22;

@@ -26,7 +26,7 @@ Cell → protection board → charge board's battery pads; the kit's battery pad
 
 ## Not measured yet
 
-The charge board's size is read off a photo (39 × 44 mm). The Kingboss's case is 150 × 40 × 50 mm, with the board standing across one end behind the ports, so the board can't be much over about 37 × 47. The frame takes that: the outboard tie slot is placed for 39 wide, and 3 mm of `board_gap` under the cell covers up to 47 tall. The bulkhead is taken as standard N: 5/8-24 thread through a 16.4 mm hole, 3/4" hex nut. How thick a wall it takes and still leaves the antenna enough thread isn't measured (4 mm here), nor is the room under the cell for the jack's body and the coax's bend (22 mm).
+The charge board's size is read off a photo (39 × 44 mm). The Kingboss's case is 150 × 40 × 50 mm, with the board standing across one end behind the ports, so the board can't be much over about 37 × 47. The frame takes that: the outboard tie slot is placed for 39 wide, and 3 mm of `board_gap` under the cell covers up to 47 tall. The bulkhead is taken as standard N: 5/8-24 thread through a 16.4 mm hole, 3/4" hex nut. The 4 mm wall is checked against the pigtail: it leaves the antenna enough thread. Not measured: the room under the cell for the jack's body and the coax's bend (22 mm).
 
 ## Parts
 
