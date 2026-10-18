@@ -1,3 +1,3 @@
 include <../lib/meshtastic-drybag-node-lib.scad>;
 $fn = 40;
-tray_print();
+gear_cover_print(1);

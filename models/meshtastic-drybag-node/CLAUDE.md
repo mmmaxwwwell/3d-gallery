@@ -2,7 +2,7 @@
 
 A Meshtastic node in a sealed box that winches itself up into a tree and stays there for years. Printed parts:
 - the box: TPU 64D
-- everything else (front door, gear tray, motor plate, reels and their flanges and hubs, gears, holder plates, crossmembers, roller cheeks, rollers and their bearings, panel mount): PCTG
+- everything else (front door, gear covers, reels and their flanges and hubs, gears, holder plates, crossmembers, roller cheeks, rollers and their bearings, panel mount): PCTG
 
 devOnly, unprinted.
 
@@ -37,6 +37,7 @@ It started as a flat T frame in a dry bag, from a photo of the parts laid out. A
   - "the bottom two rollers aren't mounted in anything" (the tower's lightening had cut their bosses away)
   - "print in place bearings for those rollers but print the rollers and bearings separate and assemble"
   - "the bolt come in at a 45 with holes, and indexing in and out deviations along the length of it ... get rid of that bulky backing on the inside of the rail"
+  - then: "just do a little channel with a couple indexing squares and the 45 degree screws"; the gearbox cover "doesn't need the vertical part ... two separate parts to keep the size down"; "remove a crossmember from the spool holder right under the rollers"; "the herringbone gears need print in place bearings on them if possible"; and "everything needs to be oversized ... we need low torque on the 3d printed parts"
 
 The user wants independent control of the reels with an IMU to level the node ("stepper motors or independent control somehow like have an accelerometer"). I chose self-locking worm gearmotors, because a stepper needs holding current to hang on the line for years.
 
@@ -48,37 +49,36 @@ The user wants independent control of the reels with an IMU to level the node ("
 
 ## Load-bearing choices
 
-- **Balance first.** The node hangs from the two roller windows, at `line_y` (the drum's middle) front to back. The tray, gears and motors are behind it. Three things bring the centre of mass under it:
+- **Balance first.** The node hangs from the two roller windows, at `line_y` (the drum's middle) front to back. The gears and motors are behind it. Three things bring the centre of mass under it:
   - the box running `box_front_extra` past the front plates (at least 24, or the front flange hits the front plates; asserted)
   - the cell standing `cell_back` back from the front door
   - the panel hanging in front (`panel_side` = +1, `panel_y`, the nearest the box's shade allows; asserted)
 
   Re-run the mass estimate after any change to them (see Checks).
 - **Box** (`frame()`): a tube along Y, `box_in_w` wide inside, `box_d` deep, `box_h` tall (set by the cell standing up plus the bulkhead's body over it).
-  - **Front:** the door seals on a tongue (`tongue()`) 0.3 mm a side wider than the groove (`seal_band()`), with screws in the front flange.
-  - **Back:** a slab (`slab_2d()`, `flange_len` deep) covers the opening's rim and both lobes. The tray seals on it (`tray_seal_band()`), and its screws (`tray_screws`) sit outside that seal. The output hubs' lip seals go through it, and the rear plates seat on its front face. It prints on the bed, so a lobe is solid TPU rather than a pocket, which would print with a roof over air.
-- **Gear tray** (`tray()`, the user's sealed gearbox):
-  - **Outline:** `tray_outline_2d()` is the box's outline plus a lobe each side (`lobe_2d()`, a hull of the gears' circles).
-  - **Construction:** a floor, a wall (`tray_wall`) carrying the tongue, and a flange plate that steps out at 45° under itself (it prints floor down).
-  - **Inside:** pins (`gear_pin_d`) carry the idlers and the output gear; posts (`post_pts`) carry the motor plate.
-  - **Fit:** it's `2 * lobe_x1` wide, which must fit the U1 (asserted). That's what holds `spool_x`, `seat_w`, `rail_h`, `ring_w` and the output gear's size where they are.
-- **Gears:** herringbones (`herringbone()`, each half a twisted extrusion of `gear_2d()` mirrored about the mid-plane), `gear_w` wide at `gear_helix` 30°.
-  - **Train:** pinion (`pinion_z`) → idler → idler (`idler_z`) → output (`out_z`), in a straight line from the motor's shaft to the reel's axis. `shaft_z` is wherever that line's length puts the reel.
-  - **Hands:** neighbouring gears take opposite hands.
-  - **Phase:** `mesh_phase()` turns each gear at the mid-plane so facing teeth meet gaps. Check the mesh by rendering `pinion()`, `idler(0)`, `idler(1)` and `output_gear()` separately: they must not intersect.
-  - **Ratio:** pinion to output is only 14:12. The reduction is the worm motor's own.
-  - **Parts:** a herringbone turned over is the other hand, so the four idlers and two pinions are one part each. The output gears carry a hub on one side, so there's a right and a left.
-- **Motors:** gearbox down on the motor plate (`motor_plate()`, on the tray's posts), so the shafts and the reels sit low; the encoders (`mot_encoder`) are on top. Each pinion's grub screw on its shaft's flat pulls the motor onto the plate. The charge board is above them.
+  - **Back:** a solid wall (`plate_t`), and a slab (`slab_2d()`, `flange_len` deep) over it and both lobes. The slab takes the covers' screws (`cover_screws`), the output hubs' lip seals, and the rear plates' seats. Both print on the bed.
+  - **Front:** it opens only at the front; the door seals on a tongue (`tongue()`) 0.3 mm a side wider than the groove (`seal_band()`).
+- **Motors** (`motor_seats()`): gearbox down on the back wall inside, between rims above and below, with the encoders (`mot_encoder`) on top and the charge board above. The motors go in through the front door. Each pinion's hub (`hub_d`) runs through a lip seal in the back wall, and its grub screw on the shaft's flat pulls the motor onto the wall.
+- **Gears:** herringbones (`herringbone()`), oversized (the user: "low torque on the 3d printed parts"): module `gear_m` 2.25, `gear_w` 16 wide, `gear_helix` 30°.
+  - **Train:** pinion (`pinion_z`) → idler → idler (`idler_z`) → output (`out_z`), in a straight line from the motor's shaft to the reel's axis. `shaft_z` is wherever that line's length puts the reel. Neighbouring gears take opposite hands, and `mesh_phase()` turns each at the mid-plane so facing teeth meet gaps.
+  - **Ratio:** 12:12, so the reduction is all the worm motor's.
+  - **Fit:** the module and tooth counts are held by the bed: the slab is `2 * lobe_x1` wide (asserted), and the two pinions must clear each other at the middle.
+  - **Idler bearings:** each idler carries a print-in-place roller bearing in its hub (`idler()`, hub `idler_hub_r`, on the cover's `gear_pin_d` pin), printed in one piece.
+  - **Output gear:** too small for a bearing inside its teeth, it turns on an `out_pin_d` pin. Its hub goes out through the slab into the reel's hub.
+  - **Parts:** a herringbone turned over is the other hand, so the idlers and pinions are one part each. The output gears carry a hub on one side, so there's a right and a left.
+  - **Check the mesh** by rendering `pinion()`, `idler(0)`, `idler(1)` and `output_gear()` separately: they must not intersect.
+- **Gear covers** (`gear_cover(s)`, the user's "two separate parts"): a floor and rim round each train, clipped at the middle where the two meet, with bosses round six screws into the slab and the floor. Pins in the floor carry the idlers and the output gear. They don't seal: the box is sealed at its wall and slab.
 - **Reel:** `spool()` has an integral rear flange and a hex spigot at the front for `reel_flange()`. Its rear has a hex socket (45° cone roof) for `reel_hub()`. The hub's journal turns in the rear plate's bore, and the output gear's hex tip goes into the hub.
 - **Holder plates** (`holder_2d()`, the user's "220x220 flat large skeleton pieces"). Each fits inside 220 × 220 (asserted).
   - **Shape:** a ring round the reel with a bar across at the axle round a boss, four spokes, the flat outer part up to the roller window, and the flat inner edge.
   - **Braces:** members from the ring's top and bottom, and the window's top, to that edge's ends.
   - **Lower rollers' bosses:** they stay solid when the tower is lightened (the user caught them floating).
-  - **Crossmembers** (`xbars()`, `xbar_angles`) go all the way round, except on the box's side.
-- **V channels** (`rail()`, `plate_edge()`, the user's):
-  - **Fit:** each plate's inner edge is bevelled 45° both sides and sits in a notch between two 45° TPU lips. The notch stands `rail_base` off the wall, so the 45° bolts' pilots (`bolt45()`, at `seat_zs`, into the rear lip) end in solid TPU without breaking through the wall (asserted).
-  - **Indexing:** the edge and the lips step out by `rail_step` around `step_zs`, so each plate locates up and down.
-  - **No backing:** there's no rib or ledge behind the plates any more.
+  - **Crossmembers** (`xbars()`, `xbar_angles`) go round the ring, except on the box's side and right under the rollers (the user had that one taken out).
+- **Channels** (`rail()`, `plate_edge()`, the user's "little channel with a couple indexing squares and the 45 degree screws"):
+  - **Seat:** each plate's inner edge sits on a base `ch_base` off the wall, between two low lips.
+  - **Indexing:** two square blocks (`idx_zs`) drop into notches in the edge.
+  - **Bolts:** four bolts (`bolt45()`, at `seat_zs`) go in at 45° through the edge into the base. Their pilots end in solid TPU without breaking through the wall (asserted).
+  - **Printing:** the base tapers into the wall at 45° under the rear lip, so it prints.
 - **Rollers, two axes:**
   - **Window:** at [`fl_xc`, `line_y`].
   - **Lower pair** (`lower_c`): axes along Y, plate to plate. They hold the line side to side.
@@ -92,12 +92,10 @@ The user wants independent control of the reels with an IMU to level the node ("
 
 ## Checks worth re-running after a change
 
-Intersect each pair of assembly groups: `frame`, `front_door`, `tray`, `motor_plate`, `reels`, `drive`, `holders`, `fairleads`, `all_rollers`, `panel_mount`, and the references `cell`, `motors`, `boards`, `antenna`, `panel`.
+Intersect each pair of assembly groups: `frame`, `front_door`, `covers`, `reels`, `drive`, `holders`, `fairleads`, `all_rollers`, `panel_mount`, and the references `cell`, `motors`, `boards`, `antenna`, `panel`.
 - **Box ∩ front door:** this should be the tongue's side squeeze only (~860 mm³).
-- **Box ∩ tray:** this should be the tray's tongue squeeze (~1430 mm³).
-- **Box ∩ drive:** this should be the output hubs' lip seals only (~245 mm³).
+- **Box ∩ drive:** this should be the pinion and output hubs' lip seals only (~360 mm³).
 - **Drive ∩ motors:** this should be the reference shaft in the pinion's D-bore only.
-- **Box ∩ holders:** this should be a film of a few mm³ where the plates sit flat on the slab and the front flange.
 - **Everything else** should be empty, the gears against each other included.
 
 **Balance:** take each group's volume and centroid × density (PCTG 1.27, TPU 1.21) × 0.6 infill. Add the guessed hardware:
@@ -108,11 +106,11 @@ Intersect each pair of assembly groups: `frame`, `front_door`, `tray`, `motor_pl
 - boards ~75 g
 - bolts 110 g
 
-Compare the centre of mass's y against `line_y`. v6 came out 0.3 mm off.
+Compare the centre of mass's y against `line_y`. v6 came out 0.7 mm forward, about 0.4° of tilt.
 
 ## Open, unmeasured
 
-- **Motors:** the drive gives only 14:12, so the JGY-370's own worm ratio does the work. A reel needs about 7 kg·cm at full radius (homelab-39 has 19 kg·cm worst case at the drum). JGY-370s need 12 V, hence the U3V40F12 boost. The ratio and rpm aren't chosen. The motor's real shaft position sets `pinion_c`, and the reels' height follows from it.
-- **Roller bearings:** `pip_c` 0.25 is untested in PCTG on the U1.
+- **Motors:** the drive is 1:1, so the JGY-370's own worm ratio does all the work. A reel needs about 7 kg·cm at full radius (homelab-39 has 19 kg·cm worst case at the drum). JGY-370s need 12 V, hence the U3V40F12 boost. The ratio and rpm aren't chosen. The motor's real shaft position sets `pinion_c`, and the reels' height follows from it.
+- **Print-in-place bearings** (rollers and idlers): `pip_c` 0.25 is untested in PCTG on the U1.
 - **Not measured:** every board's size (the DRV8871 and U3V40F12 are homelab-39's ~25 × 20 and ~25 × 13), the JGY-370's envelope, shaft and encoder, the solar panel (`panel_w`/`panel_h`), `n_body_d`/`n_body_len`, and the 5/8" connector's panel range.
-- The 12/14/18-tooth undercut is ignored (involute from the base circle, radial below it).
+- The 12/16-tooth undercut is ignored (involute from the base circle, radial below it).

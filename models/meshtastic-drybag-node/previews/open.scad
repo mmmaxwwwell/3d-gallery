@@ -1,9 +1,8 @@
 include <../lib/meshtastic-drybag-node-lib.scad>;
 $fn = 40;
 color("#2f3542") frame();
-color("#747d8c") tray();
+color("#747d8c") gear_cover(-1);
 color("#e1b12c") drive();
-color("#8395a7") motor_plate();
 color("#7bed9f") cell();
 color("#ff6348") motors();
 color("#2ed573") boards();

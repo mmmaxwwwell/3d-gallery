@@ -7,19 +7,20 @@
 // between them.
 //
 // The box (TPU 64D, sealed) sits in the middle, as deep as the reels plus
-// a little in front. It closes at the front with a PCTG door, and at the
-// back with a PCTG gear tray contoured round both gear trains, each on a
-// tongue wider than the groove round its rim, held by M5 x 10 screws
-// outside the seal; every M5 x 10 gets 8 mm of thread. The gears run dry in
-// the tray; the motors stand on a plate on it, so motors and gears come
-// out together. The front door carries the other boards and the saddles
-// that hold the cell standing up. The radio sits on the right wall
+// a little in front. Its back is a solid wall; it opens at the front, with
+// a PCTG door on a tongue wider than the groove round its rim, held by M5 x
+// 10 screws outside the seal; every M5 x 10 gets 8 mm of thread. The motors
+// stand on the back wall inside, their pinions' hubs out through lip seals
+// in it. The front door carries the boards and the saddles that hold the
+// cell standing up. The radio sits on the right wall
 // under the antenna's bulkhead in the top, within the pigtail's 6", with
 // room for a 1 W module instead; the antenna's stem is part of the box.
 //
-// Each motor drives its reel through herringbone gears in the tray: a
-// pinion, two idlers, and an output gear on the reel's axis, whose hub runs
-// out through a lip seal in the box's back slab into a hex in the reel's hub. Each reel turns between two flat skeleton plates
+// Each motor drives its reel through herringbone gears behind the back wall,
+// under a small bolt-on cover each side: a pinion, two idlers on
+// print-in-place bearings, and an output gear on the reel's axis whose hub
+// runs out through a lip seal in the box's back slab into a hex in the
+// reel's hub. Each reel turns between two flat skeleton plates
 // (PCTG, each inside 220 x 220): a ring round it with spokes, crossmembers
 // round it, and a flat outer part carrying the rollers. Each plate's inner
 // edge sits in a channel on the box's side and screws in: the rear one on
@@ -38,7 +39,9 @@ cell_len = 140;
 cell_clear = 0.4;
 end_clear = 3;
 // How far back from the front door the cell stands (its saddles reach it): it trims the node level
-cell_back = 40;
+cell_back = 50;
+// The back wall's thickness
+plate_t = 6;
 // Box (TPU 64D): its inside width, how far it runs on past the front plates
 // (it balances the gears behind), its walls, its floor (thick enough for the
 // panel spine's blind pilots), and its top (for the bulkhead)
@@ -123,30 +126,38 @@ mot_d = 26;
 mot_h = 32;
 mot_shaft_in = 16;
 // Its D-shaft: diameter, across the flat, length past the output face. The
-// pinion's grub screw on the flat pulls the motor's face against the plate.
+// pinion's grub screw on the flat pulls the motor's face against the back wall.
 shaft_d = 6;
 shaft_flat = 5;
 shaft_len = 14;
-// Drive: herringbone gears in the sealed tray. Module, teeth on the pinion,
-// the two idlers and the output gear, face width, and helix angle (30°: each
-// half's flanks lean less than 45°, so they print gear down). Idlers and
-// output turn on pins in the tray's floor, run with silicone oil.
-gear_m = 2;
+// Drive: herringbone gears behind the back wall. Module, teeth on the
+// pinion, the two idlers and the output gear, face width, and helix angle
+// (30°: each half's flanks lean less than 45°, so they print gear down).
+// The idlers turn on print-in-place roller bearings in their hubs, on pins
+// in the covers' floors; the output gear on its own pin, with silicone oil.
+gear_m = 2.25;
 pinion_z = 12;
-idler_z = 18;
-out_z = 14;
-gear_w = 12;
+idler_z = 16;
+out_z = 12;
+gear_w = 16;
 gear_helix = 30;
-gear_pin_d = 8;
-// The tray: its floor, its wall (the tongue stands on it), and its gap round the gears
-tray_floor = 2.5;
+gear_pin_d = 7;
+out_pin_d = 10;
+// The idlers' bearings' hub radius (the other sizes are the rollers' bearings')
+idler_hub_r = 6.25;
+// The gear covers: floor, wall and gap round the gears; and the slab's
+// outline round them (the old tray's wall and gap set how big it is)
+cover_floor = 2;
+cover_wall = 2.5;
 tray_wall = 4;
 tray_gap = 1;
+// The pinion's hub through the back wall, in a hole this much tighter (a lip seal)
+hub_d = 12;
 // The output gear's hub through the back slab, in a hole this much tighter
 // (a lip seal in the TPU), and its hex tip into the reel's hub (across flats)
-out_hub_d = 14;
+out_hub_d = 16;
 hub_seal = 0.4;
-out_hex = 10;
+out_hex = 12;
 // Reels for 150-200 ft of 1/8" Dacron: flange diameter, core, length
 // between flanges, flange thickness; gap from the flanges to the holders'
 // seats on the box
@@ -169,29 +180,29 @@ axle_d = 5.4;
 journal_clear = 0.5;
 // Holder plates (PCTG): thickness, crossmember width, the rings' gap to the
 // reel and width, and the gap between pieces. Each plate's inner edge sits
-// in a V channel on the box's side (the user's): its edge bevelled 45° both
-// sides into a notch between two 45° TPU lips, bolted at 45° through the
-// edge into the rear lip, and stepped in and out along its length to index
-// it. How far the plate's flat inner edge reaches out from the box (seat_w),
-// how far the V's tip stands off the wall (so the bolts' pilots end in solid
-// TPU, not through the wall), how far the lips stand out past it (rail_h),
-// and the steps' depth and length.
+// in a little channel on the box's side (the user's): on a TPU base between
+// two low lips, two square blocks in it indexing notches in the edge, and
+// bolts at 45° through the edge into the base. How far the plate's flat
+// inner edge reaches out (seat_w); the base's thickness off the wall (so
+// the bolts' pilots end in solid TPU, not through the wall); the lips'
+// height and thickness; the blocks' length and depth.
 cage_t = 8;
 bar_w = 10;
 ring_gap = 3;
 ring_w = 8;
 cage_gap = 1;
 seat_w = 13;
-rail_base = 3;
-rail_h = 7;
-rail_step = 3;
-rail_step_len = 16;
+ch_base = 4;
+ch_lip_h = 3;
+ch_lip_t = 2.5;
+idx_len = 8;
+idx_d = 3;
 // Crossmembers between each reel's plates: width (along the ring),
 // thickness (across it), and their angles out from the reel's axis (right
 // reel; the left mirrors). None on the box's side, where the plates seat.
 xbar_w = 16;
 xbar_t = 8;
-xbar_angles = [0, 60, 120, -60, -120];
+xbar_angles = [0, 120, -60, -120];
 // Dovetails on the crossmembers' ends: depth, width at the shoulder and the tip, clearance
 dv_depth = 3.5;
 dv_w0 = 10;
@@ -264,17 +275,17 @@ box_half = in_half + wall;
 flange_h = ear_out + ear_r;
 ring_r0 = spool_od / 2 + ring_gap;
 ring_r1 = ring_r0 + ring_w;
-seat_x0 = box_half + rail_base;
-seat_x1 = box_half + seat_w;
-spool_x = max(seat_x1 + spool_side_gap + spool_od / 2, seat_x0 + rail_h + rail_step + spool_side_gap + spool_od / 2, seat_x0 + ring_r1 + 3);
+seat_x0 = box_half + ch_base;
+seat_x1 = seat_x0 + seat_w;
+spool_x = max(seat_x0 + ch_lip_h + spool_side_gap + spool_od / 2, seat_x0 + ring_r1 + 1);
 
-// Depth, back to front: the tray, its gears just behind the box's back
-// slab; the slab; the rear plate on its front face; the reel's rear
-// flange, drum and front flange; the front plate on its rib; the box on to
-// the front door.
+// Depth, back to front: the covers, the gears just behind the box's back
+// wall and slab; the slab; the rear plate on its front face; the reel's
+// rear flange, drum and front flange; the front plate on its rib; the box
+// on to the front door.
 gear_y1 = -tray_gap;
 gear_y0 = gear_y1 - gear_w;
-tray_y0 = gear_y0 - tray_gap - tray_floor;
+cover_y0 = gear_y0 - tray_gap - cover_floor;
 rear_y0 = flange_len;
 rear_y1 = rear_y0 + cage_t;
 rflange_y0 = rear_y1 + cage_gap;
@@ -286,11 +297,10 @@ box_d = front_y1 + box_front_extra;
 // The line runs centred between the plates, at the drum's middle.
 line_y = (rear_y1 + front_y0) / 2;
 
-// Inside, behind to front: the motor plate on the tray; the motors standing
-// on it side by side, their shafts back through it; the cell standing at
-// the front door; the boards on the doors. The bulkhead's body hangs over
-// the cell.
-mplate_t = 4;
+// Inside, behind to front: the motors standing on the back wall side by
+// side, their shafts back through it; the cell standing back from the
+// front door; the boards on the door and the back wall. The bulkhead's body
+// hangs over the cell.
 mot_z0 = floor_t + 3;
 mot_x0 = 0.5;
 mot_top = mot_z0 + mot_encoder + mot_len;
@@ -357,20 +367,18 @@ door_side_zs = [for (k = [0 : door_side_screws - 1]) 20 + (box_h - 40) * k / (do
 door_screws = concat(
   [for (sx = [-1, 1], z = door_side_zs) [sx * door_x, z]],
   [for (x = door_top_xs, z = [-ear_out, box_h + ear_out]) [x, z]]);
-// The tray's screws, [x, z], in the back slab outside its seal: up the box's
-// sides where the lobes don't meet them, along its top and bottom, and along
-// each lobe's edges.
-function lobe_z_at(x) = shaft_z + (x - spool_x) * tan(gear_th);
-tray_screws = concat(
-  [for (sx = [-1, 1], z = door_side_zs) if (abs(z - lobe_z_at(door_x)) > lobe_rs[0] / cos(gear_th) + ear_r + 2) [sx * door_x, z]],
-  [for (x = door_top_xs, z = [-ear_out, box_h + ear_out]) [x, z]],
-  [for (sx = [-1, 1], i = [1, 2], side = [-1, 1]) let(p = lobe_cs[i] + side * (lobe_rs[i] + ear_out) * gear_n) [sx * p[0], p[1]]],
-  [for (sx = [-1, 1], side = [-1, 1]) let(p = lobe_cs[1] - 30 * gear_u + side * (lobe_rs[1] + ear_out) * gear_n) [sx * p[0], p[1]]]);
+// Each gear cover's screws (right side), [x, z], into the back slab: along
+// the lobe's edges, and one under the pinion into the box's floor.
+// Any that would crowd a holder plate's 45° bolt are left out.
+cover_screws_all = concat(
+  [for (i = [1, 2], side = [-1, 1]) lobe_cs[i] + side * (lobe_rs[i] + ear_out) * gear_n],
+  [for (side = [-1, 1]) lobe_cs[1] - 30 * gear_u + side * (lobe_rs[1] + ear_out) * gear_n],
+  [[pinion_c[0], floor_t / 2]]);
 // The holder plates' bolts into their V channels, [z]: between the door
 // screws; and the channel's steps outward, between those.
 seat_zs = [for (k = [0 : door_side_screws - 2]) (door_side_zs[k] + door_side_zs[k + 1]) / 2];
-step_zs = [for (k = [0 : len(seat_zs) - 2]) (seat_zs[k] + seat_zs[k + 1]) / 2];
-function rail_s(z) = max([0, for (zs = step_zs) abs(z - zs) < rail_step_len / 2 ? rail_step : 0]);
+idx_zs = [(seat_zs[0] + seat_zs[1]) / 2, (seat_zs[len(seat_zs) - 2] + seat_zs[len(seat_zs) - 1]) / 2];
+cover_screws = [for (p = cover_screws_all) if (min([for (z = seat_zs) abs(p[1] - z) > m5_pilot_d + 1 || abs(p[0]) > seat_x0 + 4 ? 1 : 0]) == 1) p];
 // Each plate's channel: the plates' mid-thickness y.
 rail_ycs = [rear_y0 + cage_t / 2, front_y0 + cage_t / 2];
 // The plates' inner edge runs up the seat from just under the lowest door screw.
@@ -384,10 +392,8 @@ xbar_total = xbar_len + 2 * dv_depth;
 pip_rc = pip_hub_r + pip_c + pip_rn;
 pip_ro = pip_rc + pip_rn + pip_c;
 
-// The motor plate's posts on the tray, [x, z]: clear of the pinions, the
-// motors and the charge board.
-post_pts = [[0, pinion_c[1] + 28], [in_half - 7, pinion_c[1] + 32], [-in_half + 7, pinion_c[1] + 32], [in_half - 7, charge_pocket[3] - 4], [-in_half + 7, charge_pocket[3] - 4]];
-mplate_z1 = charge_pocket[3] + rim_w + 4;
+function pipr_c(hr) = hr + pip_c + pip_rn;
+function pipr_o(hr) = pipr_c(hr) + pip_rn + pip_c;
 
 // The roller window (right reel), at [fl_xc, line_y] on top of the reel's
 // outer edge: the lower pair at fl_za, either side of fl_xc; the upper
@@ -440,12 +446,15 @@ assert(cage_t >= thread_len, "holder plates too thin for the axles' 8 mm of thre
 assert(2 * mot_h + 2 * mot_x0 <= box_in_w, "the motors don't fit side by side");
 assert(cell_c[0] + cell_r <= 0, "the cell doesn't fit beside the middle");
 assert(gear_len > gear_dx, "the gear train can't reach the reel's axis");
-assert(2 * lobe_x1 + 2 <= 268, "the tray doesn't fit the U1's bed");
+assert(2 * lobe_x1 + 2 <= 268, "the box's slab doesn't fit the U1's bed");
+assert(pitch_r(idler_z) - 1.25 * gear_m - pipr_o(idler_hub_r) - pip_b >= 2.5, "the idlers' bearings leave too little gear round them");
+assert(idler_hub_r - pip_b - pip_c - gear_pin_d / 2 >= 1.4, "the idlers' bearing hubs are too thin on their pins");
+assert(pinion_c[1] - tip_r(pinion_z) - tray_gap - cover_wall > floor_t / 2 + m5_head_d / 2, "the pinion crowds its cover's floor screw");
 assert(box_d - flange_len - flange_h >= front_y1, "the front flange runs into the front plates");
 assert(abs(seat_zs[0] - door_side_zs[0]) > m5_head_d + 2, "the plates' screws crowd the door screws");
-assert(kit_top - radio_room[1] > mot_top + 2 || room_y0 > mplate_t + mot_d + 2, "no room left on the right wall for a 1 W module");
+assert(kit_top - radio_room[1] > mot_top + 2 || room_y0 > plate_t + mot_d + 2, "no room left on the right wall for a 1 W module");
 assert(boost_pocket[3] + rim_w < ceiling, "the front door's boards don't fit");
-assert(mplate_t + mot_d + 1 < cell_c[1] - cell_r, "the motors run into the cell");
+assert(plate_t + mot_d + 1 < cell_c[1] - cell_r, "the motors run into the cell");
 assert(box_h - kit_pocket[1] < 152 - 60, "radio kit is out of the 6\" pigtail's reach");
 assert(bulkhead_bottom > cell_z0 + cell_len + end_clear, "the bulkhead's body hangs into the cell");
 assert(antenna_x - solar_c[0] > nut_r + 12 && antenna_x + n_body_d / 2 < in_half - radio_room[2], "the bulkhead crowds the solar connector or the radio's room");
@@ -462,8 +471,8 @@ assert(pip_hub_r - pip_b - pip_c - axle_d / 2 >= 1.4 && rb_d / 2 - pip_ro - pip_
 assert(2 * PI * pip_rc / pip_n > 2 * (pip_rn + pip_b) + 0.6, "too many pins for the roller bearing's circle");
 assert(roller_d / 2 - rb_d / 2 - rb_press >= 2.5, "the roller's wall round its bearings is too thin");
 assert(stem_y1 - stem_y0 >= stem_len, "the antenna's stem is too short for its 45° front edge");
-for (p = tray_screws, z = seat_zs) assert(abs(p[1] - z) > m5_pilot_d + 1 || abs(p[0]) > seat_x0 + rail_h + 4, "a tray screw crowds a holder plate's bolt");
-for (z = seat_zs) assert(bolt45_p(rail_ycs[0], z)[0] - pilot_depth / sqrt(2) - m5_pilot_d / sqrt(2) > in_half + 2, "a plate's bolt pilot breaks through the box's wall");
+for (p = cover_screws, z = seat_zs) assert(abs(p[1] - z) > m5_pilot_d + 1 || abs(p[0]) > seat_x0 + 4, "a cover screw crowds a holder plate's bolt");
+for (z = seat_zs) assert(bolt45_p(rail_ycs[0], z)[0] - pilot_depth / sqrt(2) - m5_pilot_d / 2 / sqrt(2) > in_half + 2, "a plate's bolt pilot breaks through the box's wall");
 
 // Round hole along Z. Holes are round everywhere, no teardrops (the user's call).
 module tear_2d(d, y_max = 1e9) {
@@ -536,10 +545,9 @@ module seal_band(w) {
   }
 }
 
-// The tray seen from behind: the box (its seal on the same line as the
-// front door's), and a lobe each side round the gear train out to the
-// reel's axis; its seal's band, and the slab's flange round it, stopping
-// short at the lobes' ends.
+// The back slab seen from behind: the box, and a lobe each side round the
+// gear train out to the reel's axis, and a flange round them for the
+// covers' screws, stopping short at the lobes' ends.
 module lobe_2d() {
   hull() for (i = [0 : 2]) translate(lobe_cs[i]) circle(r = lobe_rs[i], $fn = 64);
 }
@@ -550,12 +558,6 @@ module tray_outline_2d() {
     mirror([1, 0]) lobe_2d();
   }
 }
-module tray_seal_band(w) {
-  difference() {
-    offset(w / 2) offset(-tray_wall / 2) tray_outline_2d();
-    offset(-w / 2) offset(-tray_wall / 2) tray_outline_2d();
-  }
-}
 module slab_2d() {
   intersection() {
     offset(flange_h) tray_outline_2d();
@@ -563,9 +565,9 @@ module slab_2d() {
   }
 }
 
-// The flanges and the plates' channels. At the back, a slab round the
-// opening and over both lobes, for the tray's seal and screws, the output
-// hubs' lip seals, and the rear plates to seat on, with a lip in front. Each side, a rib the front plate seats on, with a lip behind
+// The flanges and the plates' channels. At the back, a slab over the back
+// wall and both lobes, for the covers' screws, the output hubs' lip seals,
+// and the rear plates to seat on. Each side, a rib the front plate seats on, with a lip behind
 // it; and a flange round the front opening. The box prints back face down,
 // so the rib and the front flange taper out at 45° from below.
 module flanges() {
@@ -579,21 +581,27 @@ module flanges() {
   }
 }
 
-// A V channel up the box's right side for a plate centred at yc: two lips,
-// 45° each way, a notch between them that the plate's bevelled edge sits
-// in; stepped out where rail_s() says, to index the plate.
-module rail_lips_2d(yc, st) {
-  for (m = [0, 1]) translate([0, yc]) mirror([0, m]) translate([0, -yc])
-    polygon([[box_half - 0.01, yc], [seat_x0 + st, yc], [seat_x0 + st + rail_h, yc - rail_h], [box_half - 0.01, yc - 2 * rail_h - st - rail_base]]);
-}
+// The little channel up the box's right side for a plate centred at yc: a
+// base off the wall, a low lip either side of the plate's edge, and two
+// square blocks that index notches in the edge. Under the rear lip it
+// tapers into the wall at 45°, so it prints (back face down) without a shelf.
 module rail(yc) {
-  zs = concat([strip_z0], [for (z = step_zs) each [z - rail_step_len / 2, z + rail_step_len / 2]], [box_h]);
-  for (k = [0 : len(zs) - 2]) translate([0, 0, zs[k]]) linear_extrude(zs[k + 1] - zs[k] + 0.01)
-    intersection() { rail_lips_2d(yc, k % 2 == 1 ? rail_step : 0); translate([0, 0]) square([500, 500]); }
+  h = box_h - strip_z0;
+  y0 = yc - cage_t / 2 - 0.2 - ch_lip_t;
+  y1 = yc + cage_t / 2 + 0.2 + ch_lip_t;
+  translate([0, 0, strip_z0]) {
+    hull() {
+      translate([box_half - 0.01, y0, 0]) cube([ch_base + ch_lip_h + 0.01, ch_lip_t, h]);
+      translate([box_half - 0.01, y0 - ch_base - ch_lip_h, 0]) cube([0.01, ch_base + ch_lip_h, h]);
+    }
+    translate([box_half - 0.01, y0, 0]) cube([ch_base + 0.01, y1 - y0, h]);
+    translate([seat_x0 - 0.01, y1 - ch_lip_t, 0]) cube([ch_lip_h + 0.01, ch_lip_t, h]);
+  }
+  for (z = idx_zs) translate([seat_x0 - 0.01, y0, z - idx_len / 2]) cube([idx_d + 0.01, y1 - y0, idx_len]);
 }
-// The bolt through a plate's bevelled edge into the rear lip at height z:
-// at 45°, its thread exiting the plate's rear bevel at its middle.
-function bolt45_p(yc, z) = [seat_x0 + rail_s(z) + 3, yc - 3, z];
+// The bolt through a plate's edge into the channel's base at height z: at
+// 45°, its thread leaving the plate's edge face behind the plate's middle.
+function bolt45_p(yc, z) = [seat_x0, yc - 2, z];
 module bolt45(yc, z, pilot = false) {
   translate(bolt45_p(yc, z)) rotate([0, 0, 45]) rotate([0, 90, 0])
     if (pilot) translate([0, 0, -pilot_depth]) cylinder(d = m5_pilot_d, h = pilot_depth + 0.5, $fn = 24);
@@ -611,6 +619,15 @@ module stem() {
   }
 }
 
+// The motors stand on the back wall side by side between rims above and
+// below (the side walls hold them across); the charge board over them. All
+// grow off the back wall, so they print.
+module motor_seats() {
+  for (z = [mot_z0 - pocket_clear - rim_w, mot_top + pocket_clear])
+    xz_extrude(plate_t - 0.01, plate_t + rim_h + 4) translate([-mot_x0 - mot_h, z]) square([2 * (mot_x0 + mot_h), rim_w]);
+  xz_extrude(plate_t - 0.01, plate_t + rim_h) pocket_rim_2d(charge_pocket);
+}
+
 // The kit's pocket on the right wall: rims along Y only, which print as walls.
 module wall_rims(p) {
   for (z = [p[1] - rim_w, p[3]]) translate([in_half - rim_h, p[0] - rim_w, z]) cube([rim_h + 0.01, p[2] - p[0] + 2 * rim_w, rim_w]);
@@ -623,14 +640,15 @@ module frame() {
       flanges();
       wall_rims(kit_pocket);
       stem();
+      motor_seats();
     }
-    translate([-in_half, -1, floor_t]) cube([box_in_w, box_d + 2, ceiling - floor_t]);
-    // Grooves round both rims: the tray's at the back, the door's at the front.
-    translate([0, -1, 0]) xz_extrude(0, groove_depth + 1) tray_seal_band(groove_w);
+    translate([-in_half, plate_t, floor_t]) cube([box_in_w, box_d, ceiling - floor_t]);
+    // The front door's groove and screws' pilots; the covers' screws' pilots in the slab.
     xz_extrude(box_d - groove_depth, box_d + 1) seal_band(groove_w);
-    // Their screws' pilots, in the slab and the front flange.
-    for (p = tray_screws) y_cyl(p, -1, pilot_depth, m5_pilot_d, 24);
     for (p = door_screws) y_cyl(p, box_d - pilot_depth, box_d + 1, m5_pilot_d, 24);
+    for (sx = [-1, 1], p = cover_screws) y_cyl([sx * p[0], p[1]], -1, pilot_depth, m5_pilot_d, 24);
+    // The pinions' hubs through the back wall: a tight hole, so the TPU seals round them.
+    for (sx = [-1, 1]) y_cyl([sx * pinion_c[0], pinion_c[1]], -1, plate_t + 1, hub_d - hub_seal, 48);
     // The output gears' hubs through the slab: a tight hole, so the TPU seals round them.
     for (sx = [-1, 1]) y_cyl([sx * ring_c[0], ring_c[1]], -1, flange_len + 1, out_hub_d - hub_seal, 48);
     // The plates' own screws into their seats.
@@ -648,14 +666,13 @@ module frame() {
 // The tongue's tip starts narrower than the groove and widens to full width
 // over tongue_lead, in steps, so it leads itself in. Drawn from y = 0 into
 // -y; the caller places it.
-module tongue(tray = false) {
+module tongue() {
   steps = 4;
-  xz_extrude(-(tongue_len - tongue_lead), 0.01) band(tongue_w, tray);
+  xz_extrude(-(tongue_len - tongue_lead), 0.01) seal_band(tongue_w);
   for (i = [0 : steps - 1])
     xz_extrude(-tongue_len + tongue_lead * i / steps, -tongue_len + tongue_lead * (i + 1) / steps + 0.01)
-      band(groove_w - 0.2 + (tongue_w - groove_w + 0.2) * i / steps, tray);
+      seal_band(groove_w - 0.2 + (tongue_w - groove_w + 0.2) * i / steps);
 }
-module band(w, tray) { if (tray) tray_seal_band(w); else seal_band(w); }
 
 module pocket_rim_2d(p) {
   difference() {
@@ -691,47 +708,36 @@ module front_door() {
     }
 }
 
-// The gear tray, the back of the box (the user's sealed gearbox): a floor,
-// a wall round the box and both lobes, and a flange plate on the slab, its
-// tongue in the slab's groove. Pins on its floor carry the idlers and the
-// output gears; posts carry the motor plate. The box prints back face down
-// and the tray floor down, so neither has a roof over a void; the flange
-// plate steps out at 45° under itself.
-module tray() {
-  difference() {
-    union() {
-      xz_extrude(tray_y0, tray_y0 + tray_floor) tray_outline_2d();
-      xz_extrude(tray_y0, 0) difference() { tray_outline_2d(); offset(-tray_wall) tray_outline_2d(); }
-      xz_extrude(-cover_t, 0) difference() { offset(-0.5) slab_2d(); offset(-0.01) tray_outline_2d(); }
-      for (k = [1 : 5]) xz_extrude(-cover_t - flange_h * k / 5, -cover_t - flange_h * (k - 1) / 5 + 0.01)
-        difference() {
-          intersection() { offset(-0.5) slab_2d(); offset(flange_h * (1 - k / 5)) tray_outline_2d(); }
-          offset(-0.01) tray_outline_2d();
-        }
-      mirror([0, 1, 0]) tongue(true);
-      for (sx = [-1, 1]) mirror([sx < 0 ? 1 : 0, 0, 0]) for (c = lobe_cs) y_cyl(c, tray_y0 + 0.01, gear_y1 - 0.5, gear_pin_d, 32);
-      for (p = post_pts) y_cyl(p, tray_y0 + 0.01, 0, 10, 32);
-    }
-    for (p = tray_screws) plate_screw([p[0], 0, p[1]], [0, -1, 0], cover_t + flange_h);
-    for (p = post_pts) y_cyl(p, -pilot_depth, 1, m5_pilot_d, 24);
+// Gear cover (s = +1 right, -1 left, a mirror image), the user's small
+// bolt-on one: a floor and a rim round one gear train, clipped at the
+// middle where the two meet, bosses round its screws into the back slab,
+// and pins in its floor for the idlers and the output gear. It doesn't
+// seal: the box is sealed at the back wall and the slab.
+module cover_hull_2d() {
+  hull() {
+    translate(pinion_c) circle(r = tip_r(pinion_z) + tray_gap + cover_wall, $fn = 48);
+    for (c = idlers_c) translate(c) circle(r = tip_r(idler_z) + tray_gap + cover_wall, $fn = 64);
+    translate(ring_c) circle(r = tip_r(out_z) + tray_gap + cover_wall, $fn = 64);
   }
 }
-
-// Motor plate (PCTG): the motors stand on its front face side by side
-// between rims above and below (the box's side walls hold them across), their
-// shafts back through it to the pinions; the charge board over them. It
-// screws onto the tray's posts, so motors and gears come out with the tray.
-module motor_plate() {
-  difference() {
-    union() {
-      translate([-in_half + 0.5, 0, floor_t + 0.5]) cube([box_in_w - 1, mplate_t, mplate_z1 - floor_t - 0.5]);
-      for (z = [mot_z0 - pocket_clear - rim_w, mot_top + pocket_clear])
-        xz_extrude(mplate_t - 0.01, mplate_t + rim_h + 4) translate([-mot_x0 - mot_h, z]) square([2 * (mot_x0 + mot_h), rim_w]);
-      xz_extrude(mplate_t - 0.01, mplate_t + rim_h) pocket_rim_2d(charge_pocket);
+module gear_cover(s = 1) {
+  mirror([s < 0 ? 1 : 0, 0, 0])
+    difference() {
+      union() {
+        xz_extrude(cover_y0, cover_y0 + cover_floor) intersection() { cover_hull_2d(); translate([0.25, -500]) square([1000, 1000]); }
+        xz_extrude(cover_y0, -0.5) difference() {
+          intersection() { cover_hull_2d(); translate([0.25, -500]) square([1000, 1000]); }
+          intersection() { offset(-cover_wall) cover_hull_2d(); translate([-1, -500]) square([1000, 1000]); }
+        }
+        for (p = cover_screws) hull() {
+          y_cyl(p, cover_y0, -0.5, 13);
+          y_cyl(p + 6 * ((p[1] < pinion_c[1] ? [0, 1] : (lobe_z_at(p[0]) > p[1] ? gear_n : -gear_n))), cover_y0, -0.5, 4);
+        }
+        for (c = idlers_c) y_cyl(c, cover_y0 + 0.01, gear_y1 - 0.3, gear_pin_d, 32);
+        y_cyl(ring_c, cover_y0 + 0.01, gear_y1 - 0.3, out_pin_d, 32);
+      }
+      for (p = cover_screws) plate_screw([p[0], -0.5, p[1]], [0, -1, 0], -0.5 - cover_y0);
     }
-    for (sx = [-1, 1]) y_cyl([sx * pinion_c[0], pinion_c[1]], -1, mplate_t + 1, shaft_d + 2, 32);
-    for (p = post_pts) plate_screw([p[0], 0, p[1]], [0, 1, 0], mplate_t);
-  }
 }
 
 // The reel's hub: its journal turns in the rear plate's bearing bore, its
@@ -776,14 +782,18 @@ module reel_flange() {
     }
 }
 
-// Pinion on the motor's D-shaft, in the tray. An M3 grub screw from the
-// root between two teeth, at the gear's mid-plane, on the shaft's flat,
-// holds it and pulls the motor onto the motor plate.
+// Pinion on the motor's D-shaft, behind the back wall, its hub through the
+// wall's lip seal. An M3 grub screw from the root between two teeth, at the
+// gear's mid-plane, on the shaft's flat, holds it and pulls the motor onto
+// the back wall.
 module pinion() {
   grub = 180 / pinion_z;
   difference() {
-    herringbone(pinion_c, pinion_z, pinion_psi, 1);
-    xz_extrude(gear_y0 - 1, 0) translate(pinion_c) rotate(pinion_psi + grub)
+    union() {
+      herringbone(pinion_c, pinion_z, pinion_psi, 1);
+      y_cyl(pinion_c, gear_y1 - 0.01, plate_t - 0.5, hub_d);
+    }
+    xz_extrude(gear_y0 - 1, plate_t) translate(pinion_c) rotate(pinion_psi + grub)
       intersection() {
         circle(d = shaft_d + 0.15, $fn = 32);
         translate([-shaft_d / 2 - 0.1, -shaft_d]) square([shaft_flat + 0.15, 2 * shaft_d]);
@@ -792,17 +802,36 @@ module pinion() {
   }
 }
 
-// Idlers (i = 0, 1): on the tray's pins, run with silicone oil. A herringbone
-// turned over is the other hand, so all four are one part.
+// Idlers (i = 0, 1): a herringbone with a print-in-place roller bearing in
+// its hub (the user's), printed in one piece: the gear is the outer race,
+// the hub goes on the cover's pin, and pip_n pins with a 45° collar run in V
+// grooves in both. A herringbone turned over is the other hand, so all four
+// are one part.
 module idler(i = 0) {
+  c = idlers_c[i];
+  hr = idler_hub_r;
+  place = [c[0], gear_y0, c[1]];
   difference() {
-    herringbone(idlers_c[i], idler_z, idler_psis[i], i == 0 ? -1 : 1);
-    y_cyl(idlers_c[i], gear_y0 - 1, gear_y1 + 1, gear_pin_d + 0.4, 32);
+    union() {
+      difference() {
+        herringbone(c, idler_z, idler_psis[i], i == 0 ? -1 : 1);
+        y_cyl(c, gear_y0 - 1, gear_y1 + 1, 2 * pipr_o(hr), 96);
+      }
+      y_cyl(c, gear_y0, gear_y1, 2 * hr, 48);
+    }
+    y_cyl(c, gear_y0 - 1, gear_y1 + 1, gear_pin_d + 0.3, 32);
+    translate(place) rotate([-90, 0, 0]) rotate_extrude($fn = 96) intersection() {
+      offset(delta = pip_c) translate([pipr_c(hr), 0]) union() { pin_2d(gear_w); mirror([1, 0]) pin_2d(gear_w); }
+      translate([0, -1]) square([pitch_r(idler_z), gear_w + 2]);
+    }
   }
+  translate(place) rotate([-90, 0, 0]) for (k = [0 : pip_n - 1]) rotate(k * 360 / pip_n) translate([pipr_c(hr), 0, 0])
+    rotate_extrude($fn = 24) intersection() { pin_2d(gear_w); square([pip_rn + pip_b, gear_w - 0.4]); }
 }
 
-// Output gear, on the reel's axis: on its pin in the tray, its hub out
-// through the slab's lip seal, its hex tip into the reel's hub.
+// Output gear, on the reel's axis: on its pin in the cover (with silicone
+// oil; it's too small for a bearing inside its teeth), its hub out through
+// the slab's lip seal, its hex tip into the reel's hub.
 module output_gear() {
   difference() {
     union() {
@@ -810,7 +839,7 @@ module output_gear() {
       y_cyl(ring_c, gear_y1 - 0.01, rear_y0, out_hub_d, 48);
       xz_extrude(rear_y0 - 0.01, rear_y0 + 12) translate(ring_c) circle(d = out_hex / cos(30), $fn = 6);
     }
-    y_cyl(ring_c, gear_y0 - 1, gear_y1 - 0.5, gear_pin_d + 0.4, 32);
+    y_cyl(ring_c, gear_y0 - 1, gear_y1 - 0.3, out_pin_d + 0.4, 32);
   }
 }
 
@@ -912,16 +941,9 @@ module holder_2d() {
   }
 }
 
-// What a plate's inner edge loses to its V channel: the 45° bevels both
-// sides, the steps, and the bolts' holes.
+// What a plate's inner edge loses to its channel: the indexing notches and the bolts' holes.
 module plate_edge(yc) {
-  zs = concat([strip_z0 - 1], [for (z = step_zs) each [z - rail_step_len / 2, z + rail_step_len / 2]], [box_h + 1]);
-  for (k = [0 : len(zs) - 2]) let(st = k % 2 == 1 ? rail_step + 0.3 : 0.3)
-    translate([0, 0, zs[k]]) linear_extrude(zs[k + 1] - zs[k]) {
-      translate([box_half - 1, yc - cage_t]) square([seat_x0 - box_half + st + 1, 2 * cage_t]);
-      for (m = [0, 1]) translate([0, yc]) mirror([0, m]) translate([0, -yc])
-        polygon([[box_half - 1, yc - 0.01], [seat_x0 + st - 0.3, yc - 0.01], [seat_x0 + st - 0.3 + cage_t / 2 + 0.3, yc - cage_t / 2 - 0.3], [box_half - 1, yc - cage_t / 2 - 0.3]]);
-    }
+  for (z = idx_zs) translate([seat_x0 - 1, yc - cage_t, z - idx_len / 2 - 0.2]) cube([idx_d + 1.3, 2 * cage_t, idx_len + 0.4]);
   for (z = seat_zs) bolt45(yc, z);
 }
 
@@ -1099,8 +1121,7 @@ module spine() {
 // The box prints back face down; the doors outer face down.
 module frame_print() { rotate([90, 0, 0]) frame(); }
 module front_door_print() { translate([0, 0, box_d + cover_t]) rotate([-90, 0, 0]) front_door(); }
-module tray_print() { rotate([90, 0, 0]) translate([0, -tray_y0, 0]) tray(); }
-module motor_plate_print() { rotate([90, 0, 0]) motor_plate(); }
+module gear_cover_print(s = 1) { rotate([90, 0, 0]) translate([0, -cover_y0, 0]) gear_cover(s); }
 // Gears and reels print on a face: the reel on its rear flange, its hub on its key.
 module spool_print() { rotate([90, 0, 0]) translate([-ring_c[0], -rflange_y0, -ring_c[1]]) spool(); }
 module reel_hub_print() { translate([0, 0, rflange_y0 + 12]) rotate([-90, 0, 0]) translate([-ring_c[0], 0, -ring_c[1]]) reel_hub(); }
@@ -1139,7 +1160,7 @@ module antenna() {
 }
 
 module boards() {
-  translate([charge_pocket[0] + pocket_clear, mplate_t, charge_pocket[1] + pocket_clear]) cube([board_dims[0], board_dims[2], board_dims[1]]);
+  translate([charge_pocket[0] + pocket_clear, plate_t, charge_pocket[1] + pocket_clear]) cube([board_dims[0], board_dims[2], board_dims[1]]);
   for (i = [0 : len(front_pockets) - 1])
     translate([front_pockets[i][0] + pocket_clear, box_d - front_dims[i][2], front_pockets[i][1] + pocket_clear]) cube([front_dims[i][0], front_dims[i][2], front_dims[i][1]]);
   translate([in_half - kit_t, kit_pocket[0] + pocket_clear, kit_pocket[1] + pocket_clear]) cube([kit_t, kit_w, kit_h]);
@@ -1152,8 +1173,8 @@ module radio_room() {
 
 module motors() {
   for (s = [-1, 1]) mirror([s < 0 ? 1 : 0, 0, 0]) {
-    translate([mot_x0, mplate_t, mot_z0]) cube([mot_h, mot_d, mot_encoder + mot_len]);
-    y_cyl(pinion_c, mplate_t - shaft_len, mplate_t, shaft_d, 24);
+    translate([mot_x0, plate_t, mot_z0]) cube([mot_h, mot_d, mot_encoder + mot_len]);
+    y_cyl(pinion_c, plate_t - shaft_len, plate_t, shaft_d, 24);
   }
 }
 
@@ -1166,7 +1187,8 @@ module solar_connector() {
 }
 
 // Assembly groups, both sides.
-module doors() { front_door(); tray(); motor_plate(); }
+module doors() { front_door(); }
+module covers() { gear_cover(1); gear_cover(-1); }
 module drive() { for (m = [0, 1]) mirror([m, 0, 0]) { pinion(); idler(0); idler(1); output_gear(); } }
 module reels() { for (m = [0, 1]) mirror([m, 0, 0]) { spool(); reel_flange(); reel_hub(); } }
 module holders() { for (s = [-1, 1]) { front_plate(s); rear_plate(s); } for (b = xbars()) xbar(b); }
