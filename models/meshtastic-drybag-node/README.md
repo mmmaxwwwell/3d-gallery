@@ -5,7 +5,7 @@ A Meshtastic/MeshCore repeater in a sealed box that winches itself up into a tre
 ## Layout
 
 - **Box (TPU 64D, PCTG door):**
-  - **Posts:** four sealed screw posts take door screws, three along the bottom and one at the top under the bulkhead.
+  - **Posts:** four sealed screw posts take door screws, three in a line over the battery cup and one at the top.
   - **Boards:** they stand flat on the back wall in pockets above the posts, going straight in from the front:
     - along the bottom: the protection board and the XIAO nRF52840 + Wio-SX1262 radio
     - over them: the charge board, standing with its USB ports up into open space; then a XIAO nRF52840 Sense, which runs the winch and levels the node with its IMU, with a DRV8833 motor driver above it
@@ -19,8 +19,8 @@ A Meshtastic/MeshCore repeater in a sealed box that winches itself up into a tre
   Each bar's ends are dovetails that slide into sockets in the plates, locked with a screw.
 - **Panel plates:** under each reel, a panel plate fills the rectangle between the two cage plates as that reel's bottom crossmember. Behind, it comes out as a truss: a top member, a member along the panel, and a diagonal crossmember.
 - **Solar panel:** its edges sit in grooves cut into the two panel plates, behind the reels, facing back and up at 45°. The plates are just outside its edges, so nothing shades it.
-- **Battery pod:** the 32140 LiFePO4 cell rides in its own sealed pod under the reels, as the counterweight to the box: a TPU 64D body and a PCTG lid, sealed the same way as the door. The panel plates screw down into it, and its lead comes into the box through tight TPU holes.
-- **Antenna:** the N bulkhead clamps through the roof, and the ALFA AOA-915-5ACM stands up from it, zip-tied at two heights to a short stem. The back plate slopes up to the stem with a rounded rib at its foot.
+- **Battery cup:** the 32140 LiFePO4 cell sits in a cup on the box's back, under the reels. The cup is printed on its own and is open toward the box. Its rim seals into a groove round the back wall the same way the door does, with screws in ears outside the seal. The cell's leads come straight into the box through a window in the back wall.
+- **Antenna:** it stands on a PCTG mast 100 mm above the roof, with the N bulkhead clamped through the mast's top. The mast's flange seals to the roof with a tongue ring and four screws, and the back plate's stem braces it with two zip ties. The pigtail needs to be the 12" one.
 - **Solar:** your 5/8" watertight connector goes in the door, in front of the charge board.
 
 ## How it seals
@@ -36,7 +36,7 @@ Every M5 × 10 gets 8 mm of thread. Each part it goes through is counterbored to
 
 ## Printing
 
-No supports anywhere.
+No supports. Every hole is round, with no teardrops, so the body's sideways holes (the reel hubs, the cup window, the screw pilots) print with a little sag at their tops.
 
 | Part | Material | Orientation | Qty |
 |---|---|---|---|
@@ -45,8 +45,8 @@ No supports anywhere.
 | Reel | PCTG | on its outer flange | 2 |
 | Cage back plate, outside plate | PCTG | flat, sockets up | 1 each |
 | Linking bar | PCTG | flat | 5 |
-| Battery pod body | TPU 64D | upside down | 1 |
-| Battery pod lid | PCTG | tongue up | 1 |
+| Battery cup | PCTG | rim up | 1 |
+| Antenna mast | PCTG | upside down | 1 |
 | Panel plate | PCTG | flat, groove up | 2 (one flipped) |
 
 Every piece fits a 270 mm bed.
@@ -59,7 +59,7 @@ The XIAO's own charger charges to 4.2 V, which is too high for LiFePO4 (3.65 V m
 
 - **Motors:** a full reel needs about 7 kg·cm to lift the node. JGY-370 worm motors can do that, but probably at 6–12 V, not the cell's 3.2 V, so expect a boost converter. The ratio and voltage aren't picked.
 - **Weight:** the printed parts come to about 1.5 kg at 100% infill.
-- **Pitch:** with the battery pod as far back as it fits, the node still hangs tipped forward about 10°.
+- **Pitch:** with the cell in the cup, the node hangs tipped forward about 20–25°. The panel isn't heavy enough to level it.
 - **Not measured:** every board, the motors, the solar panel (145 × 120 mm assumed), the bulkhead's body, and your connector's panel range.
 
 ## Parts
@@ -77,5 +77,5 @@ Plus:
 - two JGY-370 worm motors, a XIAO nRF52840 Sense and a DRV8833
 - two 50–60 m lengths of 1/8" Dacron
 - your 5/8" connector
-- fifty-four M5 × 10 cap screws and two M5 × 25 bolts
+- fifty-five M5 × 10 cap screws and two M5 × 25 bolts
 - two zip ties and foam tape

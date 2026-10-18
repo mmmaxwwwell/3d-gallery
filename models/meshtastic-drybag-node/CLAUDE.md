@@ -2,7 +2,7 @@
 
 A Meshtastic node in a sealed box that winches itself up into a tree and stays there for years. Printed parts:
 - the body: TPU 64D
-- the door (`cover()`), two reels, the flat-pack cage, the panel plates and the battery pod's lid: PCTG; the battery pod's body: TPU 64D
+- the door (`cover()`), two reels, the flat-pack cage, the panel plates, the battery cup and the antenna mast: PCTG
 
 devOnly, unprinted.
 
@@ -21,7 +21,7 @@ It started as a flat T frame in a dry bag, from a photo of the parts laid out. A
 - asked to cut the wind area and move the panel behind the reels, high under them, three quarters of the way out
 - asked for the reels' line holes to become rope-wedging cleats
 - asked for a cage that holds the reels close, as flat-pack slotted pieces; then thinner, following the reels' curve, only halfway up, corners tied first, dovetail joints with screws
-- asked for the panel to sit in two plates that double as the reels' bottom crossmembers, and to balance the box; the cell moved to a pod under the reels for that
+- asked for the panel to sit in two plates that double as the reels' bottom crossmembers, and to balance the box. The cell moved to a sealed cup on the box's back under the reels (not a separate pod), the antenna went up 4" on a mast, and teardrops went out.
 - asked for more door screws (five a side), sealed screw posts, and the boards rearranged round them
 
 The user wants independent control of the reels with an IMU to level the node ("stepper motors or independent control somehow like have an accelerometer"). I chose self-locking worm gearmotors, because a stepper needs holding current to hang on the line for years.
@@ -29,7 +29,7 @@ The user wants independent control of the reels with an IMU to level the node ("
 ## Frames
 
 - **Use frame:** X along the cell, Z up as it hangs, Y out of the front face. z = 0 is the box's bottom, y = 0 its back (the reels and rear frame are at y < 0).
-- Each part's `*_print()` puts it in its print orientation. Holes along Z in the body are horizontal as it prints, so they're `tear_2d()`, peaked toward +Y. The solar connector's hole is round: the user asked.
+- Each part's `*_print()` puts it in its print orientation. Every hole is round, no teardrops (the user's call).
 
 ## Load-bearing choices
 
@@ -38,11 +38,19 @@ The user wants independent control of the reels with an IMU to level the node ("
   - Every part a screw passes through is counterbored to leave `under_head` (2) under the cap head.
   - Every pilot is `pilot_depth` (9) deep.
   - The door's screws sit in ears outside the seal (`ear_groups`): a pair either side of each corner sharing one hulled ear, `end_screws` (3) evenly up each end, and `screw_xs_top` / `screw_xs_bottom`. That makes five along the top (counting the top post), five along the bottom, and five up each end, as the user asked. Each ear is its boss hulled into an `ear_base` strip on the wall, `ear_len` deep, then tapering at 45°.
-- **Battery pod** (`pod_body()` TPU 64D, `pod_lid()` PCTG): the user chose to move the cell out of the box as the counterweight, "a box and screw it on, keep the battery tucked up under the reels".
-  - **Placement:** it sits under the reels between the cage's plates, as far back as fits (`pod_y`).
-  - **Mounting:** each panel plate screws down into it, with blind pilots in its `pod_top_t` top wall.
-  - **Seal:** it's split at the cell's axis. The lid's tongue goes into the body's groove, like the box, with M5s in side ears outside the seal (`pod_screws`).
-  - **Cable:** it leaves through a tight TPU hole in the pod's front wall and enters the box through a tight hole in a boss on its back wall (`cable_in`).
+- **Battery cup** (`battery_cup()`, PCTG), the user's design: "in the back of it, underneath the spool we print like a cup with a waterproof seal, deep enough to put the battery in".
+  - **Shape:** it's printed on its own and is open toward the box. The cell drops into its bed from the front before it goes on, and the box's back wall closes it.
+  - **Seal:** its rim's tongue goes into a groove in the back wall's outer face (`cup_seal_band()`). The back wall is thickened inside round it (`back_pad()`) for the groove and the screws.
+  - **Screws:** three along its top and two up each end, into the box's end walls, all outside the seal.
+  - **Wires:** the cell's leads come in through a window in the back wall (`cup_window`).
+  - **Box height:** the box stays tall (`bay_z`) so the reels' cage clears the cup. The cage's back plate is cut clear of it.
+- **Antenna mast** (`mast()`, PCTG), `mast_h` above the roof (the user: "the antenna like 4 inches further out"):
+  - The bulkhead clamps through the mast's top, `bulkhead_wall_t` thick.
+  - Its flange sits on the roof between the stem and the roof's front edge, with a 45° cone up to the tube, trimmed flat at the back.
+  - A tongue ring under the flange seals in a groove round the roof's coax hole, and four M5s hold it down.
+  - The back plate's stem braces it, with a saddle and two zip ties above the cone.
+  - The pigtail has to be the 12" one to reach.
+- **No teardrops** (the user's call): every hole is round. `tear_2d()` is just a circle now.
 - **Boards:** they stand flat on the back wall in rimmed pockets and go straight in from the front, on foam tape. They sit between the motors, above the line of posts:
   - along the bottom: the protection board, then the radio kit
   - over them: the charge board, standing with its ports up into `port_room` under the roof; then the top post; then the winch XIAO, with the DRV8833 above it
@@ -64,10 +72,9 @@ The user wants independent control of the reels with an IMU to level the node ("
   - **Panel:** the plates sit just outside the panel's side edges (`pp_x0`), so they don't shade it. Its edges sit `pp_groove` deep in grooves cut in their inner faces, at `panel_tilt` facing back and up.
   - **Balance:** `panel_back` sets the panel as far back as the plate can go. It isn't enough: see Open.
 - **Sealed screw posts** (`post_points`), the user's ask: TPU posts from the back wall to the door. Each is `post_squeeze` proud, so the door presses its end round the screw's hole.
-  - There are three along the bottom (`low_post_xs`) and one at the top under the bulkhead (`top_post_x`, just right of the charge board). The cage's back plate screws into the low posts' back ends.
+  - There are three in a line over the battery cup (`low_post_xs`) and one at the top (`top_post_x`, just right of the charge board). The cage's back plate screws into the low posts' back ends.
   - The top post is the top run's middle screw, because the bulkhead's nut is on the roof there.
 - **Reel's line anchor:** a V jam cleat (`cleat_*`) cut into the core by the inner flange. Its walls run along the axis, so they print upright. The throat is narrower than the line, so the line's end wedges in. The user asked for it to replace the small cross hole: "more like those crevices they wedge ropes into".
-- **Bulkhead** through the roof, relieved from inside to `bulkhead_wall_t` (4 mm, user confirmed) round `n_body_d`. The panel nut is on top.
 - **Stem:** it's short (`stem_len` 26) with a saddle and zip-tie slots at two heights (`tie_zs`). The back plate's slopes run from the stem's top to `slope_foot_x`, with a quarter-round fillet rib (`stem_rib()`) along their foot.
 
 ## Checks worth re-running after a change
@@ -81,5 +88,5 @@ Intersect each pair of parts and reference parts.
 ## Open, unmeasured
 
 - **Mass and torque:** the parts come to about 1.5 kg at 100% infill. At full radius a reel needs about 7 kg·cm to lift a 2.4 kg node. JGY-370s probably need 6–12 V for that, more than the 3.2 V cell gives, so a boost converter is likely. The motor's ratio and voltage aren't chosen.
-- **Pitch:** at 60% infill the node weighs 1.68–2.41 kg (no line to a full reel). With the pod as far back as it fits, its centre of mass is 10–15 mm in front of where the line pulls (the drums' middle, y −49), so it'll hang tipped forward about 10–11°. The fix isn't chosen yet.
+- **Pitch:** at 60% infill the node weighs 1.68–2.41 kg (no line to a full reel). With the cell in the cup (y −17) and the mast up top, its centre of mass is 22–32 mm in front of where the line pulls (the drums' middle, y −49), so it'll hang tipped forward about 20–25°. The panel isn't heavy enough to level it. The fix isn't chosen yet.
 - **Not measured:** every board's size, the JGY-370's envelope and shaft, the solar panel (`panel_w`/`panel_h`), `n_body_d`/`n_body_len`, and the 5/8" connector's panel range.
