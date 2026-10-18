@@ -28,6 +28,8 @@ export interface PlannerSettings {
   filaments: Record<string, string>;
   /** AMS printers: printerId → material family → filament preset id, over `filaments`. */
   printerFilaments?: Record<string, Record<string, string>>;
+  /** Bambu printers: printerId → the plate on its bed (`BED_SURFACES` value). */
+  bedSurfaces?: Record<string, string>;
 }
 
 const LS_PLANNER = '3dg:print:planner';

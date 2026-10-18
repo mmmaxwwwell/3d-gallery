@@ -56,7 +56,11 @@ A project's plates, scheduled across the printer fleet and sent to it.
    tray that will feed it (same family, a close shade only), not the model's
    design colour, so the file names the spools that are loaded; slicing
    waits for the AMS to report, and a reload of the AMS re-slices. Its
-   G-code is never moved or given a preheat.
+   G-code is never moved or given a preheat. Its plate is the printer's own
+   pick (`bedSurfaces`, Textured PEI by default), not the print dialog's.
+   On any printer, a plate type the filament preset gives 0 °C for
+   (`coldBedProblem`, libslic3r's `curr_bed_type` names via `orcaBedType`)
+   is a problem the plate shows, and slicing refuses it.
    Bed surface, layer height, preheat and centring are the print dialog's
    last selections. The G-code is kept in IndexedDB (plate store v5,
    `gcode`), keyed by plate and printer, and goes stale when the plate's
@@ -271,4 +275,4 @@ Per browser (`localStorage['3dg:print:planner']`): the objective, bedtime and
 wake time, changeover and swap minutes, one-off away blocks, printers switched
 off, the material loaded in each printer, the filament preset per
 material family, and an AMS printer's own filament preset per family
-(`printerFilaments`).
+(`printerFilaments`) and build plate (`bedSurfaces`).

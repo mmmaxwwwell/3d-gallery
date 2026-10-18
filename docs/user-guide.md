@@ -67,7 +67,10 @@ starts as an unsaved draft; save it to keep it.
   before. The plate is sliced for the spools actually loaded: each of its
   colours asks for the tray of that material nearest in colour. The printers
   list shows what each AMS has loaded, and **… on <printer> slices with**
-  picks the filament preset per material for it.
+  picks the filament preset per material for it; **Plate on <printer>**
+  says which build plate is on it (Textured PEI unless you change it). A
+  plate the filament preset gives no bed temperature for is refused rather
+  than printed on a cold bed.
 - **Send to printers** hands the plan to the printers and opens
   **Printers**. Uploads start in the background. Nothing prints until you
   start it.

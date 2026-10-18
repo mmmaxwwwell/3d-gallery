@@ -59,7 +59,17 @@ import {
   type SlicedGcode,
 } from '../print/plate-store.js';
 import { openNewProject, openProject } from '../print/current-project.js';
-import { DEFAULT_BED_SURFACE, processFromProfile, slicePlate, type SliceSetup, type SliceSlot } from '../print/plate-slice.js';
+import {
+  BED_SURFACES,
+  coldBedProblem,
+  DEFAULT_BAMBU_BED_SURFACE,
+  DEFAULT_BED_SURFACE,
+  processFromProfile,
+  slicePlate,
+  type BedSurface,
+  type SliceSetup,
+  type SliceSlot,
+} from '../print/plate-slice.js';
 import { listTemplates, type ProcessSettings } from '../print/process-templates.js';
 import { loadLastSelections } from './PrintDialog.js';
 import { formatWhen, loadPlannerSettings, operatorBlocks, planFleet, savePlannerSettings, type PlannerSettings } from '../print/fleet-plan.js';
@@ -80,6 +90,7 @@ import {
   plateSlots,
   pickFilament,
   readiness,
+  slotColor,
   scheduleJobs,
   sliceFraction,
   sliceSetupKey,
@@ -144,10 +155,6 @@ function filamentSlots(printer: PrintPreset, ams: AmsState | null | undefined): 
   return ams.trays.length + (ams.external ? 1 : 0);
 }
 
-const NAMED_COLORS: Record<string, string> = {
-  black: '#000000', white: '#FFFFFF', grey: '#808080', gray: '#808080', red: '#FF0000', blue: '#0000FF',
-  green: '#00AA00', yellow: '#FFFF00', orange: '#FF8000',
-};
 
 function plural(n: number, one: string, many = `${one}s`): string {
   return `${n} ${n === 1 ? one : many}`;
@@ -340,14 +347,18 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
     return plate.profile ? processFromProfile(plate.profile) : selections.processOverride ?? template.settings;
   };
 
+  /** The plate on `printer`'s bed: a Bambu printer's own pick, else the print dialog's last one. */
+  const bedSurfaceFor = (printer: PrintPreset): BedSurface => (isBambu(printer)
+    ? (BED_SURFACES.find((s) => s.value === settings.bedSurfaces?.[printer.id])?.value ?? DEFAULT_BAMBU_BED_SURFACE)
+    : selections.bedSurface ?? DEFAULT_BED_SURFACE);
+
   /** How `plate` would be sliced on `printer`, or why it can't be. */
   const setupFor = (plate: Plate, printer: PrintPreset): SliceSetup | { problem: string } => {
     let slots: SliceSlot[] | undefined;
     if (isBambu(printer)) {
-      const wanted = plateSlots(plate).map((f, i) => {
-        const named = f.color ? NAMED_COLORS[f.color.toLowerCase()] : undefined;
-        return { slot: i + 1, type: materialFamily(f.material), color: (f.hexes[0] ?? named ?? '#808080').toUpperCase(), colors: f.hexes };
-      });
+      const wanted = plateSlots(plate).map((f, i) => (
+        { slot: i + 1, type: materialFamily(f.material), color: slotColor(f), colors: f.hexes }
+      ));
       // The file asks for the colours of the spools loaded, not the model's
       // design colours: the proxy matches a tray by its exact colour.
       const trays = ams[printer.id];
@@ -364,13 +375,16 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
     const family = plateMaterial(plate);
     const filament = slots?.[0].filament ?? filamentFor(family, printer);
     if (!filament) return { problem: `No ${family} filament preset — import one, or pick one under Printers.` };
+    const bedSurface = bedSurfaceFor(printer);
+    const cold = coldBedProblem({ filament, slots, bedSurface });
+    if (cold) return { problem: cold };
     return {
       printer,
       filament,
       ...(slots ? { slots } : {}),
       proc: procFor(plate),
       layerHeight: selections.layerHeight ?? '0.20',
-      bedSurface: selections.bedSurface ?? DEFAULT_BED_SURFACE,
+      bedSurface,
       preheat: selections.preheat ?? true,
       centerOnBed: selections.centerOnBed ?? true,
       clearExclusionZones: selections.clearExclusionZones ?? false,
@@ -388,7 +402,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
       }
     }
     return out;
-  }, [plates, printers, filaments, settings.filaments, settings.printerFilaments, ams]);
+  }, [plates, printers, filaments, settings.filaments, settings.printerFilaments, settings.bedSurfaces, ams]);
 
   const freshIn = (map: Record<string, SlicedGcode[]>, plate: Plate) =>
     freshSlices(plate, map[plate.id], (printerId) => setupKeys[plate.id]?.[printerId] ?? null);
@@ -929,7 +943,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
               setup={(printer) => setupFor(plate, printer)}
               proc={procFor(plate)}
               layerHeight={selections.layerHeight ?? '0.20'}
-              bedSurface={selections.bedSurface ?? DEFAULT_BED_SURFACE}
+              bedSurface={(() => { const t = targetFor(plate); return t ? bedSurfaceFor(t) : selections.bedSurface ?? DEFAULT_BED_SURFACE; })()}
               slicing={slicing?.plateId === plate.id}
               clash={clashes.has(plate.id)}
               hovered={hovered === plate.id}
@@ -1086,6 +1100,19 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
                 >
                   <option value="">—</option>
                   {filaments.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
+                </select>
+              </label>
+            ))}
+            {printers.filter(isBambu).map((printer) => (
+              <label key={`${printer.id}|bed`} class="planner-inline">
+                Plate on {printer.name}
+                <select
+                  value={bedSurfaceFor(printer)}
+                  onChange={(e) => setSettings({
+                    bedSurfaces: { ...settings.bedSurfaces, [printer.id]: (e.target as HTMLSelectElement).value },
+                  })}
+                >
+                  {BED_SURFACES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
               </label>
             ))}

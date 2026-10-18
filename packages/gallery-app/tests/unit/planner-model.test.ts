@@ -14,6 +14,7 @@ import {
   plateSlots,
   pickFilament,
   readiness,
+  slotColor,
   scheduleJobs,
   sliceFraction,
   type Estimates,
@@ -196,5 +197,18 @@ describe('pickFilament', () => {
     expect(pickFilament('PCTG', filaments, { filaments: { PCTG: anyPctg.id } }, { printer: x1c, ams: true })).toBe(pctgX1c);
     const own = { filaments: {}, printerFilaments: { [x1c.id]: { PCTG: anyPctg.id } } };
     expect(pickFilament('PCTG', filaments, own, { printer: x1c, ams: true })).toBe(anyPctg);
+  });
+});
+
+describe('slotColor', () => {
+  it("asks for the 3MF's colour, else the plate's hex or named colour, else grey", () => {
+    expect(slotColor({ material: 'PLA', hexes: ['#ffffff'] })).toBe('#FFFFFF');
+    expect(slotColor({ material: 'PCTG', color: '#161616', hexes: [] })).toBe('#161616');
+    expect(slotColor({ material: 'PLA', color: 'black', hexes: [] })).toBe('#000000');
+    expect(slotColor({ material: 'PLA', hexes: [] })).toBe('#808080');
+  });
+
+  it('keeps a plain plate\'s colour', () => {
+    expect(plateSlots({ ...plate('h', 'PCTG'), color: '#161616' })).toEqual([{ material: 'PCTG', color: '#161616', hexes: [] }]);
   });
 });

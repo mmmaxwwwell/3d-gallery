@@ -72,6 +72,9 @@ test('a two-colour plate slices for the X1C and starts on its AMS', async ({ pag
   expect(start.filaments).toEqual([{ id: 1, type: 'PLA', color: '#161616' }, { id: 2, type: 'PLA', color: '#FFFFFF' }]);
   // Bambu's own start G-code, and the tool changes through the AMS.
   expect(start.plateGcode).toContain(';===== machine: X1');
+  // The X1C's own plate, Textured PEI, and a warm bed on it.
+  expect(start.plateGcode).toMatch(/^; curr_bed_type = Textured PEI Plate$/m);
+  expect(start.plateGcode).toMatch(/^M140 S[1-9]\d* ;set bed temp$/m);
   expect(start.plateGcode).toMatch(/^M620 S0A/m);
   expect(start.plateGcode).toMatch(/^M620 S1A/m);
   expect(start.plateGcode).toMatch(/^T0$/m);

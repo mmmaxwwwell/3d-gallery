@@ -45,7 +45,6 @@ function toolsByX(gcode: string): Array<{ tool: number; x: number }> {
 const PROCESS = {
   layer_height: '0.2', initial_layer_print_height: '0.2', wall_loops: '2', sparse_infill_density: '15%',
   sparse_infill_pattern: 'gyroid', enable_support: '0', brim_type: 'no_brim', skirt_loops: '0',
-  curr_bed_type: 'Textured PEI Plate',
 };
 
 describe.skipIf(!existsSync(slicerWasmPath()))('X1 Carbon slice', () => {
@@ -68,7 +67,7 @@ describe.skipIf(!existsSync(slicerWasmPath()))('X1 Carbon slice', () => {
       const obj = engine.add3MFObject(file, 128, 128, 0, 1, 1, 1);
       for (const v of volumes) engine.setVolumeExtruder(obj, v.index, v.extruder);
       engine.setConfig({
-        ...bambuSliceConfig({ printer, filaments: [pla, pla], colors: ['#000000', '#FFFFFF'] }),
+        ...bambuSliceConfig({ printer, filaments: [pla, pla], colors: ['#000000', '#FFFFFF'], bedType: 'Textured PEI Plate' }),
         ...PROCESS,
       });
       engine.slice();

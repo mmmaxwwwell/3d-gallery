@@ -111,26 +111,36 @@ describe('bambuSliceConfig', () => {
     layer_change_gcode: 'M73 L{layer_num+1}',
     machine_start_gcode: ';===== machine: X1\nM620 S[initial_extruder]A',
   };
-  const pla = { filament_type: ['PLA'], nozzle_temperature: ['220'], filament_flow_ratio: ['0.98'] };
-  const petg = { filament_type: ['PETG'], nozzle_temperature: ['255'] };
+  const bed = { textured_plate_temp: ['65'], textured_plate_temp_initial_layer: ['65'] };
+  const pla = { filament_type: ['PLA'], nozzle_temperature: ['220'], filament_flow_ratio: ['0.98'], ...bed };
+  const petg = { name: 'PETG HF', filament_type: ['PETG'], nozzle_temperature: ['255'], ...bed, cool_plate_temp: ['0'] };
+  const PEI = 'Textured PEI Plate';
 
   it('gives every filament setting one value per slot', () => {
-    const config = bambuSliceConfig({ printer, filaments: [pla, petg], colors: ['#000000', '#ffffff'] });
+    const config = bambuSliceConfig({ printer, filaments: [pla, petg], colors: ['#000000', '#ffffff'], bedType: PEI });
     expect(config['filament_type']).toBe('PLA;PETG');
     expect(config['nozzle_temperature']).toBe('220,255');
     // PETG's preset leaves the flow ratio out; its slot still gets a value.
     expect(config['filament_flow_ratio']).toBe('0.98,0.98');
     expect(config['filament_colour']).toBe('#000000;#FFFFFF');
     expect(config['flush_volumes_matrix']).toBe('0,280,280,0');
+    expect(config['curr_bed_type']).toBe(PEI);
     expect(config['machine_start_gcode']).toBe(printer.machine_start_gcode);
   });
 
   it('resets E before each layer, which the slicer insists on for a Marlin-flavoured printer', () => {
-    expect(bambuSliceConfig({ printer, filaments: [pla], colors: ['#000000'] })['before_layer_change_gcode']).toBe('G92 E0');
+    expect(bambuSliceConfig({ printer, filaments: [pla], colors: ['#000000'], bedType: PEI })['before_layer_change_gcode']).toBe('G92 E0');
+  });
+
+  it('refuses a plate type a filament gives no bed temperature for', () => {
+    expect(() => bambuSliceConfig({ printer, filaments: [pla, petg], colors: ['#000000', '#ffffff'], bedType: 'Cool Plate' }))
+      .toThrow('Filament 1 has no bed temperature for a Cool Plate (cool_plate_temp_initial_layer is not set)');
+    expect(() => bambuSliceConfig({ printer, filaments: [petg], colors: ['#000000'], bedType: 'Hot Plate' }))
+      .toThrow(/"Hot Plate" isn't a plate type the slicer knows/);
   });
 
   it('refuses a slot without a colour', () => {
-    expect(() => bambuSliceConfig({ printer, filaments: [pla, pla], colors: ['#000000'] })).toThrow();
+    expect(() => bambuSliceConfig({ printer, filaments: [pla, pla], colors: ['#000000'], bedType: PEI })).toThrow();
   });
 });
 

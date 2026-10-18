@@ -6,6 +6,7 @@
 
 import {
   bambuModelId,
+  bedTemperatureProblem,
   buildProvenanceComment,
   createSlicerBackend,
   evaluateAuthoredPlateFit,
@@ -43,18 +44,37 @@ import {
 // the plate the user has installed. `curr_bed_type` picks which one — if
 // unset, the slicer defaults to `cool_plate_temp` (60 °C), which is why
 // PETG was heating the bed to 60 instead of 85. Send an explicit value.
+// `orca` is libslic3r's own name for the plate: it knows "High Temp Plate", not
+// "Hot Plate", and drops a name it doesn't know, which left every slice on the
+// Cool Plate default.
 export const BED_SURFACES = [
-  { value: 'Hot Plate', label: 'Hot Plate (hot_plate_temp)', tempKey: 'hot_plate_temp' },
-  { value: 'Textured PEI Plate', label: 'Textured PEI (textured_plate_temp)', tempKey: 'textured_plate_temp' },
-  { value: 'Cool Plate', label: 'Cool Plate (cool_plate_temp)', tempKey: 'cool_plate_temp' },
-  { value: 'Supertack Plate', label: 'Supertack (supertack_plate_temp)', tempKey: 'supertack_plate_temp' },
-  { value: 'Engineering Plate', label: 'Engineering (eng_plate_temp)', tempKey: 'eng_plate_temp' },
+  { value: 'Hot Plate', orca: 'High Temp Plate', label: 'Hot Plate (hot_plate_temp)', tempKey: 'hot_plate_temp' },
+  { value: 'Textured PEI Plate', orca: 'Textured PEI Plate', label: 'Textured PEI (textured_plate_temp)', tempKey: 'textured_plate_temp' },
+  { value: 'Cool Plate', orca: 'Cool Plate', label: 'Cool Plate (cool_plate_temp)', tempKey: 'cool_plate_temp' },
+  { value: 'Supertack Plate', orca: 'Supertack Plate', label: 'Supertack (supertack_plate_temp)', tempKey: 'supertack_plate_temp' },
+  { value: 'Engineering Plate', orca: 'Engineering Plate', label: 'Engineering (eng_plate_temp)', tempKey: 'eng_plate_temp' },
 ] as const;
 export const DEFAULT_BED_SURFACE = 'Hot Plate';
+/** What an X1C ships with, and what a Bambu printer slices for until its plate is picked. */
+export const DEFAULT_BAMBU_BED_SURFACE = 'Textured PEI Plate';
 export type BedSurface = (typeof BED_SURFACES)[number]['value'];
 
 export function bedSurfaceTempKey(surface: BedSurface): string {
   return BED_SURFACES.find((s) => s.value === surface)?.tempKey ?? 'hot_plate_temp';
+}
+
+/** The plate as libslic3r's `curr_bed_type` names it. */
+export function orcaBedType(surface: BedSurface): string {
+  return BED_SURFACES.find((s) => s.value === surface)?.orca ?? surface;
+}
+
+/** Why `setup` would slice for a cold bed, or null. */
+export function coldBedProblem(setup: Pick<SliceSetup, 'filament' | 'slots' | 'bedSurface'>): string | null {
+  const filaments = setup.slots?.map((s) => s.filament) ?? [setup.filament];
+  return bedTemperatureProblem(
+    orcaBedType(setup.bedSurface),
+    filaments.map((f) => ({ name: f.name, config: flattenPresetForSlicer(f) })),
+  );
 }
 
 /** One AMS slot of a Bambu slice. */
@@ -136,6 +156,8 @@ export async function sliceInstances(
   const filamentFlat = flattenPresetForSlicer(setup.filament);
   const bambu = isBambuPrinterConfig(printerFlat);
   const slots = setup.slots ?? [];
+  const cold = coldBedProblem(setup);
+  if (cold) throw new Error(cold);
   if (bambu && slots.length === 0) {
     throw new Error(`${setup.printer.name} is a Bambu printer: slice and send its plates from the project's plan, which gives each AMS slot its filament.`);
   }
@@ -180,7 +202,7 @@ export async function sliceInstances(
   // Tell the slicer which bed surface is installed. Without this, it
   // reads `cool_plate_temp` (usually 60) for every filament regardless.
   const bedSurfaceConfig: Record<string, string> = {
-    curr_bed_type: bedSurface,
+    curr_bed_type: orcaBedType(bedSurface),
     // Also mirror the effective bed temp into the "generic" fields Orca
     // uses when substituting placeholders in machine_start_gcode. If
     // the placeholder resolves to the wrong bed-type-specific field
@@ -199,6 +221,7 @@ export async function sliceInstances(
       printer: mergeInheritance(setup.printer),
       filaments: slots.map((slot) => mergeInheritance(slot.filament)),
       colors: slots.map((slot) => slot.color),
+      bedType: orcaBedType(bedSurface),
     })
     : { ...printerFlat, ...filamentFlat };
   const mergedConfig: Record<string, string> = {

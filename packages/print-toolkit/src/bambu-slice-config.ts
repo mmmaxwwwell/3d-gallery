@@ -10,6 +10,7 @@
  */
 
 import { ORCA_SCHEMA } from './orca-schema.generated.js';
+import { bedTemperatureProblem } from './bed-type.js';
 
 type OrcaValue = null | boolean | number | string | OrcaValue[] | { [k: string]: OrcaValue };
 export type OrcaPresetJson = { [k: string]: OrcaValue };
@@ -70,6 +71,8 @@ export interface BambuSliceInput {
   filaments: OrcaPresetJson[];
   /** `#RRGGBB` per slot. */
   colors: string[];
+  /** The plate on the bed, as libslic3r names it (`curr_bed_type`): "Textured PEI Plate", … */
+  bedType: string;
 }
 
 function asCells(value: OrcaValue | undefined): string[] | null {
@@ -83,9 +86,14 @@ function asCells(value: OrcaValue | undefined): string[] | null {
  * slot. Process settings go over the top of this, as for any printer.
  */
 export function bambuSliceConfig(input: BambuSliceInput): Record<string, string> {
-  const { printer, filaments, colors } = input;
+  const { printer, filaments, colors, bedType } = input;
   if (filaments.length === 0) throw new Error('A slice needs at least one filament.');
   if (colors.length !== filaments.length) throw new Error('One colour per filament slot.');
+  const cold = bedTemperatureProblem(bedType, filaments.map((f, i) => ({
+    name: String(f['name'] ?? `Filament ${i + 1}`),
+    config: orcaConfigFromJson(f),
+  })));
+  if (cold) throw new Error(cold);
   const config = orcaConfigFromJson(printer);
 
   const keys = new Set<string>();
@@ -100,6 +108,7 @@ export function bambuSliceConfig(input: BambuSliceInput): Record<string, string>
     if (joined !== null) config[key] = joined;
   }
   config['filament_colour'] = escapeStrings(colors.map((c) => c.toUpperCase()));
+  config['curr_bed_type'] = bedType;
 
   const n = filaments.length;
   config['flush_volumes_matrix'] = Array.from({ length: n * n }, (_, i) =>

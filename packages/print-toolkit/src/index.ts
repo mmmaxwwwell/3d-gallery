@@ -192,6 +192,7 @@ export {
 } from './bambu-3mf.js';
 export { threeMfVolumes, volumeSlots, type ThreeMfVolume } from './threemf-volumes.js';
 export { md5Hex } from './md5.js';
+export { BED_TEMP_KEYS, bedTemperatureProblem } from './bed-type.js';
 
 // ─── Print scheduling ───────────────────────────────────────────────────────
 export {

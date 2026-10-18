@@ -87,7 +87,6 @@ const process_ = {
   enable_support: profile.supports === "none" ? "0" : "1",
   brim_type: profile.brim ? "outer_only" : "no_brim",
   skirt_loops: "0",
-  curr_bed_type: "Textured PEI Plate",
 };
 
 const volumes = threeMfVolumes(bytes);
@@ -100,7 +99,7 @@ try {
   for (const [volume, slot] of Object.entries(volumeSlots(volumes, slots.map((s) => s.hexes)))) {
     engine.setVolumeExtruder(object, Number(volume), slot);
   }
-  engine.setConfig({ ...bambuSliceConfig({ printer: merged(printerPreset), filaments: presets.map(merged), colors }), ...process_ });
+  engine.setConfig({ ...bambuSliceConfig({ printer: merged(printerPreset), filaments: presets.map(merged), colors, bedType: "Textured PEI Plate" }), ...process_ });
   engine.slice();
   gcode = engine.exportGCode();
   stats = engine.getSliceStats();

@@ -7,7 +7,7 @@ import { materialFamily, type PlateFilament } from '@3d-gallery/model-core';
 import type { Schedule, ScheduleJob } from '@3d-gallery/print-toolkit';
 import { flattenPresetForSlicer } from './preset-flatten.js';
 import { plateSignature, type Plate, type SlicedGcode } from './plate-store.js';
-import type { SliceSetup } from './plate-slice.js';
+import { orcaBedType, type SliceSetup } from './plate-slice.js';
 import type { PrintPreset } from './print-storage.js';
 import type { PlannerSettings } from './fleet-plan.js';
 
@@ -66,7 +66,23 @@ export function gcodeName(number: number, plate: Plate, bambu = false): string {
 
 /** The filaments a plate prints with, one per AMS slot. */
 export function plateSlots(plate: Plate): PlateFilament[] {
-  return plate.filaments?.length ? plate.filaments : [{ material: plate.material ?? 'PETG', hexes: [] }];
+  if (plate.filaments?.length) return plate.filaments;
+  return [{ material: plate.material ?? 'PETG', ...(plate.color ? { color: plate.color } : {}), hexes: [] }];
+}
+
+const NAMED_COLORS: Record<string, string> = {
+  black: '#000000', white: '#FFFFFF', grey: '#808080', gray: '#808080', red: '#FF0000', blue: '#0000FF',
+  green: '#00AA00', yellow: '#FFFF00', orange: '#FF8000',
+};
+
+/**
+ * The `#RRGGBB` a filament slot asks the AMS for: its 3MF colour, else the
+ * plate's colour (a hex, or a common name), else grey.
+ */
+export function slotColor(f: PlateFilament): string {
+  const color = f.color?.trim();
+  const hex = color && /^#[0-9a-f]{6}$/i.test(color) ? color : color ? NAMED_COLORS[color.toLowerCase()] : undefined;
+  return (f.hexes[0] ?? hex ?? '#808080').toUpperCase();
 }
 
 /** Material families a plate prints in. More than one needs a printer with an AMS. */
@@ -142,7 +158,8 @@ export function sliceSetupKey(setup: SliceSetup): string {
     flattenPresetForSlicer(setup.filament),
     setup.proc,
     setup.layerHeight,
-    setup.bedSurface,
+    // libslic3r's name, so slices made while "Hot Plate" never reached it go stale.
+    orcaBedType(setup.bedSurface),
     setup.preheat,
     setup.centerOnBed,
     setup.clearExclusionZones,
