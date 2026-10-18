@@ -70,7 +70,7 @@ The user wants independent control of the reels with an IMU to level the node ("
   - **Tooth phase:** `mesh_phase()` turns the idler and the ring at the mid-plane so the facing teeth meet gaps.
   - **Orientation:** `herringbone()` uses `rotate([90, 0, 0])`; the 2D profile's +y must map to world +z, or every phase flips. Check the mesh by rendering `pinion()`, `idler()` and `spool()` separately: they must not intersect.
   - The ring's web is spoked, for weight at the back.
-- **Shrouds** (`shroud(s)`): one per side, clipped at the middle where they meet and open inside there. Each has a 3 mm back plate with bosses where the idler's and the reel's rear bolts thread in, and a rim forward to the back door. Posts reach on to the rear plate, which screws into them. One pad sits on a back door screw clear of the gears (`shroud_pads`, M5 × 16).
+- **Shrouds** (`shroud(s)`, the user's "lightweight bolt-on shroud"): one per side, clipped at the middle where they meet and open inside there. Each is a 1.6 mm shell that carries nothing. Three posts reach on to the rear plate, which screws into them, and one pad sits on a back door screw clear of the gears (`shroud_pads`, M5 × 16). The idler turns on an M5 × 30 from behind, past the back door's edge (notched round it), threaded into the back flange; a hole in the shroud lets its head through.
 - **Reels:** the rear flange is the herringbone ring. The core runs on through the rear plate's bearing bore (`journal_clear`) to the drum. The front flange (`reel_flange()`) is a separate disc keyed on a hex spigot, trapped by the front plate. The V jam cleat runs out through the spigot's end.
 - **Holder plates** (`holder_2d()`, the user's "220x220 flat large skeleton pieces"). Each fits inside 220 × 220 (asserted).
   - **Shape:** a ring round the reel with a bar across at the axle round a boss, four spokes, the flat outer part up to the roller window, and the flat inner edge for the channel.
@@ -80,7 +80,7 @@ The user wants independent control of the reels with an IMU to level the node ("
   - **Window:** at [`fl_xc`, `line_y`], `fl_in` in from the reel's edge.
   - **Lower pair** (`lower_c`, at `fl_za`): axes along Y, plate to plate, `roff` either side of `fl_xc`. They hold the line side to side.
   - **Upper pair** (at `fl_zb`): axes along X, `roff` either side of `line_y`, between two cheeks (`cheek_local()`) dovetailed into both plates at `cheek_tenon_zs`. They hold it front to back.
-  - **Construction:** each roller (`roller(len)`) is one print-in-place roller bearing. The hub is clamped by its bolt, the sleeve is 0.6 short, and `pip_n` pins of `pip_rn` have 45° collars at a quarter and three quarters of the length. The gap is `pip_c` (0.25), from published print-in-place designs (0.2–0.3 mm).
+  - **Construction:** each roller (`roller(len)`) is a plain sleeve (hub, sleeve, ribs, all straight up) turning on its bolt's shank, with `roller_end_play` each end, run with silicone oil (the user: "it'll be so low speed it's fine"). The bolts are fixed axles, threaded into the front plate or the inner cheek.
 - **Panel mount** (`spine()`, `panel_bar()`):
   - **Facing:** the panel faces away from the box, `panel_side` choosing which side, and the box mustn't shade it (asserted for 45° sun).
   - **Spine:** its top member sits between the bottom flanges, screwed up into the floor. A leg from its end nearer the panel reaches the top bar, and a diagonal from its other end reaches the bottom bar. The bars pass through slots in it.
@@ -103,11 +103,10 @@ Intersect each pair of assembly groups: `frame`, `doors`, `grommets`, `reels`, `
 - boards ~65 g
 - bolts 110 g
 
-Compare the centre of mass's y against `line_y`. v5 came out about 2.4 mm forward, about 1.5° of tilt. Before the box grew forward and the panel moved to the front it was 15–20 mm behind, about 10–14°.
+Compare the centre of mass's y against `line_y`. With the light shroud and plain rollers v5 comes out about 4.6 mm forward, about 3° of tilt; `box_front_extra` can't go below 24 (the front flange would hit the front plates, asserted). Before the box grew forward and the panel moved to the front it was 15–20 mm behind, about 10–14°.
 
 ## Open, unmeasured
 
 - **Motors:** a reel needs about 7 kg·cm at full radius to lift 3.6 kg; the gears give 4.7:1. JGY-370s probably need 6–12 V for that, more than the 3.2 V cell, so a boost converter is likely. The ratio and voltage aren't chosen. Everything about their mounting is a guess: the shaft's position across and along the gearbox sets `pinion_c`, and the reels' height follows from it.
-- **Roller bearings:** `pip_c` 0.25 with full-length pins (78 and 66 mm) is untested in PCTG on the U1.
 - **Not measured:** every board's size, the JGY-370's envelope and shaft, the solar panel (`panel_w`/`panel_h`), `n_body_d`/`n_body_len`, and the 5/8" connector's panel range.
 - The 12/20-tooth undercut is ignored (involute from the base circle, radial below it). It's slight at those counts.

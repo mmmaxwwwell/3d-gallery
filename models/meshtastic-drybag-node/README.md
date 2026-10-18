@@ -12,14 +12,14 @@ Everything heavy is in the box, low between the two points the lines pull from, 
   - **Right wall:** the XIAO nRF52840 + Wio-SX1262 radio, just under the N bulkhead in the box's top, well inside the pigtail's 6". The space under it (40 × 70 × 18 mm) is kept free, so a 1 W module can go in instead.
   - **Top:** the bulkhead, your 5/8" solar connector beside it, and the antenna's stem, which is part of the box.
 - **Reels:** one either side of the box. Each holds 150–200 ft (about 56 m) of 1/8" Dacron. The line's end wedges into a V jam cleat at the core's front end, under the front flange.
-- **Drive:** behind the back door, under a shroud on each side. Each motor's pinion drives an idler, which drives a gear ring that is the reel's rear flange (4.7:1). They're 12 mm wide 30° herringbones. Worm gears can't be back-driven, so the node holds its height with the power off.
+- **Drive:** behind the back door, under a lightweight bolt-on shroud on each side that carries nothing. Each motor's pinion drives an idler, which drives a gear ring that is the reel's rear flange (4.7:1). They're 12 mm wide 30° herringbones. Worm gears can't be back-driven, so the node holds its height with the power off.
 - **Reel holders (PCTG):** two big flat skeleton plates per reel, each inside 220 × 220 mm. Each is a ring round the reel with spokes, and its flat outer part rises over the reel's outer edge to carry the rollers. Members run from the ring's top and bottom, and from the roller window's top, to the top and bottom of the plate's mounting edge, so each plate is braced against the box. Five crossmembers tie the two rings round the reel, their dovetailed ends locked with a screw.
   - **Channels:** each plate's inner edge sits in a channel on the box's side and screws in. The rear plate seats on the back flange's front face, the front plate on a rib, each against a lip.
-  - **Bearings:** the reel's core turns in a bearing bore in the rear plate, its front axle in the front plate, and its rear axle in the shroud.
+  - **Bearings:** the reel's core turns in a bearing bore in the rear plate, and its front axle in the front plate.
 - **Rollers:** four on each reel's outer edge, round a square window the line runs through, so it's held both ways.
   - The lower pair runs front to back from plate to plate and holds the line side to side.
   - The upper pair runs across between two cheeks dovetailed into the plates, and holds it front to back.
-  - Each roller is one print-in-place roller bearing its whole length on an M5 bolt that clamps its hub. Give each a drop of silicone oil.
+  - Each roller is a light printed sleeve (a hub, an outer sleeve and ribs) turning on its M5 bolt. Oil the bore with silicone oil; at winch speeds a plain bushing does.
 - **Solar panel:** it hangs under the front of the box at 45°, facing forward and up, clear of the box's shade. The gears, shrouds and motors are all behind the lines, and the panel in front is what levels the node. Its top and bottom edges sit in grooved bars through a spine screwed up into the floor. `panel_side` hangs it behind instead.
 
 ## How it seals
@@ -36,8 +36,8 @@ The plates and the panel spine screw into blind pilots in the flanges, the ribs 
 Every M5 × 10 gets 8 mm of thread. Each part it goes through is counterbored to leave 2 mm under the cap head, and every pilot is 9 mm deep.
 
 Longer bolts:
-- **Reel axles:** M5 × 25s threaded into the front plates, and M5 × 20s into the shrouds at the back.
-- **Idlers:** each turns on an M5 × 20 threaded into its shroud.
+- **Reel axles:** M5 × 25s threaded into the front plates.
+- **Idlers:** each turns on an M5 × 30 from behind, past the back door's edge, threaded into the back flange.
 - **Lower rollers:** M5 × 90s, rear plate to front plate.
 - **Upper rollers:** M5 × 80s, outer cheek to inner cheek.
 - **Shroud pads:** an M5 × 16 through each pad and the back door into the flange.
@@ -48,7 +48,7 @@ Longer bolts:
 No supports. Every hole is round, with no teardrops.
 - **Box:** it prints back face down. The rib under each front plate and the front flange taper out at 45°, and nothing inside starts as a shelf.
 - **Gears:** they print gear face down. The herringbone's 30° flanks stay inside 45°.
-- **Rollers:** each prints standing up in one piece. The hub, the sleeve and seven pins all start on the bed with 0.25 mm between them, and the pins' two 45° collars run in V grooves in both. Work them free, then oil them.
+- **Rollers:** each prints standing up; its hub, sleeve and ribs are all straight up.
 
 | Part | Material | Orientation | Qty |
 |---|---|---|---|
@@ -78,8 +78,7 @@ The XIAO's own charger charges to 4.2 V, which is too high for LiFePO4 (3.65 V m
 ## Not settled yet
 
 - **Motors:** a full reel needs about 7 kg·cm at the drum to lift the node; the gears take 4.7× off the motor. JGY-370 worm motors probably need 6–12 V for it, not the cell's 3.2 V, so expect a boost converter. The ratio and voltage aren't picked.
-- **Weight and level:** about 2.9 kg at 60% infill with the bought parts' guessed weights, 3.6 kg with both reels full. Its centre of mass comes out about 2 mm in front of the lines and 85 mm below the rollers, so it should hang within about 2° of level. `panel_y` trims it.
-- **Roller bearings:** printed at 0.25 mm, from what people print these at (0.2–0.3 mm). The rollers' pins run their whole length (78 and 66 mm), and PCTG on the U1 at that gap is untested. If they fuse, open up `pip_c`.
+- **Weight and level:** about 2.9 kg at 60% infill with the bought parts' guessed weights, 3.6 kg with both reels full. Its centre of mass comes out about 4.6 mm in front of the lines and 85 mm below the rollers, so it should hang about 3° nose-forward for now. `panel_y` trims it.
 - **Not measured:** every board, the motors (envelope, shaft position, and whether the shaft is centred across the gearbox), the solar panel (145 × 120 mm assumed), the bulkhead's body, and your connector's panel range.
 
 ## Parts
@@ -97,6 +96,6 @@ Plus:
 - two JGY-370 worm motors, a XIAO nRF52840 Sense and a DRV8833
 - two 50–60 m lengths of 1/8" Dacron
 - your 5/8" connector
-- ninety-one M5 × 10 cap screws, two M5 × 16s, four M5 × 20s, two M5 × 25s, four M5 × 80s, four M5 × 90s and two M3 grub screws
+- eighty-seven M5 × 10 cap screws, two M5 × 16s, two M5 × 25s, two M5 × 30s, four M5 × 80s, four M5 × 90s and two M3 grub screws
 - silicone oil for the rollers
 - two zip ties and foam tape
