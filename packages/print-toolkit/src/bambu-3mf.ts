@@ -39,6 +39,12 @@ export interface BambuPlateJob {
   /** `slice_info` printer model id: BL-P001 is the X1 Carbon. */
   printerModelId: string;
   nozzleDiameter: number;
+  /**
+   * The printer preset's name (`printer_settings_id`), e.g. "Bambu Lab X1 Carbon
+   * 0.4 nozzle". The G-code's own copy can be empty when the preset came in
+   * without one.
+   */
+  printerSettingsId?: string;
   /** Filaments the plate prints with, in slot order. */
   filaments: BambuFilament[];
   /** Print time estimate, seconds. */
@@ -52,6 +58,40 @@ export interface BambuPlateJob {
 }
 
 const XML = '<?xml version="1.0" encoding="UTF-8"?>\n';
+
+/** `; key = value` from the G-code's header and config blocks. */
+function gcodeSetting(gcode: string, key: string): string | undefined {
+  const m = new RegExp(`^;[ \\t]*${key}[ \\t]*=[ \\t]*(.*)$`, 'm').exec(gcode);
+  const v = m?.[1]?.trim();
+  return v ? v : undefined;
+}
+
+const list = (v: string | undefined): string[] | undefined => (v === undefined ? undefined : v.split(/[;,]/).map((x) => x.trim()));
+
+/**
+ * What Bambu Studio writes as Metadata/project_settings.config, reduced to the
+ * settings a printer checks before it starts. The firmware compares the nozzle
+ * it has fitted (type and diameter) with the file's and refuses a mismatch,
+ * or a file that names none (HMS 0500-803C). Values come from the slice's own
+ * G-code, so the two can't disagree.
+ */
+function projectSettings(job: BambuPlateJob, gcode: string): Record<string, unknown> {
+  const d = String(job.nozzleDiameter);
+  const out: Record<string, unknown> = {
+    printer_model: gcodeSetting(gcode, 'printer_model') ?? 'Bambu Lab X1 Carbon',
+    printer_settings_id: job.printerSettingsId ?? gcodeSetting(gcode, 'printer_settings_id') ?? '',
+    printer_variant: gcodeSetting(gcode, 'printer_variant') ?? d,
+    nozzle_diameter: list(gcodeSetting(gcode, 'nozzle_diameter')) ?? [d],
+    nozzle_type: list(gcodeSetting(gcode, 'nozzle_type')) ?? ['hardened_steel'],
+    extruder_type: list(gcodeSetting(gcode, 'extruder_type')) ?? ['Direct Drive'],
+    nozzle_volume_type: list(gcodeSetting(gcode, 'nozzle_volume_type')) ?? ['Standard'],
+    filament_type: job.filaments.map((f) => f.type),
+    filament_colour: job.filaments.map((f) => f.color.toUpperCase()),
+  };
+  const bed = gcodeSetting(gcode, 'curr_bed_type');
+  if (bed) out['curr_bed_type'] = bed;
+  return out;
+}
 
 function esc(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -149,6 +189,9 @@ export function bambuGcode3mfEntries(job: BambuPlateJob): Record<string, Uint8Ar
 
   const plate: string[] = [
     `    <metadata key="index" value="${n}"/>`,
+    // 0 = Direct Drive, Standard flow: the only X1 hotend.
+    '    <metadata key="extruder_type" value="0"/>',
+    '    <metadata key="nozzle_volume_type" value="0"/>',
     `    <metadata key="printer_model_id" value="${esc(job.printerModelId)}"/>`,
     `    <metadata key="nozzle_diameters" value="${job.nozzleDiameter}"/>`,
     '    <metadata key="timelapse_type" value="0"/>',
@@ -164,6 +207,7 @@ export function bambuGcode3mfEntries(job: BambuPlateJob): Record<string, Uint8Ar
       + ` color="${esc(f.color.toUpperCase())}"`
       + ` used_m="${round(f.usedMeters ?? 0, 2)}"`
       + ` used_g="${round(f.usedGrams ?? 0, 2)}"`
+      + ` nozzle_diameter="${job.nozzleDiameter.toFixed(2)}" volume_type="Standard"`
       + ' />'),
   ];
   const sliceInfo = XML + '<config>\n  <header>\n'
@@ -178,6 +222,7 @@ export function bambuGcode3mfEntries(job: BambuPlateJob): Record<string, Uint8Ar
     'Metadata/model_settings.config': strToU8(modelSettings),
     'Metadata/_rels/model_settings.config.rels': strToU8(modelSettingsRels),
     'Metadata/slice_info.config': strToU8(sliceInfo),
+    'Metadata/project_settings.config': strToU8(JSON.stringify(projectSettings(job, job.gcode), null, 4)),
     [gcodePath]: gcode,
     [`${gcodePath}.md5`]: strToU8(md5Hex(gcode).toUpperCase()),
     [`Metadata/plate_${n}.png`]: thumb,

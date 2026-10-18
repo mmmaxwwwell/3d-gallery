@@ -192,6 +192,8 @@ export interface SlicedGcode {
 export interface BambuSliceInfo {
   printerModelId: string;
   nozzleDiameter: number;
+  /** The printer preset's name, for the file's printer_settings_id. */
+  printerSettingsId?: string;
   /** One per AMS slot, slot 1 first. */
   filaments: BambuFilament[];
   predictionSec?: number;

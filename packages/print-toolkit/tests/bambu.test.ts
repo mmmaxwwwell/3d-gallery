@@ -53,6 +53,7 @@ describe('packageBambuGcode3mf', () => {
       'Metadata/plate_1.gcode.md5',
       'Metadata/plate_1.png',
       'Metadata/plate_1_small.png',
+      'Metadata/project_settings.config',
       'Metadata/slice_info.config',
       '[Content_Types].xml',
       '_rels/.rels',
@@ -74,8 +75,32 @@ describe('packageBambuGcode3mf', () => {
     expect(info).toContain('<metadata key="nozzle_diameters" value="0.4"/>');
     expect(info).toContain('<metadata key="prediction" value="1931"/>');
     expect(info).toContain('<metadata key="weight" value="3.7"/>');
-    expect(info).toContain('<filament id="1" tray_info_idx="GFA00" type="PLA" color="#000000" used_m="1.1" used_g="3.25" />');
-    expect(info).toContain('<filament id="2" type="PLA" color="#FFFFFF" used_m="0" used_g="0" />');
+    expect(info).toContain('<metadata key="extruder_type" value="0"/>');
+    expect(info).toContain('<metadata key="nozzle_volume_type" value="0"/>');
+    expect(info).toContain('<filament id="1" tray_info_idx="GFA00" type="PLA" color="#000000" used_m="1.1" used_g="3.25" nozzle_diameter="0.40" volume_type="Standard" />');
+    expect(info).toContain('<filament id="2" type="PLA" color="#FFFFFF" used_m="0" used_g="0" nozzle_diameter="0.40" volume_type="Standard" />');
+  });
+
+  // HMS 0500-803C: the X1C refuses a file whose nozzle it can't match to the one fitted.
+  it('names the nozzle in project_settings, from the slice\'s own G-code, as Bambu Studio does', () => {
+    const gcode = [
+      '; HEADER_BLOCK_START', '; HEADER_BLOCK_END', '; CONFIG_BLOCK_START',
+      '; printer_model = Bambu Lab X1 Carbon', '; printer_settings_id = ', '; nozzle_diameter = 0.4',
+      '; nozzle_type = hardened_steel', '; curr_bed_type = Textured PEI Plate', '; CONFIG_BLOCK_END', 'G28', '',
+    ].join('\n');
+    const settings = JSON.parse(strFromU8(bambuGcode3mfEntries({ ...job, gcode, printerSettingsId: 'Bambu Lab X1 Carbon 0.4 nozzle' })['Metadata/project_settings.config']));
+    expect(settings).toEqual({
+      printer_model: 'Bambu Lab X1 Carbon',
+      printer_settings_id: 'Bambu Lab X1 Carbon 0.4 nozzle',
+      printer_variant: '0.4',
+      nozzle_diameter: ['0.4'],
+      nozzle_type: ['hardened_steel'],
+      extruder_type: ['Direct Drive'],
+      nozzle_volume_type: ['Standard'],
+      filament_type: ['PLA', 'PLA'],
+      filament_colour: ['#000000', '#FFFFFF'],
+      curr_bed_type: 'Textured PEI Plate',
+    });
   });
 
   it('names the plate it carries', () => {

@@ -321,6 +321,7 @@ export async function sliceInstances(
     bambu: {
       printerModelId: modelId,
       nozzleDiameter: Number(firstValue(printerFlat['nozzle_diameter']) ?? 0.4),
+      printerSettingsId: setup.printer.name,
       filaments: slots.map((slot, i) => {
         const flat = flattenPresetForSlicer(slot.filament);
         return {
