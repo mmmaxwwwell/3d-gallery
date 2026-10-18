@@ -37,7 +37,7 @@ tabs = 2;
 // left, seen from the back). It runs from there to the -x corner
 tab_start = 23;
 // and this far round that corner's curve (degrees), the last tab following it
-tab_wrap = 70;
+tab_wrap = 90;
 // How far the tab bends forward over the radio's top back bevel, front to
 // back: three quarters of the bevel's depth
 tab_reach = 4.5;
@@ -49,9 +49,11 @@ tab_lift = 3;
 back_edge_extra = 7;
 // The +x guard's outer top corner is cut off at 45°, this far along each leg
 guard_chamfer = 10;
-// A hole through that guard, above the radio, to tie a bungee to and loop
-// over the radio's GPS antenna wing: its diameter
-bungee_hole = 5;
+// A loop for a cord, just outside the case's -x side off the last tab's
+// straight-down end, hole upright: hole diameter, wall, and height
+cord_loop_hole = 4;
+cord_loop_wall = 2;
+cord_loop_height = 4;
 // The slits either side of the tab: how far down from the back wall's top
 slit_length = 20;
 // and how wide
@@ -463,7 +465,8 @@ module walls() {
         // the ball rolling that side's full-height wall spills over the slit
         // and leaves a lip; the ball rolls that side back out to the slit.
         big = 4 * radio_width;
-        translate([-big + slit_x(tabs) + slit_width / 2 + e - 0.1, 0, slit_bottom_z - e + 0.1]) cube(big);
+        // It drops a little further, so the cord loop's arm clears it.
+        translate([-big + slit_x(tabs) + slit_width / 2 + e - 0.1, 0, slit_bottom_z - cord_loop_gap - e + 0.1]) cube(big);
       }
     }
     sphere(r = e - 0.1);
@@ -500,15 +503,17 @@ module tabs() {
   r = tab_edge_radius;
   big = 2 * radio_width;
   swap = [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 1, 0]];
-  for (i = [0 : tabs - 1])
+  for (i = [0 : tabs - 1]) let (last = i == tabs - 1)
     minkowski() {
       intersection() {
-        translate([tab_x(i) - tab_width / 2 + r, -big, -big]) cube([tab_width - 2 * r, 2 * big, 2 * big]);
+        // The last tab runs on round the corner, so only its inner end is cut square.
+        translate([last ? -big : tab_x(i) - tab_width / 2 + r, -big, -big])
+          cube([(last ? big + tab_x(i) + tab_width / 2 : tab_width) - 2 * r + (last ? r : 0), 2 * big, 2 * big]);
         union() {
           translate([-back_corner_x(-1), 0, 0]) rotate([90, 0, 90]) linear_extrude(big)
             offset(delta = -r) tab_profile();
           translate([-back_corner_x(-1), 0, back_corner_z(-1)]) rotate([-90, 0, 0]) rotate([0, 0, 180])
-            rotate_extrude(angle = 90, $fn = 360)
+            rotate_extrude(angle = tab_wrap, $fn = 360)
               translate([-back_corner_z(-1), 0]) multmatrix(swap) offset(delta = -r) tab_profile();
         }
       }
@@ -581,24 +586,36 @@ module drain_holes() {
 }
 
 // The tabs go on after the pocket is cut, since their bends reach into it.
-// Through the +x guard front to back, centred between the guard's inner face
-// and the face's corner, centred in the band of guard between the radio's
-// top back edge and the guard's rounded top. Both mouths chamfered at 45° so
-// they don't cut the cord.
-bungee_hole_x = (tab_row_hi + slit_width + cutout_edge_radius + back_corner_x(1)) / 2;
-bungee_hole_z = (back_top_z + tab_top_z - cutout_edge_radius) / 2;
-bungee_hole_chamfer = 0.5;
-assert(bungee_hole_z - bungee_hole / 2 - bungee_hole_chamfer > back_top_z, "bungee hole runs below the radio's top back edge");
-assert(bungee_hole_z + bungee_hole / 2 + bungee_hole_chamfer < tab_top_z - cutout_edge_radius, "bungee hole runs into the guard's rounded top");
+// The cord loop: an upright ring just outside the case's -x side, on an arm
+// off the last tab's tongue. The arm starts on the tongue just above the
+// slit's bottom, so it flexes with the tab and every layer under it prints
+// on something, and its underside rises 45° out to the ring; that's what sets
+// how high the ring sits beside the tab's curve.
+cord_loop_od = cord_loop_hole + 2 * cord_loop_wall;
+cord_loop_x = -(radio_width / 2 + tolerance + wall + cord_loop_od / 2);
+cord_loop_y = radio_thickness / 2 + tolerance + wall / 2;
+cord_loop_root_x = slit_x(tabs) + slit_width / 2 + 2;
+cord_loop_root_z = slit_bottom_z + 2;
+cord_loop_z = cord_loop_root_z + cord_loop_root_x - (cord_loop_x - cord_loop_od / 2);
+// The wall outside the last slit drops this far below the slit's bottom, so
+// the arm clears it.
+cord_loop_gap = 3;
+assert(tab_wrap == 90, "the cord loop needs the last tab to wrap round to upright");
 
-module bungee_hole() {
-  r = bungee_hole / 2;
-  c = bungee_hole_chamfer;
-  y0 = radio_thickness / 2 + tolerance;
-  translate([bungee_hole_x, 0, bungee_hole_z]) rotate([-90, 0, 0]) {
-    translate([0, 0, y0 - 1]) cylinder(r = r, h = wall + 2);
-    translate([0, 0, y0 - 1]) cylinder(r1 = r + c + 1, r2 = r, h = c + 1);
-    translate([0, 0, y0 + wall - c]) cylinder(r1 = r, r2 = r + c + 1, h = c + 1);
+module cord_loop() {
+  r = 1;
+  difference() {
+    minkowski() {
+      hull() {
+        translate([cord_loop_x, cord_loop_y, cord_loop_z + r]) cylinder(d = cord_loop_od - 2 * r, h = cord_loop_height - 2 * r);
+        translate([cord_loop_root_x, cord_loop_y - wall / 2 + r, cord_loop_root_z + r])
+          cube([0.01, wall - 2 * r, cord_loop_z + cord_loop_height - cord_loop_root_z - 2 * r]);
+      }
+      sphere(r = r, $fn = 16);
+    }
+    translate([cord_loop_x, cord_loop_y, cord_loop_z - 1]) cylinder(d = cord_loop_hole, h = cord_loop_height + 2);
+    // The arm under the ring is solid, so the hole runs on down through it.
+    translate([cord_loop_x, cord_loop_y, cord_loop_root_z - 1]) cylinder(d = cord_loop_hole, h = cord_loop_z - cord_loop_root_z + 2);
   }
 }
 
@@ -613,9 +630,9 @@ module holster() {
     slits();
     drain_holes();
     kanix_pilots();
-    bungee_hole();
   }
   tabs();
+  cord_loop();
 }
 
 // Reference body for the preview: the radio seated on the floor.
