@@ -486,11 +486,13 @@ module tabs() {
           translate([-back_corner_x(-1), 0, 0]) rotate([90, 0, 90]) linear_extrude(big)
             offset(delta = -r) tab_profile();
           translate([-back_corner_x(-1), 0, back_corner_z(-1)]) rotate([-90, 0, 0]) rotate([0, 0, 180])
-            rotate_extrude(angle = 90)
+            rotate_extrude(angle = 90, $fn = 360)
               translate([-back_corner_z(-1), 0]) multmatrix(swap) offset(delta = -r) tab_profile();
         }
       }
-      sphere(r = r, $fn = 16);
+      // Fine enough that the swept part meets the straight part without a
+      // visible seam.
+      sphere(r = r, $fn = 32);
     }
 }
 
