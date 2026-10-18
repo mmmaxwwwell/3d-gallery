@@ -1,6 +1,6 @@
 # Meshtastic Dry-Bag Node
 
-A cheap Meshtastic/MeshCore repeater that lives in a 2 L dry bag hoisted into a tree, built from a Kingboss 15000 mAh LiFePO4 power bank taken apart. Two printed parts, a flat T-shaped frame and a battery lid. It stands antenna up:
+A cheap Meshtastic/MeshCore repeater that lives in a 2 L dry bag hoisted into a tree, built from a Kingboss 15000 mAh LiFePO4 power bank taken apart. Two printed parts, a flat frame and a battery lid. The frame's back plate is a T with its corners filled in: it slopes straight in from the battery's ends to the top of the antenna's stem, so the stem is braced along its whole length. It stands antenna up:
 
 - **Bottom:** the 32140 LiFePO4 cell (3.2 V, 15 Ah), shut in a housing that takes the knocks. The frame carries one half, and a lid closes it with four M3 × 16 cap screws through its end walls. The cell's leads come out of a hole at each end. The heavy end is at the bottom of the bag.
 - **On the housing's top:** three pockets that the boards drop into from above, flat, so they're right next to the cell and perpendicular to the antenna. Left to right: the KOOBOOK LiFePO4 protection board, the XIAO nRF52840 + Wio-SX1262 kit, then a gap in the middle, then the power bank's charge board. The charge board's USB ports face the end, where the 5 V solar panel's cable plugs in. A square of foam tape under each board keeps it in its pocket.

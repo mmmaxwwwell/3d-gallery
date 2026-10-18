@@ -1,5 +1,6 @@
-// Meshtastic dry-bag node: a flat T-shaped frame, antenna up. The LiFePO4
-// cell lies across the bottom, shut in a housing (the frame's half and a
+// Meshtastic dry-bag node: a flat frame, antenna up, its back plate a T
+// with the inside corners filled by slopes. The LiFePO4 cell lies across
+// the bottom, shut in a housing (the frame's half and a
 // lid screwed onto it) that takes the knocks. The boards lie flat in pockets
 // on the housing's top, dropped in from above, so they're perpendicular to
 // the antenna: the LiFePO4 protection board and the XIAO kit on the left,
@@ -133,22 +134,14 @@ module tear_2d(d) {
   }
 }
 
-module rounded_rect_xz(x0, x1, z0, z1, r) {
+// The back plate's outline: the crossbar, then straight slopes from its top
+// corners in to the stem's top, so the stem is braced along its whole length.
+module plate_outline() {
   translate([0, plate_t, 0]) rotate([90, 0, 0])
     linear_extrude(plate_t)
-      offset(r) offset(-r) translate([x0, z0]) square([x1 - x0, z1 - z0]);
-}
-
-module plate_outline() {
-  rounded_rect_xz(-bar_half, bar_half, 0, bar_top, corner_r);
-  rounded_rect_xz(-stem_half, stem_half, bar_top - corner_r * 2, stem_top, corner_r);
-  // Fill the inside corners where the stem meets the crossbar.
-  for (s = [-1, 1])
-    difference() {
-      translate([s > 0 ? stem_half : -stem_half - corner_r, 0, bar_top]) cube([corner_r, plate_t, corner_r]);
-      translate([s * (stem_half + corner_r), -1, bar_top + corner_r])
-        rotate([-90, 0, 0]) cylinder(r = corner_r, h = plate_t + 2);
-    }
+      offset(corner_r) offset(-corner_r)
+        polygon([[-bar_half, 0], [bar_half, 0], [bar_half, bar_top],
+                 [stem_half, stem_top], [-stem_half, stem_top], [-bar_half, bar_top]]);
 }
 
 module cell_cavity() {
