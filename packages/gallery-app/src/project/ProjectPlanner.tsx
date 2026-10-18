@@ -19,8 +19,11 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import {
   evaluateAuthoredPlateFit,
+  fetchAms,
   fetchPrintStatus,
+  isBambuPrinterConfig,
   printerBedFromConfig,
+  type AmsState,
   type OperatorBlock,
   type PlateFootprint,
   type PrintStatus,
@@ -55,7 +58,7 @@ import {
   type SlicedGcode,
 } from '../print/plate-store.js';
 import { openNewProject, openProject } from '../print/current-project.js';
-import { DEFAULT_BED_SURFACE, processFromProfile, slicePlate, type SliceSetup } from '../print/plate-slice.js';
+import { DEFAULT_BED_SURFACE, processFromProfile, slicePlate, type SliceSetup, type SliceSlot } from '../print/plate-slice.js';
 import { listTemplates, type ProcessSettings } from '../print/process-templates.js';
 import { loadLastSelections } from './PrintDialog.js';
 import { formatWhen, loadPlannerSettings, operatorBlocks, planFleet, savePlannerSettings, type PlannerSettings } from '../print/fleet-plan.js';
@@ -70,8 +73,10 @@ import {
   plateFilament,
   plateGrams,
   plateMaterial,
+  plateFamilies,
   plateNumbers,
   plateSeconds,
+  plateSlots,
   readiness,
   scheduleJobs,
   sliceFraction,
@@ -128,6 +133,31 @@ function geometryProblem(g: Geometry | undefined): string | null {
   return g && 'failed' in g ? g.failed : null;
 }
 
+function isBambu(printer: PrintPreset): boolean {
+  return isBambuPrinterConfig(flattenPresetForSlicer(printer));
+}
+
+/** Filament slots before the AMS has said: one AMS. */
+const DEFAULT_AMS_SLOTS = 4;
+
+/** How many filaments a printer can feed in one print: its AMS trays (and external spool), or one spool. */
+function filamentSlots(printer: PrintPreset, ams: AmsState | null | undefined): number {
+  if (!isBambu(printer)) return 1;
+  if (!ams) return DEFAULT_AMS_SLOTS;
+  return ams.trays.length + (ams.external ? 1 : 0);
+}
+
+/** A filament preset made for this printer (or a parent of its preset). */
+function madeFor(filament: PrintPreset, printer: PrintPreset): boolean {
+  const names = new Set([printer.name, ...printer.parents.map((p) => p.name)]);
+  return !!filament.compatiblePrinters?.some((n) => names.has(n));
+}
+
+const NAMED_COLORS: Record<string, string> = {
+  black: '#000000', white: '#FFFFFF', grey: '#808080', gray: '#808080', red: '#FF0000', blue: '#0000FF',
+  green: '#00AA00', yellow: '#FFFF00', orange: '#FF8000',
+};
+
 function plural(n: number, one: string, many = `${one}s`): string {
   return `${n} ${n === 1 ? one : many}`;
 }
@@ -151,6 +181,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
   const [slices, setSlices] = useState<Record<string, SlicedGcode[]>>({});
   const [geometry, setGeometry] = useState<Record<string, Geometry>>({});
   const [statuses, setStatuses] = useState<Record<string, StatusState>>({});
+  const [ams, setAms] = useState<Record<string, AmsState | null>>({});
   const [settings, setSettingsState] = useState<PlannerSettings>(loadPlannerSettings);
   // The plate editor writes these; it replaces this screen, so reading them once is current.
   const [selections] = useState(loadLastSelections);
@@ -237,6 +268,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
           ...prev,
           [printer.id]: { error: err instanceof Error ? err.message : String(err) },
         })));
+      if (isBambu(printer)) void fetchAms(printer.address).then((a) => setAms((prev) => ({ ...prev, [printer.id]: a })));
     }
     setNow(Date.now());
   };
@@ -281,26 +313,45 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
   );
   const plateById = useMemo(() => new Map((plates ?? []).map((p) => [p.id, p])), [plates]);
   const printerById = useMemo(() => new Map(printers.map((p) => [p.id, p])), [printers]);
-  const materials = useMemo(() => [...new Set(printable.map(plateMaterial))].sort(), [printable]);
+  const materials = useMemo(() => [...new Set(printable.flatMap(plateFamilies))].sort(), [printable]);
 
-  /** Which printers each plate physically fits. A plate whose geometry
-   *  couldn't be resolved is left unconstrained, and slicing will say. */
+  /**
+   * Which printers each plate fits: on the bed, and fed. A plate mixing
+   * material families needs an AMS; one that needs several filaments goes to
+   * the printers that can load them all whenever one is switched on, else
+   * anywhere, printed in one filament as before. A plate whose geometry
+   * couldn't be resolved is left unconstrained by the bed, and slicing will say.
+   */
   const fits = useMemo(() => {
+    const slots = new Map(printers.map((p) => [p.id, filamentSlots(p, ams[p.id])]));
     const beds = printers
       .map((p) => ({ id: p.id, bed: printerBedFromConfig(flattenPresetForSlicer(p)) }))
       .filter((b) => b.bed);
     const out: Record<string, string[]> = {};
-    for (const [plateId, g] of Object.entries(geometry)) {
-      if ('footprints' in g) {
-        out[plateId] = beds.filter((b) => evaluateAuthoredPlateFit(g.footprints, b.bed!).status !== 'blocked').map((b) => b.id);
-      }
+    for (const plate of plates ?? []) {
+      const g = geometry[plate.id];
+      if (!g || !('footprints' in g)) continue;
+      const needs = plateSlots(plate).length;
+      const mixed = plateFamilies(plate).length > 1;
+      const onBed = beds.filter((b) => evaluateAuthoredPlateFit(g.footprints, b.bed!).status !== 'blocked').map((b) => b.id);
+      const fed = onBed.filter((id) => (mixed ? slots.get(id)! >= needs : slots.get(id)! === 1 || slots.get(id)! >= needs));
+      const allColors = fed.filter((id) => slots.get(id)! >= needs && settings.enabled[id] !== false);
+      out[plate.id] = needs > 1 && allColors.length > 0 ? allColors : fed;
     }
     return out;
-  }, [geometry, printers]);
+  }, [geometry, printers, plates, ams, settings.enabled]);
 
-  const filamentFor = (family: string): PrintPreset | undefined =>
-    filaments.find((f) => f.id === settings.filaments[family])
-    ?? filaments.find((f) => filamentFamily(f) === family);
+  /** The filament preset `family` slices with: on an AMS printer its own pick,
+   *  else one made for it, else the fleet's. */
+  const filamentFor = (family: string, printer?: PrintPreset): PrintPreset | undefined => {
+    if (printer && isBambu(printer)) {
+      const own = filaments.find((f) => f.id === settings.printerFilaments?.[printer.id]?.[family])
+        ?? filaments.find((f) => filamentFamily(f) === family && madeFor(f, printer));
+      if (own) return own;
+    }
+    return filaments.find((f) => f.id === settings.filaments[family])
+      ?? filaments.find((f) => filamentFamily(f) === family);
+  };
 
   const procFor = (plate: Plate): ProcessSettings => {
     const template = listTemplates().find((t) => t.id === selections.templateId) ?? listTemplates()[0];
@@ -309,12 +360,24 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
 
   /** How `plate` would be sliced on `printer`, or why it can't be. */
   const setupFor = (plate: Plate, printer: PrintPreset): SliceSetup | { problem: string } => {
+    let slots: SliceSlot[] | undefined;
+    if (isBambu(printer)) {
+      slots = [];
+      for (const f of plateSlots(plate)) {
+        const family = materialFamily(f.material);
+        const filament = filamentFor(family, printer);
+        if (!filament) return { problem: `No ${family} filament preset for ${printer.name} — add the built-in Bambu presets in Settings.` };
+        const named = f.color ? NAMED_COLORS[f.color.toLowerCase()] : undefined;
+        slots.push({ filament, material: family, color: (f.hexes[0] ?? named ?? '#808080').toUpperCase(), colors: f.hexes });
+      }
+    }
     const family = plateMaterial(plate);
-    const filament = filamentFor(family);
+    const filament = slots?.[0].filament ?? filamentFor(family);
     if (!filament) return { problem: `No ${family} filament preset — import one, or pick one under Printers.` };
     return {
       printer,
       filament,
+      ...(slots ? { slots } : {}),
       proc: procFor(plate),
       layerHeight: selections.layerHeight ?? '0.20',
       bedSurface: selections.bedSurface ?? DEFAULT_BED_SURFACE,
@@ -335,7 +398,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
       }
     }
     return out;
-  }, [plates, printers, filaments, settings.filaments]);
+  }, [plates, printers, filaments, settings.filaments, settings.printerFilaments]);
 
   const freshIn = (map: Record<string, SlicedGcode[]>, plate: Plate) =>
     freshSlices(plate, map[plate.id], (printerId) => setupKeys[plate.id]?.[printerId] ?? null);
@@ -350,7 +413,10 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
     // A paused print never finishes on its own; the plan has the operator cancel it on the first trip.
     const remaining = status && status !== 'loading' && 'remainingSec' in status && status.state !== 'paused'
       ? status.remainingSec : 0;
-    return { id: p.id, name: p.name, freeAt: now + remaining * 1000, material: settings.loaded[p.id] || undefined };
+    return {
+      id: p.id, name: p.name, freeAt: now + remaining * 1000, material: settings.loaded[p.id] || undefined,
+      ...(isBambu(p) ? { multiMaterial: true } : {}),
+    };
   }), [enabledPrinters.map((p) => p.id).join(), statuses, settings.loaded, now]);
 
   const fresh = useMemo(
@@ -441,6 +507,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
       grams: sliced.grams,
       slicedAt: Date.now(),
       sliceMs: Date.now() - startedAt,
+      ...(sliced.bambu ? { bambu: sliced.bambu } : {}),
     });
     const next = { ...map, [plate.id]: [...(map[plate.id] ?? []).filter((s) => s.printerId !== printer.id), record] };
     setSlices(next);
@@ -527,7 +594,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
           plateName: plate.name,
           printerId: job.printerId,
           order,
-          file: gcodeName(order, plate),
+          file: gcodeName(order, plate, isBambu(printerById.get(job.printerId)!)),
           start: job.start,
           end: job.end,
           visit: job.visit,
@@ -558,12 +625,13 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
         plateId: plate.id,
         plateName: plate.name,
         printerId: job.printerId,
-        file: gcodeName(order, plate),
+        file: gcodeName(order, plate, !!slice.bambu),
         order,
         material: plateMaterial(plate),
         filament: plateFilament(plate),
         seconds: (job.end - job.start) / 1000,
         slicedAt: slice.slicedAt,
+        ...(slice.bambu ? { ams: slice.bambu.filaments.map(({ slot, type, color }) => ({ slot, type, color })) } : {}),
       };
     });
     void getDaemon(projectId).then((daemon) => {
@@ -1003,6 +1071,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
                 <PrinterRow
                   key={printer.id}
                   printer={printer}
+                  ams={isBambu(printer) ? ams[printer.id] ?? null : undefined}
                   on={settings.enabled[printer.id] !== false}
                   status={statuses[printer.id]}
                   loaded={settings.loaded[printer.id] ?? ''}
@@ -1028,6 +1097,23 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
                 </select>
               </label>
             ))}
+            {printers.filter(isBambu).flatMap((printer) => materials.map((family) => (
+              <label key={`${printer.id}|${family}`} class="planner-inline">
+                {family} on {printer.name} slices with
+                <select
+                  value={filamentFor(family, printer)?.id ?? ''}
+                  onChange={(e) => setSettings({
+                    printerFilaments: {
+                      ...settings.printerFilaments,
+                      [printer.id]: { ...settings.printerFilaments?.[printer.id], [family]: (e.target as HTMLSelectElement).value },
+                    },
+                  })}
+                >
+                  <option value="">—</option>
+                  {filaments.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
+                </select>
+              </label>
+            )))}
           </div>
         )}
         <details class="planner-operator-details">
@@ -1467,6 +1553,8 @@ function PlateRow(props: PlateRowProps) {
 
 interface PrinterRowProps {
   printer: PrintPreset;
+  /** An AMS printer's trays: null until it answers, undefined for a one-spool printer. */
+  ams: AmsState | null | undefined;
   on: boolean;
   status: StatusState | undefined;
   loaded: string;
@@ -1475,7 +1563,7 @@ interface PrinterRowProps {
   onLoaded: (material: string) => void;
 }
 
-function PrinterRow({ printer, on, status, loaded, materials, onToggle, onLoaded }: PrinterRowProps) {
+function PrinterRow({ printer, ams, on, status, loaded, materials, onToggle, onLoaded }: PrinterRowProps) {
   return (
     <li class={`planner-printer${on ? '' : ' is-off'}`}>
       <label class="planner-toggle">
@@ -1491,13 +1579,20 @@ function PrinterRow({ printer, on, status, loaded, materials, onToggle, onLoaded
                   : status.state === 'complete' ? 'finished — bed needs clearing'
                     : status.state}
       </span>
-      <label class="planner-inline">
-        Loaded
-        <select value={loaded} onChange={(e) => onLoaded((e.target as HTMLSelectElement).value)}>
-          <option value="">Unknown</option>
-          {[...new Set([...materials, 'PLA', 'PETG', 'TPU'])].map((m) => <option key={m} value={m}>{m}</option>)}
-        </select>
-      </label>
+      {ams !== undefined ? (
+        <span class="planner-muted" data-ams>
+          {ams === null ? 'AMS: not reported yet'
+            : `AMS: ${ams.trays.filter((t) => t.type).map((t) => `${t.type} ${t.color}`).join(', ') || 'empty'}`}
+        </span>
+      ) : (
+        <label class="planner-inline">
+          Loaded
+          <select value={loaded} onChange={(e) => onLoaded((e.target as HTMLSelectElement).value)}>
+            <option value="">Unknown</option>
+            {[...new Set([...materials, 'PLA', 'PETG', 'TPU'])].map((m) => <option key={m} value={m}>{m}</option>)}
+          </select>
+        </label>
+      )}
     </li>
   );
 }
@@ -1537,7 +1632,7 @@ function Itinerary({ plan, now, plates, printers, numbers, statuses, swapMin }: 
                   <strong>{printers.get(s.printerId)?.name}</strong>: {paused && typeof status === 'object' && 'filename' in status
                     ? `cancel the paused ${status.filename}, ` : ''}{occupied ? 'clear the bed, ' : ''}
                   {s.swapFrom && <span class="planner-swap">swap {s.swapFrom} → {plateMaterial(plate)} (allow {swapMin} min), </span>}
-                  start <code>{gcodeName(numbers.get(s.jobId) ?? 0, plate)}</code> — {plate.name}{' '}
+                  start <code>{gcodeName(numbers.get(s.jobId) ?? 0, plate, !!printers.get(s.printerId) && isBambu(printers.get(s.printerId)!))}</code> — {plate.name}{' '}
                   <span class="planner-muted">({formatDuration((s.end - s.start) / 1000)}, done {formatWhen(s.end, now)})</span>
                 </li>
               );

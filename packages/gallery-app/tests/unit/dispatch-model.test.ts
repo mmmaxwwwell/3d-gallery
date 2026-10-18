@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 import { describe, expect, it } from 'vitest';
 import {
+  amsCheck,
   belt,
   canStart,
   cancelTask,
@@ -158,5 +159,39 @@ describe('readinessChecks', () => {
     expect(canStart(readinessChecks({ ...idle, klippy: { state: 'shutdown', message: 'MCU lost' } }, JOBS[0], '', true))).toBe(false);
     expect(canStart(readinessChecks({ checkedAt: 0, error: 'timeout' }, JOBS[0], '', true))).toBe(false);
     expect(canStart(readinessChecks(idle, JOBS[0], '', false))).toBe(false);
+  });
+});
+
+describe('readinessChecks for a Bambu job', () => {
+  const needs = [
+    { slot: 1, type: 'PLA', color: '#000000' },
+    { slot: 2, type: 'PLA', color: '#FFFFFF' },
+  ];
+  const bambuJob: DispatchJob = { ...job('q', 'X1C', 0), file: '00-q.gcode.3mf', material: 'PLA', ams: needs };
+  const trays = [
+    { slot: 0, type: 'PLA', color: '#000000', name: 'PLA Basic', remain: 80 },
+    { slot: 4, type: 'PLA', color: '#F0F0F0', name: 'PLA Matte', remain: 50 },
+  ];
+  const live: PrinterLive = {
+    checkedAt: 0,
+    klippy: { state: 'ready', message: '' },
+    status: { state: 'standby', filename: '', remainingSec: 0, progress: 0 },
+    nextOnPrinter: true,
+    ams: { trays, external: null },
+  };
+
+  it('checks the AMS, not the loaded spool, and says which tray feeds which slot', () => {
+    const checks = readinessChecks(live, bambuJob, '', true);
+    expect(checks.map((c) => c.id)).toEqual(['reach', 'klipper', 'idle', 'file', 'ams']);
+    expect(checks.at(-1)).toEqual({ id: 'ams', ok: true, text: '1: AMS 1 · 1 PLA Basic · 2: AMS 2 · 1 PLA Matte (nearest colour)' });
+    expect(canStart(checks)).toBe(true);
+  });
+
+  it('blocks when no tray holds a filament the plate needs', () => {
+    const check = amsCheck([{ slot: 1, type: 'PETG', color: '#000000' }], live.ams);
+    expect(check.ok).toBe(false);
+    expect(canStart(readinessChecks({ ...live, ams: { trays: [], external: null } }, bambuJob, '', true))).toBe(false);
+    expect(amsCheck(needs, null)).toEqual({ id: 'ams', ok: false, text: 'The printer reports no AMS' });
+    expect(canStart(readinessChecks({ ...live, ams: undefined }, bambuJob, '', true))).toBe(false);
   });
 });

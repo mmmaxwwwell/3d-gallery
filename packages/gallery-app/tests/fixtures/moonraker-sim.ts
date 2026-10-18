@@ -16,6 +16,8 @@
 // ready; an extrude below `min_extrude_temp` and a move on an unhomed axis
 // fail the script.
 
+import { strFromU8, unzipSync } from 'fflate';
+
 // ─── Wire types ──────────────────────────────────────────────────────────────
 
 export interface SimRequest {
@@ -44,6 +46,37 @@ export type SimResponse =
 
 /** `/printer/objects/list` as the fleet reports it. */
 export const FLEET_OBJECTS: readonly string[] = ['gcode', 'webhooks', 'configfile', 'mcu', 'mcu eboard', 'heaters', 'heater_fan heat_fan', 'fan_generic fanM106', 'fan_generic chamber_fan', 'fan_generic internal_fan', 'fan_generic external_fan', 'gcode_button btn_power', 'idle_timeout', 'pause_resume', 'tmc2209 stepper_x', 'tmc2209 stepper_y', 'tmc2209 stepper_z', 'temperature_sensor weightValue', 'temperature_sensor tvocValue', 'filament_switch_sensor e1_sensor', 'gcode_button check_level_pin', 'filament_switch_sensor e0_sensor', 'servo my_servo', 'gcode_move', 'gcode_macro M900', 'gcode_macro M106', 'gcode_macro M107', 'print_stats', 'virtual_sdcard', 'display_status', 'exclude_object', 'bed_mesh', 'probe', 'controller_fan driver_fan', 'gcode_macro _KAMP_BED_MESH_CALIBRATE', 'gcode_macro KAMP_DEFINE_AREA', 'gcode_macro LINE_PURGE', 'gcode_macro _LINE_PURGE', 'gcode_macro SMART_PARK', 'gcode_macro _KAMP_Settings', 'firmware_retraction', 'mod_params', 'gcode_macro TONE', 'gcode_macro M300', 'gcode_macro M356', 'gcode_macro BEEP', 'gcode_macro ALARM', 'gcode_macro M108', 'gcode_macro G28', 'gcode_macro LIST_MOD_PARAMS', 'gcode_macro WAIT', 'gcode_macro SHELL', 'gcode_macro BED_LEVEL_SCREWS_TUNE', 'gcode_macro _CHECK_BED_MESH', 'gcode_macro _CHECK_BED_MESH_PROBE', 'gcode_macro _CHECK_BED_MESH_VERIFY', 'gcode_macro _CHECK_BED_MESH_HANDLE_FAIL', 'gcode_macro CLEAR_NOZZLE', 'gcode_macro _CLEAR_NOZZLE_PROBE', 'gcode_macro _CLEAR_NOZZLE_SAVE_PROBE', 'gcode_macro _CLEAR_NOZZLE', 'gcode_macro _PREPARE_LEVELING', 'gcode_macro _FULL_BED_LEVEL', 'gcode_macro AUTO_FULL_BED_LEVEL', 'gcode_macro _AUTO_FULL_BED_LEVEL', 'gcode_macro M357', 'gcode_macro PID_TUNE_BED', 'gcode_macro PID_TUNE_EXTRUDER', 'gcode_macro LOAD_FILAMENT', 'gcode_macro UNLOAD_FILAMENT', 'gcode_macro PURGE_FILAMENT', 'gcode_macro LOAD_MATERIAL', 'gcode_macro _LOAD_MATERIAL_SELECT', 'gcode_macro _LOAD_MATERIAL_HEATUP', 'gcode_macro _LOAD_MATERIAL_ACTION', 'gcode_macro _FILAMENT_ACTION', 'gcode_macro _LOAD_MATERIAL_END', 'gcode_macro M600', 'gcode_macro _INTERACTIVE_LOAD_END', 'gcode_macro SHUTDOWN', 'gcode_macro REBOOT', 'gcode_macro REMOVE_MOD', 'gcode_macro REMOVE_MOD_SOFT', 'gcode_macro SKIP_MOD', 'gcode_macro SKIP_MOD_SOFT', 'gcode_macro _TOUCH_BOOT_FLAG', 'gcode_macro LED_ON', 'gcode_macro LED_OFF', 'gcode_macro LED', 'gcode_macro MEM', 'gcode_macro AIR_CIRCULATION_INTERNAL', 'gcode_macro AIR_CIRCULATION_EXTERNAL', 'gcode_macro AIR_CIRCULATION_STOP', 'gcode_macro PLAY_MIDI', 'gcode_macro CAMERA_RELOAD', 'gcode_macro CAMERA_RESTART', 'gcode_macro DATE_GET', 'gcode_macro DATE_SET', 'gcode_macro WEB', 'gcode_macro _G17', 'gcode_macro G17', 'gcode_macro G18', 'gcode_macro G19', 'gcode_macro _STOP', 'gcode_macro ZSHAPER', 'gcode_macro SET_TIMEZONE', 'gcode_macro KAMP', 'gcode_macro STOP_MOD', 'gcode_macro START_MOD', 'gcode_macro TEST_EMMC', 'gcode_macro CLEAR_EMMC', 'gcode_macro ZSSH_RELOAD', 'gcode_macro CONFIG_BACKUP', 'gcode_macro CONFIG_RESTORE', 'gcode_macro CONFIG_VERIFY', 'gcode_macro TAR_BACKUP', 'gcode_macro TAR_DEBUG', 'gcode_macro _CLEAR1', 'gcode_macro _CLEAR2', 'gcode_macro _CLEAR3', 'gcode_macro _CLEAR4', 'gcode_macro _CANCEL_DELAYED_COMMANDS', 'gcode_macro _START_PRINT_PREPARE', 'gcode_macro _START_PRINT', 'gcode_macro _WAIT_TEMPERATURE', 'gcode_macro _WAIT_TEMPERATURE_CHECK_LOOP', 'gcode_macro _WAIT_TEMPERATURE_CHECK', 'gcode_macro _WAIT_TEMPERATURE_FINAL_CHECK', 'gcode_macro _RAISE_WITH_PRINT_CANCEL', 'gcode_macro _RAISE_ERROR', 'gcode_macro NEW_SAVE_CONFIG', 'gcode_macro _MAYBE_AUTO_REBOOT', 'gcode_macro _CANCEL_AUTO_REBOOT', 'gcode_macro _ENSURE_SERVICES_STARTED', 'gcode_macro _COLDPULL_LOAD_MATERIAL_END', 'gcode_macro _COLDPULL_LOAD_MATERIAL', 'gcode_macro COLDPULL', 'gcode_macro SET_GCODE_OFFSET', 'gcode_macro LOAD_GCODE_OFFSET', 'gcode_macro SET_FAN_SPEED', 'gcode_macro MOVE_SAFE', 'gcode_macro _CLIENT_LINEAR_MOVE', 'gcode_macro SET_LED', 'gcode_macro _PRINT_STATUS', 'gcode_macro SUPPORT_FORGE_X', 'gcode_macro CANCEL_PRINT', 'gcode_macro PAUSE', 'gcode_macro RESUME', 'gcode_macro SET_PAUSE_NEXT_LAYER', 'gcode_macro SET_PAUSE_AT_LAYER', 'gcode_macro SET_PRINT_STATS_INFO', 'gcode_macro _TOOLHEAD_PARK_PAUSE_CANCEL', 'gcode_macro _CLIENT_EXTRUDE', 'gcode_macro _CLIENT_RETRACT', 'gcode_macro RESURRECT', 'gcode_macro RESURRECT_ABORT', 'gcode_macro _SHUTDOWN_BUTTON_TRIGGER', 'gcode_macro _CLIENT_VARIABLE', 'gcode_macro _CANCEL_PRINT_WITH_AUDIO_WARNING', 'gcode_macro _PAUSE_WITH_STATUS', 'gcode_macro _RESUME_WITH_STATUS', 'gcode_macro _COMMON_END_PRINT', 'gcode_macro START_PRINT', 'gcode_macro END_PRINT', 'gcode_macro _BACKLIGHT', 'gcode_macro M24', 'gcode_macro M25', 'tmc2209 extruder', 'heater_bed', 'led chamber_light', 'system_stats', 'motion_report', 'query_endstops', 'manual_probe', 'toolhead', 'extruder'];
+
+/**
+ * What bambu-klipper-proxy lists for a Bambu Lab printer: Klipper's
+ * standard objects and `bambu_ams`, with no macros, no exclude_object and no
+ * filament sensors.
+ */
+export const BAMBU_PROXY_OBJECTS: readonly string[] = [
+  'webhooks', 'print_stats', 'virtual_sdcard', 'display_status', 'extruder', 'heater_bed', 'toolhead',
+  'gcode_move', 'fan', 'idle_timeout', 'pause_resume', 'bambu_ams',
+];
+
+/** One AMS tray as the proxy's `bambu_ams` reports it. */
+export interface SimAmsTray {
+  slot?: number;
+  type: string;
+  color: string;
+  name: string;
+  remain: number;
+}
+
+/** A `.gcode.3mf` start as the proxy received it. */
+export interface SimBambuStart {
+  filename: string;
+  /** The plate G-code the proxy found in the 3MF. */
+  plateGcode: string;
+  /** `slice_info.config`'s filaments, id order. */
+  filaments: Array<{ id: number; type: string; color: string }>;
+  /** `ams_mapping` as sent, or the trays the proxy matched itself. */
+  amsMapping: number[];
+  explicit: boolean;
+}
 
 /** Klipper's own commands (not macros) that the sim accepts, most as no-ops. */
 const KLIPPER_COMMANDS = new Set([
@@ -139,6 +172,13 @@ export interface SimOptions {
   missing?: string[];
   /** Host uptime at start, seconds. */
   uptimeSec?: number;
+  /**
+   * Be a Bambu Lab printer behind bambu-klipper-proxy instead of a ZMOD 5M:
+   * its object list, `software_version`, the `bambu_ams` trays given here,
+   * and a print start that takes only a `.gcode.3mf` and maps its filaments
+   * to trays (by `ams_mapping`, else by type family and exact colour).
+   */
+  bambu?: { trays: SimAmsTray[]; external?: SimAmsTray | null };
 }
 
 /** Fault injection. Adapters read it on every request, so tests flip it any time. */
@@ -177,6 +217,10 @@ export class MoonrakerSim {
   readonly scripts: string[] = [];
   /** Every request, as `METHOD /path` (no query), oldest first. */
   readonly requests: string[] = [];
+  /** Bambu flavour: every print start the proxy accepted. */
+  readonly bambuStarts: SimBambuStart[] = [];
+  /** Bambu flavour: the AMS, which tests may reload. */
+  readonly ams: { trays: SimAmsTray[]; external: SimAmsTray | null } | null;
 
   private readonly clock: () => number;
   private readonly origin: string | null;
@@ -225,7 +269,8 @@ export class MoonrakerSim {
     this.clock = options.clock ?? Date.now;
     this.origin = options.origin?.replace(/\/+$/, '') ?? null;
     const missing = new Set(options.missing ?? []);
-    this.objects = FLEET_OBJECTS.filter((o) => !missing.has(o));
+    this.ams = options.bambu ? { trays: options.bambu.trays, external: options.bambu.external ?? null } : null;
+    this.objects = (this.ams ? BAMBU_PROXY_OBJECTS : FLEET_OBJECTS).filter((o) => !missing.has(o));
     this.macros = new Set(this.objects.filter((o) => o.startsWith('gcode_macro ')).map((o) => o.slice(12).toUpperCase()));
     this.uptime = options.uptimeSec ?? 3 * 86400;
   }
@@ -437,6 +482,7 @@ export class MoonrakerSim {
       if (printAction === 'start') {
         const filename = q.get('filename') ?? this.jsonBody(req)?.filename;
         if (typeof filename !== 'string') throw new HttpError(400, "No data for argument: 'filename'");
+        if (this.ams) this.bambuStart(filename, q.get('ams_mapping'));
         this.startPrint(filename);
       } else {
         this.runScript({ pause: 'PAUSE', resume: 'RESUME', cancel: 'CANCEL_PRINT' }[printAction]!, true);
@@ -444,6 +490,35 @@ export class MoonrakerSim {
       return OK;
     }
     throw new HttpError(404, 'Not Found');
+  }
+
+  /**
+   * What bambu-klipper-proxy does before it tells the printer to start: open
+   * the 3MF, find the plate G-code and the filaments, and map each filament to
+   * a tray. Errors read like the proxy's JSON-RPC ones.
+   */
+  private bambuStart(filename: string, mapping: string | null): void {
+    if (!filename.endsWith('.gcode.3mf')) throw new HttpError(400, `can't read ${filename}: not a .gcode.3mf`);
+    const file = this.files.get(filename);
+    const plate = file?.content ? plateOf3mf(file.content) : null;
+    if (!plate) throw new HttpError(400, `can't read ${filename}: no Metadata/plate_<n>.gcode`);
+    const ams = this.ams!;
+    let amsMapping: number[];
+    if (mapping) {
+      amsMapping = mapping.split(',').map((x) => {
+        const n = Number(x);
+        if (!Number.isInteger(n)) throw new HttpError(400, "'ams_mapping' must be comma-separated tray indices");
+        return n;
+      });
+    } else {
+      const family = (type: string) => type.replace(/-/g, ' ').trim().split(/\s+/)[0].toUpperCase();
+      amsMapping = plate.filaments.map((f) => {
+        const tray = ams.trays.find((t) => t.type && family(t.type) === family(f.type) && t.color.toUpperCase() === f.color.toUpperCase());
+        if (tray?.slot === undefined) throw new HttpError(400, `filament ${f.id} (${f.type} ${f.color}) has no tray`);
+        return tray.slot;
+      });
+    }
+    this.bambuStarts.push({ filename, plateGcode: plate.gcode, filaments: plate.filaments, amsMapping, explicit: !!mapping });
   }
 
   private jsonBody(req: SimRequest): Record<string, unknown> | null {
@@ -483,7 +558,7 @@ export class MoonrakerSim {
       python_path: '/opt/Python-3.7.11/bin/python3.7',
       log_file: '/data/logFiles/printer.log',
       config_file: '/opt/config/printer.cfg',
-      software_version: '?',
+      software_version: this.ams ? 'bambu-klipper-proxy 0.1.0' : '?',
       cpu_info: '2 core ARMv7 Processor rev 5 (v7l)',
     };
   }
@@ -531,7 +606,9 @@ export class MoonrakerSim {
       this.faults.failUploads--;
       throw new HttpError(500, this.faults.uploadError);
     }
-    const text = new TextDecoder().decode(part.content);
+    const text = part.filename.endsWith('.3mf')
+      ? plateOf3mf(part.content)?.gcode ?? ''
+      : new TextDecoder().decode(part.content);
     this.addFile(part.filename, { ...readGcodeHeader(text), content: part.content, thumbnails: false });
     const file = this.files.get(part.filename)!;
     return {
@@ -622,7 +699,10 @@ export class MoonrakerSim {
           base_position: [0, 0, this.zOffset, 0],
         };
       case 'fan_generic fanM106':
+      case 'fan':
         return { speed: this.fanSpeed, rpm: null };
+      case 'bambu_ams':
+        return this.ams ? { trays: this.ams.trays.map((t) => ({ ...t })), external: this.ams.external } : {};
       case 'fan_generic chamber_fan':
       case 'fan_generic internal_fan':
       case 'fan_generic external_fan':
@@ -1125,6 +1205,22 @@ function latin1(bytes: Uint8Array): string {
 }
 
 /** What Moonraker's metadata scan would find in an OrcaSlicer G-code file. */
+/** The plate G-code and slice_info filaments of a `.gcode.3mf`, as the proxy reads them; null if it has none. */
+function plateOf3mf(bytes: Uint8Array): { gcode: string; filaments: SimBambuStart['filaments'] } | null {
+  let files: Record<string, Uint8Array>;
+  try {
+    files = unzipSync(bytes);
+  } catch {
+    return null;
+  }
+  const path = Object.keys(files).find((p) => /^Metadata\/plate_\d+\.gcode$/.test(p));
+  if (!path) return null;
+  const info = files['Metadata/slice_info.config'] ? strFromU8(files['Metadata/slice_info.config']) : '';
+  const filaments = [...info.matchAll(/<filament id="(\d+)"[^>]*?type="([^"]*)"[^>]*?color="([^"]*)"/g)]
+    .map((m) => ({ id: Number(m[1]), type: m[2], color: m[3] }));
+  return { gcode: strFromU8(files[path]), filaments };
+}
+
 function readGcodeHeader(text: string): SimFileSpec {
   const spec: SimFileSpec = {};
   const time = /; estimated printing time \(normal mode\) = (.+)/.exec(text)?.[1];

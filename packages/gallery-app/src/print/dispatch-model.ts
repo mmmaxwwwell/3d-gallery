@@ -4,14 +4,14 @@
 // came of each. No I/O — the dispatch daemon runs it, the screen draws it,
 // and a test can drive it.
 
-import type { HistoryJob, KlippyState, PrintStatus } from '@3d-gallery/print-toolkit';
+import { amsTrayLabel, matchAmsTrays, type AmsFilamentNeed, type AmsState, type HistoryJob, type KlippyState, type PrintStatus } from '@3d-gallery/print-toolkit';
 
 /** One plate on one printer's conveyor. */
 export interface DispatchJob {
   plateId: string;
   plateName: string;
   printerId: string;
-  /** Name on the printer: `NN-<plate>.gcode`. */
+  /** Name on the printer: `NN-<plate>.gcode`, or `NN-<plate>.gcode.3mf` on a Bambu printer. */
   file: string;
   /** The plan's start order across the fleet; the NN in `file`. */
   order: number;
@@ -22,6 +22,12 @@ export interface DispatchJob {
   seconds: number;
   /** `slicedAt` of the kept slice this job sends. A re-slice is a new job. */
   slicedAt: number;
+  /**
+   * A Bambu job: the filament each AMS slot of its `.gcode.3mf` asks for. Its
+   * upload packages the kept slice as a 3MF and its start sends the trays
+   * that feed them (`ams_mapping`).
+   */
+  ams?: AmsFilamentNeed[];
   /** How its print ended. `skipped` is the operator taking it off the belt. */
   outcome?: { state: JobOutcome; at: number };
 }
@@ -272,11 +278,13 @@ export interface PrinterLive {
   status?: PrintStatus;
   /** Whether the next job's file is on the printer; undefined when not checked. */
   nextOnPrinter?: boolean;
+  /** A Bambu printer's AMS, when it reports one. */
+  ams?: AmsState | null;
 }
 
 /** `null`: not known, or a warning that doesn't block a start. */
 export interface Check {
-  id: 'reach' | 'klipper' | 'idle' | 'file' | 'filament';
+  id: 'reach' | 'klipper' | 'idle' | 'file' | 'filament' | 'ams';
   ok: boolean | null;
   text: string;
 }
@@ -322,6 +330,10 @@ export function readinessChecks(
     ok: live.nextOnPrinter ?? null,
     text: live.nextOnPrinter === undefined ? `${job.file}: not checked` : live.nextOnPrinter ? `${job.file} on the printer` : `${job.file} not uploaded`,
   });
+  if (job.ams) {
+    checks.push(amsCheck(job.ams, live.ams));
+    return checks;
+  }
   checks.push({
     id: 'filament',
     ok: !loaded ? null : loaded === job.material ? true : null,
@@ -330,6 +342,19 @@ export function readinessChecks(
         : `Needs ${job.filament}, ${loaded} loaded — swap first`,
   });
   return checks;
+}
+
+/** Whether the AMS has a tray for every filament the job asks for, and which. */
+export function amsCheck(needs: AmsFilamentNeed[], ams: AmsState | null | undefined): Check {
+  if (ams === undefined) return { id: 'ams', ok: null, text: 'AMS: not checked' };
+  if (ams === null) return { id: 'ams', ok: false, text: 'The printer reports no AMS' };
+  const match = matchAmsTrays(needs, ams);
+  if (match.problems.length > 0) return { id: 'ams', ok: false, text: match.problems.join(' ') };
+  return {
+    id: 'ams',
+    ok: true,
+    text: match.assignments.map((a) => `${a.slot}: ${amsTrayLabel(a.tray)} ${a.trayName || a.trayColor}${a.exact ? '' : ' (nearest colour)'}`).join(' · '),
+  };
 }
 
 /** Filament is advice; everything else must pass. */

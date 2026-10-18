@@ -236,6 +236,15 @@ export async function fetchPrinterInfo(address: string): Promise<PrinterInfo> {
   return { softwareVersion, bambu: isBambuProxyVersion(softwareVersion) };
 }
 
+/** A Bambu printer's AMS trays, from the proxy's `bambu_ams`; null for a printer without one. */
+export async function fetchAms(address: string): Promise<AmsState | null> {
+  const data = await moonrakerGet<{ result: { status: { bambu_ams?: { trays?: AmsTray[]; external?: AmsTray | null } } } }>(
+    address, '/printer/objects/query?bambu_ams',
+  ).catch(() => null);
+  const ams = data?.result.status.bambu_ams;
+  return ams ? { trays: ams.trays ?? [], external: ams.external ?? null } : null;
+}
+
 /** Whether `fileName` is in the printer's gcodes root. */
 export async function fileExists(address: string, fileName: string): Promise<boolean> {
   const url = buildMoonrakerUrl(address, `/server/files/metadata?filename=${encodeURIComponent(fileName)}`);

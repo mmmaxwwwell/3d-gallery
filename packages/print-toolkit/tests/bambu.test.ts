@@ -17,7 +17,7 @@ import {
 } from '../src/bambu.js';
 import { threeMfVolumes, volumeSlots } from '../src/threemf-volumes.js';
 import { simulate } from '../src/print-schedule.js';
-import { fetchPrinterInfo, fetchPrinterLive, startPrint } from '../src/moonraker-api.js';
+import { fetchAms, fetchPrinterInfo, fetchPrinterLive, startPrint } from '../src/moonraker-api.js';
 import { plate3mf } from './fixtures/plate-3mf.js';
 
 describe('md5Hex', () => {
@@ -266,6 +266,14 @@ describe('Moonraker on a Bambu printer', () => {
     const mock = serve(() => ({ result: 'ok' }));
     await startPrint('x1c.test:7125', '01-tag.gcode.3mf', { amsMapping: [4, 0] });
     expect(mock.mock.calls[0][0]).toBe('http://x1c.test:7125/printer/print/start?filename=01-tag.gcode.3mf&ams_mapping=4,0');
+  });
+
+  it('asks for the AMS alone, and says null for a printer without one', async () => {
+    const external = { type: 'TPU', color: '#FF0000', name: 'TPU', remain: -1 };
+    serve((url) => (url.search === '?bambu_ams' ? { result: { status: { bambu_ams: { trays: [], external } } } } : undefined));
+    expect(await fetchAms('x1c.test:7125')).toEqual({ trays: [], external });
+    serve(() => ({ result: { status: {} } }));
+    expect(await fetchAms('5m.test:7125')).toBeNull();
   });
 
   it('reads the AMS from bambu_ams', async () => {

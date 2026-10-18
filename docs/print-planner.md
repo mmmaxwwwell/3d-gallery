@@ -18,8 +18,9 @@ A project's plates, scheduled across the printer fleet and sent to it.
    previews), the parts list's **Load project** makes a new draft named after
    the model and build, holding one plate per manifest plate. The plate 3MF is
    its single item at the plate origin, so the editor has nothing to arrange.
-   The plate also records its material, colour and the model's recommended
-   profile, and the parts list offers **Open project →**. Anywhere else, the
+   The plate also records its material, colour, its filaments (model-core
+   `plateFilaments`: one per filament its legend colours print in) and the
+   model's recommended profile, and the parts list offers **Open project →**. Anywhere else, the
    header's **Add to project** (➕) drops the
    part on the plate picked in the project view (click a plate; it shows
    "Adding here"), else the newest plate, else a new one
@@ -43,6 +44,12 @@ A project's plates, scheduled across the printer fleet and sent to it.
    bar runs on the clock against the plate's last slice time, or the median
    slicing rate times its print time (`expectedSliceMs`). Each plate is sliced at its
    recommended profile, with the filament preset matched to its material.
+   On a Bambu printer (its preset's `printer_model` is a Bambu Lab one) each
+   of the plate's filaments is an AMS slot: the slicer gets the machine
+   preset plus one filament preset per slot (`bambuSliceConfig`), the
+   printer's own pick for that material, else one made for it, else the
+   fleet's; every volume of the plate's 3MF is set to the slot that prints
+   its colour. Its G-code is never moved or given a preheat.
    Bed surface, layer height, preheat and centring are the print dialog's
    last selections. The G-code is kept in IndexedDB (plate store v5,
    `gcode`), keyed by plate and printer, and goes stale when the plate's
@@ -50,8 +57,10 @@ A project's plates, scheduled across the printer fleet and sent to it.
 4. **Send to printers** writes the plan to the dispatch queue and opens the
    Printers page on it (`printers/?project=<id>`, `src/printers/queue/`).
    Nothing reaches a printer yet.
-   Each job is named `NN-<plate>.gcode`, with NN the plan's start order, and
-   carries the `slicedAt` of the slice it sends. Sending again replaces the
+   Each job is named `NN-<plate>.gcode` (`.gcode.3mf` on a Bambu printer),
+   with NN the plan's start order, and carries the `slicedAt` of the slice
+   it sends; a Bambu job also carries the filament (type, colour) each slot
+   asks for (`DispatchJob.ams`). Sending again replaces the
    plan. Jobs that are the same slice of the same file on the same printer
    keep their uploads and outcomes, and queued commands for anything else are
    cancelled.
@@ -75,12 +84,20 @@ the whole plan's figures. An old `?dispatch=<id>` link forwards there.
   at a time per printer and printers in parallel. They carry on while any
   page that holds the plan's dispatch lock is open. An upload refuses a
   slice that isn't the one sent, and a plate that changed since it was sliced.
+  A Bambu slice is packaged at upload as the `.gcode.3mf` the firmware takes
+  (`packageBambuGcode3mf`: plate G-code and md5, `slice_info.config` with the
+  printer model and filaments), and only after `/printer/info` confirms the
+  address is bambu-klipper-proxy.
 - **Readiness** is probed every 10 s while the page is open: Moonraker
   reachable, Klipper `ready`, the printer idle, and the next file on it
-  (`/server/files/metadata`). The loaded filament is only a warning.
+  (`/server/files/metadata`). The loaded filament is only a warning. A Bambu
+  job checks the AMS instead (`bambu_ams`): every filament needs a tray of
+  its family, the same colour if one is loaded, else the nearest
+  (`matchAmsTrays`), and it blocks the start until there is one.
 - **Print** starts the head of the belt once every check passes. It asks
   about the bed first, since no probe can see it. The daemon checks again
-  right before it sends the start.
+  right before it sends the start; a Bambu start sends the trays it matched
+  as `ams_mapping`, since the proxy's own matching wants an exact colour.
 - **How a print ended** comes from Moonraker's job history, or from the
   printer's live state when history isn't enabled. A finished job leaves the
   belt. **Skip** / **Mark done** takes a job off by hand, and **Put back**
@@ -189,8 +206,9 @@ A plate's time is the slicer's own figure when it has a fresh slice (for any
 printer). Otherwise it is the CI estimate: `print-estimates.json` by artifact
 key, at the flow rate for the plate's material family, summed over its items.
 A plate with neither is left out of the plan until it is sliced. Every printer
-is assumed to take the same time. The fleet is identical Adventurer 5Ms; a
-mixed fleet would want per-printer times.
+is assumed to take the same time. That held for identical Adventurer 5Ms;
+with an X1C in the fleet the plan uses one printer's figure for all of them
+until per-printer times exist.
 
 Printers report their current job through Moonraker (`fetchPrintStatus`). A
 busy printer joins the plan when its current print ends. A paused print never ends on
@@ -215,6 +233,9 @@ next visit is when the first busy printer with work left finishes. With a
 gather allowance, it is the last printer finishing within that allowance, so
 one trip handles several printers. The time is then pushed out of any block.
 
+A printer with an AMS (`multiMaterial`) never pays a swap: it changes
+filament between jobs itself.
+
 TPU is held back until every other job has started, then printed as one
 batch on at most two printers (`lastMaterials`), so no printer sits on a
 flexible all day and the swap to it is paid once, near the end. The
@@ -230,12 +251,17 @@ give the same plan. Objectives:
 - **Fewest operator trips**: fewest visits, then earliest collection.
 
 Plates only go to printers whose bed they fit (the same
-`evaluateAuthoredPlateFit` the plate editor uses). A plate no enabled printer
-fits is reported, not scheduled.
+`evaluateAuthoredPlateFit` the plate editor uses), and that can feed them: a
+plate mixing material families needs an AMS with a slot per filament (four
+until the AMS reports its trays). A plate needing several filaments goes to
+the printers that can load them all while one is switched on, else to any,
+printed in one filament. A plate no enabled printer fits is reported, not
+scheduled.
 
 ## Settings
 
 Per browser (`localStorage['3dg:print:planner']`): the objective, bedtime and
 wake time, changeover and swap minutes, one-off away blocks, printers switched
-off, the material loaded in each printer, and the filament preset per
-material family.
+off, the material loaded in each printer, the filament preset per
+material family, and an AMS printer's own filament preset per family
+(`printerFilaments`).

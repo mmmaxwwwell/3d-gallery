@@ -25,6 +25,7 @@ function live(over: Partial<PrinterLiveStatus> = {}): PrinterLiveStatus {
     fanPct: 0, speedPct: 100, flowPct: 100, zOffset: 0, homedAxes: '', position: [0, 0, 0],
     sensors: [], lightOn: false, objects: [], idleState: 'Idle', paused: false, host: null, uptimeSec: 100,
     macros: new Set(FLEET_MACROS),
+    ams: null,
     ...over,
   };
 }
@@ -205,6 +206,14 @@ describe('missing macros', () => {
   it('keeps reboot and power off, which fall back to Moonraker', () => {
     const s = controlStates(live({ macros: new Set() }));
     expect(s.reboot.visible && s.powerOff.visible).toBe(true);
+  });
+
+  it('shows a Bambu printer only what the proxy carries out', () => {
+    const s = controlStates(printing({ macros: new Set(), lightOn: null, ams: { trays: [], external: null } }));
+    const shown = (Object.keys(s) as ControlId[]).filter((id) => s[id].visible).sort();
+    expect(shown).toEqual(['bedTemp', 'cancel', 'emergencyStop', 'fan', 'home', 'nozzleTemp', 'pause', 'preheat', 'startPrint']);
+    expect(s.cancel.confirm).toBe('hold');
+    expect(s.home.enabled).toBe(false);
   });
 
   it('hides the light on a printer without one', () => {

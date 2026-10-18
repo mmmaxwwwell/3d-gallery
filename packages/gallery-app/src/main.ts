@@ -88,7 +88,7 @@ if (installBtn) {
     });
   }
 }
-import { parseParams, coerceToParamType, validateParams, mainAssembly, selectBuild, KEY_SCHEMA, describeProfile, recommendedProfile, plateMaterial } from "@3d-gallery/model-core";
+import { parseParams, coerceToParamType, validateParams, mainAssembly, selectBuild, KEY_SCHEMA, describeProfile, recommendedProfile, plateMaterial, plateFilaments } from "@3d-gallery/model-core";
 import type { ScadParam, ScadValue, RuntimeManifest, PrintProfileHint, ParamsSchema } from "@3d-gallery/model-core";
 import {
   createArtifactClient,
@@ -1851,6 +1851,7 @@ async function loadBuildProject(model: Model, plates: Part[]): Promise<string | 
     name: plate.label,
     material: plateMaterial(model, plate),
     color: plateColor(model, plate),
+    filaments: plateFilaments(model, plate),
     profile,
     item: {
       slug: model.slug,

@@ -142,6 +142,7 @@ export {
   rebootHost,
   shutdownHost,
   fetchPrinterInfo,
+  fetchAms,
   type PrinterInfo,
   type StartOptions,
   type PrinterLiveStatus,

@@ -8,8 +8,10 @@ import {
   gcodeName,
   isReady,
   plateGrams,
+  plateFamilies,
   plateNumbers,
   plateSeconds,
+  plateSlots,
   readiness,
   scheduleJobs,
   sliceFraction,
@@ -65,6 +67,7 @@ describe('planner model', () => {
     const plan = schedule([['b', 'L', 10, 20], ['a', 'R', 0, 5], ['c', 'L', 20, 30]]);
     expect([...plateNumbers(plan)]).toEqual([['a', 0], ['b', 1], ['c', 2]]);
     expect(gcodeName(0, plate('a'))).toBe('00-plate-a.gcode');
+    expect(gcodeName(3, plate('a'), true)).toBe('03-plate-a.gcode.3mf');
   });
 
   it('flags jobs that overlap on one printer, and only those', () => {
@@ -145,5 +148,18 @@ describe('planner model', () => {
     expect(late).toBeGreaterThan(0.98);
     expect(late).toBeLessThan(1);
     expect(sliceFraction(3000, 1000)).toBeGreaterThan(sliceFraction(2000, 1000));
+  });
+});
+
+describe('plate filaments', () => {
+  it('are the plate material alone unless the plate lists them', () => {
+    expect(plateSlots(plate('a', 'PLA'))).toEqual([{ material: 'PLA', hexes: [] }]);
+    const qr = { ...plate('q', 'PLA'), filaments: [
+      { material: 'PLA', color: 'black', hexes: ['#000000'] },
+      { material: 'PLA', color: 'white', hexes: ['#ffffff'] },
+    ] };
+    expect(plateSlots(qr)).toHaveLength(2);
+    expect(plateFamilies(qr)).toEqual(['PLA']);
+    expect(plateFamilies({ ...qr, filaments: [...qr.filaments, { material: 'TPU 95A', hexes: ['#ff0000'] }] })).toEqual(['PLA', 'TPU']);
   });
 });

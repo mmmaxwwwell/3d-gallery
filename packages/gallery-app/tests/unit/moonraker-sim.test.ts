@@ -4,6 +4,7 @@
 // stand on, so its answers have to match what the real fleet sends.
 
 import { describe, expect, it } from 'vitest';
+import { packageBambuGcode3mf } from '@3d-gallery/print-toolkit';
 import { MoonrakerSim, parseGcodeLine, parseMultipartFile, type SimRequest } from '../fixtures/moonraker-sim.ts';
 
 const T0 = 1_790_000_000_000;
@@ -299,5 +300,61 @@ describe('parseMultipartFile', () => {
     const part = parseMultipartFile('multipart/form-data; boundary=b', new TextEncoder().encode(body));
     expect(part?.filename).toBe('x.gcode');
     expect(new TextDecoder().decode(part!.content)).toBe('G28\nG1 X1');
+  });
+});
+
+describe('MoonrakerSim: Bambu printer behind bambu-klipper-proxy', () => {
+  const trays = [
+    { slot: 0, type: 'PLA Basic', color: '#000000', name: 'Bambu PLA Basic', remain: 80 },
+    { slot: 5, type: 'PLA', color: '#F0F0F0', name: 'PLA Matte', remain: 40 },
+  ];
+  const bambu = () => new MoonrakerSim({ name: 'X1C', clock: () => T0, bambu: { trays } });
+
+  function upload(s: MoonrakerSim, name: string, bytes: Uint8Array) {
+    const head = new TextEncoder().encode(`--b\r\nContent-Disposition: form-data; name="file"; filename="${name}"\r\nContent-Type: application/octet-stream\r\n\r\n`);
+    const tail = new TextEncoder().encode('\r\n--b--\r\n');
+    const body = new Uint8Array(head.length + bytes.length + tail.length);
+    body.set(head); body.set(bytes, head.length); body.set(tail, head.length + bytes.length);
+    return call(s, 'POST', '/server/files/upload', { headers: { 'content-type': 'multipart/form-data; boundary=b' }, body });
+  }
+
+  const job = packageBambuGcode3mf({
+    gcode: '; HEADER_BLOCK_START\n; total layer number: 12\n; HEADER_BLOCK_END\nM620 S1A\nT1\n',
+    printerModelId: 'BL-P001',
+    nozzleDiameter: 0.4,
+    filaments: [{ slot: 1, type: 'PLA', color: '#000000' }, { slot: 2, type: 'PLA', color: '#FFFFFF' }],
+  });
+
+  it('reports itself as the proxy, with the AMS and no Klipper macros', () => {
+    const s = bambu();
+    expect(get(s, '/printer/info').json.result.software_version).toMatch(/^bambu-klipper-proxy/);
+    const objects: string[] = get(s, '/printer/objects/list').json.result.objects;
+    expect(objects).toContain('bambu_ams');
+    expect(objects.some((o) => o.startsWith('gcode_macro '))).toBe(false);
+    expect(status(s, 'bambu_ams').bambu_ams).toEqual({ trays, external: null });
+  });
+
+  it('starts a .gcode.3mf on the trays the gallery maps', () => {
+    const s = bambu();
+    expect(upload(s, '00-tag.gcode.3mf', job).status).toBe(201);
+    expect(post(s, '/printer/print/start?filename=00-tag.gcode.3mf&ams_mapping=0,5').status).toBe(200);
+    expect(s.state).toBe('printing');
+    expect(s.bambuStarts).toEqual([{
+      filename: '00-tag.gcode.3mf',
+      plateGcode: expect.stringContaining('M620 S1A'),
+      filaments: [{ id: 1, type: 'PLA', color: '#000000' }, { id: 2, type: 'PLA', color: '#FFFFFF' }],
+      amsMapping: [0, 5],
+      explicit: true,
+    }]);
+  });
+
+  it('refuses plain G-code, and a filament no tray matches exactly when left to map', () => {
+    const s = bambu();
+    upload(s, '00-tag.gcode.3mf', job);
+    const unmapped = post(s, '/printer/print/start?filename=00-tag.gcode.3mf');
+    expect(unmapped.status).toBe(400);
+    expect(unmapped.json.error.message).toBe('filament 2 (PLA #FFFFFF) has no tray');
+    expect(post(s, '/printer/print/start?filename=cube.gcode').json.error.message).toMatch(/not a \.gcode\.3mf/);
+    expect(s.state).toBe('standby');
   });
 });

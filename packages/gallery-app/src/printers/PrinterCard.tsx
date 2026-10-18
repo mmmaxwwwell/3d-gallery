@@ -7,7 +7,7 @@
 
 import type { ComponentChildren } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
-import type { PrinterLiveStatus, Webcam } from '@3d-gallery/print-toolkit';
+import { amsTrayLabel, type PrinterLiveStatus, type Webcam } from '@3d-gallery/print-toolkit';
 import { formatWhen } from '../print/fleet-plan.js';
 import {
   conditionLabel,
@@ -122,6 +122,17 @@ function Summary({ live, now, stale }: { live: PrinterLiveStatus; now: number; s
         <p class={`printers-sensor${sensor.detected ? '' : ' is-empty'}`}>
           Filament: {sensor.detected ? 'loaded' : 'none'}
         </p>
+      )}
+      {live.ams && (
+        <ul class="printers-ams" aria-label="AMS">
+          {[...live.ams.trays, ...(live.ams.external ? [live.ams.external] : [])].map((t) => (
+            <li key={t.slot ?? 'external'} class={t.type ? '' : 'is-empty'} title={t.name}>
+              <span class="printers-ams-swatch" style={{ background: t.type ? t.color : 'transparent' }} />
+              {t.slot === undefined ? 'External' : amsTrayLabel(t.slot)}: {t.type || 'empty'}
+              {t.type && t.remain >= 0 && ` · ${t.remain}%`}
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );

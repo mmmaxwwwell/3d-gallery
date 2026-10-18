@@ -166,6 +166,7 @@ export function describeSource(preset: PrintPreset): string {
     case 'orca-file': return `Imported from ${s.fileName} on ${when(s.importedAt)}`;
     case 'orca-config': return `Imported from your Orca config (${s.path}) on ${when(s.importedAt)}`;
     case 'orca-preset': return `Copied from Orca preset “${s.presetName}” by the Orca bridge`;
+    case 'builtin': return `Bambu Lab's preset as OrcaSlicer ${s.orcaVersion} ships it, built into the gallery; added ${when(s.addedAt)}`;
     case 'manual': return 'Added by hand';
     default: return 'Imported before provenance was recorded';
   }

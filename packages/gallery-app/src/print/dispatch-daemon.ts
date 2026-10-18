@@ -10,11 +10,15 @@
 // the holder hears the write over the change bus and runs the command.
 
 import {
+  fetchAms,
   fetchJobHistory,
   fetchKlippyState,
+  fetchPrinterInfo,
   fetchPrintStatus,
   fileExists,
   listWebcams,
+  matchAmsTrays,
+  packageBambuGcode3mf,
   startPrint,
   uploadGcode,
   type Webcam,
@@ -304,7 +308,14 @@ export class DispatchDaemon {
     if (!slice) throw new Error('No slice kept for this printer — slice it in the planner and send again');
     if (slice.slicedAt !== task.slicedAt) throw new Error('Re-sliced since the plan was sent — send again from the planner');
     if (slice.signature !== plateSignature(plate)) throw new Error('The plate changed since it was sliced — re-slice it in the planner');
-    await uploadGcode(address, task.file, new TextEncoder().encode(slice.gcode));
+    if (!slice.bambu) {
+      await uploadGcode(address, task.file, new TextEncoder().encode(slice.gcode));
+      return;
+    }
+    // A .gcode.3mf on a Klipper printer would just sit there unprintable.
+    const info = await fetchPrinterInfo(address);
+    if (!info.bambu) throw new Error(`${address} answers as ${info.softwareVersion || 'Klipper'}, not bambu-klipper-proxy`);
+    await uploadGcode(address, task.file, packageBambuGcode3mf({ ...slice.bambu, gcode: slice.gcode, title: plate.name }));
   }
 
   /** Checks again right before starting: the screen's probe may be ten seconds old. */
@@ -314,7 +325,16 @@ export class DispatchDaemon {
     const status = await fetchPrintStatus(address);
     if (status.state === 'printing' || status.state === 'paused') throw new Error(`Still ${status.state} ${status.filename}`);
     if (!(await fileExists(address, task.file))) throw new Error(`${task.file} isn't on the printer — upload it first`);
-    await startPrint(address, task.file);
+    const job = this.current().jobs.find((j) => jobKey(j) === jobKey(task));
+    if (!job?.ams) {
+      await startPrint(address, task.file);
+      return;
+    }
+    const ams = await fetchAms(address);
+    if (!ams) throw new Error('The printer reports no AMS');
+    const match = matchAmsTrays(job.ams, ams);
+    if (match.problems.length > 0) throw new Error(match.problems.join(' '));
+    await startPrint(address, task.file, { amsMapping: match.assignments.map((a) => a.tray) });
   }
 
   // ── Probing ────────────────────────────────────────────
@@ -349,7 +369,8 @@ export class DispatchDaemon {
       const status = await fetchPrintStatus(address);
       const next = nextJob(this.snap.dispatch, printerId);
       const nextOnPrinter = next ? await fileExists(address, next.file).catch(() => undefined) : undefined;
-      this.setLive(printerId, { checkedAt, klippy, status, nextOnPrinter });
+      const ams = next?.ams ? await fetchAms(address) : undefined;
+      this.setLive(printerId, { checkedAt, klippy, status, nextOnPrinter, ...(ams !== undefined ? { ams } : {}) });
       // One page records outcomes, so two can't log the same finish.
       if (this.snap.runner) await this.settle(printerId, address, status);
     } catch (err) {

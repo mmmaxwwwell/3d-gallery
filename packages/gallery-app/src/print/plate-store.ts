@@ -16,7 +16,8 @@
 // cache. Nothing here holds geometry.
 
 import { openDB, type IDBPDatabase } from 'idb';
-import type { RecommendedProfile, ScadValue } from '@3d-gallery/model-core';
+import type { PlateFilament, RecommendedProfile, ScadValue } from '@3d-gallery/model-core';
+import type { BambuFilament } from '@3d-gallery/print-toolkit';
 import { IDENTITY_QUAT, type Quat } from './mesh-bounds.js';
 import type { SupportStyle } from './process-templates.js';
 import { onStoreChange, publishChange } from './change-bus.js';
@@ -148,6 +149,13 @@ export interface Plate {
   material?: string;
   /** Filament colour the model asks for, when it names one. */
   color?: string;
+  /**
+   * Every filament the plate prints with and the 3MF colours each prints, for
+   * a plate made from a model's print plate (model-core `plateFilaments`).
+   * An AMS printer loads one slot per entry; a one-spool printer prints the
+   * plate in `material`. Absent: one filament, `material`.
+   */
+  filaments?: PlateFilament[];
   /** The model's recommended profile, for a plate made from its print plates. */
   profile?: RecommendedProfile;
   /** Unticked in the project view: not planned, sliced or sent. */
@@ -174,6 +182,20 @@ export interface SlicedGcode {
   slicedAt: number;
   /** How long the slice took, ms — what the next one's progress bar is timed by. */
   sliceMs?: number;
+  /**
+   * Sliced for a Bambu printer: what its `.gcode.3mf` says beside the G-code
+   * (packaged at upload, `packageBambuGcode3mf`).
+   */
+  bambu?: BambuSliceInfo;
+}
+
+export interface BambuSliceInfo {
+  printerModelId: string;
+  nozzleDiameter: number;
+  /** One per AMS slot, slot 1 first. */
+  filaments: BambuFilament[];
+  predictionSec?: number;
+  weightGrams?: number;
 }
 
 function getDb(): Promise<IDBPDatabase> {
@@ -381,7 +403,14 @@ export async function listSlicedGcode(plateId: string): Promise<SlicedGcode[]> {
  */
 export async function createPlatesWithItems(
   projectId: string,
-  entries: Array<{ name: string; item: Omit<PlateItem, 'id'>; material?: string; color?: string; profile?: RecommendedProfile }>,
+  entries: Array<{
+    name: string;
+    item: Omit<PlateItem, 'id'>;
+    material?: string;
+    color?: string;
+    filaments?: PlateFilament[];
+    profile?: RecommendedProfile;
+  }>,
 ): Promise<Plate[]> {
   const db = await getDb();
   const tx = db.transaction(PLATES_STORE, 'readwrite');
@@ -398,6 +427,7 @@ export async function createPlatesWithItems(
       ),
       material: entry.material,
       color: entry.color,
+      filaments: entry.filaments,
       profile: entry.profile,
       createdAt: now,
       // Oldest first reads top to bottom in plate order, since lists sort newest first.
@@ -554,6 +584,7 @@ export async function duplicatePlate(plate: Plate): Promise<Plate> {
     transforms,
     material: plate.material,
     color: plate.color,
+    filaments: plate.filaments,
     profile: plate.profile,
     overrides: plate.overrides,
   });

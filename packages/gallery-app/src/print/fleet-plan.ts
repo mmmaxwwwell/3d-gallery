@@ -26,6 +26,8 @@ export interface PlannerSettings {
   loaded: Record<string, string>;
   /** Material family → filament preset id. */
   filaments: Record<string, string>;
+  /** AMS printers: printerId → material family → filament preset id, over `filaments`. */
+  printerFilaments?: Record<string, Record<string, string>>;
 }
 
 const LS_PLANNER = '3dg:print:planner';

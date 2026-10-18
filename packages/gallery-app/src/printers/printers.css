@@ -326,6 +326,30 @@
   color: var(--shell-text-muted);
 }
 
+.printers-ams {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+}
+
+.printers-ams li.is-empty {
+  opacity: 0.55;
+}
+
+.printers-ams-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 4px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  vertical-align: -1px;
+}
+
 .printers-sensor.is-empty {
   color: var(--printers-warn);
 }

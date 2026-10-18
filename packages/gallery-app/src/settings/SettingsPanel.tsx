@@ -13,6 +13,7 @@ import {
 } from '../print/print-storage.js';
 import { parseOrcaPresetFile, parseOrcaConfigTree, type ParsedPreset } from '../print/orca-import.js';
 import { PresetEditor } from './PresetEditor.js';
+import { addBuiltinBambuPresets } from '../print/bambu-presets.js';
 import { setOverride } from '../print/preset-edit.js';
 import { exportFilename, exportMergedJson, exportRawJson } from '../print/preset-flatten.js';
 import { backupFilename, exportBackup, importBackup, parseBackup } from '../print/backup.js';
@@ -140,6 +141,18 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
       for (const p of parsed) await savePresetFromParsed(p);
       setImportedCount(parsed.length);
       setWarnings([...warn, ...skipped.map((s) => `Skipped: ${s}`)]);
+      await refresh();
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleBambu = async () => {
+    setImportError(''); setImportedCount(0); setWarnings([]); setBusy(true);
+    try {
+      setImportedCount((await addBuiltinBambuPresets()).length);
       await refresh();
     } catch (err) {
       setImportError(err instanceof Error ? err.message : String(err));
@@ -341,6 +354,16 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
               disabled={busy}
               onChange={(e) => void handleFiles((e.target as HTMLInputElement).files)}
             />
+            <h4>Bambu Lab X1 Carbon</h4>
+            <p class="print-settings-help">
+              An X1C with an AMS prints through bambu-klipper-proxy, which answers like Moonraker. Its machine preset has
+              to come from the same OrcaSlicer release as the gallery's slicer, so the gallery carries one: this adds
+              the X1 Carbon 0.4 nozzle and Bambu PLA, PETG and TPU filaments for its AMS. Then set the printer's
+              address (the proxy, <code>host:7125</code>) under Printers.
+            </p>
+            <button type="button" class="btn btn-secondary" disabled={busy} onClick={() => void handleBambu()}>
+              Add the X1 Carbon presets
+            </button>
             {busy && <div class="print-settings-notice">Working…</div>}
             {importedCount > 0 && (
               <div class="print-settings-notice">Imported {importedCount} preset{importedCount === 1 ? '' : 's'}.</div>

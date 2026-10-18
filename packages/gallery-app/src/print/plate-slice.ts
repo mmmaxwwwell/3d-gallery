@@ -5,9 +5,12 @@
 // config merge, post-processing and provenance live here and nowhere else.
 
 import {
+  bambuModelId,
   buildProvenanceComment,
   createSlicerBackend,
   evaluateAuthoredPlateFit,
+  filamentUsePerSlot,
+  isBambuPrinterConfig,
   forceStripBedExcludeArea,
   hashConfig,
   parseGcodeMetadata,
@@ -18,14 +21,16 @@ import {
   type Provenance,
   type ProvenancePart,
   type SlicerBackend,
+  threeMfVolumes,
+  volumeSlots,
 } from '@3d-gallery/print-toolkit';
 import type { RecommendedProfile, ScadValue } from '@3d-gallery/model-core';
 import { firstValue } from './preset-spec.js';
-import { flattenPresetForSlicer } from './preset-flatten.js';
+import { flattenPresetForSlicer, mergeInheritance } from './preset-flatten.js';
 import type { PrintPreset } from './print-storage.js';
 import { bakeInstance, buildInstances, toFootprints, withArrangedGaps, type PlateInstance } from './plate-geometry.js';
 import { resolvePlate } from './plate-resolve.js';
-import type { Plate } from './plate-store.js';
+import type { BambuSliceInfo, Plate } from './plate-store.js';
 import {
   brimConfig,
   buildProcessConfig,
@@ -52,10 +57,24 @@ export function bedSurfaceTempKey(surface: BedSurface): string {
   return BED_SURFACES.find((s) => s.value === surface)?.tempKey ?? 'hot_plate_temp';
 }
 
+/** One AMS slot of a Bambu slice. */
+export interface SliceSlot {
+  filament: PrintPreset;
+  /** Material family. */
+  material: string;
+  /** `#RRGGBB` the file asks the AMS for. */
+  color: string;
+  /** The plate's 3MF colours this slot prints. */
+  colors: string[];
+}
+
 /** Everything about a slice that is not the plate itself. */
 export interface SliceSetup {
   printer: PrintPreset;
+  /** The filament, or slot 1's on a Bambu printer. */
   filament: PrintPreset;
+  /** A Bambu printer's AMS slots, slot 1 first. Absent on a one-spool printer. */
+  slots?: SliceSlot[];
   proc: ProcessSettings;
   layerHeight: string;
   bedSurface: BedSurface;
@@ -71,6 +90,8 @@ export interface SlicedPlate {
   /** The slicer's own estimate, from the G-code header. */
   seconds?: number;
   grams?: number;
+  /** Sliced for a Bambu printer: what goes beside the G-code in its `.gcode.3mf`. */
+  bambu?: BambuSliceInfo;
 }
 
 /** A model's recommended profile as the dialog's process settings. What the
@@ -113,6 +134,11 @@ export async function sliceInstances(
   const { proc, layerHeight, bedSurface } = setup;
   const printerFlat = flattenPresetForSlicer(setup.printer);
   const filamentFlat = flattenPresetForSlicer(setup.filament);
+  const bambu = isBambuPrinterConfig(printerFlat);
+  const slots = setup.slots ?? [];
+  if (bambu && slots.length === 0) {
+    throw new Error(`${setup.printer.name} is a Bambu printer: slice and send its plates from the project's plan, which gives each AMS slot its filament.`);
+  }
 
   // One slicer object per copy. The pose is baked into the bytes, so the
   // job carries no rotation and no scale — there is nothing left for the
@@ -131,6 +157,9 @@ export async function sliceInstances(
         ? supportConfig(o.supports) : {}),
       ...(o?.brim !== undefined && o.brim !== proc.brim ? brimConfig(o.brim) : {}),
     };
+    // The slicer doesn't keep a 3MF's per-part extruders, so on an AMS
+    // printer every volume is put on the slot that prints its colour.
+    const volumes = bambu && baked.format === '3mf' ? threeMfVolumes(baked.data) : null;
     return {
       data: baked.data,
       format: baked.format,
@@ -141,6 +170,7 @@ export async function sliceInstances(
       scaleY: 1,
       scaleZ: 1,
       config: Object.keys(objectConfig).length > 0 ? objectConfig : undefined,
+      ...(volumes ? { volumeExtruders: volumeSlots(volumes, slots.map((slot) => slot.colors)) } : {}),
     };
   });
 
@@ -164,9 +194,15 @@ export async function sliceInstances(
   // (`["0x0"]` placeholder from fdm_qidi_common etc.) that the slicer
   // combines with `extruder_clearance_radius` and turns into a bogus
   // ~47 mm keepout circle at the corner.
+  const machineConfig = bambu
+    ? (await import('@3d-gallery/print-toolkit/bambu-slice-config')).bambuSliceConfig({
+      printer: mergeInheritance(setup.printer),
+      filaments: slots.map((slot) => mergeInheritance(slot.filament)),
+      colors: slots.map((slot) => slot.color),
+    })
+    : { ...printerFlat, ...filamentFlat };
   const mergedConfig: Record<string, string> = {
-    ...printerFlat,
-    ...filamentFlat,
+    ...machineConfig,
     ...bedSurfaceConfig,
     ...buildProcessConfig(proc, layerHeight),
   };
@@ -186,12 +222,15 @@ export async function sliceInstances(
   const initialKey = `${bedSurfaceTempKey(bedSurface)}_initial_layer`;
   const bedTemp = firstValue(filamentFlat[initialKey]) ??
     firstValue(filamentFlat[bedSurfaceTempKey(bedSurface)]);
+  // Bambu's machine G-code purges and wipes at fixed spots and heats the way
+  // the firmware wants, so its output is never moved or given a preamble.
   const report = postProcessGcode(sliceResult.gcode, {
     printableArea: printerFlat['printable_area'],
     nozzleTemp,
     bedTemp,
-    preheat: setup.preheat,
-    centerOnBed: setup.centerOnBed,
+    preheat: bambu ? false : setup.preheat,
+    centerOnBed: bambu ? false : setup.centerOnBed,
+    overrideMacroTemps: !bambu,
   });
 
   // Build the provenance comment block: full lineage of the print so
@@ -236,11 +275,43 @@ export async function sliceInstances(
     filamentConfigHash,
   };
 
+  if (!bambu) {
+    return {
+      gcode: buildProvenanceComment(provenance) + report.gcode,
+      report,
+      seconds: meta.printTimeSeconds,
+      grams: meta.filamentGrams,
+    };
+  }
+
+  const modelId = bambuModelId(printerFlat);
+  if (!modelId) throw new Error(`${setup.printer.name}: no Bambu model id for "${printerFlat['printer_model']}".`);
+  const use = filamentUsePerSlot(report.gcode);
+  const seconds = meta.printTimeSeconds ?? sliceResult.printTime;
+  const grams = meta.filamentGrams ?? sliceResult.stats?.totalWeight;
   return {
-    gcode: buildProvenanceComment(provenance) + report.gcode,
+    // The firmware reads the header block at the top, so the lineage goes last.
+    gcode: `${report.gcode}\n${buildProvenanceComment(provenance)}`,
     report,
-    seconds: meta.printTimeSeconds,
-    grams: meta.filamentGrams,
+    seconds,
+    grams,
+    bambu: {
+      printerModelId: modelId,
+      nozzleDiameter: Number(firstValue(printerFlat['nozzle_diameter']) ?? 0.4),
+      filaments: slots.map((slot, i) => {
+        const flat = flattenPresetForSlicer(slot.filament);
+        return {
+          slot: i + 1,
+          type: firstValue(flat['filament_type']) ?? slot.material,
+          color: slot.color,
+          ...(flat['filament_id'] ? { trayInfoIdx: flat['filament_id'] } : {}),
+          ...(use.grams[i] !== undefined ? { usedGrams: use.grams[i] } : {}),
+          ...(use.meters[i] !== undefined ? { usedMeters: use.meters[i] } : {}),
+        };
+      }),
+      ...(seconds ? { predictionSec: seconds } : {}),
+      ...(grams ? { weightGrams: grams } : {}),
+    },
   };
 }
 

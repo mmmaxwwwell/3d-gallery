@@ -43,7 +43,8 @@ A project is a set of plates you want printed. There's always one open. It
 starts as an unsaved draft; save it to keep it.
 
 - **Plates.** Make, rename, duplicate and delete plates, and arrange parts
-  on each one. Each plate prints in one material.
+  on each one. A plate prints in one material, unless it goes to a printer
+  with an AMS (below).
 - **Leaving things out.** Untick a plate to keep it in the project but out
   of the plan: it isn't sliced, scheduled or sent. A plate with more than
   one part lists them under **Parts**. Untick a part to print the plate
@@ -58,6 +59,13 @@ starts as an unsaved draft; save it to keep it.
   flexible filaments (TPU) for the end. Choose whether you want it all done
   soonest or with the fewest trips. It's shown as a timeline per printer
   and as a list of trips.
+- **Bambu printers with an AMS.** An X1 Carbon prints a model's colours
+  together: a plate loaded from a two-colour model gets one AMS slot per
+  colour, sliced with that printer's own filament presets, and can even mix
+  materials. Plates that need several filaments go to the AMS printer
+  whenever it's switched on; anywhere else they print in one filament, as
+  before. The printers list shows what each AMS has loaded, and **… on
+  <printer> slices with** picks the filament preset per material for it.
 - **Send to printers** hands the plan to the printers and opens
   **Printers**. Uploads start in the background. Nothing prints until you
   start it.
@@ -82,7 +90,9 @@ The dashboard for every printer at once, built for a phone.
   restart, reboot and power off). Print opens while a job runs, Heat and
   Filament while it's idle, Machine after an emergency stop or an error. A
   control the printer has no macro for isn't shown. Tap a printer's name
-  for its camera and details.
+  for its camera and details. A Bambu printer's card also lists its AMS
+  trays, and shows only what its proxy carries out: emergency stop, print a
+  file, pause / resume / cancel, fan, temperatures and home.
 - **Safety.** Emergency stop acts immediately. Cancel (the print or a
   single object), reboot, power off, firmware restart and bed mesh need a
   press-and-hold. Anything that would ruin a running print is greyed out
@@ -97,7 +107,10 @@ The dashboard for every printer at once, built for a phone.
   the page is open; **Upload all** sends any that haven't gone. **Print**
   starts the plate at the head of the queue once the printer passes its
   checks (online, Klipper ready, idle, the file on it), and asks you first
-  whether the bed is clear. **Skip** / **Mark done** takes a plate off the
+  whether the bed is clear. For a Bambu printer the plate goes up as a
+  `.gcode.3mf`, and the checks say which AMS tray feeds each of its
+  filaments (same material, the nearest colour loaded); it won't start
+  while a filament has no tray. **Skip** / **Mark done** takes a plate off the
   queue and **Put back** returns it. How each print ended is filled in from
   the printer.
 - **One plan in front.** **Send to printers** opens Printers on that plan:
@@ -139,6 +152,13 @@ profiles rather than making you set them up twice.
    (its Moonraker address) is what the app uses to talk to that printer.
    Printers are keyed by name, so importing again updates them rather than
    duplicating them.
+
+**A Bambu Lab X1 Carbon** prints through bambu-klipper-proxy, which answers
+like Moonraker. Its machine preset has to match the app's slicer, so instead
+of importing it from Orca, press **Add the X1 Carbon presets** under
+**Settings → Import**: that adds the X1 Carbon 0.4 nozzle printer and Bambu
+PLA, PETG and TPU filaments for its AMS. Then set the printer's Moonraker
+address to the proxy (`host:7125`) under **Printers**.
 
 Good to know:
 

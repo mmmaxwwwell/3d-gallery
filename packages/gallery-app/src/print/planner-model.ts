@@ -3,7 +3,7 @@
 // whether a slice is still good, and whether a plan can be sent. No Preact —
 // the planner screen reads it, and so can a test.
 
-import { materialFamily } from '@3d-gallery/model-core';
+import { materialFamily, type PlateFilament } from '@3d-gallery/model-core';
 import type { Schedule, ScheduleJob } from '@3d-gallery/print-toolkit';
 import { flattenPresetForSlicer } from './preset-flatten.js';
 import { plateSignature, type Plate, type SlicedGcode } from './plate-store.js';
@@ -56,9 +56,20 @@ function slugify(text: string): string {
 }
 
 /** Moonraker file name: the plate's number first, so a printer's file list
- *  reads in print order and matches the number the planner shows. */
-export function gcodeName(number: number, plate: Plate): string {
-  return `${String(number).padStart(2, '0')}-${slugify(plate.name)}.gcode`;
+ *  reads in print order and matches the number the planner shows. A Bambu
+ *  printer takes its G-code inside a 3MF. */
+export function gcodeName(number: number, plate: Plate, bambu = false): string {
+  return `${String(number).padStart(2, '0')}-${slugify(plate.name)}.gcode${bambu ? '.3mf' : ''}`;
+}
+
+/** The filaments a plate prints with, one per AMS slot. */
+export function plateSlots(plate: Plate): PlateFilament[] {
+  return plate.filaments?.length ? plate.filaments : [{ material: plate.material ?? 'PETG', hexes: [] }];
+}
+
+/** Material families a plate prints in. More than one needs a printer with an AMS. */
+export function plateFamilies(plate: Plate): string[] {
+  return [...new Set(plateSlots(plate).map((f) => materialFamily(f.material)))];
 }
 
 // ── Slices ───────────────────────────────────────────────
@@ -90,6 +101,9 @@ export function sliceSetupKey(setup: SliceSetup): string {
     setup.preheat,
     setup.centerOnBed,
     setup.clearExclusionZones,
+    // Only AMS setups carry slots; leaving them out otherwise keeps every
+    // one-spool slice's key what it was.
+    ...(setup.slots ? [setup.slots.map((s) => [s.filament.id, flattenPresetForSlicer(s.filament), s.color, s.colors])] : []),
   ]));
 }
 

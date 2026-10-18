@@ -39,6 +39,8 @@ export type PresetSource =
   | { kind: 'orca-config'; path: string; importedAt: number }
   /** Copied in by the orca-bridge (MCP / CLI) from the local Orca install. */
   | { kind: 'orca-preset'; presetName: string; chain: string[] }
+  /** One of the gallery's own Bambu presets (print-toolkit `bbl-presets`). */
+  | { kind: 'builtin'; orcaVersion: string; addedAt: number }
   | { kind: 'manual' };
 
 export interface PrintPreset {

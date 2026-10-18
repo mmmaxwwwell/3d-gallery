@@ -98,6 +98,17 @@ const MACRO: Partial<Record<ControlId, MacroControl>> = {
 
 const ALL: readonly ControlId[] = ['emergencyStop', 'startPrint', ...GROUPS.flatMap((g) => g.controls)];
 
+/**
+ * What a Bambu printer behind bambu-klipper-proxy really does. The proxy
+ * turns pause, resume, cancel and emergency stop into Bambu commands and
+ * passes plain G-code through; it accepts and ignores firmware restart,
+ * reboot, power off and SET_GCODE_OFFSET, and Bambu firmware knows neither
+ * EXCLUDE_OBJECT nor the ZMOD macros — so those don't show.
+ */
+const BAMBU_CONTROLS: ReadonlySet<ControlId> = new Set([
+  'emergencyStop', 'startPrint', 'pause', 'resume', 'cancel', 'fan', 'nozzleTemp', 'bedTemp', 'preheat', 'home',
+]);
+
 function state(id: ControlId, visible: boolean, reason: string): ControlState {
   return { visible, enabled: visible && !reason, reason, confirm: HOLD.has(id) ? 'hold' : 'none' };
 }
@@ -152,7 +163,7 @@ export function controlStates(
       continue;
     }
     const macro = MACRO[id];
-    let visible = !macro || controlAvailable(macro, live.macros);
+    let visible = (!macro || controlAvailable(macro, live.macros)) && (!live.ams || BAMBU_CONTROLS.has(id));
     if (id === 'pause') visible = live.state !== 'paused';
     if (id === 'resume') visible = live.state === 'paused';
     if (id === 'light') visible &&= live.lightOn !== null;
