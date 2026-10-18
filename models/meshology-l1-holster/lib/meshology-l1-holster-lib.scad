@@ -67,7 +67,7 @@ stand_angle = 15;
 stand_depth = 24;
 // and how far the base reaches back behind the radio's bottom, so the
 // antenna on top can't tip it over backwards
-stand_base_back = 60;
+stand_base_back = 45;
 // END_PARAMS
 
 // The diagonal face rises radio_chamfer_depth over this much width.
