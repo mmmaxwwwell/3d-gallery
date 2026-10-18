@@ -121,3 +121,21 @@ export async function resolvePlate(
 
   return { objects, failed };
 }
+
+/**
+ * `plate` with each item's cached artifact key brought up to date, or null if
+ * none moved. Editing a model's source moves its key, and slices are matched
+ * by the cached keys (`plateSignature`), so without this a plate keeps
+ * printing its old geometry.
+ */
+export async function withCurrentKeys(plate: Plate): Promise<Plate | null> {
+  const client = await getClient();
+  let moved = false;
+  const items = await Promise.all(plate.items.map(async (item) => {
+    const key = await client.keyFor({ slug: item.slug, target: item.target, params: item.params });
+    if (key === item.key) return item;
+    moved = true;
+    return { ...item, key };
+  }));
+  return moved ? { ...plate, items } : null;
+}

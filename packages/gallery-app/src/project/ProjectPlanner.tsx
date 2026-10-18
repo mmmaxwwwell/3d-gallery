@@ -36,7 +36,7 @@ import { DEFAULT_PRINT_PROFILE, materialFamily } from '@3d-gallery/model-core';
 import { Page } from '../print/Page.js';
 import { listPresets, type PrintPreset } from '../print/print-storage.js';
 import { flattenPresetForSlicer } from '../print/preset-flatten.js';
-import { resolvePlate } from '../print/plate-resolve.js';
+import { resolvePlate, withCurrentKeys } from '../print/plate-resolve.js';
 import { buildInstances, toFootprints } from '../print/plate-geometry.js';
 import {
   createPlate,
@@ -251,7 +251,11 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
     })();
   }, [projectId]);
 
-  const showPlates = async (rows: Plate[]) => {
+  const showPlates = async (stored: Plate[]) => {
+    const rows = await Promise.all(stored.map(async (plate) => {
+      const current = await withCurrentKeys(plate).catch(() => null);
+      return current ? savePlate(current) : plate;
+    }));
     const kept = await Promise.all(rows.map(async (plate) => [plate.id, await listSlicedGcode(plate.id)] as const));
     setSlices(Object.fromEntries(kept));
     setPlates(rows);
