@@ -50,8 +50,7 @@ back_edge_extra = 7;
 // The +x guard's outer top corner is cut off at 45°, this far along each leg
 guard_chamfer = 10;
 // A loop for a cord in the -x back corner, joining the last tab's wrapped end
-// to the cut-down wall below it, hole upright: hole diameter, and the wall
-// round it
+// to the case below it, hole upright: hole diameter, and the wall round it
 cord_loop_hole = 4;
 cord_loop_wall = 2;
 // The slits either side of the tab: how far down from the back wall's top
@@ -585,52 +584,54 @@ module drain_holes() {
 }
 
 // The tabs go on after the pocket is cut, since their bends reach into it.
-// The cord loop fills the corner outside the last slit, from the cut-down
-// wall up to the underside of the last tab's wrapped end, across from the
-// slit to the case's side, so it's on both the tab and the case (the user's
-// call; that tab's outer end no longer springs). It reaches back behind the
-// back wall far enough for an upright hole that drops clear past the corner.
-// Its foot is only the strip of flat back wall beside the slit (round the
-// corner the wall turns in, away from it); its back and outer faces lean out
-// from there no more than 45° as they rise.
+// The cord loop sits in the corner outside the last slit, under the last
+// tab's wrapped end: a ring round an upright hole just behind the back wall,
+// hulled into the case's corner below it so it flows into the body, smooth
+// and tight (the user's words), and joined to both the tab and the case (so
+// that tab's outer end no longer springs). Under it the corner is solid,
+// from the slit to the side, up to the tab's end. The hole drops clear past
+// the corner, out of the hull's sloping back.
 cord_loop_x0 = slit_x(tabs) - slit_width / 2;
 cord_loop_x1 = -(radio_width / 2 + tolerance + wall);
 cord_loop_yi = radio_thickness / 2 + tolerance;
 cord_loop_yo = cord_loop_yi + wall;
+cord_loop_hole_x = (cord_loop_x0 + cord_loop_x1) / 2;
 cord_loop_hole_y = cord_loop_yo + 0.5 + cord_loop_hole / 2;
-cord_loop_back = cord_loop_hole_y + cord_loop_hole / 2 + cord_loop_wall;
 cord_loop_bottom = slit_bottom_z;
 cord_loop_top = back_corner_z(-1) + 1;
-cord_loop_foot = 1.5;
+// How tall the ring round the hole is, at the top, and how far below the
+// cut-down wall the hull reaches into the case's corner
+cord_loop_ring = 6;
+cord_loop_flow = 6;
 assert(tab_wrap == 90, "the cord loop needs the last tab to wrap round to upright");
-assert(norm([cord_loop_back - cord_loop_yo, cord_loop_x0 - cord_loop_foot - cord_loop_x1]) <= cord_loop_top - cord_loop_bottom, "cord loop's faces lean out more than 45°");
+assert(cord_loop_x0 < -(kanix_face_w / 2 + kanix_pad_round + 0.5), "cord loop runs into the Kanix pad");
+
+module cord_loop_corner(d = 0) {
+  big = 4 * radio_width;
+  intersection() {
+    outside();
+    translate([cord_loop_x1 - big, cord_loop_yi + d, cord_loop_bottom - cord_loop_flow])
+      cube([cord_loop_x0 - d - cord_loop_x1 + big, big, cord_loop_top - cord_loop_bottom + cord_loop_flow - d]);
+  }
+}
 
 module cord_loop() {
   r = 1;
-  big = 4 * radio_width;
+  od = cord_loop_hole + 2 * cord_loop_wall;
   difference() {
     union() {
-    // The corner under it is solid: everything inside the case's outside
-    // behind the radio's back face, from the slit to the side and from well
-    // under the cut-down wall up to the tab's end (the user: close the gap,
-    // strong and out of the way).
-    intersection() {
-      outside();
-      translate([cord_loop_x1 - big, cord_loop_yi, cord_loop_bottom - 2 * cord_loop_hole])
-        cube([cord_loop_x0 - cord_loop_x1 + big, big, cord_loop_top - cord_loop_bottom + 2 * cord_loop_hole]);
-    }
-    minkowski() {
-      hull() {
-        translate([cord_loop_x0 - cord_loop_foot + r, cord_loop_yi + r, cord_loop_bottom + r])
-          cube([cord_loop_foot - 2 * r + 0.01, wall - 2 * r, 0.01]);
-        translate([cord_loop_x1 + r, cord_loop_yi + r, cord_loop_top - r])
-          cube([cord_loop_x0 - cord_loop_x1 - 2 * r, cord_loop_back - cord_loop_yi - 2 * r, 0.01]);
+      cord_loop_corner();
+      minkowski() {
+        hull() {
+          translate([cord_loop_hole_x, cord_loop_hole_y, cord_loop_top - cord_loop_ring + r])
+            cylinder(d = od - 2 * r, h = cord_loop_ring - 2 * r, $fn = 48);
+          cord_loop_corner(r);
+        }
+        sphere(r = r, $fn = 16);
       }
-      sphere(r = r, $fn = 16);
     }
-    }
-    translate([(cord_loop_x0 + cord_loop_x1) / 2, cord_loop_hole_y, cord_loop_bottom - 10])
-      cylinder(d = cord_loop_hole, h = cord_loop_top - cord_loop_bottom + 20);
+    translate([cord_loop_hole_x, cord_loop_hole_y, cord_loop_bottom - cord_loop_flow - 10])
+      cylinder(d = cord_loop_hole, h = cord_loop_top - cord_loop_bottom + cord_loop_flow + 20, $fn = 48);
   }
 }
 
