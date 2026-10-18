@@ -4,6 +4,7 @@ import { render } from 'preact';
 import { NavBar } from './NavBar.js';
 import { recordLastOpen } from './last-open.js';
 import { viewById, type PageId } from './views.js';
+import { remoteWanted } from '../agent/remote.js';
 import './shell.css';
 
 /**
@@ -17,9 +18,10 @@ export function mountShell(root: HTMLElement, viewId: PageId): void {
   document.documentElement.classList.add('has-shell');
   document.documentElement.dataset.shellView = viewId;
   render(<NavBar current={viewId} />, root);
-  // The dev server's MCP tools drive the page through this. A build replaces
-  // import.meta.hot with undefined, so the bridge isn't even bundled.
-  if (import.meta.hot) void import('../agent/bridge.js').then((m) => m.startAgentBridge(viewId));
+  // Agents drive the page through the bridge: the dev server's MCP tools (a
+  // build replaces import.meta.hot with undefined), or the person's assistant
+  // once they've connected it. Otherwise it isn't even loaded.
+  if (import.meta.hot || remoteWanted()) void import('../agent/bridge.js').then((m) => m.startAgentBridge(viewId));
 
   if (viewId === 'settings' || !viewById(viewId).resumes) return;
   const remember = () => recordLastOpen(viewId, location.pathname + location.search);

@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: MIT
 /**
- * The page's half of the agent bridge (`packages/agent-bridge` is the dev
- * server's). Connects over the Vite HMR socket, says which view it is, and
- * answers the server's calls: read the screen, act on it, report the view's
- * state, run a view's action.
+ * The page's half of the agent bridge. Says which view it is and answers
+ * calls: read the screen, act on it, report the view's state, run a view's
+ * action. Two transports share the one handler:
  *
- * Dev only: the shell starts it behind `import.meta.hot`, which a build
- * replaces with `undefined`, so none of this ships.
+ * - the Vite HMR socket, for the dev server's MCP tools (`packages/agent-bridge`);
+ *   a build replaces import.meta.hot with undefined, so that half never ships.
+ * - claude-runner's relay (remote.ts), for a person's assistant agent; only
+ *   once they've signed in with kanidm and pressed Connect.
  */
 
 import {
@@ -19,6 +20,7 @@ import { capture, click, fill, hold, press, settle, withDialogs, type DialogReco
 import { registeredView, type AgentAction } from './registry.js';
 import { SHARED_ACTIONS } from './shared-actions.js';
 import { snapshot } from './snapshot.js';
+import { connectRelay, remoteWanted } from './remote.js';
 
 const TAB_KEY = '3dg:agent:tab';
 const BASE = import.meta.env.BASE_URL;
@@ -69,7 +71,7 @@ function navigateTarget(args: Record<string, unknown>): string {
   return path.startsWith(BASE) ? path : BASE + path.replace(/^\//, '');
 }
 
-async function handle(view: PageId, call: TabCall): Promise<unknown> {
+export async function handle(view: PageId, call: TabCall): Promise<unknown> {
   const args = call.args ?? {};
   const confirm = args['confirm'] === true;
   const ref = str(args['ref']);
@@ -142,39 +144,50 @@ async function handle(view: PageId, call: TabCall): Promise<unknown> {
 }
 
 export function startAgentBridge(view: PageId): void {
-  const hot = import.meta.hot;
-  if (!hot) return;
   const tab = tabId();
   const load = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-
-  const hello = () => {
-    const message: TabHello = {
-      tab,
-      view,
-      origin: location.origin,
-      url: location.pathname + location.search,
-      title: document.title || viewLabel(view),
-      visible: document.visibilityState === 'visible',
-      focused: document.hasFocus(),
-      load,
-    };
-    hot.send(EVENT_HELLO, message);
-  };
-
-  hot.on(EVENT_CALL, async (call: TabCall) => {
-    if (call.tab !== tab) return;
-    let reply: TabReply;
-    try {
-      reply = { id: call.id, tab, ok: true, result: await handle(view, call) };
-    } catch (err) {
-      reply = { id: call.id, tab, ok: false, error: err instanceof Error ? err.message : String(err) };
-    }
-    hot.send(EVENT_REPLY, reply);
+  const current = (): TabHello => ({
+    tab,
+    view,
+    origin: location.origin,
+    url: location.pathname + location.search,
+    title: document.title || viewLabel(view),
+    visible: document.visibilityState === 'visible',
+    focused: document.hasFocus(),
+    load,
   });
 
-  // A dev-server restart drops the socket; Vite reconnects it but the server
-  // has forgotten this tab.
-  hot.on('vite:ws:connect', hello);
+  const announce: Array<(h: TabHello) => void> = [];
+  const hello = () => {
+    const h = current();
+    for (const fn of announce) fn(h);
+  };
+
+  const hot = import.meta.hot;
+  if (hot) {
+    hot.on(EVENT_CALL, async (call: TabCall) => {
+      if (call.tab !== tab) return;
+      let reply: TabReply;
+      try {
+        reply = { id: call.id, tab, ok: true, result: await handle(view, call) };
+      } catch (err) {
+        reply = { id: call.id, tab, ok: false, error: err instanceof Error ? err.message : String(err) };
+      }
+      hot.send(EVENT_REPLY, reply);
+    });
+    announce.push((h) => hot.send(EVENT_HELLO, h));
+    // A dev-server restart drops the socket; Vite reconnects it but the server
+    // has forgotten this tab.
+    hot.on('vite:ws:connect', hello);
+  }
+
+  if (remoteWanted()) {
+    const link = connectRelay(current, (call) => handle(view, call));
+    announce.push((h) => link.hello(h));
+    window.addEventListener('pagehide', () => link.stop());
+  }
+
+  if (!announce.length) return;
   for (const event of ['focus', 'blur', 'popstate'] as const) window.addEventListener(event, hello);
   document.addEventListener('visibilitychange', hello);
   // Views route with pushState, which fires no event; the title moving is

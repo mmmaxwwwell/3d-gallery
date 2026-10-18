@@ -17,6 +17,7 @@ import { addBuiltinBambuPresets } from '../print/bambu-presets.js';
 import { setOverride } from '../print/preset-edit.js';
 import { exportFilename, exportMergedJson, exportRawJson } from '../print/preset-flatten.js';
 import { backupFilename, exportBackup, importBackup, parseBackup } from '../print/backup.js';
+import { ConnectAssistant } from '../agent/ConnectAssistant.js';
 import {
   clearServerAndUseLocal,
   probeServerStore,
@@ -368,6 +369,8 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
             {importedCount > 0 && (
               <div class="print-settings-notice">Imported {importedCount} preset{importedCount === 1 ? '' : 's'}.</div>
             )}
+
+            <ConnectAssistant />
 
             {/* Only rendered where a server store actually answers. A deployment
                 without one never shows this, which is what keeps hosting

@@ -38,6 +38,8 @@ const RENDERERS: Record<string, RegExp> = {
   printers: /^(printers|pc|pq)(-|$)/,
   'printers/queue': /^pq(-|$)/,
   operator: /^op(-|$)/,
+  // The Assistant block in Settings, styled by settings.css.
+  agent: /^print-settings(-|$)/,
 };
 
 function classesUsed(dir: string, prefix: RegExp): Set<string> {
