@@ -5,6 +5,7 @@ import { NavBar } from './NavBar.js';
 import { recordLastOpen } from './last-open.js';
 import { viewById, type PageId } from './views.js';
 import { remoteWanted } from '../agent/remote.js';
+import { dropOldRenderCache } from './stale-storage.js';
 import './shell.css';
 
 /**
@@ -18,6 +19,7 @@ export function mountShell(root: HTMLElement, viewId: PageId): void {
   document.documentElement.classList.add('has-shell');
   document.documentElement.dataset.shellView = viewId;
   render(<NavBar current={viewId} />, root);
+  try { dropOldRenderCache(localStorage); } catch { /* storage blocked: nothing to free */ }
   // Agents drive the page through the bridge: the dev server's MCP tools (a
   // build replaces import.meta.hot with undefined), or the person's assistant
   // once they've connected it. Otherwise it isn't even loaded.

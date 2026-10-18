@@ -168,6 +168,8 @@ async function openCurrentOr(project: Project | undefined): Promise<string> {
 
 // ── Component ────────────────────────────────────────────
 
+const SEND_UNSAVED = 'Send to printers: this browser would not save the queue (its storage is full or blocked), so Printers would not see it.';
+
 export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects, onShowProject, onOpenSettings, onOpenPrinters }: ProjectPlannerProps) {
   const [project, setProject] = useState<Project | null>(null);
   const [plates, setPlates] = useState<Plate[] | null>(null);
@@ -624,8 +626,8 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
 
   /** Hand the plan to the printers screen: each printer's jobs, in plan order,
    *  with the slice each one sends. Nothing reaches a printer from here. */
-  const handleSend = () => {
-    if (!plan || !isReady(ready)) return;
+  const handleSend = async (): Promise<boolean> => {
+    if (!plan || !isReady(ready)) return false;
     const jobs: DispatchJob[] = plan.jobs.map((job) => {
       const plate = plateById.get(job.jobId)!;
       const slice = fresh[plate.id].find((s) => s.printerId === job.printerId)!;
@@ -643,10 +645,13 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
         ...(slice.bambu ? { ams: slice.bambu.filaments.map(({ slot, type, color }) => ({ slot, type, color })) } : {}),
       };
     });
-    void getDaemon(projectId).then((daemon) => {
-      daemon.send(jobs);
+    const daemon = await getDaemon(projectId);
+    if (daemon.send(jobs)) {
       onOpenPrinters();
-    });
+      return true;
+    }
+    setError(SEND_UNSAVED);
+    return false;
   };
 
   // ── Plates and the project itself ──────────────────────
@@ -894,13 +899,13 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
             + 'background; nothing prints until a print is started there (printers.start). Needs every '
             + 'planned plate sliced (readyToSend in app_state).',
           writes: true,
-          run() {
+          async run() {
             const { ready: r } = agent.current;
             if (!isReady(r)) {
               const missing = Object.entries(r).filter(([, ok]) => !ok).map(([k]) => k).join(', ');
               throw new Error(`Not ready to send: ${missing}. app_state shows each plate's problem.`);
             }
-            agent.current.handleSend();
+            if (!(await agent.current.handleSend())) throw new Error(SEND_UNSAVED);
             return { sent: true, next: 'The tab moves to Printers. Read printers.status / app_state there.' };
           },
         },
@@ -1244,7 +1249,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
               class="btn btn-primary planner-send"
               disabled={!isReady(ready)}
               title={isReady(ready) ? undefined : 'Every plate has to be sliced for its printer, with a clean timeline'}
-              onClick={handleSend}
+              onClick={() => void handleSend()}
             >
               Send to printers
             </button>

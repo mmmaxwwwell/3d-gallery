@@ -220,8 +220,11 @@ export class DispatchDaemon {
 
   // ── Operator actions ───────────────────────────────────
 
-  send(jobs: DispatchJob[]): void {
+  /** Put the plan on the belts. False when the browser would not store it:
+   *  the plan then lives only in this page and is gone once it closes. */
+  send(jobs: DispatchJob[]): boolean {
     this.update((d, now) => sendPlan(d, jobs, now));
+    return !this.unsaved;
   }
 
   uploadAll(): void {
