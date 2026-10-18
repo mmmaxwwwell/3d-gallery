@@ -607,7 +607,18 @@ assert(norm([cord_loop_back - cord_loop_yo, cord_loop_x0 - cord_loop_foot - cord
 
 module cord_loop() {
   r = 1;
+  big = 4 * radio_width;
   difference() {
+    union() {
+    // The corner under it is solid: everything inside the case's outside
+    // behind the radio's back face, from the slit to the side and from well
+    // under the cut-down wall up to the tab's end (the user: close the gap,
+    // strong and out of the way).
+    intersection() {
+      outside();
+      translate([cord_loop_x1 - big, cord_loop_yi, cord_loop_bottom - 2 * cord_loop_hole])
+        cube([cord_loop_x0 - cord_loop_x1 + big, big, cord_loop_top - cord_loop_bottom + 2 * cord_loop_hole]);
+    }
     minkowski() {
       hull() {
         translate([cord_loop_x0 - cord_loop_foot + r, cord_loop_yi + r, cord_loop_bottom + r])
@@ -616,6 +627,7 @@ module cord_loop() {
           cube([cord_loop_x0 - cord_loop_x1 - 2 * r, cord_loop_back - cord_loop_yi - 2 * r, 0.01]);
       }
       sphere(r = r, $fn = 16);
+    }
     }
     translate([(cord_loop_x0 + cord_loop_x1) / 2, cord_loop_hole_y, cord_loop_bottom - 10])
       cylinder(d = cord_loop_hole, h = cord_loop_top - cord_loop_bottom + 20);
