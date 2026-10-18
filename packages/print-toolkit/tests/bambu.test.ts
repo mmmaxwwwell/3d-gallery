@@ -177,6 +177,21 @@ describe('matchAmsTrays', () => {
     ]);
   });
 
+  it('refuses another colour rather than print the part in it', () => {
+    const match = matchAmsTrays([{ slot: 1, type: 'PLA', color: '#ff0000' }], ams);
+    expect(match.assignments).toEqual([]);
+    expect(match.problems).toEqual(['Filament 1 (PLA #FF0000): no PLA in that colour loaded (PLA in the AMS: #101010, #FFFFFF).']);
+  });
+
+  it('never feeds two different colours from one spool', () => {
+    const match = matchAmsTrays([
+      { slot: 1, type: 'PLA', color: '#000000' },
+      { slot: 2, type: 'PLA', color: '#202020' },
+    ], { trays: [ams.trays[0]], external: null });
+    expect(match.assignments.map((a) => [a.slot, a.tray])).toEqual([[1, 0]]);
+    expect(match.problems).toHaveLength(1);
+  });
+
   it('says which filament no tray can feed', () => {
     const match = matchAmsTrays([{ slot: 1, type: 'ABS', color: '#000000' }], ams);
     expect(match.assignments).toEqual([]);

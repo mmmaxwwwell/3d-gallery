@@ -135,8 +135,10 @@ What differs, all in `src/bambu*.ts`:
 - **Starting.** `uploadGcode(address, 'NN-plate.gcode.3mf', bytes)` then
   `startPrint(address, name, { amsMapping })`: the tray (0–7, 254 external)
   for each filament in slot order. `matchAmsTrays(needs, live.ams)` picks
-  them from the live `bambu_ams` trays (same family, nearest colour) because
-  the proxy's own matching needs the exact colour.
+  them from the live `bambu_ams` trays (same family, a shade within
+  `AMS_SHADE_DISTANCE`, never two colours on one spool) because the proxy's
+  own matching needs the exact colour. Anything further is a problem, not a
+  substitute.
 - **Live status.** `fetchPrinterLive(...).ams` is the proxy's `bambu_ams`
   (`trays`, `external`); null on Klipper. The proxy defines no
   `gcode_macro`s, so `controlAvailable` already hides the ZMOD controls.

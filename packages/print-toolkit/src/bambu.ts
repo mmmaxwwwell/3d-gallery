@@ -111,6 +111,13 @@ export interface AmsMatch {
  * matches colours exactly and a model's colours are design colours, not the
  * colour of the spool someone loaded.
  */
+/**
+ * How far (RGB distance) a loaded spool's colour may sit from the one asked for
+ * and still feed it: a shade (#161616 for #000000 is 38), never another colour
+ * (black to red is 255). A wrong tray wastes the print, so past this it's refused.
+ */
+export const AMS_SHADE_DISTANCE = 64;
+
 export function matchAmsTrays(needs: AmsFilamentNeed[], ams: AmsState): AmsMatch {
   const sources = [
     ...ams.trays.filter((t) => t.slot !== undefined).map((t) => ({ tray: t.slot!, t })),
@@ -118,17 +125,26 @@ export function matchAmsTrays(needs: AmsFilamentNeed[], ams: AmsState): AmsMatch
   ].filter(({ t }) => t.type.trim() !== '');
   const assignments: AmsAssignment[] = [];
   const problems: string[] = [];
+  // Two different colours on the plate must not end up on one spool.
+  const colourOfTray = new Map<number, string>();
   for (const need of needs) {
     const family = amsFamily(need.type);
-    const candidates = sources
-      .filter(({ t }) => amsFamily(t.type) === family)
-      .map((s) => ({ ...s, d: colorDistance(s.t.color, need.color) }))
-      .sort((a, b) => a.d - b.d || a.tray - b.tray);
-    const best = candidates[0];
-    if (!best) {
-      problems.push(`Filament ${need.slot} (${need.type} ${need.color.toUpperCase()}): no ${family} loaded in the AMS.`);
+    const wanted = need.color.toUpperCase();
+    const ofFamily = sources.filter(({ t }) => amsFamily(t.type) === family);
+    if (ofFamily.length === 0) {
+      problems.push(`Filament ${need.slot} (${need.type} ${wanted}): no ${family} loaded in the AMS.`);
       continue;
     }
+    const best = ofFamily
+      .map((s) => ({ ...s, d: colorDistance(s.t.color, need.color) }))
+      .filter((c) => c.d <= AMS_SHADE_DISTANCE && (colourOfTray.get(c.tray) ?? wanted) === wanted)
+      .sort((a, b) => a.d - b.d || a.tray - b.tray)[0];
+    if (!best) {
+      const loaded = ofFamily.map(({ t }) => t.color.toUpperCase()).join(', ');
+      problems.push(`Filament ${need.slot} (${need.type} ${wanted}): no ${family} in that colour loaded (${family} in the AMS: ${loaded}).`);
+      continue;
+    }
+    colourOfTray.set(best.tray, wanted);
     assignments.push({
       slot: need.slot,
       tray: best.tray,

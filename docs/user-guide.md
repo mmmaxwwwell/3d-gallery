@@ -111,8 +111,9 @@ The dashboard for every printer at once, built for a phone.
   checks (online, Klipper ready, idle, the file on it), and asks you first
   whether the bed is clear. For a Bambu printer the plate goes up as a
   `.gcode.3mf`, and the checks say which AMS tray feeds each of its
-  filaments (same material, the nearest colour loaded); it won't start
-  while a filament has no tray. **Skip** / **Mark done** takes a plate off the
+  filaments (same material, the same colour or a close shade of it); it
+  won't start while a filament has no such tray, rather than print it in
+  another colour. **Skip** / **Mark done** takes a plate off the
   queue and **Put back** returns it. How each print ended is filled in from
   the printer.
 - **One plan in front.** **Send to printers** opens Printers on that plan:

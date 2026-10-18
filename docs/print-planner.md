@@ -53,7 +53,7 @@ A project's plates, scheduled across the printer fleet and sent to it.
    printer's own pick for that material, else one made for it, else the
    fleet's (`pickFilament`); every volume of the plate's 3MF is set to the
    slot that prints its colour. Each slot asks for the colour of the AMS
-   tray that will feed it (same family, nearest colour), not the model's
+   tray that will feed it (same family, a close shade only), not the model's
    design colour, so the file names the spools that are loaded; slicing
    waits for the AMS to report, and a reload of the AMS re-slices. Its
    G-code is never moved or given a preheat.
