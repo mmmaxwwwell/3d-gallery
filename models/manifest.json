@@ -774,6 +774,31 @@
       ]
     },
     {
+      "slug": "meshtastic-drybag-node",
+      "devOnly": true,
+      "title": "Meshtastic Dry-Bag Node",
+      "description": "A flat T-shaped frame for a cheap Meshtastic/MeshCore node that hangs in a tree inside a 2 L dry bag. A 32140 LiFePO4 cell lies across the top in two saddles. Under its middle, a 4-hole-flange N female bulkhead screws to a wall with the ALFA AOA-915-5ACM pointing straight down, so the cell crosses the antenna at right angles instead of running alongside it. The XIAO nRF52840 + Wio-SX1262 kit sits left of the bulkhead and the power bank's charge board right of it, each standing on a ledge. Everything is held with zip ties through slots in the plate, and a cord hole above the cell can carry the weight. Prints flat, back face down, no supports. 140 \u00d7 151 \u00d7 30 mm; with the antenna about 285 mm tall. Not yet test-printed.",
+      "filament": [ { "material": "PETG", "color": "any" } ],
+      "previews": [
+        { "file": "assembled.3mf", "format": "3mf", "label": "Assembled", "default": true,
+          "legend": [
+            { "color": "#2f3542", "label": "Frame", "part": "frame.stl" },
+            { "color": "#7bed9f", "label": "32140 LiFePO4 cell (reference)" },
+            { "color": "#57606f", "label": "N bulkhead and AOA-915-5ACM antenna (reference)" },
+            { "color": "#2ed573", "label": "XIAO kit and charge board (reference)" }
+          ],
+          "components": [ { "part": "frame.stl", "qty": 1 } ]
+        }
+      ],
+      "parts": [
+        { "file": "frame.stl", "format": "stl", "label": "Frame \u2014 print back face down" }
+      ],
+      "hardware": [
+        { "qty": 4, "label": "M3x10 socket head cap screw \u2014 N bulkhead flange into the frame's flange wall", "usedBy": [ { "part": "frame.stl", "each": 4 } ] },
+        { "qty": 5, "label": "Zip tie, 3.6 mm wide, 150 mm \u2014 cell (2), antenna (1), each board (1 each)", "usedBy": [ { "part": "frame.stl", "each": 5 } ] }
+      ]
+    },
+    {
       "slug": "test-cube-xyz",
       "devOnly": true,
       "title": "XYZ Test Cube",
