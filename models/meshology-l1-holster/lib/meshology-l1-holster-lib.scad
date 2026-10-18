@@ -552,7 +552,32 @@ module stand_core() {
     stand_tilt() {
       translate([0, 0, wall + tolerance]) radio_body(tolerance + r, radio_height);
       cutout_through(r, radio_thickness / 2);
+      stand_front_bevel(r);
     }
+  }
+}
+
+// The tops of the walls in front of the radio's front and diagonal faces
+// are 45° lead-ins, from the outside edge down to the pocket a wall lower,
+// so the radio is guided in as it slides down. Mitred where the diagonals
+// meet the sides; the side and back walls keep their height. In the
+// cradle's frame, the slopes moved d out square to themselves.
+module stand_front_bevel(d) {
+  w = radio_width / 2 + tolerance;
+  vy = -radio_thickness / 2 - tolerance + radio_chamfer_depth;
+  diag = [radio_chamfer_width, -radio_chamfer_depth] / norm([radio_chamfer_width, radio_chamfer_depth]);
+  bis = ([1, 0] + diag) / norm([1, 0] + diag);
+  far = 4 * radio_width;
+  z0 = stand_top_z - wall;
+  h = wall + 2 * d + 5;
+  intersection() {
+    hull() {
+      translate([0, 0, z0]) linear_extrude(0.01) offset(delta = d * sqrt(2)) pocket_outline();
+      translate([0, 0, z0 + h]) linear_extrude(0.01) offset(delta = d * sqrt(2) + h) pocket_outline();
+    }
+    linear_extrude(far) polygon([
+      [-w, vy], [w, vy], [w, vy] + far * bis, [-w, vy] + far * [-bis[0], bis[1]]
+    ]);
   }
 }
 

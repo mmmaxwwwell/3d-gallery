@@ -29,6 +29,6 @@ The channel is the radio's shape plus 0.1 mm on every face (`tolerance`; 0.3 pri
 
 ## Desk stand
 
-A cradle cut to the same shape as the holster's pocket, leaning the radio back 15° so the front faces you. It holds the bottom 24 mm of the radio and has the same front opening as the holster, so the controls stay as easy to see and use. The cradle stops below the USB-C port, so you can charge the radio while it stands. The base runs 45 mm back behind the radio, so an antenna on top can't tip it over backwards. Every edge is rounded, the bottom one too.
+A cradle cut to the same shape as the holster's pocket, leaning the radio back 15° so the front faces you. It holds the bottom 24 mm of the radio and has the same front opening as the holster, so the controls stay as easy to see and use. The cradle stops below the USB-C port, so you can charge the radio while it stands. The base runs 45 mm back behind the radio, so an antenna on top can't tip it over backwards. The walls across the front slope down into the cradle at 45°, so the radio slides in without catching. Every edge is rounded, the bottom one too.
 
 Print it in PETG (or any rigid filament), standing on its base. No supports. About 61 cm³ of plastic, 72 × 60 × 35 mm.
