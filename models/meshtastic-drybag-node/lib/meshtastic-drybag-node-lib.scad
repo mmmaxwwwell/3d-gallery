@@ -15,7 +15,10 @@
 // out behind it, facing back and up at 45°, lying on two triangular panel
 // ribs that run straight out under the outside plate.
 //
-// The body is TPU 64D; the door, reels, straps, cage and panel frame are PCTG. The door
+// The battery rides in its own sealed pod under the reels, as the
+// counterweight to the box, its lead into the box through tight TPU holes.
+//
+// The body is TPU 64D; the door, reels, cage and pod lid are PCTG. The door
 // seals with a tongue round its back that's wider than the groove round
 // the body's rim, so the TPU grips it from the sides, and M5 x 10 screws in
 // ears outside the seal thread straight into the TPU. Every M5 x 10 gets
@@ -79,7 +82,8 @@ screw_xs_bottom = [-40, 0, 40];
 // Sealed screw posts inside, from the back wall to the door: a door screw
 // threads into each, and the post's end stands post_squeeze proud so the
 // door presses it round the screw's hole. A line over the battery between
-// its straps, and one at the top under the bulkhead.
+// the door's bottom run, and one at the top under the bulkhead. The cage's
+// back plate screws into their back ends too.
 post_d = 12;
 post_squeeze = 0.3;
 low_post_xs = [-25, 0, 25];
@@ -196,9 +200,6 @@ dv_depth = 3.5;
 dv_w0 = 10;
 dv_w1 = 14;
 dv_clear = 0.25;
-// Where the back plate screws to the box's back: into the solid strips
-// above and below the cell, at these x
-front_screw_xs = [-20, 20];
 // Solar panel (5 V 3 W, not measured): its size and tilt (facing back and
 // up), and how far behind the outside plate its top edge sits. It's set
 // back to balance the box's weight on the other side of the reels.
@@ -219,14 +220,17 @@ pp_sq_h = 20;
 pp_groove = 4;
 pp_band = 8;
 pp_lug = 5;
-// Battery straps: two PCTG caps over the cell's front, each screwed into the
-// solid strips above and below the cell at both ends. Their x, width, the
-// cap's thickness over the cell, the tabs' thickness, and the strips' height
-strap_xs = [-45, 45];
-strap_w = 14;
-strap_t = 3;
-strap_tab_t = 4;
-strap_lug_h = 10;
+// Battery pod, under the reels between the cage's plates: wall, end walls,
+// top wall (thick enough for the panel plates' screws to stay blind), how
+// far its body's side ears stand out for the lid's screws and where they
+// are, and its cable's diameter (the TPU hole is tighter, as a seal)
+pod_wall = 6;
+pod_end = 8;
+pod_top_t = 11;
+pod_screw_xs = [-55, 0, 55];
+pod_cable_d = 4.5;
+// Where the cable comes into the box: through its back wall, by the protection board
+cable_in = [-60, 14];
 // Saddle on the stem round the antenna, and the zip-tie slots either side of it, below and above
 saddle_w = 6;
 tie_w = 6;
@@ -237,27 +241,22 @@ corner_r = 4;
 function pw(w) = w + 2 * pocket_clear;
 
 cell_r = cell_d / 2 + cell_clear;
-cell_y = plate_t + cell_r;
-cell_z = wall + strap_lug_h + cell_r;
-cell_top = cell_z + cell_r;
-seat_top = cell_top + strap_lug_h;
-strap_screw_zs = [cell_z - cell_r - strap_lug_h / 2, cell_top + strap_lug_h / 2];
 
 // Reels behind each end, far enough out that the two clear each other; the
 // motors stand inside the box in line with them.
 spool_x = spool_od / 2 + spool_mid_gap / 2;
-inner_half = max(spool_x + mot_t / 2, cell_len / 2 + end_clear);
+inner_half = spool_x + mot_t / 2;
 bar_half = inner_half + wall;
 mot_x0 = spool_x - mot_t / 2;
-front_y = max(cell_y + cell_r + strap_t + 1, plate_t + boss_t + mot_d + 1);
+front_y = plate_t + boss_t + mot_d + 1;
 
 // Board pockets, interiors [x0, z0, x1, z1], between the motors, above the
-// line of posts over the battery: the protection board and radio along the
+// line of posts along the bottom: the protection board and radio along the
 // bottom; over them the charge board, then the top post's place, then the
 // winch XIAO with the motor driver above it.
 bay_x = mot_x0 - 2;
-low_post_z = seat_top + post_d / 2 + 2;
-bay_z = seat_top + post_d + 4;
+low_post_z = wall + post_d / 2 + 2;
+bay_z = wall + post_d + 4;
 row2_z = bay_z + pw(max(bms_h, kit_h)) + rim_w;
 bms_pocket = [-bay_x, bay_z, -bay_x + pw(bms_w), bay_z + pw(bms_h)];
 kit_pocket = [bms_pocket[2] + rim_w, bay_z, bms_pocket[2] + rim_w + pw(kit_w), bay_z + pw(kit_h)];
@@ -329,15 +328,18 @@ assert(roof_z - n_body_len > boards_top, "the bulkhead's body hangs into the boa
 assert(max(kit_pocket[2], drv_pocket[2], mcu_pocket[2]) + rim_w < mot_x0 - 1, "boards run into the right motor");
 assert(board_pocket[2] + rim_w < top_post_x - post_d / 2 - 1, "charge board runs into the top post");
 assert(top_post_z - post_d / 2 > max(kit_pocket[3], bms_pocket[3]) + rim_w, "top post runs into the lower boards");
-assert(max([for (x = low_post_xs) abs(x)]) + post_d / 2 < strap_xs[1] - strap_w / 2, "a low post runs into a battery strap");
 assert(tongue_w > groove_w && tongue_len < groove_depth, "the tongue must be wider than the groove and stop short of its floor");
 assert((wall - groove_w) / 2 >= 2, "too little TPU either side of the groove");
 assert(ear_out - m5_pilot_d / 2 + seal_inset - groove_w / 2 >= 2.5, "screw pilots too close to the groove");
 assert(pilot_depth < front_y - plate_t, "door screw pilots run out of the back");
 assert(plate_t + boss_t + mot_d < front_y, "motor doesn't fit the box's depth");
-assert(pp_bot[1] > -80, "panel hangs far below the box");
+assert(pp_bot[1] > -130, "panel hangs far below the box");
+assert(pod_y - pod_half_y > rear_y1 + 1 && pod_y + pod_half_y < front_y0 - 1, "pod doesn't fit between the cage's plates");
+assert(pod_half_x > pp_x1 + 2, "pod doesn't reach under the panel plates");
 assert(spool_x - spool_od / 2 > 0, "reels overlap across the middle");
-assert(cover_t > under_head && strap_tab_t > under_head && cage_t > under_head, "a part is thinner than the screws' under-head length");
+assert(cover_t > under_head && cage_t > under_head, "a part is thinner than the screws' under-head length");
+assert(pod_top_t > pilot_depth + 1, "pod's top wall too thin for the panel plates' blind pilots");
+assert(cable_in[1] + pod_cable_d < bay_z && abs(cable_in[0]) + 6 < inner_half, "cable entry runs into the boards or the end wall");
 assert(cage_t >= thread_len, "outside plate too thin for the axles' 8 mm of thread");
 assert(xbar_t >= m5_pilot_d + 3 && xbar_w > dv_w1 + 1, "linking bars too small for their pilots or dovetails");
 assert(ring_r0 < xbar_r - xbar_t / 2 && xbar_r + xbar_t / 2 < ring_r1, "linking bars hang off their rings");
@@ -441,15 +443,6 @@ module walls() {
     }
 }
 
-// The cell's back half sits in this block, which carries a solid strip above
-// and below the cell for the straps' screws.
-module cell_seat() {
-  difference() {
-    translate([-cell_len / 2, plate_t - 0.01, wall - 0.01]) cube([cell_len, cell_y - plate_t, seat_top - wall + 0.02]);
-    translate([0, cell_y, cell_z]) rotate([0, 90, 0]) cylinder(r = cell_r, h = cell_len + 2, center = true, $fn = 96);
-  }
-}
-
 // A rim round a pocket on the back wall; the board goes straight in from the front.
 module pocket_rim(p) {
   xz_extrude(plate_t - 0.01, plate_t + rim_h)
@@ -485,13 +478,13 @@ module frame() {
     union() {
       plate();
       walls();
-      cell_seat();
       for (p = pockets) pocket_rim(p);
       motor_cradles();
       antenna_saddle();
       ears();
       stem_rib();
       for (p = post_points) translate([p[0], plate_t - 0.01, p[1]]) rotate([-90, 0, 0]) cylinder(d = post_d, h = front_y + post_squeeze - plate_t + 0.01, $fn = 48);
+      translate([cable_in[0], plate_t - 0.01, cable_in[1]]) rotate([-90, 0, 0]) cylinder(d = 12, h = boss_t, $fn = 32);
     }
     for (p = post_points) translate([p[0], front_y + post_squeeze - pilot_depth, p[1]]) rotate([-90, 0, 0]) cylinder(d = m5_pilot_d, h = pilot_depth + 1, $fn = 32);
     // Seal groove, and the door screws' pilots in the ears.
@@ -503,9 +496,8 @@ module frame() {
     // Reel hubs through the back wall and its bosses: a tight hole, so the TPU seals round them.
     for (s = [-1, 1])
       translate([s * spool_x, -1, shaft_z]) rotate([-90, 0, 0]) cylinder(d = hub_d - hub_seal, h = plate_t + boss_t + 2, $fn = 48);
-    // Battery straps' screw pilots, blind in the strips above and below the cell.
-    for (x = strap_xs, z = strap_screw_zs)
-      translate([x, cell_y - pilot_depth, z]) rotate([-90, 0, 0]) cylinder(d = m5_pilot_d, h = pilot_depth + 0.01, $fn = 32);
+    // The pod's cable, through a boss on the back wall: a tight hole, so the TPU seals round it.
+    translate([cable_in[0], -1, cable_in[1]]) rotate([-90, 0, 0]) cylinder(d = pod_cable_d - 0.5, h = plate_t + boss_t + 2, $fn = 24);
     // The cage's front plate screws into the back: into the solid strips
     // above and below the cell, and into each motor's boss.
     for (p = front_screw_points())
@@ -587,10 +579,10 @@ module yz_extrude(x0, x1) {
   translate([x0, 0, 0]) rotate([90, 0, 90]) linear_extrude(x1 - x0) children();
 }
 
-// Where the front plate screws to the box's back, [x, z]: the solid strips
-// above and below the cell, and each motor's boss either side of its hub.
+// Where the back plate screws to the box's back, [x, z]: the back ends of
+// the posts along the bottom, and each motor's boss either side of its hub.
 function front_screw_points() = concat(
-  [for (x = front_screw_xs, z = [wall + strap_lug_h / 2, seat_top - strap_lug_h / 2]) [x, z]],
+  [for (x = low_post_xs) [x, low_post_z]],
   [for (s = [-1, 1], dz = [-11, 11]) [s * spool_x, shaft_z + dz]]);
 
 // A screw through a plate: p on the face its thread comes out of, n pointing
@@ -687,12 +679,13 @@ module front_plate() {
         translate([-bar_half + 2, 2]) square([2 * bar_half - 4, box_h - 4]);
         translate([-bar_half + 2 + bar_w, 2 + bar_w]) square([2 * bar_half - 4 - 2 * bar_w, box_h - 4 - 2 * bar_w]);
       }
-      for (z = [wall + strap_lug_h / 2, seat_top - strap_lug_h / 2]) translate([-bar_half + 2, z - bar_w / 2]) square([2 * bar_half - 4, bar_w]);
+      translate([-bar_half + 2, low_post_z - bar_w / 2]) square([2 * bar_half - 4, bar_w]);
       translate([-bar_half + 2, shaft_z - bar_w / 2]) square([2 * bar_half - 4, bar_w]);
       for (s = [-1, 1]) translate([s * spool_x, shaft_z]) circle(d = boss_d + 6, $fn = 64);
       for (s = [-1, 1]) translate([s > 0 ? pp_x0 - bar_w : -pp_x1 - bar_w, pp_z0 - bar_w / 2]) square([cage_t + 2 * bar_w, pp_z1 - pp_z0 + bar_w]);
     }
     for (s = [-1, 1]) translate([s * spool_x, front_y0 - 1, shaft_z]) rotate([-90, 0, 0]) cylinder(d = hub_d + 1, h = cage_t + 2, $fn = 48);
+    translate([cable_in[0], front_y0 - 1, cable_in[1]]) rotate([-90, 0, 0]) cylinder(d = pod_cable_d + 2, h = cage_t + 2, $fn = 24);
     for (b = xbars()) { xbar_socket(b, true); xbar_screw(b, true); }
     for (s = [-1, 1]) { pp_socket(s); pp_screw(s); }
     // Heads on the back face, threads into the box.
@@ -750,9 +743,9 @@ module pp_2d() {
   }
   // Along the panel.
   hull() for (p = [pp_top, pp_bot]) translate(p) circle(r = pp_r, $fn = 48);
-  // Diagonal crossmember.
+  // Diagonal crossmember, from the rectangle's back bottom corner, behind the battery pod.
   hull() {
-    translate([rear_y0 + pp_t, pp_z0]) square([0.01, pp_t]);
+    translate([rear_y0, pp_z0]) square([0.01, pp_t]);
     translate(pp_bot) circle(r = pp_r, $fn = 48);
   }
 }
@@ -765,6 +758,80 @@ module pp_socket(s) {
 
 module pp_screw(s) {
   plate_screw([s * (pp_x0 + pp_x1) / 2, front_y0 + dv_depth, (pp_z0 + pp_z1) / 2], [0, 1, 0], cage_t - dv_depth);
+}
+
+// Battery pod: under the reels, between the cage's plates, its top
+// just under the panel plates, which screw down into it. Split at the
+// cell's axis: a TPU 64D body above (grooved round its rim, like the box)
+// and a PCTG lid below with the tongue, screwed up into ears on its sides.
+pod_half_y = cell_r + pod_wall;
+// As far back as it fits, still under the reels: its weight behind the line's pull is what levels the node.
+pod_y = rear_y1 + pod_half_y + 1.5;
+pod_half_x = cell_len / 2 + end_clear + pod_end;
+pod_top = pp_z0 - 0.5;
+pod_axis_z = pod_top - pod_top_t - cell_r;
+pod_bot = pod_axis_z - cell_r - pod_wall;
+pod_ear_z = 12;
+pod_screws = [for (x = pod_screw_xs, sy = [-1, 1]) [[x, pod_y + sy * (pod_half_y + ear_out)], [0, sy]]];
+pp_pod_screws = [for (s = [-1, 1], dy = [-12, 12]) [s * (pp_x0 + pp_x1) / 2, pod_y + dy]];
+pod_cable = [cable_in[0], pod_axis_z + cell_r / 2];
+
+module pod_outline_2d() {
+  offset(4) offset(-4) translate([-pod_half_x, pod_y - pod_half_y]) square([2 * pod_half_x, 2 * pod_half_y]);
+}
+
+module pod_seal_band(w) {
+  r = 4 - pod_wall / 2;
+  difference() {
+    offset(w / 2) offset(max(r, 0.5)) offset(-max(r, 0.5)) translate([-pod_half_x + pod_end / 2, pod_y - pod_half_y + pod_wall / 2]) square([2 * pod_half_x - pod_end, 2 * pod_half_y - pod_wall]);
+    offset(-w / 2) offset(max(r, 0.5)) offset(-max(r, 0.5)) translate([-pod_half_x + pod_end / 2, pod_y - pod_half_y + pod_wall / 2]) square([2 * pod_half_x - pod_end, 2 * pod_half_y - pod_wall]);
+  }
+}
+
+module pod_ears_2d() {
+  for (e = pod_screws) ear_2d(e);
+}
+
+module pod_cavity() {
+  translate([0, pod_y, pod_axis_z]) rotate([0, 90, 0]) cylinder(r = cell_r, h = cell_len + 2 * end_clear, center = true, $fn = 96);
+}
+
+module pod_body() {
+  difference() {
+    union() {
+      translate([0, 0, pod_axis_z]) linear_extrude(pod_top - pod_axis_z) pod_outline_2d();
+      translate([0, 0, pod_axis_z]) linear_extrude(pod_ear_z) pod_ears_2d();
+    }
+    pod_cavity();
+    translate([0, 0, pod_axis_z - 1]) linear_extrude(groove_depth + 1) pod_seal_band(groove_w);
+    for (e = pod_screws) translate([e[0][0], e[0][1], pod_axis_z - 1]) cylinder(d = m5_pilot_d, h = pilot_depth + 1, $fn = 24);
+    // The panel plates' screws, blind in its top wall.
+    for (p = pp_pod_screws) translate([p[0], p[1], pod_top - pilot_depth]) cylinder(d = m5_pilot_d, h = pilot_depth + 1, $fn = 24);
+    // The cable out: a tight hole, so the TPU seals round it.
+    translate([pod_cable[0], pod_y + pod_half_y - pod_wall - 1, pod_cable[1]]) rotate([-90, 0, 0]) cylinder(d = pod_cable_d - 0.5, h = pod_wall + 2, $fn = 24);
+  }
+}
+
+// The lid's tongue, wider than the body's groove, narrowing at its tip.
+module pod_tongue() {
+  steps = 4;
+  tip = pod_axis_z + tongue_len;
+  translate([0, 0, pod_axis_z - 0.01]) linear_extrude(tongue_len - tongue_lead + 0.01) pod_seal_band(tongue_w);
+  for (i = [0 : steps - 1])
+    translate([0, 0, tip - tongue_lead * (i + 1) / steps]) linear_extrude(tongue_lead / steps + 0.01)
+      pod_seal_band(groove_w - 0.2 + (tongue_w - groove_w + 0.2) * i / steps);
+}
+
+module pod_lid() {
+  difference() {
+    union() {
+      translate([0, 0, pod_bot]) linear_extrude(pod_axis_z - pod_bot) pod_outline_2d();
+      translate([0, 0, pod_axis_z - 6]) linear_extrude(6) pod_ears_2d();
+      pod_tongue();
+    }
+    pod_cavity();
+    for (e = pod_screws) plate_screw([e[0][0], e[0][1], pod_axis_z], [0, 0, -1], 6);
+  }
 }
 
 module panel_plate(s) {
@@ -781,32 +848,9 @@ module panel_plate(s) {
     translate([xc, front_y0 + dv_depth + 0.01, (pp_z0 + pp_z1) / 2]) rotate([90, 0, 0]) cylinder(d = m5_pilot_d, h = pilot_depth, $fn = 24);
     // Up through the rectangle into the outside plate's bottom bar.
     plate_screw([xc, (rear_y0 + rear_y1) / 2, pp_z1], [0, 0, -1], pp_sq_h);
+    // Down through the rectangle into the battery pod's top.
+    for (p = pp_pod_screws) if (p[0] * s > 0) plate_screw([p[0], p[1], pp_z0], [0, 0, 1], pp_sq_h);
   }
-}
-
-// Battery strap at x: a cap over the cell's front, cupped to it, with a tab
-// at each end on the strips above and below the cell.
-module battery_strap(x) {
-  translate([x - strap_w / 2, 0, 0]) difference() {
-    union() {
-      translate([0, cell_y, cell_z - cell_r - strap_lug_h + 1]) cube([strap_w, strap_tab_t, 2 * (cell_r + strap_lug_h) - 2]);
-      intersection() {
-        translate([0, cell_y, cell_z]) rotate([0, 90, 0]) cylinder(r = cell_d / 2 + strap_t, h = strap_w, $fn = 96);
-        translate([-1, cell_y, 0]) cube([strap_w + 2, cell_r + strap_t + 1, seat_top]);
-      }
-    }
-    // Cupped a little tighter than the cell's seat, so it presses the cell home.
-    translate([-1, cell_y, cell_z]) rotate([0, 90, 0]) cylinder(r = cell_d / 2 + 0.1, h = strap_w + 2, $fn = 96);
-    for (z = strap_screw_zs) translate([strap_w / 2, cell_y - 1, z]) rotate([-90, 0, 0]) {
-      cylinder(d = m5_clear_d, h = strap_tab_t + 2, $fn = 32);
-      translate([0, 0, 1 + under_head]) cylinder(d = m5_head_d, h = strap_tab_t, $fn = 32);
-    }
-  }
-}
-
-// Straps print front face down, cup up.
-module battery_strap_print() {
-  translate([0, 0, cell_y + cell_d / 2 + strap_t]) rotate([-90, 0, 0]) battery_strap(0);
 }
 
 module frame_print() {
@@ -827,12 +871,15 @@ module front_plate_print() { rotate([-90, 0, 0]) front_plate(); }
 module rear_plate_print() { rotate([90, 0, 0]) translate([0, -rear_y0, 0]) rear_plate(); }
 // Linking bars lie on their inner face, so their dovetails' outlines are in the bed's plane.
 module xbar_print() { rotate([0, -90, 0]) xbar_local(); }
+// The pod's body prints upside down, its rim and groove up; its lid on its bottom, tongue up.
+module pod_body_print() { translate([0, 0, pod_top]) rotate([180, 0, 0]) translate([0, -pod_y, 0]) pod_body(); }
+module pod_lid_print() { translate([0, -pod_y, -pod_bot]) pod_lid(); }
 // Panel plates print on their outer face, groove up.
 module panel_plate_print() { rotate([0, 90, 0]) translate([-pp_x1, 0, 0]) panel_plate(1); }
 
 // Reference hardware, not printed.
 module cell() {
-  translate([0, cell_y, cell_z]) rotate([0, 90, 0]) cylinder(d = cell_d, h = cell_len, center = true, $fn = 64);
+  translate([0, pod_y, pod_axis_z]) rotate([0, 90, 0]) cylinder(d = cell_d, h = cell_len, center = true, $fn = 64);
 }
 
 module antenna() {

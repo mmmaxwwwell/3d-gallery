@@ -5,8 +5,7 @@ A Meshtastic/MeshCore repeater in a sealed box that winches itself up into a tre
 ## Layout
 
 - **Box (TPU 64D, PCTG door):**
-  - **Cell:** the 32140 LiFePO4 cell lies along the bottom in a seat. Two screwed PCTG straps lock it in place before the door goes on.
-  - **Posts:** four sealed screw posts take door screws, three in a line over the battery between its straps and one at the top under the bulkhead.
+  - **Posts:** four sealed screw posts take door screws, three along the bottom and one at the top under the bulkhead.
   - **Boards:** they stand flat on the back wall in pockets above the posts, going straight in from the front:
     - along the bottom: the protection board and the XIAO nRF52840 + Wio-SX1262 radio
     - over them: the charge board, standing with its USB ports up into open space; then a XIAO nRF52840 Sense, which runs the winch and levels the node with its IMU, with a DRV8833 motor driver above it
@@ -20,6 +19,7 @@ A Meshtastic/MeshCore repeater in a sealed box that winches itself up into a tre
   Each bar's ends are dovetails that slide into sockets in the plates, locked with a screw.
 - **Panel plates:** under each reel, a panel plate fills the rectangle between the two cage plates as that reel's bottom crossmember. Behind, it comes out as a truss: a top member, a member along the panel, and a diagonal crossmember.
 - **Solar panel:** its edges sit in grooves cut into the two panel plates, behind the reels, facing back and up at 45°. The plates are just outside its edges, so nothing shades it.
+- **Battery pod:** the 32140 LiFePO4 cell rides in its own sealed pod under the reels, as the counterweight to the box: a TPU 64D body and a PCTG lid, sealed the same way as the door. The panel plates screw down into it, and its lead comes into the box through tight TPU holes.
 - **Antenna:** the N bulkhead clamps through the roof, and the ALFA AOA-915-5ACM stands up from it, zip-tied at two heights to a short stem. The back plate slopes up to the stem with a rounded rib at its foot.
 - **Solar:** your 5/8" watertight connector goes in the door, in front of the charge board.
 
@@ -42,10 +42,11 @@ No supports anywhere.
 |---|---|---|---|
 | Body | TPU 64D | back face down | 1 |
 | Door | PCTG | front face down | 1 |
-| Battery strap | PCTG | front face down | 2 |
 | Reel | PCTG | on its outer flange | 2 |
 | Cage back plate, outside plate | PCTG | flat, sockets up | 1 each |
 | Linking bar | PCTG | flat | 5 |
+| Battery pod body | TPU 64D | upside down | 1 |
+| Battery pod lid | PCTG | tongue up | 1 |
 | Panel plate | PCTG | flat, groove up | 2 (one flipped) |
 
 Every piece fits a 270 mm bed.
@@ -58,7 +59,7 @@ The XIAO's own charger charges to 4.2 V, which is too high for LiFePO4 (3.65 V m
 
 - **Motors:** a full reel needs about 7 kg·cm to lift the node. JGY-370 worm motors can do that, but probably at 6–12 V, not the cell's 3.2 V, so expect a boost converter. The ratio and voltage aren't picked.
 - **Weight:** the printed parts come to about 1.5 kg at 100% infill.
-- **Pitch:** the box is heavier than everything behind the reels, so the node will hang tipped forward about 15–20°. The panel is too light to balance it.
+- **Pitch:** with the battery pod as far back as it fits, the node still hangs tipped forward about 10°.
 - **Not measured:** every board, the motors, the solar panel (145 × 120 mm assumed), the bulkhead's body, and your connector's panel range.
 
 ## Parts
@@ -76,5 +77,5 @@ Plus:
 - two JGY-370 worm motors, a XIAO nRF52840 Sense and a DRV8833
 - two 50–60 m lengths of 1/8" Dacron
 - your 5/8" connector
-- forty-nine M5 × 10 cap screws and two M5 × 25 bolts
+- fifty-four M5 × 10 cap screws and two M5 × 25 bolts
 - two zip ties and foam tape

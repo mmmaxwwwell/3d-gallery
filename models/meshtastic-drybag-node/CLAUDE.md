@@ -2,7 +2,7 @@
 
 A Meshtastic node in a sealed box that winches itself up into a tree and stays there for years. Printed parts:
 - the body: TPU 64D
-- the door (`cover()`), two battery straps, two reels, and the rear frame: PCTG
+- the door (`cover()`), two reels, the flat-pack cage, the panel plates and the battery pod's lid: PCTG; the battery pod's body: TPU 64D
 
 devOnly, unprinted.
 
@@ -21,7 +21,7 @@ It started as a flat T frame in a dry bag, from a photo of the parts laid out. A
 - asked to cut the wind area and move the panel behind the reels, high under them, three quarters of the way out
 - asked for the reels' line holes to become rope-wedging cleats
 - asked for a cage that holds the reels close, as flat-pack slotted pieces; then thinner, following the reels' curve, only halfway up, corners tied first, dovetail joints with screws
-- asked for the panel to sit in two plates that double as the reels' bottom crossmembers, and to balance the box
+- asked for the panel to sit in two plates that double as the reels' bottom crossmembers, and to balance the box; the cell moved to a pod under the reels for that
 - asked for more door screws (five a side), sealed screw posts, and the boards rearranged round them
 
 The user wants independent control of the reels with an IMU to level the node ("stepper motors or independent control somehow like have an accelerometer"). I chose self-locking worm gearmotors, because a stepper needs holding current to hang on the line for years.
@@ -38,7 +38,11 @@ The user wants independent control of the reels with an IMU to level the node ("
   - Every part a screw passes through is counterbored to leave `under_head` (2) under the cap head.
   - Every pilot is `pilot_depth` (9) deep.
   - The door's screws sit in ears outside the seal (`ear_groups`): a pair either side of each corner sharing one hulled ear, `end_screws` (3) evenly up each end, and `screw_xs_top` / `screw_xs_bottom`. That makes five along the top (counting the top post), five along the bottom, and five up each end, as the user asked. Each ear is its boss hulled into an `ear_base` strip on the wall, `ear_len` deep, then tapering at 45°.
-- **Battery:** the cell's back half sits in `cell_seat()`. The seat carries solid strips `strap_lug_h` tall above and below the cell. Two PCTG straps (`strap_xs`) cup the cell's front, 0.1 mm tighter than the seat, and screw into those strips at both ends.
+- **Battery pod** (`pod_body()` TPU 64D, `pod_lid()` PCTG): the user chose to move the cell out of the box as the counterweight, "a box and screw it on, keep the battery tucked up under the reels".
+  - **Placement:** it sits under the reels between the cage's plates, as far back as fits (`pod_y`).
+  - **Mounting:** each panel plate screws down into it, with blind pilots in its `pod_top_t` top wall.
+  - **Seal:** it's split at the cell's axis. The lid's tongue goes into the body's groove, like the box, with M5s in side ears outside the seal (`pod_screws`).
+  - **Cable:** it leaves through a tight TPU hole in the pod's front wall and enters the box through a tight hole in a boss on its back wall (`cable_in`).
 - **Boards:** they stand flat on the back wall in rimmed pockets and go straight in from the front, on foam tape. They sit between the motors, above the line of posts:
   - along the bottom: the protection board, then the radio kit
   - over them: the charge board, standing with its ports up into `port_room` under the roof; then the top post; then the winch XIAO, with the DRV8833 above it
@@ -60,7 +64,7 @@ The user wants independent control of the reels with an IMU to level the node ("
   - **Panel:** the plates sit just outside the panel's side edges (`pp_x0`), so they don't shade it. Its edges sit `pp_groove` deep in grooves cut in their inner faces, at `panel_tilt` facing back and up.
   - **Balance:** `panel_back` sets the panel as far back as the plate can go. It isn't enough: see Open.
 - **Sealed screw posts** (`post_points`), the user's ask: TPU posts from the back wall to the door. Each is `post_squeeze` proud, so the door presses its end round the screw's hole.
-  - There's a line of three over the battery between its straps (`low_post_xs`), and one at the top under the bulkhead (`top_post_x`, just right of the charge board).
+  - There are three along the bottom (`low_post_xs`) and one at the top under the bulkhead (`top_post_x`, just right of the charge board). The cage's back plate screws into the low posts' back ends.
   - The top post is the top run's middle screw, because the bulkhead's nut is on the roof there.
 - **Reel's line anchor:** a V jam cleat (`cleat_*`) cut into the core by the inner flange. Its walls run along the axis, so they print upright. The throat is narrower than the line, so the line's end wedges in. The user asked for it to replace the small cross hole: "more like those crevices they wedge ropes into".
 - **Bulkhead** through the roof, relieved from inside to `bulkhead_wall_t` (4 mm, user confirmed) round `n_body_d`. The panel nut is on top.
@@ -77,5 +81,5 @@ Intersect each pair of parts and reference parts.
 ## Open, unmeasured
 
 - **Mass and torque:** the parts come to about 1.5 kg at 100% infill. At full radius a reel needs about 7 kg·cm to lift a 2.4 kg node. JGY-370s probably need 6–12 V for that, more than the 3.2 V cell gives, so a boost converter is likely. The motor's ratio and voltage aren't chosen.
-- **Pitch:** at 60% infill the node weighs 1.63–2.36 kg (no line to a full reel). Its centre of mass is 26–38 mm in front of where the line pulls (the drums' middle, y −49), so it'll hang tipped forward about 15–20°. A 100 g panel would need to sit about 780 mm back to balance it. Moving the cell (290 g) behind the reels, or the reels forward, would do it.
+- **Pitch:** at 60% infill the node weighs 1.68–2.41 kg (no line to a full reel). With the pod as far back as it fits, its centre of mass is 10–15 mm in front of where the line pulls (the drums' middle, y −49), so it'll hang tipped forward about 10–11°. The fix isn't chosen yet.
 - **Not measured:** every board's size, the JGY-370's envelope and shaft, the solar panel (`panel_w`/`panel_h`), `n_body_d`/`n_body_len`, and the 5/8" connector's panel range.
