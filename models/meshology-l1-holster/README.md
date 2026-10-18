@@ -6,7 +6,7 @@ It bolts to a 3x2 Kanix belt clip. A matching desk stand holds the radio up on a
 
 ## Printing
 
-- TPU 64D, one piece, standing on its floor with the open top up. No supports. The only steep overhangs are the short bends of the locking tabs and the tops of the screw holes.
+- TPU 64D, one piece, standing on its floor with the open top up. No supports. The only steep overhangs are the bends of the locking tabs and the tops of the screw holes.
 - About 50 g of TPU.
 - The wall is 3 mm all the way round, bottom corners included, except a 45° skirt where the rounded bottom meets the bed.
 - Four 5 mm drainage holes in the floor, edges chamfered.
@@ -17,7 +17,7 @@ A U-notch in the right side (seen from the front) clears a USB-C plug in the rad
 
 ## Locking tabs
 
-The back wall comes up over the back of the radio, following the rounded corners of its back face. Two 10 mm tabs across the top bend over the radio's top back bevel to keep it in; the third place, on the left, is left solid because something on the radio is in the way there. Guards stand either side of the tabs, level with their tops, so a strap or branch can't catch them. Slits, rounded over at the edges like the rim, let each tab spring back: push the radio down and it clicks in; pull the tabs back to lift it out.
+The back wall comes up over the back of the radio, following the rounded corners of its back face. Three 12.3 mm tabs across the top rise 3 mm past the radio's top back edge, then bend forward over the whole top back bevel to keep it in. The left one (seen from the back) has its top corners rounded off. Guards stand either side of the tabs, level with their tops, so a strap or branch can't catch them. Slits, rounded over at the edges like the rim, let each tab spring back: push the radio down and it clicks in; pull the tabs back to lift it out.
 
 ## Mounting
 
