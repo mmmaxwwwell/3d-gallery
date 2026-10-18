@@ -20,7 +20,7 @@ radio_corner_radius = 11;
 // Gap between radio and holster, per side
 tolerance = 0.1;
 // Wall, back and floor thickness
-wall = 3;
+wall = 4;
 // The rim slopes down from back to front at this angle (degrees). At the
 // back wall it's level with the back face's top corner centres, where the
 // raised back's curve starts
@@ -69,6 +69,8 @@ usb_width = 8;
 usb_height = 14;
 // Desk stand: how far the radio leans back from upright (degrees)
 stand_angle = 15;
+// its cradle's wall thickness (the holster's is `wall`)
+stand_wall = 3;
 // and how far up the radio the cradle reaches, from its bottom face
 stand_depth = 24;
 // and how far the base reaches back behind the radio's bottom, so the
@@ -560,8 +562,8 @@ module radio() {
 // radio leaning back. The cradle stays below the USB-C port, so a cable
 // plugs in while it stands. Rigid filament, printed standing on its base.
 stand_round = 1.2;
-stand_outer_t = radio_thickness / 2 + tolerance + wall;
-stand_outer_w = radio_width / 2 + tolerance + wall;
+stand_outer_t = radio_thickness / 2 + tolerance + stand_wall;
+stand_outer_w = radio_width / 2 + tolerance + stand_wall;
 stand_top_z = radio_bottom_z + stand_depth;
 // Lifts the leaning cradle clear of the bed; the hull fills under it.
 stand_lift = stand_outer_t * sin(stand_angle) + stand_round;
@@ -583,7 +585,7 @@ module stand_core() {
   difference() {
     hull() {
       stand_tilt() intersection() {
-        translate([0, 0, wall + tolerance]) radio_body(tolerance + wall - r);
+        translate([0, 0, wall + tolerance]) radio_body(tolerance + stand_wall - r);
         translate([-radio_width, -radio_width, 0]) cube([2 * radio_width, 2 * radio_width, stand_top_z - r]);
       }
       translate([0, (front_y + back_y) / 2, r]) linear_extrude(0.01)
@@ -608,8 +610,8 @@ module stand_front_bevel(d) {
   diag = [radio_chamfer_width, -radio_chamfer_depth] / norm([radio_chamfer_width, radio_chamfer_depth]);
   bis = ([1, 0] + diag) / norm([1, 0] + diag);
   far = 4 * radio_width;
-  z0 = stand_top_z - wall;
-  h = wall + 2 * d + 5;
+  z0 = stand_top_z - stand_wall;
+  h = stand_wall + 2 * d + 5;
   intersection() {
     hull() {
       translate([0, 0, z0]) linear_extrude(0.01) offset(delta = d * sqrt(2)) pocket_outline();
