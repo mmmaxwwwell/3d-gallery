@@ -444,9 +444,19 @@ module walls() {
           offset(r = wall / 2 + 0.1) pocket_outline();
           offset(r = wall / 2 - 0.1) pocket_outline();
         }
-      union() {
-        under_rim();
-        under_back_rise();
+      difference() {
+        union() {
+          under_rim();
+          under_back_rise();
+        }
+        // Outside the row's last slit the wall comes down to the slit's
+        // bottom, so the slit opens onto the corner with no nub beside it
+        // (the user's ask). Back half only; the ball rolls the rest. The cut
+        // reaches a ball's width past the slit into the last tab's side, or
+        // the ball rolling that side's full-height wall spills over the slit
+        // and leaves a lip; the ball rolls that side back out to the slit.
+        big = 4 * radio_width;
+        translate([-big + slit_x(tabs) + slit_width / 2 + e - 0.1, 0, slit_bottom_z - e + 0.1]) cube(big);
       }
     }
     sphere(r = e - 0.1);
@@ -525,7 +535,7 @@ module slit_edge_rod(low_top = undef) {
   for (sx = [-1, 1])
     translate([sx * rr, 0, 0])
       if (sx < 0 && low_top != undef) {
-        cylinder(r = e, h = low_top);
+        if (low_top > 0) cylinder(r = e, h = low_top);
         translate([0, 0, low_top]) sphere(r = e);
       } else
         cylinder(r = e, h = slit_top_z - slit_bottom_z);
@@ -541,9 +551,9 @@ module slits() {
       rotate([90, 0, 0]) linear_extrude(wall + 2, center = true) slit_profile(0);
       difference() {
         rotate([90, 0, 0]) linear_extrude(wall + 0.02, center = true) slit_profile(e);
-        // Outside the last slit the wall stays at the side rim's height
-        // (under_back_rise()), its rolled top's centre an edge-radius under it.
-        slit_edge_rod(k == tabs ? rim_back_z - e - slit_bottom_z : undef);
+        // Outside the last slit the wall comes down to the slit's bottom
+        // (walls()), so that side's rod ends there.
+        slit_edge_rod(k == tabs ? 0 : undef);
       }
     }
 }
