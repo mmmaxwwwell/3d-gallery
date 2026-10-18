@@ -589,7 +589,8 @@ module drain_holes() {
 // hulled into the case's corner below it so it flows into the body, smooth
 // and tight (the user's words), and joined to both the tab and the case (so
 // that tab's outer end no longer springs). Under it the corner is solid,
-// from the slit to the side, up to the tab's end. The hole drops clear past
+// from the slit to the side, up to the tab's end, and the side wall's back
+// half rises to meet it. The hole drops clear past
 // the corner, out of the hull's sloping back.
 cord_loop_x0 = slit_x(tabs) - slit_width / 2;
 cord_loop_x1 = -(radio_width / 2 + tolerance + wall);
@@ -615,12 +616,28 @@ module cord_loop_corner(d = 0) {
   }
 }
 
+// The side wall's back half in the same corner, carried back up to the
+// loop's top so the case doesn't stop short under it (the user's ask): the
+// outside there, less the radio's pocket.
+module cord_loop_side() {
+  big = 4 * radio_width;
+  difference() {
+    intersection() {
+      outside();
+      translate([cord_loop_x1 - big, 0, cord_loop_bottom - cord_loop_flow])
+        cube([cord_loop_x0 - cord_loop_x1 + big, cord_loop_yi + 0.01, cord_loop_top - cord_loop_bottom + cord_loop_flow]);
+    }
+    pocket();
+  }
+}
+
 module cord_loop() {
   r = 1;
   od = cord_loop_hole + 2 * cord_loop_wall;
   difference() {
     union() {
       cord_loop_corner();
+      cord_loop_side();
       minkowski() {
         hull() {
           translate([cord_loop_hole_x, cord_loop_hole_y, cord_loop_top - cord_loop_ring + r])
