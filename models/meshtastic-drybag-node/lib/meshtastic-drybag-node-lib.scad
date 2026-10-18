@@ -1,7 +1,8 @@
 // Meshtastic dry-bag node: a flat T-shaped frame. The LiFePO4 cell lies
 // across the top, the N bulkhead hangs under its middle with the antenna
-// pointing down, the XIAO kit sits left of the bulkhead and the power-bank
-// board right of it. Everything is zip-tied to one face.
+// pointing down, and the XIAO kit and the power-bank board lie flat on
+// shelves either side of the bulkhead, under the cell, so their boards are
+// perpendicular to the antenna. Everything is zip-tied.
 //
 // Use frame: X along the cell, Z up as it hangs, Y out of the front face.
 // z = 0 is the underside of the bulkhead wall, where its panel nut seats.
@@ -31,18 +32,20 @@ antenna_nut_d = 21.5;
 antenna_nut_len = 20;
 // How far the frame's stem runs down the antenna from the bulkhead wall
 stem_len = 70;
-// Power-bank charge board, measured off a photo against the cell
+// Power-bank charge board, measured off a photo against the cell: along
+// the cell (its USB ports face the crossbar's end), out from the plate,
+// and its tallest part above the shelf (not measured)
 board_w = 39;
-board_h = 44;
-// XIAO nRF52840 + Wio-SX1262 stack
+board_d = 44;
+board_t = 9;
+// XIAO nRF52840 + Wio-SX1262 stack, the same way round
 kit_w = 22;
-kit_h = 24;
+kit_d = 24;
 kit_t = 12;
-// Space between the boards and the bulkhead wall, and between the boards and the cell
-board_gap = 3;
-// Ledge each board sits on, and the one along its inboard edge
-lip_h = 2;
-lip_w = 2;
+// Space between the boards and the bulkhead wall
+board_gap = 4;
+// Shelves the boards lie on, either side of the bulkhead wall
+shelf_t = 3;
 // Saddles under the cell and the antenna
 saddle_w = 6;
 saddle_inset = 18;
@@ -67,14 +70,12 @@ cell_y = plate_t + cell_r;
 cell_z = bulkhead_wall_t + rear_gap + cell_r;
 saddle_x = cell_len / 2 - saddle_inset;
 
-board_top = cell_z - cell_r - board_gap;
-board_bottom = board_top - max(board_h, kit_h);
 kit_x1 = -(wall_half_x + board_gap);
 kit_x0 = kit_x1 - kit_w;
 board_x0 = wall_half_x + board_gap;
 board_x1 = board_x0 + board_w;
 
-bar_bottom = board_bottom - lip_w - 3;
+bar_bottom = -3;
 bar_top = cell_z + cell_r + tie_t + 4;
 stem_half = antenna_d / 2 + 2 + tie_t + 3;
 stem_bottom = -stem_len;
@@ -83,7 +84,7 @@ antenna_tie_z = antenna_saddle_z + saddle_w / 2 + tie_w / 2 + 2;
 
 assert(board_x1 + 2 + tie_t < cell_len / 2, "power-bank board runs off the end of the crossbar");
 assert(kit_x0 - 2 - tie_t > -cell_len / 2, "XIAO kit runs off the end of the crossbar");
-assert(board_bottom > stem_bottom + 20, "boards hang below the stem's antenna saddle");
+assert(shelf_t + max(board_t, kit_t) < cell_z - cell_r - 2, "boards on their shelves reach the cell");
 assert(antenna_y + n_hole_d / 2 * sqrt(2) < wall_top_y - 1, "bulkhead hole's peak breaks out of the wall");
 assert(antenna_y - antenna_d / 2 > plate_t, "antenna radome hits the back plate");
 assert(saddle_x + saddle_w / 2 <= cell_len / 2, "saddles past the cell's ends");
@@ -151,30 +152,33 @@ module bulkhead_wall() {
   }
 }
 
-module board_ledges(x0, x1, inboard_x, outward) {
-  // Bottom ledge carries the board's weight as the node hangs.
-  translate([x0, plate_t - 0.01, board_bottom - lip_w]) cube([x1 - x0, lip_h, lip_w]);
-  translate([outward > 0 ? inboard_x - lip_w : inboard_x, plate_t - 0.01, board_bottom - lip_w])
-    cube([lip_w, lip_h, board_top - board_bottom + lip_w]);
+module shelf(x0, x1, depth) {
+  translate([x0 - tie_t - 3, plate_t - 0.01, 0]) cube([x1 - x0 + 2 * tie_t + 6, depth + 2, shelf_t]);
+}
+
+// Slot through a shelf, for a tie across the board's top.
+module shelf_slot(x, y) {
+  translate([x - tie_t / 2, y - tie_w / 2, -1]) cube([tie_t, tie_w, shelf_t + 2]);
 }
 
 module frame() {
-  mid_z = (board_top + board_bottom) / 2;
   difference() {
     union() {
       plate_outline();
       cell_saddles();
       bulkhead_wall();
       antenna_saddle();
-      board_ledges(kit_x0, kit_x1, kit_x1, -1);
-      board_ledges(board_x0, board_x1, board_x0, 1);
+      shelf(kit_x0, kit_x1, kit_d);
+      shelf(board_x0, board_x1, board_d);
     }
     for (s = [-1, 1], side = [-1, 1])
       tie_slot(s * (saddle_x - saddle_w / 2 - tie_w / 2 - 1), cell_z + side * (cell_r + tie_t / 2 + 0.5), tie_w, tie_t);
     for (side = [-1, 1])
       tie_slot(side * (antenna_d / 2 + 1 + tie_t / 2), antenna_tie_z, tie_t, tie_w);
-    for (x = [kit_x0 - 1 - tie_t / 2, kit_x1 + 1 + tie_t / 2, board_x0 - 1 - tie_t / 2, board_x1 + 1 + tie_t / 2])
-      tie_slot(x, mid_z, tie_t, tie_w);
+    for (x = [kit_x0 - 1 - tie_t / 2, kit_x1 + 1 + tie_t / 2])
+      shelf_slot(x, plate_t + kit_d / 2);
+    for (x = [board_x0 - 1 - tie_t / 2, board_x1 + 1 + tie_t / 2])
+      shelf_slot(x, plate_t + board_d / 2);
     translate([0, -1, bar_top + hang_tab - hang_d])
       rotate([-90, 0, 0]) cylinder(d = hang_d, h = plate_t + 2);
   }
@@ -199,6 +203,6 @@ module antenna() {
 }
 
 module boards() {
-  translate([board_x0, plate_t, board_top - board_h]) cube([board_w, 1.6, board_h]);
-  translate([kit_x0, plate_t, board_top - kit_h]) cube([kit_w, kit_t, kit_h]);
+  translate([board_x0, plate_t, shelf_t]) cube([board_w, board_d, 1.6]);
+  translate([kit_x0, plate_t, shelf_t]) cube([kit_w, kit_d, kit_t]);
 }

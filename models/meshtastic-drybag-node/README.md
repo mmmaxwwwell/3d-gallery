@@ -4,18 +4,18 @@ A frame for a cheap Meshtastic/MeshCore repeater, built from a Kingboss 15000 mA
 
 - **Crossbar:** a 32140 LiFePO4 cell (3.2 V, 15 Ah), lying across the top in two saddles and held by two zip ties.
 - **Middle:** the Superbat pigtail's N female bulkhead (6" RG178 to U.FL) goes up through a 4 mm wall under the cell and clamps on its own panel nut, so the jack's body and the coax sit in the gap under the cell. The ALFA AOA-915-5ACM screws onto the thread below the nut and points straight down. A saddle and a zip tie at the bottom of the stem keep the antenna in line.
-- **Left of the bulkhead:** the XIAO nRF52840 + Wio-SX1262 kit. **Right:** the power bank's charge board, with its USB ports facing the end of the crossbar so the 5 V solar panel's cable plugs in. Each board stands on a ledge and is held by one zip tie (or foam tape).
+- **Either side of the bulkhead, under the cell:** shelves that stick straight out from the plate. The XIAO nRF52840 + Wio-SX1262 kit lies flat on the left one and the power bank's charge board on the right, so both boards are perpendicular to the antenna rather than lying along it. The charge board's USB ports face the end of the crossbar, where the 5 V solar panel's cable plugs in. A zip tie through each shelf goes across each board (or use foam tape).
 - **Above the cell:** a 6 mm cord hole. Tie a cord here and run it out through the roll-top with the solar cable, so the frame hangs from the cord rather than resting on the antenna's tip.
 
 The cell crosses the antenna at right angles, above its feed, which keeps the metal can out of the antenna's near field far better than a cell running alongside the antenna would.
 
 ## Size
 
-The frame is 140 × 147 × 29 mm. With the antenna fitted, the whole thing is about 145 mm wide and 280 mm tall. Check that against the dry bag, leaving room for the roll-top's three folds.
+The frame is 140 × 147 × 50 mm (the charge board's shelf sets the depth). With the antenna fitted, the whole thing is about 145 mm wide and 280 mm tall. Check that against the dry bag, leaving room for the roll-top's three folds.
 
 ## Printing
 
-PETG, one piece, back face down. No supports: the saddles stop at the cell's and the antenna's centrelines, and the bulkhead's hole is peaked at 45°.
+PETG, one piece, back face down. No supports: the shelves and the bulkhead wall print as upright walls, the saddles stop at the cell's and the antenna's centrelines, and the bulkhead's hole is peaked at 45°.
 
 ## Wiring
 
@@ -26,7 +26,7 @@ Cell → protection board → charge board's battery pads; the kit's battery pad
 
 ## Not measured yet
 
-The charge board's size is read off a photo (39 × 44 mm). The Kingboss's case is 150 × 40 × 50 mm, with the board standing across one end behind the ports, so the board can't be much over about 37 × 47. The frame takes that: the outboard tie slot is placed for 39 wide, and 3 mm of `board_gap` under the cell covers up to 47 tall. The bulkhead is taken as standard N: 5/8-24 thread through a 16.4 mm hole, 3/4" hex nut. The 4 mm wall is checked against the pigtail: it leaves the antenna enough thread. Not measured: the room under the cell for the jack's body and the coax's bend (22 mm).
+The charge board's size is read off a photo (39 × 44 mm). The Kingboss's case is 150 × 40 × 50 mm, with the board standing across one end behind the ports, so the board can't be much over about 37 × 47. The frame takes that: the outboard tie slot is placed for 39 wide, and the shelf is 2 mm deeper than 44. How tall the board's parts stand isn't measured (9 mm assumed); there's 23 mm under the cell. The bulkhead is taken as standard N: 5/8-24 thread through a 16.4 mm hole, 3/4" hex nut. The 4 mm wall is checked against the pigtail: it leaves the antenna enough thread. Not measured: the room under the cell for the jack's body and the coax's bend (22 mm).
 
 ## Parts
 
