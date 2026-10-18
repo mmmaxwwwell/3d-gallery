@@ -2,7 +2,7 @@
 
 A Meshtastic node in a sealed box that winches itself up into a tree and stays there for years. Printed parts:
 - the body: TPU 64D
-- the door (`cover()`), two reels, the flat-pack cage, the panel plates, the battery cup and the antenna mast: PCTG
+- the door (`cover()`), two reels, the flat-pack cage, the panel plates, and the battery cup: PCTG
 
 devOnly, unprinted.
 
@@ -21,7 +21,7 @@ It started as a flat T frame in a dry bag, from a photo of the parts laid out. A
 - asked to cut the wind area and move the panel behind the reels, high under them, three quarters of the way out
 - asked for the reels' line holes to become rope-wedging cleats
 - asked for a cage that holds the reels close, as flat-pack slotted pieces; then thinner, following the reels' curve, only halfway up, corners tied first, dovetail joints with screws
-- asked for the panel to sit in two plates that double as the reels' bottom crossmembers, and to balance the box. The cell moved to a sealed cup on the box's back under the reels (not a separate pod), the antenna went up 4" on a mast, and teardrops went out.
+- asked for the panel to sit in two plates that double as the reels' bottom crossmembers, and to balance the box. The cell moved to a sealed cup on the box's back under the reels (not a separate pod), the antenna went up 2" on a tower that's part of the box (after a 4" mast the user didn't want), and teardrops went out.
 - asked for more door screws (five a side), sealed screw posts, and the boards rearranged round them
 
 The user wants independent control of the reels with an IMU to level the node ("stepper motors or independent control somehow like have an accelerometer"). I chose self-locking worm gearmotors, because a stepper needs holding current to hang on the line for years.
@@ -44,12 +44,13 @@ The user wants independent control of the reels with an IMU to level the node ("
   - **Screws:** three along its top and two up each end, into the box's end walls, all outside the seal.
   - **Wires:** the cell's leads come in through a window in the back wall (`cup_window`).
   - **Box height:** the box stays tall (`bay_z`) so the reels' cage clears the cup. The cage's back plate is cut clear of it.
-- **Antenna mast** (`mast()`, PCTG), `mast_h` above the roof (the user: "the antenna like 4 inches further out"):
-  - The bulkhead clamps through the mast's top, `bulkhead_wall_t` thick.
-  - Its flange sits on the roof between the stem and the roof's front edge, with a 45° cone up to the tube, trimmed flat at the back.
-  - A tongue ring under the flange seals in a groove round the roof's coax hole, and four M5s hold it down.
-  - The back plate's stem braces it, with a saddle and two zip ties above the cone.
-  - The pigtail has to be the 12" one to reach.
+- **Antenna tower** (the user: "a bumpout on the case like the profile that's there to support it... that becomes inside and the mount just moves up a couple inches"):
+  - The box's outline (`box_outline()`) includes a tower on the roof, `tower_h` tall, its sides the back plate's slopes from `slope_foot_x` to `tower_top_w`.
+  - It's inside the seal: `seal_centre()` is the outline offset in, so the door, its tongue and the groove all follow it. The inside opens up into it (`inside_2d()`).
+  - The bulkhead clamps through its top (`roof_t` thick, relieved to `bulkhead_wall_t`).
+  - Door screws go up each slope (square to it, `slope_n`) and at its top corners, clear of the bulkhead's nut (asserted).
+  - The back plate's stem rises from its top with the saddle and ties.
+  - The 6" pigtail still reaches the radio kit.
 - **No teardrops** (the user's call): every hole is round. `tear_2d()` is just a circle now.
 - **Boards:** they stand flat on the back wall in rimmed pockets and go straight in from the front, on foam tape. They sit between the motors, above the line of posts:
   - along the bottom: the protection board, then the radio kit
@@ -88,5 +89,5 @@ Intersect each pair of parts and reference parts.
 ## Open, unmeasured
 
 - **Mass and torque:** the parts come to about 1.5 kg at 100% infill. At full radius a reel needs about 7 kg·cm to lift a 2.4 kg node. JGY-370s probably need 6–12 V for that, more than the 3.2 V cell gives, so a boost converter is likely. The motor's ratio and voltage aren't chosen.
-- **Pitch:** at 60% infill the node weighs 1.68–2.41 kg (no line to a full reel). With the cell in the cup (y −17) and the mast up top, its centre of mass is 22–32 mm in front of where the line pulls (the drums' middle, y −49), so it'll hang tipped forward about 20–25°. The panel isn't heavy enough to level it. The fix isn't chosen yet.
+- **Pitch:** at 60% infill the node weighs 1.68–2.41 kg (no line to a full reel). With the cell in the cup (y −17), its centre of mass is 22–32 mm in front of where the line pulls (the drums' middle, y −49), so it'll hang tipped forward about 20–25°. The panel isn't heavy enough to level it. The fix isn't chosen yet.
 - **Not measured:** every board's size, the JGY-370's envelope and shaft, the solar panel (`panel_w`/`panel_h`), `n_body_d`/`n_body_len`, and the 5/8" connector's panel range.

@@ -9,4 +9,3 @@ color("#3742fa") panel();
 color("#57606f") antenna();
 color("#f1f2f6") solar_connector();
 color("#eccc68") battery_cup();
-color("#a4b0be") mast();

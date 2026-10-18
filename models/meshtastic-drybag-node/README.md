@@ -20,12 +20,12 @@ A Meshtastic/MeshCore repeater in a sealed box that winches itself up into a tre
 - **Panel plates:** under each reel, a panel plate fills the rectangle between the two cage plates as that reel's bottom crossmember. Behind, it comes out as a truss: a top member, a member along the panel, and a diagonal crossmember.
 - **Solar panel:** its edges sit in grooves cut into the two panel plates, behind the reels, facing back and up at 45°. The plates are just outside its edges, so nothing shades it.
 - **Battery cup:** the 32140 LiFePO4 cell sits in a cup on the box's back, under the reels. The cup is printed on its own and is open toward the box. Its rim seals into a groove round the back wall the same way the door does, with screws in ears outside the seal. The cell's leads come straight into the box through a window in the back wall.
-- **Antenna:** it stands on a PCTG mast 100 mm above the roof, with the N bulkhead clamped through the mast's top. The mast's flange seals to the roof with a tongue ring and four screws, and the back plate's stem braces it with two zip ties. The pigtail needs to be the 12" one.
+- **Antenna:** the box has a tower on its roof, inside the seal, its sides following the back plate's slopes. The N bulkhead clamps through its top, 50 mm above the roof, and the antenna stands up from it, zip-tied to a stem.
 - **Solar:** your 5/8" watertight connector goes in the door, in front of the charge board.
 
 ## How it seals
 
-- **Door:** a tongue round its back is 0.6 mm wider than the groove round the TPU rim, so the TPU grips it from both sides. The seal doesn't depend on screw force. Nineteen M5 × 10 screws in ears outside the seal hold the door on: five up each end, five along the bottom, and four along the top. The top's middle screw goes into the top post. Four more go into the sealed posts inside, and each post's end is squeezed by the door round its own screw.
+- **Door:** a tongue round its back is 0.6 mm wider than the groove round the TPU rim, so the TPU grips it from both sides. The seal doesn't depend on screw force. Twenty-one M5 × 10 screws in ears outside the seal hold the door on: a pair at every corner, three more up each end, one up each of the tower's slopes, one at each of its top corners, and three along the bottom. Four more go into the sealed posts inside, and each post's end is squeezed by the door round its own screw.
 - **Reel shafts:** each reel's hub goes through a hole in the TPU back wall that's 0.4 mm tight, lengthened by a boss inside.
 - **Antenna:** the bulkhead's O-ring seals the roof.
 - **Solar connector:** it seals the door.
@@ -46,7 +46,6 @@ No supports. Every hole is round, with no teardrops, so the body's sideways hole
 | Cage back plate, outside plate | PCTG | flat, sockets up | 1 each |
 | Linking bar | PCTG | flat | 5 |
 | Battery cup | PCTG | rim up | 1 |
-| Antenna mast | PCTG | upside down | 1 |
 | Panel plate | PCTG | flat, groove up | 2 (one flipped) |
 
 Every piece fits a 270 mm bed.
@@ -77,5 +76,5 @@ Plus:
 - two JGY-370 worm motors, a XIAO nRF52840 Sense and a DRV8833
 - two 50–60 m lengths of 1/8" Dacron
 - your 5/8" connector
-- fifty-five M5 × 10 cap screws and two M5 × 25 bolts
+- fifty-three M5 × 10 cap screws and two M5 × 25 bolts
 - two zip ties and foam tape

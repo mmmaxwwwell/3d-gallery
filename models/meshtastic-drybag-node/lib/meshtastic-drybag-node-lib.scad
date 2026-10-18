@@ -18,9 +18,10 @@
 // The battery sits in a cup on the box's back, under the reels, as the
 // counterweight: printed on its own, open toward the box, its rim sealing
 // into a groove round the back wall the same way the door does. The
-// antenna stands on a mast 100 mm above the roof.
+// antenna's bulkhead clamps through the top of a tower on the roof, part
+// of the box, its sides following the back plate's slopes.
 //
-// The body is TPU 64D; the door, reels, cage, battery cup and mast are PCTG. The door
+// The body is TPU 64D; the door, reels, cage and battery cup are PCTG. The door
 // seals with a tongue round its back that's wider than the groove round
 // the body's rim, so the TPU grips it from the sides, and M5 x 10 screws in
 // ears outside the seal thread straight into the TPU. Every M5 x 10 gets
@@ -75,11 +76,9 @@ ear_base = 26;
 // How deep the ears run back from the front; below that they taper into the wall at 45°
 ear_len = 12;
 // Door screws: a pair either side of every corner, end_screws more evenly up
-// each end between them, and these along the top and the bottom. The top's
-// middle screw goes into the top sealed post instead, since the bulkhead's
-// nut is on the roof there.
+// each end between them, one up each of the tower's slopes and one at each
+// of its top corners, and these along the bottom.
 end_screws = 3;
-screw_xs_top = [-45, 45];
 screw_xs_bottom = [-40, 0, 40];
 // Sealed screw posts inside, from the back wall to the door: a door screw
 // threads into each, and the post's end stands post_squeeze proud so the
@@ -104,10 +103,14 @@ antenna_len = 180;
 // Its N male coupling nut
 antenna_nut_d = 21.5;
 antenna_nut_len = 20;
-// How far the stem runs up the antenna from the roof
-stem_len = 40;
-// The back plate's slopes run from the stem's top down to the roof here, inboard of the reels
+// How far the stem runs up the antenna from the tower's top
+stem_len = 26;
+// The tower on the roof the antenna's bulkhead clamps through: its height
+// (the user's "a couple inches"), where its slopes meet the roof, and its
+// top's width (room for the bulkhead's nut and the door's screws either side)
+tower_h = 50;
 slope_foot_x = 52;
+tower_top_w = 64;
 // Rounded rib along the foot of the stem and slopes, where they meet the roof
 rib_r = 8;
 // The user's 5/8" watertight connector for the solar panel, through the door in front of the charge board
@@ -230,13 +233,7 @@ cup_screw_xs = [-50, 0, 50];
 cup_window = [-55, 30, 22];
 // The box's back wall is thickened inside round the cup, for its groove and screws
 back_pad_t = 9;
-// Antenna mast (PCTG): height above the roof, its bore (room for the
-// bulkhead's body), wall, and the flange its foot screws down with
-mast_h = 100;
-mast_bore = 23;
-mast_wall = 4;
-mast_flange_t = 6;
-// Saddle on the stem round the mast, and the zip-tie slots either side of it, below and above
+// Saddle on the stem round the antenna, and the zip-tie slots either side of it, below and above
 saddle_w = 6;
 tie_w = 6;
 tie_t = 2.5;
@@ -286,6 +283,11 @@ mot_z0 = bay_z;
 shaft_z = mot_z0 + mot_h - mot_shaft_down;
 roof_z = max(boards_top + n_body_len + 2, mot_z0 + mot_h + 2, board_pocket[3] + port_room);
 box_h = roof_z + roof_t;
+tower_top = box_h + tower_h;
+tw_half = tower_top_w / 2;
+// The slopes' x at height z, extended below the roof for the inside's outline.
+function tower_x(z) = slope_foot_x + (box_h - z) * (slope_foot_x - tw_half) / tower_h;
+slope_n = [tower_h, slope_foot_x - tw_half] / norm([tower_h, slope_foot_x - tw_half]);
 
 drum_y0 = -cage_t - cage_gap;
 drum_y1 = drum_y0 - 2 * spool_flange_t - spool_len;
@@ -309,7 +311,10 @@ ear_groups = concat(
      [[sx * (bar_half + ear_out), top ? box_h - box_corner_r : box_corner_r], [sx, 0]]]],
   [for (sx = [-1, 1], k = [1 : end_screws])
     [[[sx * (bar_half + ear_out), box_corner_r + (box_h - 2 * box_corner_r) * k / (end_screws + 1)], [sx, 0]]]],
-  [for (x = screw_xs_top) [[[x, box_h + ear_out], [0, 1]]]],
+  // One up the middle of each slope, square to it.
+  [for (sx = [-1, 1]) [[[sx * (slope_foot_x + tw_half) / 2, box_h + tower_h / 2] + ear_out * [sx * slope_n[0], slope_n[1]], [sx * slope_n[0], slope_n[1]]]]],
+  // One at each of the tower's top corners, clear of the bulkhead's nut.
+  [for (sx = [-1, 1]) [[[sx * (tw_half - ear_r), tower_top + ear_out], [0, 1]]]],
   [for (x = screw_xs_bottom) [[[x, -ear_out], [0, -1]]]]);
 screws = [for (g = ear_groups) each g];
 screw_points = [for (e = screws) e[0]];
@@ -327,23 +332,16 @@ ear_back_y = front_y - ear_len - (ear_out + ear_r);
 
 n_hole_d = n_thread_d + n_hole_clear;
 nut_r = n_nut_af / sqrt(3);
-mast_r = mast_bore / 2 + mast_wall;
-antenna_y = plate_t + mast_r + 1;
-mast_top = box_h + mast_h;
-// Mast's flange on the roof, between the back plate's stem and the roof's front edge.
-mast_flange = [[-mast_r - 12, plate_t + 0.5], [mast_r + 12, front_y - 1]];
-mast_screws = [for (sx = [-1, 1], dy = [-8, 8]) [sx * (mast_r + 6), antenna_y + dy]];
-mast_seal_r = mast_bore / 2 + mast_wall / 2;
+antenna_y = plate_t + n_body_d / 2 + 1;
 
 solar_x = (board_pocket[0] + board_pocket[2]) / 2;
 solar_z = (board_pocket[1] + board_pocket[3]) / 2;
 
-stem_half = mast_r + 0.5 + tie_t + 3;
-stem_top = box_h + stem_len;
-// Ties and saddle round the mast, above its flange's cone.
-tie_zs = [box_h + mast_flange_t + 8 + tie_w / 2 + 2, stem_top - tie_w / 2 - 2];
-antenna_saddle_z = (tie_zs[0] + tie_zs[1]) / 2;
-rib_notch = mast_flange[1][0] + 1;
+stem_half = antenna_d / 2 + 0.5 + tie_t + 3;
+stem_top = tower_top + stem_len;
+antenna_saddle_z = tower_top + stem_len / 2;
+tie_zs = [tower_top + tie_w / 2 + 1, stem_top - tie_w / 2 - 2];
+rib_notch = nut_r + 3;
 
 // Panel plates sit just outside the panel's side edges, its edges in their grooves.
 pp_x0 = panel_w / 2 + 0.5 - pp_groove;
@@ -364,7 +362,7 @@ assert(cup_depth < -rear_y1, "battery cup runs into the outside plate");
 assert(spool_x - spool_od / 2 > 0, "reels overlap across the middle");
 assert(cover_t > under_head && cage_t > under_head, "a part is thinner than the screws' under-head length");
 assert(plate_t + back_pad_t > pilot_depth + 1, "back wall too thin round the cup for its screws");
-assert(mast_seal_r - groove_w / 2 > 10 + 1, "mast's seal crowds the coax hole");
+assert(tw_half - ear_r - ear_base / 2 > nut_r, "tower's top screws crowd the bulkhead's nut");
 assert(cage_t >= thread_len, "outside plate too thin for the axles' 8 mm of thread");
 assert(xbar_t >= m5_pilot_d + 3 && xbar_w > dv_w1 + 1, "linking bars too small for their pilots or dovetails");
 assert(ring_r0 < xbar_r - xbar_t / 2 && xbar_r + xbar_t / 2 < ring_r1, "linking bars hang off their rings");
@@ -384,13 +382,16 @@ module xz_extrude(y0, y1) {
   translate([0, y1, 0]) rotate([90, 0, 0]) linear_extrude(y1 - y0) children();
 }
 
+// The box's outline seen from the front: its rectangle and the tower on its roof.
 module box_outline() {
-  offset(box_corner_r) offset(-box_corner_r) translate([-bar_half, 0]) square([2 * bar_half, box_h]);
+  offset(box_corner_r) offset(-box_corner_r) union() {
+    translate([-bar_half, 0]) square([2 * bar_half, box_h]);
+    polygon([[-slope_foot_x, box_h - 1], [slope_foot_x, box_h - 1], [tw_half, tower_top], [-tw_half, tower_top]]);
+  }
 }
 
 module seal_centre() {
-  r = box_corner_r - seal_inset;
-  offset(r) offset(-r) translate([-bar_half + seal_inset, seal_inset]) square([2 * (bar_half - seal_inset), box_h - 2 * seal_inset]);
+  offset(-seal_inset) box_outline();
 }
 
 module seal_band(w) {
@@ -421,14 +422,12 @@ module ears_2d() {
   for (g = ear_groups) hull() for (e = g) ear_2d(e);
 }
 
-// The back plate: the box's outline, then straight slopes from the roof,
-// inboard of the arms, up to the stem's top.
+// The back plate: the box's outline, tower and all, and a stem up the antenna from the tower's top.
 module plate() {
-  xz_extrude(0, plate_t)
-    offset(corner_r) offset(-corner_r) union() {
-      translate([-bar_half, 0]) square([2 * bar_half, box_h]);
-      polygon([[-slope_foot_x, box_h - 1], [slope_foot_x, box_h - 1], [stem_half, stem_top], [-stem_half, stem_top]]);
-    }
+  xz_extrude(0, plate_t) {
+    box_outline();
+    offset(corner_r) offset(-corner_r) translate([-stem_half, tower_top - 2 * corner_r]) square([2 * stem_half, stem_top - tower_top + 2 * corner_r]);
+  }
 }
 
 // Each ear runs ear_len back from the front, then tapers into the wall at
@@ -446,18 +445,28 @@ module ears() {
 // notched round the bulkhead's nut, out to the slopes' feet.
 module stem_rib() {
   for (s = [-1, 1])
-    translate([s > 0 ? rib_notch : -slope_foot_x, plate_t - 0.01, box_h - 0.01])
+    translate([s > 0 ? rib_notch : -stem_half, plate_t - 0.01, tower_top - 0.01])
       difference() {
-        cube([slope_foot_x - rib_notch, rib_r, rib_r]);
+        cube([stem_half - rib_notch, rib_r, rib_r]);
         translate([-1, rib_r, rib_r]) rotate([0, 90, 0]) cylinder(r = rib_r, h = bar_half + 2, $fn = 48);
       }
+}
+
+// The inside: the box's, and the tower's opening up off it, its top roof_t
+// thick for the bulkhead.
+module inside_2d() {
+  translate([-inner_half, wall]) square([2 * inner_half, roof_z - wall]);
+  intersection() {
+    offset(-wall) polygon([[-tower_x(roof_z - wall - 1), roof_z - wall - 1], [tower_x(roof_z - wall - 1), roof_z - wall - 1], [tw_half, tower_top], [-tw_half, tower_top]]);
+    translate([-200, 0]) square([400, tower_top - roof_t]);
+  }
 }
 
 module walls() {
   xz_extrude(plate_t - 0.01, front_y)
     difference() {
       box_outline();
-      translate([-inner_half, wall]) square([2 * inner_half, roof_z - wall]);
+      inside_2d();
     }
 }
 
@@ -483,7 +492,7 @@ module motor_cradles() {
 }
 
 module antenna_saddle() {
-  r = mast_r + 0.4;
+  r = antenna_d / 2 + 0.4;
   difference() {
     translate([-stem_half + 2, plate_t - 0.01, antenna_saddle_z - saddle_w / 2])
       cube([2 * stem_half - 4, antenna_y - plate_t, saddle_w]);
@@ -533,12 +542,9 @@ module frame() {
     // Seal groove, and the door screws' pilots in the ears.
     xz_extrude(front_y - groove_depth, front_y + 1) seal_band(groove_w);
     xz_extrude(front_y - pilot_depth, front_y + 1) screw_holes_2d(m5_pilot_d);
-    // The coax up through the roof into the mast, the groove round it the
-    // mast's tongue seals in, and the mast's screws, blind in the roof.
-    translate([0, antenna_y, roof_z - 1]) cylinder(d = 20, h = roof_t + 2, $fn = 48);
-    translate([0, antenna_y, box_h - groove_depth]) linear_extrude(groove_depth + 1)
-      difference() { circle(r = mast_seal_r + groove_w / 2, $fn = 96); circle(r = mast_seal_r - groove_w / 2, $fn = 96); }
-    for (p = mast_screws) translate([p[0], p[1], box_h - pilot_depth]) cylinder(d = m5_pilot_d, h = pilot_depth + 1, $fn = 24);
+    // Bulkhead through the tower's top, relieved from inside down to bulkhead_wall_t.
+    translate([0, antenna_y, tower_top - roof_t - 1]) cylinder(d = n_hole_d, h = roof_t + 2, $fn = 64);
+    translate([0, antenna_y, tower_top - roof_t - 1]) cylinder(d = n_body_d, h = roof_t - bulkhead_wall_t + 1, $fn = 64);
     // Reel hubs through the back wall and its bosses: a tight hole, so the TPU seals round them.
     for (s = [-1, 1])
       translate([s * spool_x, -1, shaft_z]) rotate([-90, 0, 0]) cylinder(d = hub_d - hub_seal, h = plate_t + boss_t + 2, $fn = 48);
@@ -552,7 +558,7 @@ module frame() {
     for (p = front_screw_points())
       translate([p[0], -1, p[1]]) rotate([-90, 0, 0]) cylinder(d = m5_pilot_d, h = pilot_depth + 1, $fn = 32);
     for (side = [-1, 1], z = tie_zs)
-      translate([side * (mast_r + 0.5 + tie_t / 2) - tie_t / 2, -1, z - tie_w / 2])
+      translate([side * (antenna_d / 2 + 0.5 + tie_t / 2) - tie_t / 2, -1, z - tie_w / 2])
         cube([tie_t, plate_t + 2, tie_w]);
   }
 }
@@ -839,30 +845,6 @@ module cup_tongue_out() {
       cup_seal_band(groove_w - 0.2 + (tongue_w - groove_w + 0.2) * i / steps);
 }
 
-// Mast (PCTG): a tube the bulkhead clamps through at its top, standing on a
-// flange that screws to the roof, a 45° cone between them. A tongue ring
-// under the flange seals in the roof's groove; the bulkhead's O-ring seals
-// its top. The coax runs up inside it.
-module mast() {
-  difference() {
-    union() {
-      translate([0, 0, box_h]) linear_extrude(mast_flange_t) offset(4) offset(-4) translate(mast_flange[0]) square(mast_flange[1] - mast_flange[0]);
-      // The cone, trimmed flat at the back so it clears the back plate's stem.
-      intersection() {
-        translate([0, antenna_y, box_h + mast_flange_t - 0.01]) cylinder(r1 = mast_r + 8, r2 = mast_r, h = 8, $fn = 96);
-        translate([-100, plate_t + 0.5, box_h]) cube([200, 100, 100]);
-      }
-      translate([0, antenna_y, box_h]) cylinder(r = mast_r, h = mast_h, $fn = 96);
-      // Tongue ring, down into the roof's groove.
-      translate([0, antenna_y, box_h - tongue_len]) linear_extrude(tongue_len + 0.01)
-        difference() { circle(r = mast_seal_r + tongue_w / 2, $fn = 96); circle(r = mast_seal_r - tongue_w / 2, $fn = 96); }
-    }
-    translate([0, antenna_y, box_h - tongue_len - 1]) cylinder(d = mast_bore, h = mast_h - bulkhead_wall_t + tongue_len + 1, $fn = 96);
-    translate([0, antenna_y, mast_top - bulkhead_wall_t - 1]) cylinder(d = n_hole_d, h = bulkhead_wall_t + 2, $fn = 64);
-    for (p = mast_screws) plate_screw([p[0], p[1], box_h], [0, 0, 1], mast_flange_t);
-  }
-}
-
 module panel_plate(s) {
   x0 = s > 0 ? pp_x0 : -pp_x1;
   xc = s * (pp_x0 + pp_x1) / 2;
@@ -900,8 +882,7 @@ module rear_plate_print() { rotate([90, 0, 0]) translate([0, -rear_y0, 0]) rear_
 module xbar_print() { rotate([0, -90, 0]) xbar_local(); }
 // The battery cup prints rim up, its tongue up and its bed open upward.
 module battery_cup_print() { rotate([90, 0, 0]) translate([0, cup_depth, 0]) battery_cup(); }
-// The mast prints upside down on its top, the flange's cone below it at 45°, the tongue up.
-module mast_print() { translate([0, 0, mast_top]) rotate([180, 0, 0]) translate([0, -antenna_y, 0]) mast(); }
+
 // Panel plates print on their outer face, groove up.
 module panel_plate_print() { rotate([0, 90, 0]) translate([-pp_x1, 0, 0]) panel_plate(1); }
 
@@ -911,12 +892,12 @@ module cell() {
 }
 
 module antenna() {
-  translate([0, antenna_y, mast_top]) {
+  translate([0, antenna_y, tower_top]) {
     cylinder(r = nut_r, h = 4, $fn = 6);
     translate([0, 0, 4]) cylinder(d = antenna_nut_d, h = antenna_nut_len, $fn = 48);
     translate([0, 0, 4 + antenna_nut_len]) cylinder(d = antenna_d, h = antenna_len, $fn = 48);
   }
-  translate([0, antenna_y, mast_top - bulkhead_wall_t - n_body_len]) cylinder(r = nut_r, h = n_body_len, $fn = 6);
+  translate([0, antenna_y, tower_top - bulkhead_wall_t - n_body_len]) cylinder(r = nut_r, h = n_body_len, $fn = 6);
 }
 
 module boards() {

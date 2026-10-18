@@ -9,4 +9,3 @@ color("#ffa502") { spool(); spool_left(); }
 color("#a4b0be") { front_plate(); rear_plate(); }
 color("#ced6e0") { for (b = xbars()) xbar(b); panel_plate(1); panel_plate(-1); }
 color("#eccc68") battery_cup();
-color("#a4b0be") mast();
