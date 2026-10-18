@@ -49,6 +49,9 @@ tab_lift = 3;
 back_edge_extra = 7;
 // The +x guard's outer top corner is cut off at 45°, this far along each leg
 guard_chamfer = 10;
+// A hole through that guard, above the radio, to tie a bungee to and loop
+// over the radio's GPS antenna wing: its diameter
+bungee_hole = 5;
 // The slits either side of the tab: how far down from the back wall's top
 slit_length = 20;
 // and how wide
@@ -574,6 +577,27 @@ module drain_holes() {
 }
 
 // The tabs go on after the pocket is cut, since their bends reach into it.
+// Through the +x guard front to back, centred between the guard's inner face
+// and the face's corner, centred in the band of guard between the radio's
+// top back edge and the guard's rounded top. Both mouths chamfered at 45° so
+// they don't cut the cord.
+bungee_hole_x = (tab_row_hi + slit_width + cutout_edge_radius + back_corner_x(1)) / 2;
+bungee_hole_z = (back_top_z + tab_top_z - cutout_edge_radius) / 2;
+bungee_hole_chamfer = 0.5;
+assert(bungee_hole_z - bungee_hole / 2 - bungee_hole_chamfer > back_top_z, "bungee hole runs below the radio's top back edge");
+assert(bungee_hole_z + bungee_hole / 2 + bungee_hole_chamfer < tab_top_z - cutout_edge_radius, "bungee hole runs into the guard's rounded top");
+
+module bungee_hole() {
+  r = bungee_hole / 2;
+  c = bungee_hole_chamfer;
+  y0 = radio_thickness / 2 + tolerance;
+  translate([bungee_hole_x, 0, bungee_hole_z]) rotate([-90, 0, 0]) {
+    translate([0, 0, y0 - 1]) cylinder(r = r, h = wall + 2);
+    translate([0, 0, y0 - 1]) cylinder(r1 = r + c + 1, r2 = r, h = c + 1);
+    translate([0, 0, y0 + wall - c]) cylinder(r1 = r, r2 = r + c + 1, h = c + 1);
+  }
+}
+
 module holster() {
   difference() {
     union() {
@@ -585,6 +609,7 @@ module holster() {
     slits();
     drain_holes();
     kanix_pilots();
+    bungee_hole();
   }
   tabs();
 }
