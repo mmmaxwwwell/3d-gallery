@@ -1,7 +1,7 @@
 include <../lib/meshtastic-drybag-node-lib.scad>;
 $fn = 40;
 color("#2f3542") frame();
-color("#747d8c") tower_cap();
+color("#747d8c") back_door();
 color("#7bed9f") cell();
 color("#ff6348") motors();
 color("#2ed573") boards();
@@ -9,6 +9,5 @@ color("#70a1ff") radio_room();
 color("#57606f") antenna();
 color("#ffa502") reels();
 color("#e1b12c") drive();
-color("#a4b0be") cradles();
-color("#ced6e0") fairlead_sets();
+color("#a4b0be") holders();
 color("#f1f2f6") all_rollers();

@@ -1,3 +1,3 @@
 include <../lib/meshtastic-drybag-node-lib.scad>;
 $fn = 40;
-stem_print();
+spine_print();
