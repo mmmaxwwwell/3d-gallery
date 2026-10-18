@@ -12,14 +12,13 @@ A Meshtastic/MeshCore repeater in a sealed box that winches itself up into a tre
     - over them: the charge board, standing with its USB ports up into open space; then a XIAO nRF52840 Sense, which runs the winch and levels the node with its IMU, with a DRV8833 motor driver above it
   - **Motors:** a worm gearmotor stands in each end.
 - **Reels:** two, behind the box, one at each end, as far out to the sides as they go. Each holds 150–200 ft (about 56 m) of 1/8" Dacron on a 112 mm reel. The line's end wedges into a V jam cleat in the drum's core. The drums run front to back, square to the line's pull, so the line comes straight up off them. Each is driven by its own motor through the back wall. Worm gears can't be back-driven, so the node holds its height with the power off.
-- **Cage (PCTG, flat-pack):** it holds each reel close all round. Every piece prints flat and they slot together like a cardboard cutout, so each is loaded along its strong axis:
-  - a front plate screwed flat to the box's back
-  - a rear plate carrying the reels' outer axles
-  - three ribs running between the plates, outboard of and between the reels
-  - a bottom plate under the reels
+- **Cage (PCTG, flat-pack):** it cradles each reel's lower half, following its curve. Every piece prints flat, loaded along its strong axis:
+  - a back plate screwed flat to the box's back
+  - an outside plate behind the reels carrying their outer axles, both as half rings round the reels
+  - seven linking bars between the plates, tying the cradles' corners first
 
-  Tabs locate every joint, and an M5 × 10 through one piece threads 8 mm into the other's edge.
-- **Solar panel:** it sits behind the reels, on the far side from the antenna and battery, as high as it goes under the cage. Three quarters of it is out behind, facing back and up at 45°. Its frame's tabs slot through two panel ribs hung from the bottom plate, with a zip tie through each.
+  Each bar's ends are dovetails that slide into sockets in the plates, locked with a screw.
+- **Solar panel:** it sits behind the reels, on the far side from the antenna and battery, three quarters out, facing back and up at 45°. It lies on two triangular panel ribs that run from the back plate under the outside plate and straight out behind. Its frame sandwiches it and screws down into them.
 - **Antenna:** the N bulkhead clamps through the roof, and the ALFA AOA-915-5ACM stands up from it, zip-tied at two heights to a short stem. The back plate slopes up to the stem with a rounded rib at its foot.
 - **Solar:** your 5/8" watertight connector goes in the door, in front of the charge board.
 
@@ -32,7 +31,7 @@ A Meshtastic/MeshCore repeater in a sealed box that winches itself up into a tre
 
 ## Screws
 
-Every M5 × 10 gets 8 mm of thread. Each part it goes through is counterbored to leave 2 mm under the cap head, and every pilot is 9 mm deep. The reels' outer axles are M5 × 25 bolts, threaded 8 mm into the cage's rear plate. Each reel turns on its bolt's shank.
+Every M5 × 10 gets 8 mm of thread. Each part it goes through is counterbored to leave 2 mm under the cap head, and every pilot is 9 mm deep. The reels' outer axles are M5 × 25 bolts, threaded 8 mm into the cage's outside plate. Each reel turns on its bolt's shank.
 
 ## Printing
 
@@ -44,8 +43,8 @@ No supports anywhere.
 | Door | PCTG | front face down | 1 |
 | Battery strap | PCTG | front face down | 2 |
 | Reel | PCTG | on its outer flange | 2 |
-| Cage front plate, rear plate, bottom plate | PCTG | flat | 1 each |
-| Cage rib | PCTG | flat | 3 |
+| Cage back plate, outside plate | PCTG | flat, sockets up | 1 each |
+| Linking bar | PCTG | flat | 7 |
 | Panel rib | PCTG | flat | 2 (one flipped) |
 | Solar panel frame | PCTG | face side down | 1 |
 
@@ -77,5 +76,5 @@ Plus:
 - two JGY-370 worm motors, a XIAO nRF52840 Sense and a DRV8833
 - two 50–60 m lengths of 1/8" Dacron
 - your 5/8" connector
-- fifty-two M5 × 10 cap screws and two M5 × 25 bolts
-- six zip ties and foam tape
+- fifty-seven M5 × 10 cap screws and two M5 × 25 bolts
+- two zip ties and foam tape
