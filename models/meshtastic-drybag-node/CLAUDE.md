@@ -1,23 +1,62 @@
 # meshtastic-drybag-node
 
-A Meshtastic node in a 2 L dry bag, hung in a tree for years, antenna up. Two PETG parts: a flat T frame and a battery lid. devOnly, unprinted.
+A Meshtastic node in a sealed box, standing antenna up in a tree for years. Three printed parts:
+- the frame (PETG)
+- its seal (TPU, printed in place with the frame)
+- the cover (PETG)
 
-How the user's layout got here: it started from a photo of the parts laid out as a T. The boards were then turned flat, perpendicular to the antenna, and the whole thing was flipped: "the top is really the antenna". The boards were moved onto the battery, "installed from the top", and the cell is now enclosed because it has to survive "hits and banging around in a tree for a few years".
+It's made for the user's Snapmaker U1, a 4-toolhead printer, so the TPU prints into the frame in the same print. devOnly, unprinted.
+
+How the user's layout got here:
+- It started from a photo of the parts laid out as a T.
+- The boards were turned flat, perpendicular to the antenna.
+- The whole thing was flipped: "the top is really the antenna".
+- The boards moved onto the battery, "installed from the top".
+- The cell was enclosed against "hits and banging around in a tree for a few years".
+- The T's inside corners were filled with slopes.
+- The widest board was rotated, and the electronics got a cover.
+- Last: "figure out how people are printing waterproof screw-together containers and make it happen".
 
 ## Frames
 
-- **Use frame:** X along the cell, Z up as it hangs (antenna up), Y out of the front face. z = 0 is the housing's bottom.
-- `frame_print()` puts the frame back face down (+Y up). Holes along Z are horizontal as it prints, so they're `tear_2d()`, peaked toward +Y. `battery_lid_print()` puts the lid front face down.
+- **Use frame:** X along the cell, Z up as it hangs (antenna up), Y out of the front face. z = 0 is the box's bottom, y = 0 its back.
+- `frame_print()` and `frame_gasket_print()` put the frame and its TPU back face down (+Y up), in the same place, so their STLs overlay in the slicer. Keep them paired. Holes along Z and X are horizontal as the frame prints, so they're `tear_2d()`, peaked toward +Y. `cover_print()` puts the cover front face down.
 
 ## Load-bearing choices
 
-- **The cell is shut in a housing**, split at its centreline (`cell_y`): the frame's half (the back plate is its back wall) and `battery_lid()`. Each half's cavity opens upward as it prints, so neither needs supports. Four M3 × 16 cap screws through the lid's end walls (`end_wall`) thread `lid_screw_thread` into the frame; counterbores sized from the screw length (`lid_counterbore`, asserted). The leads leave through holes on the joint at the centreline of each end wall, between the screws.
-- **Boards lie flat in pockets on the housing's top** (`shelf`, rims `rim_w` × `rim_h`), so they're next to the cell, drop in from above, and are perpendicular to the antenna. The front rim's underside is chamfered 45° (it's a ledge as the frame prints). Foam tape holds them; there's no tie under the shelf, because the lid is there. Left to right: protection board (`bms_*`), kit, the middle where the jack's body comes down, charge board (ports facing +X). A board's size is `_w` along the cell, `_d` out from the plate, and `_t` tall.
-- **The bulkhead clamps through a thin wall on its panel nut** (Superbat B08ZYK5SL9: N female, hex nut and O-ring). The nut is on top, and the jack's body and the coax hang into `rear_gap` above the boards. `bulkhead_wall_t` is 4 mm (user confirmed), thin so the nut leaves thread for the antenna. `antenna_y` clears the nut's corners as it turns. The stem runs `stem_len` up the antenna to a saddle and a zip tie.
-- **The back plate slopes** straight from the crossbar's top corners (`bar_half`, `bar_top`) in to the stem's top (`stem_half`, `stem_top`), filling the T's inside corners. The user asked for it, for strength: "instead of a pole sticking up its a slope up and a slope down".
-- `bar_half` is the widest of the housing and the pockets, kept symmetric.
-- Reference geometry (`cell()`, `antenna()`, `boards()`) is preview only.
+- **The seal is the common printed-enclosure recipe:** a groove in the rim with a TPU gasket in it (2–2.5 mm deep), squeezed 15–25%, with clamping all round. Here:
+  - The groove is `groove_w` × `groove_depth`, centred in the wall.
+  - The TPU bead stands in it, `bead_w` wide and `bead_proud` above the rim, so the flat cover squeezes it about 17%.
+  - The bead is narrower than the groove on purpose: TPU doesn't compress in volume, so it needs side room to spread into. With no room, the cover can't close.
+- **Screws run down the middle of the seal** (the user's preference from the heltec case), on `screw_points`: four along the top, four along the bottom, one in the middle of each end.
+  - Round each one, the groove widens to `screw_pocket_d` and the bead to a `screw_disc_d` disc. The screw threads through the disc into a blind pilot, so the squeezed disc seals its own hole.
+  - `wall` (9) is set by the pocket plus PETG either side. It's also what takes the knocks.
+  - Screw length, counterbore and pilot depth are tied together (`pilot_depth`, asserted).
+- **One cover over the battery and the electronics.** The user asked for an electronics cover "like the battery has". One seal loop instead of two means fewer joints to leak. The cell drops into a half-round seat from the front, and ribs on the cover (`cell_rib_xs`) hold it there. The cell's leads go up through `lead_x`, a hole in the shelf beside the protection board. The shelf is an internal floor and isn't sealed.
+- **Boards lie flat in pockets** on the shelf, perpendicular to the antenna, dropped in from above and held with foam tape:
+  - left: the protection board (`bms_*`), lying along the cell. The user asked to rotate it so it's "less wide": it was 50 deep.
+  - right: the kit, then the charge board, its ports facing the right end and the gland.
+  - The middle (`mid_gap`) is clear for the jack's body.
+  - The front rim's underside is chamfered 45°.
+- **Bulkhead through the roof.** The roof is relieved from inside to `bulkhead_wall_t` (4 mm, user confirmed) round `n_body_d`. The jack's O-ring seals on the relief's floor, and the panel nut is on top, outside.
+- **The PG7 gland** goes through the right end wall at `gland_z`, relieved from inside to `gland_panel_t`. Its locknut sits in the relief, outboard of the charge board.
+- **The back plate slopes** straight from the box's top corners in to the stem's top. The user asked for this: "instead of a pole sticking up its a slope up and a slope down".
+- Reference geometry (`cell()`, `antenna()`, `boards()`, `gland()`) is preview only.
+
+## Checks worth re-running after a change
+
+- Intersect the frame with its gasket: 0 volume.
+- Intersect the gasket with the cover: that's the squeeze, `bead_proud` deep.
+- Check that each screw's disc and pocket stay inside the wall.
 
 ## Unmeasured
 
-`board_w`/`board_d` (from the photo, scaled off the cell's 32 mm; the Kingboss 15000 mAh LiFePO4 bank's 150 × 40 × 50 case bounds the board at about 37 × 47), `board_t`, `bms_*` (typical 1S 24 A board), `kit_t`, `rear_gap`, `end_clear` (the cell's tabs and leads), and the Zanhour 2 L bag's size.
+- `board_w`/`board_d`: from the photo, scaled off the cell's 32 mm. The Kingboss 15000 mAh LiFePO4 bank's 150 × 40 × 50 case bounds the board at about 37 × 47.
+- `board_t`
+- `bms_*`: a typical 1S 24 A board
+- `kit_t`
+- `rear_gap`
+- `end_clear`
+- `n_body_d`
+- the PG7's actual thread length against `gland_panel_t`
+- the Zanhour bag (now optional)
