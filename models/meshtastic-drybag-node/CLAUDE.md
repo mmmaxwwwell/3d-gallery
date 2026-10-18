@@ -16,4 +16,4 @@ One PETG frame, a flat T, that carries a Meshtastic node inside a 2 L dry bag hu
 
 ## Unmeasured
 
-`board_w`/`board_h` (from the photo, scaled off the cell's 32 mm), `rear_body_d`, `rear_gap`, `kit_t`. Confirm the flange's hole spacing on the actual pigtail.
+`board_w`/`board_h` (from the photo, scaled off the cell's 32 mm; the Kingboss 15000 mAh LiFePO4 bank's 150 × 40 × 50 case bounds the board at about 37 × 47, standing across one end. Err wide: a board wider than `board_w` covers the outboard tie slot), `rear_body_d`, `rear_gap`, `kit_t`. Confirm the flange's hole spacing on the actual pigtail.
