@@ -39,14 +39,16 @@ tab_start = 23;
 // and this far round that corner's curve (degrees), the last tab following it
 tab_wrap = 70;
 // How far the tab bends forward over the radio's top back bevel, front to
-// back: the bevel's whole depth
-tab_reach = 6;
+// back: half the bevel's depth
+tab_reach = 3;
 // How far above the radio's top back edge each tab's bend starts
 tab_lift = 3;
 // On the +x side (the user's left, seen from the back) the radio's top back
 // edge runs straight this much further before its corner curves down, so
 // that corner is this much tighter than radio_corner_radius
 back_edge_extra = 7;
+// The +x guard's outer top corner is cut off at 45°, this far along each leg
+guard_chamfer = 10;
 // The slits either side of the tab: how far down from the back wall's top
 slit_length = 20;
 // and how wide
@@ -326,14 +328,21 @@ module under_back_rise() {
       [for (i = [0 : steps]) let (a = as + (90 - as) * i / steps) c + r * [cos(a), sin(a)]]);
   right = guard_side();
   left = corner_side();
+  // The guard's chamfer: everything past the 45° line through its top,
+  // guard_chamfer in from its outer edge. Only the guard reaches past it.
+  big = 4 * radio_height;
+  cut = back_corner_x(1) + wall + rg + tab_top_z - wall - guard_chamfer;
   translate([0, 2 * radio_thickness, 0]) rotate([90, 0, 0])
     linear_extrude(2 * radio_thickness)
-      polygon(concat(
+      intersection() {
+        polygon([[-big, -big], [cut + big, -big], [-big, cut + big]]);
+        polygon(concat(
         [[-p[0], 0], [-p[0], p[1]]],
         [for (pt = left) [-pt[0], pt[1]]],
         [for (i = [len(right) - 1 : -1 : 0]) right[i]],
         [p, [p[0], 0]]
       ));
+      }
 }
 
 // Kanix plate mount: a pad hulled onto the back with the Kanix bolt grid
