@@ -82,9 +82,21 @@ async function amsTrays(address: string): Promise<unknown> {
   }
 }
 
+/**
+ * bambu-klipper-proxy passes a Bambu printer's print_error through as the raw
+ * number; Bambu's docs and screen name it as an HMS code (83918908 → 0500-803C).
+ */
+export function hmsCode(message: string): string | null {
+  if (!/^\d+$/.test(message) || Number(message) === 0) return null;
+  const hex = Number(message).toString(16).toUpperCase().padStart(8, '0');
+  return `${hex.slice(0, 4)}-${hex.slice(4)}`;
+}
+
 function liveSummary(live: PrinterLiveStatus) {
+  const hms = hmsCode(live.message.trim());
   return {
     state: live.state || null,
+    ...(hms ? { printError: `HMS ${hms} (look it up on Bambu's wiki; the touchscreen shows the same code)` } : {}),
     klippy: live.klippyState,
     ...(live.klippyMessage ? { klippyMessage: live.klippyMessage } : {}),
     file: live.file || null,

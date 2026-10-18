@@ -135,3 +135,12 @@ describe('remote', () => {
     expect(runner.fetchFn).not.toHaveBeenCalled();
   });
 });
+
+describe('printers.status', () => {
+  it('names a Bambu print_error as its HMS code', async () => {
+    const { hmsCode } = await import('../../src/agent/shared-actions');
+    expect(hmsCode('83918908')).toBe('0500-803C');
+    expect(hmsCode('0')).toBeNull();
+    expect(hmsCode('Printing layer 3')).toBeNull();
+  });
+});
