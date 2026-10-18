@@ -231,6 +231,14 @@ describe('evaluatePlateFit', () => {
 });
 
 describe('printerBedFromConfig', () => {
+  it('marks a Bambu Lab printer as fed from an AMS', () => {
+    const bed = printerBedFromConfig({
+      printable_area: '0x0;256x0;256x256;0x256', nozzle_diameter: '0.4', printer_model: 'Bambu Lab X1 Carbon',
+    });
+    expect(bed?.extruderCount).toBe(1);
+    expect(bed?.multiMaterial).toBe(true);
+  });
+
   it('derives a corner-origin bed', () => {
     const bed = printerBedFromConfig({
       printable_area: '0x0;250x0;250x250;0x250',

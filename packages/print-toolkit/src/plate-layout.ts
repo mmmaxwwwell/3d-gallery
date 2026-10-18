@@ -205,7 +205,7 @@ export function evaluateAuthoredPlateFit(
       );
     }
     const colors = item.colorCount ?? 0;
-    if (colors > printer.extruderCount) {
+    if (!printer.multiMaterial && colors > printer.extruderCount) {
       warn = true;
       const n = printer.extruderCount;
       reasons.push(

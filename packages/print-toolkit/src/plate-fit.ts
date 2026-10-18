@@ -15,6 +15,7 @@ import type { MeshBounds, Rect2 } from './plate-slicer.js';
 import { arrangeObjects, computeMeshBoundingBox } from './plate-slicer.js';
 import { parsePrintableArea } from './gcode-post.js';
 import { excludeAreaBboxes, isDegenerateExcludeArea } from './bed-exclude.js';
+import { isBambuPrinterConfig } from './bambu.js';
 
 /** Tolerance for "touches the edge" comparisons, mm. */
 const GEOM_EPSILON = 1e-6;
@@ -32,6 +33,8 @@ export interface PrinterBed {
   maxHeight: number;
   /** Number of extruders the machine has. >= 1. */
   extruderCount: number;
+  /** Feeds several filaments through one extruder from an AMS, so colours aren't capped at `extruderCount`. */
+  multiMaterial?: boolean;
 }
 
 /** First finite number in an OrcaSlicer array-shaped field. `buildOrcaConfig`
@@ -85,6 +88,7 @@ export function printerBedFromConfig(
     keepouts: keepouts.map((k) => ({ minX: k.minX, minY: k.minY, maxX: k.maxX, maxY: k.maxY })),
     maxHeight,
     extruderCount: countExtruders(config),
+    ...(isBambuPrinterConfig(config) ? { multiMaterial: true } : {}),
   };
 }
 
@@ -247,7 +251,7 @@ export function evaluatePlateFit(
       );
     }
     const colors = obj.colorGroups?.length ?? 0;
-    if (colors > printer.extruderCount) {
+    if (!printer.multiMaterial && colors > printer.extruderCount) {
       warn = true;
       const n = printer.extruderCount;
       reasons.push(

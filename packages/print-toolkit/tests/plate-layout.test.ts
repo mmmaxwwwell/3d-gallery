@@ -123,6 +123,11 @@ describe('evaluateAuthoredPlateFit', () => {
     expect(fit.layout.multi).toEqual({ x: 100, y: 100 });
   });
 
+  it('does not warn on a printer that feeds colours from an AMS', () => {
+    const fit = evaluateAuthoredPlateFit([box('a', 0, 0, 20, 20, 10, 2)], { ...printer(256, 256), multiMaterial: true });
+    expect(fit.status).toBe('fits');
+  });
+
   it('does not warn when the printer has enough extruders', () => {
     const fit = evaluateAuthoredPlateFit([box('multi', 0, 0, 20, 20, 10, 2)], printer(200, 200, 250, [], 4));
     expect(fit.status).toBe('fits');
