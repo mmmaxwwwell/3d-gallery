@@ -290,7 +290,7 @@ export function PrintDialog({ plateId, onClose, onOpenSettings }: PrintDialogPro
         setDirty(false);
         // A plate made from a model's print plates carries the model's
         // recommended profile; that, not the last plate's tweaks, is the start.
-        if (p.profile) setProc(processFromProfile(p.profile));
+        if (p.profile) setProc((cur) => processFromProfile(p.profile!, cur));
         const project = await getProject(p.projectId);
         if (!cancelled) setProjectName(project?.name ?? '');
       } catch (err) {

@@ -115,9 +115,12 @@ export interface SlicedPlate {
 }
 
 /** A model's recommended profile as the dialog's process settings. What the
- *  profile does not speak to comes from the Standard template. */
-export function processFromProfile(profile: RecommendedProfile): ProcessSettings {
-  const base = listTemplates().find((t) => t.id === 'builtin:standard')!.settings;
+ *  profile does not speak to comes from `base`: the process the person chose,
+ *  else the Standard template. */
+export function processFromProfile(
+  profile: RecommendedProfile,
+  base: ProcessSettings = listTemplates().find((t) => t.id === 'builtin:standard')!.settings,
+): ProcessSettings {
   return {
     ...base,
     wallLoops: String(profile.walls),

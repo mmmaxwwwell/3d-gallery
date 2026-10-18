@@ -344,7 +344,10 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
 
   const procFor = (plate: Plate): ProcessSettings => {
     const template = listTemplates().find((t) => t.id === selections.templateId) ?? listTemplates()[0];
-    return plate.profile ? processFromProfile(plate.profile) : selections.processOverride ?? template.settings;
+    const chosen = selections.processOverride ?? template.settings;
+    // The profile says walls, infill, supports and brim; adaptive layers and
+    // top/bottom shells stay as the print dialog last set them.
+    return plate.profile ? processFromProfile(plate.profile, chosen) : chosen;
   };
 
   /** The plate on `printer`'s bed: a Bambu printer's own pick, else the print dialog's last one. */
