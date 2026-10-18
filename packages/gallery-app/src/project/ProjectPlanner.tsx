@@ -32,7 +32,7 @@ import {
   type ScheduleObjective,
   type SchedulePrinter,
 } from '@3d-gallery/print-toolkit';
-import { materialFamily } from '@3d-gallery/model-core';
+import { DEFAULT_PRINT_PROFILE, materialFamily } from '@3d-gallery/model-core';
 import { Page } from '../print/Page.js';
 import { listPresets, type PrintPreset } from '../print/print-storage.js';
 import { flattenPresetForSlicer } from '../print/preset-flatten.js';
@@ -780,7 +780,8 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
           description:
             'Change a plate: its name, material (PLA, PETG, PCTG, TPU…, which picks the filament preset '
             + 'it slices with), colour (#rrggbb), whether it is in the plan (skip), and which of its parts '
-            + 'print (items: {itemId: skip}). The plate re-slices on its own afterwards. For a Bambu '
+            + 'print (items: {itemId: skip}), and how it prints: walls and infillDensity (percent), which '
+            + 'set the plate\'s own print profile. The plate re-slices on its own afterwards. For a Bambu '
             + 'printer, copy the type and colour of the AMS tray it should use (printers.status): the '
             + 'proxy matches both exactly.',
           writes: true,
@@ -793,12 +794,26 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
               color: { type: 'string' },
               skip: { type: 'boolean' },
               items: { type: 'object', additionalProperties: { type: 'boolean' } },
+              walls: { type: 'number', description: 'Wall loops, 1-10.' },
+              infillDensity: { type: 'number', description: 'Sparse infill, 0-100 percent.' },
             },
             required: ['plate'],
           },
           run(args) {
             const plate = findPlate(args['plate']);
             const items = (args['items'] && typeof args['items'] === 'object' ? args['items'] : {}) as Record<string, boolean>;
+            const walls = args['walls'];
+            const infill = args['infillDensity'];
+            if (walls !== undefined && !(Number.isInteger(walls) && (walls as number) >= 1 && (walls as number) <= 10)) throw new Error('walls: a whole number from 1 to 10.');
+            if (infill !== undefined && !(typeof infill === 'number' && infill >= 0 && infill <= 100)) throw new Error('infillDensity: 0 to 100.');
+            // A plate with no profile slices with the dialog's template; giving it
+            // walls or infill gives it a profile of its own, from the defaults up.
+            const profile = walls === undefined && infill === undefined ? plate.profile : {
+              ...DEFAULT_PRINT_PROFILE,
+              ...plate.profile,
+              ...(walls !== undefined ? { walls: walls as number } : {}),
+              ...(infill !== undefined ? { infillDensity: infill as number } : {}),
+            };
             const next: Plate = {
               ...plate,
               ...(typeof args['name'] === 'string' && args['name'].trim() ? { name: args['name'].trim() } : {}),
@@ -806,9 +821,10 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
               ...(typeof args['color'] === 'string' ? { color: args['color'] || undefined } : {}),
               ...(typeof args['skip'] === 'boolean' ? { skip: args['skip'] || undefined } : {}),
               items: plate.items.map((i) => (i.id in items ? { ...i, skip: items[i.id] || undefined } : i)),
+              ...(profile ? { profile } : {}),
             };
             agent.current.saveTicks(next);
-            return { plate: next.id, name: next.name, material: next.material ?? 'PETG', color: next.color ?? null };
+            return { plate: next.id, name: next.name, material: next.material ?? 'PETG', color: next.color ?? null, profile: next.profile ?? null };
           },
         },
         'planner.update': {
