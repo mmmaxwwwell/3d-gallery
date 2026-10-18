@@ -2,7 +2,7 @@
 
 A holster for the Meshology L1 Meshtastic radio, printed in TPU 64D. The radio slides down into it from the top. The back, sides and floor are solid; the front is a big cutout so the controls stay visible and usable, with 8 mm of wall reaching in from each side (and 8 mm of sill above the floor) to hold the radio in. The edge of the front opening and the rim round the top are rounded over so they aren't sharp.
 
-It bolts to a 3x2 Kanix belt clip.
+It bolts to a 3x2 Kanix belt clip. A matching desk stand holds the radio up on a desk.
 
 ## Printing
 
@@ -26,3 +26,9 @@ The back carries a pad for a 3x2 Kanix belt clip (three across, two up): six M5x
 ## Fit
 
 The channel is the radio's shape plus 0.3 mm on every face (`tolerance`), including its rounded corners (R11 seen from the front) and the bevels round its front and back faces. The floor curves up into the corners and ramps up the bevels to meet them. The diagonal faces' size hasn't been measured yet (it's a 6 mm guess front-to-back per face), so check that first on a test print.
+
+## Desk stand
+
+A cradle cut to the same shape as the holster's pocket, leaning the radio back 15° so the front faces you. It holds the bottom 24 mm of the radio and has the same front opening as the holster, so the controls stay as easy to see and use. The cradle stops below the USB-C port, so you can charge the radio while it stands.
+
+Print it in PETG (or any rigid filament), standing on its base. No supports. About 39 cm³ of plastic, 73 × 37 × 36 mm.

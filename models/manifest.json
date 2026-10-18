@@ -744,8 +744,11 @@
       "slug": "meshology-l1-holster",
       "devOnly": true,
       "title": "Meshology L1 Holster",
-      "description": "A TPU holster for the Meshology L1 Meshtastic radio. The radio slides down into an eight-sided channel shaped like its body: solid back, sides and floor, open top, and a big cutout in the front so you can see and use the controls. The front walls reach 8 mm in from each side to hold it, and tabs over the top back edge lock it in. A pad on the back takes a 2x3 Kanix belt clip on six M5 screws.",
-      "filament": [ { "material": "TPU 64D", "color": "any" } ],
+      "description": "A TPU holster for the Meshology L1 Meshtastic radio. The radio slides down into an eight-sided channel shaped like its body: solid back, sides and floor, open top, and a big cutout in the front so you can see and use the controls. The front walls reach 8 mm in from each side to hold it, and tabs over the top back edge lock it in. A pad on the back takes a 2x3 Kanix belt clip on six M5 screws. A desk stand cut from the same pocket holds the radio up, leaning back, with room to plug in a USB-C cable.",
+      "filament": [
+        { "material": "TPU 64D", "color": "any", "parts": ["holster.stl"] },
+        { "material": "PETG", "color": "any", "parts": ["desk-stand.stl"] }
+      ],
       "previews": [
         { "file": "assembled.3mf", "format": "3mf", "label": "Radio seated in the holster", "default": true,
           "legend": [
@@ -753,10 +756,18 @@
             { "color": "#9aa0a6", "label": "Meshology L1 (reference)" }
           ],
           "components": [ { "part": "holster.stl", "qty": 1 } ]
+        },
+        { "file": "desk-stand-assembled.3mf", "format": "3mf", "label": "Radio in the desk stand",
+          "legend": [
+            { "color": "#e8a33d", "label": "Desk stand", "part": "desk-stand.stl" },
+            { "color": "#9aa0a6", "label": "Meshology L1 (reference)" }
+          ],
+          "components": [ { "part": "desk-stand.stl", "qty": 1 } ]
         }
       ],
       "parts": [
-        { "file": "holster.stl", "format": "stl", "label": "Holster — print standing on its floor, open top up" }
+        { "file": "holster.stl", "format": "stl", "label": "Holster — print standing on its floor, open top up" },
+        { "file": "desk-stand.stl", "format": "stl", "label": "Desk stand — print standing on its base" }
       ],
       "hardware": [
         { "qty": 6, "label": "M5x10 button head screw \u2014 Kanix belt clip to the holster's back pad", "usedBy": [ { "part": "holster.stl", "each": 6 } ] }

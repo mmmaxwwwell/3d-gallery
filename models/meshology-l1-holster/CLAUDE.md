@@ -53,3 +53,11 @@ Run the facet check on the exported STL (facet normals), since OpenSCAD's previe
 ## Checking fit
 
 `intersection() { holster(); radio(); }` must render empty.
+
+## Desk stand
+
+`desk_stand()` (`parts/desk-stand.scad`, rigid filament, PETG by default) holds the radio up on a desk. The user asked for it to be cut with the holster's pocket. It sinks `pocket()` and `front_cutout()` into a block, in the holster's frame, tilted back `stand_angle` (15°, my pick) by `stand_tilt()`. The front opening is the same as the holster's, so the stand covers no more of the face than the holster does.
+
+- The cradle is `radio_body(tolerance + wall)` (a wall thick, like the holster's) cut level at `stand_depth` (24, my pick) up the radio. An assert keeps it 3 mm below the USB-C opening's bottom, so a cable plugs in while it stands. The pocket's mouth is chamfered 45° (`stand_mouth()`), and the front cutout's edges are the holster's half-rounds.
+- `stand_body()` hulls the tilted cradle with a rounded footprint from the cradle's front bottom to under its back top edge. That keeps the front face the cradle's own (so `front_cutout()`'s band, a wall plus 1 mm deep, goes all the way through) and puts the radio's centre of mass well inside the base. Every edge is rounded 1.5 mm except the bottom one, which stays square so its round doesn't overhang. Nothing overhangs past 45°.
+- Fit: `intersection() { desk_stand(); desk_stand_radio(); }` must render empty.

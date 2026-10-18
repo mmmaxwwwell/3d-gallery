@@ -61,6 +61,10 @@ usb_z = 38;
 usb_y = 7;
 usb_width = 8;
 usb_height = 14;
+// Desk stand: how far the radio leans back from upright (degrees)
+stand_angle = 15;
+// and how far up the radio the cradle reaches, from its bottom face
+stand_depth = 24;
 // END_PARAMS
 
 // The diagonal face rises radio_chamfer_depth over this much width.
@@ -507,4 +511,72 @@ module holster() {
 // Reference body for the preview: the radio seated on the floor.
 module radio() {
   translate([0, 0, wall + tolerance]) radio_body();
+}
+
+// Desk stand: the holster's pocket and front cutout sunk into a block, the
+// radio leaning back. The cradle stays below the USB-C port, so a cable
+// plugs in while it stands. Rigid filament, printed standing on its base.
+stand_round = 1.5;
+stand_outer_t = radio_thickness / 2 + tolerance + wall;
+stand_outer_w = radio_width / 2 + tolerance + wall;
+stand_top_z = radio_bottom_z + stand_depth;
+// Lifts the leaning cradle clear of the bed; the hull fills under it.
+stand_lift = stand_outer_t * sin(stand_angle) + stand_round;
+assert(stand_top_z < usb_notch_bottom - 3, "desk stand cradle reaches the USB-C port");
+assert(stand_top_z > cutout_bottom + cutout_corner_radius + cutout_edge_radius, "desk stand cradle lower than the front cutout's corners");
+
+// From the holster's frame (the cradle upright) to the stand's.
+module stand_tilt() {
+  translate([0, 0, stand_lift]) rotate([-stand_angle, 0, 0]) children();
+}
+
+module stand_body() {
+  r = stand_round;
+  // The cradle's back top edge, which the back of the base drops straight from.
+  back_y = stand_outer_t * cos(stand_angle) + stand_top_z * sin(stand_angle);
+  front_y = -stand_outer_t * cos(stand_angle);
+  module footprint(inset) {
+    translate([0, (front_y + back_y) / 2])
+      offset(r = 5) offset(delta = -5 - inset) square([2 * stand_outer_w, back_y - front_y], center = true);
+  }
+  // Rounded everywhere but the bottom edge, which stays square on the bed
+  // so its round doesn't overhang.
+  hull() {
+    minkowski() {
+      hull() {
+        stand_tilt() intersection() {
+          translate([0, 0, wall + tolerance]) radio_body(tolerance + wall - r);
+          translate([-radio_width, -radio_width, 0]) cube([2 * radio_width, 2 * radio_width, stand_top_z - r]);
+        }
+        translate([0, 0, r]) linear_extrude(0.01) footprint(r);
+      }
+      sphere(r = r);
+    }
+    linear_extrude(r) footprint(0);
+  }
+}
+
+// The pocket's mouth flares 45° to the cradle's top, so its inner edge is chamfered.
+module stand_mouth() {
+  c = cutout_edge_radius;
+  hull() {
+    translate([0, 0, stand_top_z - c]) linear_extrude(0.01) pocket_outline();
+    translate([0, 0, stand_top_z]) linear_extrude(1) offset(delta = c) pocket_outline();
+  }
+}
+
+module desk_stand() {
+  difference() {
+    stand_body();
+    stand_tilt() {
+      pocket();
+      front_cutout();
+      stand_mouth();
+    }
+  }
+}
+
+// Reference body for the stand's preview: the radio in the cradle.
+module desk_stand_radio() {
+  stand_tilt() radio();
 }
