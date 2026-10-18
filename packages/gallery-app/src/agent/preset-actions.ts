@@ -49,6 +49,17 @@ function flat(preset: PrintPreset): Record<string, string> {
   }
 }
 
+/**
+ * The preset with one setting edited, as the preset editor saves it. The
+ * record spreads the person's other edits, and a printer's `address` follows
+ * its `print_host`: the Printers view and the dispatcher read `address`.
+ */
+export function withValue(preset: PrintPreset, key: string, value: OrcaValue): PrintPreset {
+  const next = { ...preset, overrides: setOverride(preset, preset.overrides ?? {}, key, value, undefined) };
+  if (preset.kind !== 'printer') return next;
+  return { ...next, address: flat(next)['print_host']?.trim() || undefined };
+}
+
 /** Printing values only, in a stable order, so identical configs compare equal. */
 function fingerprint(preset: PrintPreset): string {
   const values = flat(preset);
@@ -249,9 +260,7 @@ export const PRESET_ACTIONS: Record<string, AgentAction> = {
       const key = String(args['key'] ?? '');
       if (!/^[a-z][a-z0-9_]*$/.test(key)) throw new Error(`"${key}" is not an Orca setting key.`);
       const before = flat(preset)[key] ?? null;
-      const overrides = setOverride(preset, preset.overrides ?? {}, key, args['value'] as OrcaValue, undefined);
-      // Spread the record: it carries the person's other edits.
-      const saved = await savePreset({ ...preset, overrides });
+      const saved = await savePreset(withValue(preset, key, args['value'] as OrcaValue));
       return { preset: saved.name, key, before, after: flat(saved)[key] ?? null, edited: Object.keys(saved.overrides ?? {}) };
     },
   },
