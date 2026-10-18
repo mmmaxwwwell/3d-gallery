@@ -25,10 +25,10 @@ The back carries a pad for a 3x2 Kanix belt clip (three across, two up): six M5x
 
 ## Fit
 
-The channel is the radio's shape plus 0.3 mm on every face (`tolerance`), including its rounded corners (R11 seen from the front) and the bevels round its front and back faces. The floor curves up into the corners and ramps up the bevels to meet them. The diagonal faces' size hasn't been measured yet (it's a 6 mm guess front-to-back per face), so check that first on a test print.
+The channel is the radio's shape plus 0.1 mm on every face (`tolerance`; 0.3 printed too loose in PETG), including its rounded corners (R11 seen from the front) and the bevels round its front and back faces. The floor curves up into the corners and ramps up the bevels to meet them. The diagonal faces' size hasn't been measured yet (it's a 6 mm guess front-to-back per face), so check that first on a test print.
 
 ## Desk stand
 
-A cradle cut to the same shape as the holster's pocket, leaning the radio back 15° so the front faces you. It holds the bottom 24 mm of the radio and has the same front opening as the holster, so the controls stay as easy to see and use. The cradle stops below the USB-C port, so you can charge the radio while it stands.
+A cradle cut to the same shape as the holster's pocket, leaning the radio back 15° so the front faces you. It holds the bottom 24 mm of the radio and has the same front opening as the holster, so the controls stay as easy to see and use. The cradle stops below the USB-C port, so you can charge the radio while it stands. The base runs 60 mm back behind the radio, so an antenna on top can't tip it over backwards. Every edge is rounded, the bottom one too.
 
-Print it in PETG (or any rigid filament), standing on its base. No supports. About 39 cm³ of plastic, 73 × 37 × 36 mm.
+Print it in PETG (or any rigid filament), standing on its base. No supports. About 77 cm³ of plastic, 72 × 75 × 35 mm.
