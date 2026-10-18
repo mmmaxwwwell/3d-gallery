@@ -32,7 +32,9 @@ function presetSummary(preset: PrintPreset) {
   } catch {
     // A preset whose chain can't be resolved still lists, by name.
   }
-  const base = { id: preset.id, name: preset.name };
+  // Keys changed in the gallery's editor: they survive a re-import from Orca.
+  const edited = Object.keys(preset.overrides ?? {});
+  const base = { id: preset.id, name: preset.name, ...(edited.length ? { edited } : {}) };
   switch (preset.kind) {
     case 'printer':
       return {

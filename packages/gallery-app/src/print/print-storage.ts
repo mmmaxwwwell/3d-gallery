@@ -131,7 +131,26 @@ export async function importPreset(
   preset: Omit<PrintPreset, 'id' | 'updatedAt'>,
 ): Promise<PrintPreset> {
   const existing = await getPreset(`${preset.kind}:${preset.name}`);
-  return savePreset({ ...preset, overrides: preset.overrides ?? existing?.overrides });
+  return savePreset(reimported(preset, existing));
+}
+
+/**
+ * The record a (re-)import saves. A printer's address is its `print_host`,
+ * and a gallery edit of that is an override: it must win over the file's
+ * value just as the override does, or a re-import silently points the
+ * printer back at the host the Orca file still names.
+ */
+export function reimported(
+  preset: Omit<PrintPreset, 'id' | 'updatedAt'>,
+  existing: PrintPreset | undefined,
+): Omit<PrintPreset, 'id' | 'updatedAt'> {
+  const overrides = preset.overrides ?? existing?.overrides;
+  const host = overrides?.['print_host'];
+  return {
+    ...preset,
+    overrides,
+    ...(preset.kind === 'printer' && typeof host === 'string' ? { address: host.trim() || undefined } : {}),
+  };
 }
 
 export async function deletePresetsByKind(kind: PresetKind): Promise<number> {
