@@ -10,4 +10,5 @@ color("#57606f") antenna();
 color("#ffa502") reels();
 color("#e1b12c") drive();
 color("#a4b0be") holders();
+color("#ced6e0") fairleads();
 color("#f1f2f6") all_rollers();

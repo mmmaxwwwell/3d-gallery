@@ -2,7 +2,7 @@
 
 A Meshtastic node in a sealed box that winches itself up into a tree and stays there for years. Printed parts:
 - the box and the two shaft grommets: TPU 64D
-- everything else (doors, reels and their flanges, gears, holder plates, side plates, bridges, crossmembers, rollers, panel mount): PCTG
+- everything else (doors, gear shrouds, reels and their flanges, gears, holder plates, crossmembers, roller cheeks, rollers, panel mount): PCTG
 
 devOnly, unprinted.
 
@@ -26,54 +26,68 @@ It started as a flat T frame in a dry bag, from a photo of the parts laid out. A
 
 - asked to put the motors, battery and solar "balanced underneath", the reels "a little farther apart" with the antenna and radio coming up between them, room for a 1 W module, and "rollers holding the cord in the center out at the edge of the spool". That was v2: a cup under the reels plus a tower between them, a gear drive (the user approved it), and roller fairleads.
 - said v2's fairlead would snap ("needs to be smoother, have actual rollers and be better supported") and that it wasn't space-optimized: "the spool holder and the body could be more tightly integrated, the box could open from both ends and it doesn't have to be wider than the spools". Then "if we're doing the rollers then we need to have that truss thing all the way around each of the spools", and print-in-place bearings with silicone oil rather than bought ones. That was v3.
-- said v3's split rollers were "meh" and asked for "one box in the center with both sides that open up, and then you have the spool holder, it's the circle with crossmembers and the flat outer part of the frame for the roller thing at once". They chose front and back doors, with the motors on the back door and their shafts sealed through it. That is v4, the current layout.
+- said v3's split rollers were "meh" and asked for "one box in the center with both sides that open up, and then you have the spool holder, it's the circle with crossmembers and the flat outer part of the frame for the roller thing at once". They chose front and back doors, with the motors on the back door and their shafts sealed through it. That was v4.
+- v5 (the current layout) came from four asks:
+  - "there doesn't need to be a plate between the spool holder and the case; the spool holder should fit into channels and get screwed in"
+  - "add the 2nd set of rollers so we have two axis control"
+  - "the box needs to be as wide as the spool", then "you can make the box a little larger on one side"
+  - "less parts, 220x220 mm flat large skeleton pieces and then a body with gearset (add shroud for gears)", and "thicker herringbone gears"
 
 The user wants independent control of the reels with an IMU to level the node ("stepper motors or independent control somehow like have an accelerometer"). I chose self-locking worm gearmotors, because a stepper needs holding current to hang on the line for years.
 
 ## Frames
 
-- **Use frame:** X across, Z up as it hangs, Y forward. z = 0 is the box's bottom, y = 0 its back face. The back door, gears and rear plates are at y < 0; the front door and front plates beyond `box_d`.
+- **Use frame:** X across, Z up as it hangs, Y forward. z = 0 is the box's bottom, y = 0 its back face. The back door, gears and shrouds are at y < 0.
 - Each part's `*_print()` puts it in its print orientation. Every hole is round, no teardrops (the user's call).
-- Right-side pieces are built at +x; the left ones are `mirror([1, 0, 0])`. The holder plates and side plates are chiral, so they have `-left` parts. Crossmembers, rollers, reels, gears and grommets are the same piece both sides.
+- Right-side pieces are built at +x; the left ones are `mirror([1, 0, 0])`. The holder plates and shrouds are chiral, so they have `-left` parts. Crossmembers, cheeks, rollers, reels, gears and grommets are the same piece both sides.
 
 ## Load-bearing choices
 
-- **Balance first.** The node hangs from the two roller pairs, at `line_y` front to back. Everything heavy is in the box, low and central. `panel_y` is the trim. Re-run the mass estimate after moving anything heavy (see Checks).
-- **Box** (`frame()`): a tube along Y, `box_in_w` wide inside, `box_d` deep (set by the reels' length, so the front plate's back face is just ahead of it), `box_h` tall (set by the cell standing up plus the bulkhead's body over it).
+- **Balance first.** The node hangs from the two roller windows, at `line_y` (the drum's middle) front to back. The gears, shrouds and motors are all behind it. Three things bring the centre of mass back under it:
+  - the cell at the front door
+  - the box running `box_front_extra` past the front plates (the user allowed "a little larger on one side")
+  - the panel hanging in front (`panel_side` = +1, `panel_y`)
+
+  Lighter gears or shrouds move it forward again. Re-run the mass estimate after any change to them (see Checks).
+- **Box** (`frame()`): a tube along Y, `box_in_w` wide inside, `box_d` deep, `box_h` tall (set by the cell standing up plus the bulkhead's body over it).
   - **Openings:** both, front and back. Each seals on a tongue (`tongue()`, `tongue_w`) 0.3 mm a side wider than the groove (`groove_w`, `seal_band()`), stopping short of the groove's floor, its tip leading in over `tongue_lead`.
-  - **Flanges:** `flanges()` runs round both openings, and the door screws sit in them (`door_screws`). The box prints back face down, so the front flange tapers out at 45°.
-  - **Side flanges** also take the side plates' screws (`sp_screws`), between the door screws.
-- **Inside** (the user picked front and back doors; the motors go on the back door):
+  - **Flanges:** the door screws (`door_screws`) sit in flanges round both openings (`flanges()`). The box prints back face down, so the front flange tapers out at 45°.
+- **Channels** (the user: "fit into channels and get screwed in"; no plate between holder and box):
+  - Each plate's inner edge strip (`seat_x0`..`seat_x1`, from `strip_z0` up the box) sits on a TPU face against a lip (`lip_w`), and screws into it at `seat_zs`, between the door screws.
+  - The rear plate seats on the back flange's front face; the back flange runs out to `seat_x1` at the sides for it.
+  - The front plate seats on a rib (`rib_y0`..`front_y0`) that tapers out at 45° below it, so it prints.
+  - The plates' inner edges never sit under a flange: a flange over a slot would print as a shelf.
+- **Inside:**
   - **Motors:** they stand on the back door side by side (`mot_x0`, `mot_h`), between rims above and below; the side walls hold them across. Each pinion's grub screw on its shaft's flat pulls its motor onto the door. The shafts go out through TPU grommets (`grommet()`, lip outside so the motor's face is flat on the door).
-  - **Cell:** it stands in front of the left motor (`cell_c`), held back by the front door's saddles (`saddle_zs`).
+  - **Cell:** it stands at the front (`cell_c`), held against the front door by its saddles (`saddle_zs`).
   - **Boards:** the charge board is on the back door over the motors; the protection board is on the front door between the saddles; the XIAO and the driver are to its right.
   - **Radio:** the kit is on the right wall, just under the bulkhead's level (`kit_pocket`). `radio_room` is kept free below it (asserted).
-  - **Bulkhead:** it clamps through the top at `antenna_x`/`antenna_y`, relieved to `bulkhead_wall_t`, its body over the cell. The solar connector is beside it.
+  - **Bulkhead:** it clamps through the top at `antenna_x`/`antenna_y`, relieved to `bulkhead_wall_t`, its body over the cell, with the solar connector beside it.
+  - **Stem:** the antenna's stem (`stem()`) is part of the box. It's a TPU plate beside the antenna with a 45° front edge so it prints; zip ties go through its slots.
 - **Screws:** M5 × 10 everywhere, with `thread_len` (8, the user's) of thread, counterbored to leave `under_head` (2) under the head, pilots `pilot_depth` (9) deep.
-- **Gear drive** (`gear_2d()`, an involute with a little backlash; no BOSL2): pinion (`pinion_z`) on the motor's shaft → idler (`idler_z`) → the reel's ring (`ring_z`), behind the back door in `gear_y0..gear_y1`.
-  - **Geometry:** `shaft_z` puts the ring as close to a straight reach as the two meshes allow (`gear_a + gear_b - 2`). `idler_c` is the triangle's lower vertex.
-  - **Tooth phase:** `mesh_phase()` turns the idler and the ring so the teeth facing each neighbour meet a gap. Any change to the train goes through it. Check the mesh by rendering `pinion()`, `idler()` and `spool()` separately: they must not intersect.
-- **Reels:** the rear flange is the gear ring, turned to `ring_psi`. The front flange (`reel_flange()`) is a separate disc keyed on a hex spigot, trapped by the front plate, so the reel prints on its ring with no overhang. The V jam cleat runs out through the spigot's end.
-- **Reel holders** (the user: "the circle with crossmembers and the flat outer part of the frame for the roller thing at once"). Every piece is `cage_t` PCTG, printed flat.
-  - Both plates share `holder_2d()`: a ring round the reel, a bar across it at the axle round a boss, four spokes, the flat outer part rising to the two rollers, and the flat inner part along the side plate.
+- **Gear drive:** herringbones (`herringbone()`: each half a twisted extrusion of `gear_2d()`, mirrored about the mid-plane). They're `gear_w` wide at `gear_helix` 30°, behind the back door in `gear_y0..gear_y1`. The user asked for thicker herringbones.
+  - **Train:** pinion (`pinion_z`, hand +1) → idler (`idler_z`, hand −1) → the reel's ring (`ring_z`, hand +1); meshing gears take opposite hands. `shaft_z` puts the ring as close to a straight reach as the meshes allow, and `idler_c` is the triangle's lower vertex.
+  - **Tooth phase:** `mesh_phase()` turns the idler and the ring at the mid-plane so the facing teeth meet gaps.
+  - **Orientation:** `herringbone()` uses `rotate([90, 0, 0])`; the 2D profile's +y must map to world +z, or every phase flips. Check the mesh by rendering `pinion()`, `idler()` and `spool()` separately: they must not intersect.
+  - The ring's web is spoked, for weight at the back.
+- **Shrouds** (`shroud(s)`): one per side, clipped at the middle where they meet and open inside there. Each has a 3 mm back plate with bosses where the idler's and the reel's rear bolts thread in, and a rim forward to the back door. Posts reach on to the rear plate, which screws into them. One pad sits on a back door screw clear of the gears (`shroud_pads`, M5 × 16).
+- **Reels:** the rear flange is the herringbone ring. The core runs on through the rear plate's bearing bore (`journal_clear`) to the drum. The front flange (`reel_flange()`) is a separate disc keyed on a hex spigot, trapped by the front plate. The V jam cleat runs out through the spigot's end.
+- **Holder plates** (`holder_2d()`, the user's "220x220 flat large skeleton pieces"). Each fits inside 220 × 220 (asserted).
+  - **Shape:** a ring round the reel with a bar across at the axle round a boss, four spokes, the flat outer part up to the roller window, and the flat inner edge for the channel.
   - **Crossmembers** (`xbars()`, `xbar_angles`) go all the way round, except on the box's side; dovetailed ends, each locked with a screw.
-  - **Side plate** (`side_plate(s)`): bolted flat to the side flanges. It runs from the rear plate (notched round the idler behind the back door) to the front plate.
-    - The front plate slides onto its front-edge tenons (`sp_tenon_zs`) from outside.
-    - The rear plate screws onto its back edge (`rear_screw_zs`, clear of the idler, asserted).
-  - **Bridges** (`bridge()`) over the box, above the top flanges, tie the two side plates together. The front one is the antenna's stem.
-- **Rollers** (`roller()`, `rollers_c`): two per reel at `fl_z`, `roff` either side of `fl_xc` (`fl_in` in from the reel's edge), axes along Y from plate to plate.
-  - **Why one piece:** the user found v3's split rollers "meh", so each is one print-in-place roller bearing `pip_len` long.
-  - **Construction:** the hub is clamped by an M5 × 100 between the plates; the sleeve is 0.6 short. There are `pip_n` pins of radius `pip_rn`, with 45° collars at `pip_zs` running in V grooves in both races. The gap is `pip_c` (0.25), from published print-in-place designs (0.2–0.3 mm).
-  - **No front-to-back guide:** the line can run anywhere along the rollers, which suits it winding across the drum.
+- **Rollers, two axes** (the user: "the 2nd set of rollers so we have two axis control"):
+  - **Window:** at [`fl_xc`, `line_y`], `fl_in` in from the reel's edge.
+  - **Lower pair** (`lower_c`, at `fl_za`): axes along Y, plate to plate, `roff` either side of `fl_xc`. They hold the line side to side.
+  - **Upper pair** (at `fl_zb`): axes along X, `roff` either side of `line_y`, between two cheeks (`cheek_local()`) dovetailed into both plates at `cheek_tenon_zs`. They hold it front to back.
+  - **Construction:** each roller (`roller(len)`) is one print-in-place roller bearing. The hub is clamped by its bolt, the sleeve is 0.6 short, and `pip_n` pins of `pip_rn` have 45° collars at a quarter and three quarters of the length. The gap is `pip_c` (0.25), from published print-in-place designs (0.2–0.3 mm).
 - **Panel mount** (`spine()`, `panel_bar()`):
-  - The spine's top member sits between the bottom flanges (`pp_ya`..`pp_yb`), screwed up into the floor.
-  - Its members reach anchors behind the two bars (`pp_pts`); the bars pass through slots in it.
-  - The panel's top and bottom edges sit in the bars' grooves, and the panel slides in from the side.
-  - The panel faces back and up at `panel_tilt`, behind and below the box, so the box doesn't shade it.
+  - **Facing:** the panel faces away from the box, `panel_side` choosing which side, and the box mustn't shade it (asserted for 45° sun).
+  - **Spine:** its top member sits between the bottom flanges, screwed up into the floor. A leg from its end nearer the panel reaches the top bar, and a diagonal from its other end reaches the bottom bar. The bars pass through slots in it.
+  - **Panel:** its top and bottom edges sit in the bars' grooves.
 
 ## Checks worth re-running after a change
 
-Intersect each pair of assembly groups: `frame`, `doors`, `grommets`, `reels`, `drive`, `holders`, `all_rollers`, `panel_mount`, and the references `cell`, `motors`, `boards`, `antenna`, `panel`.
+Intersect each pair of assembly groups: `frame`, `doors`, `grommets`, `reels`, `drive`, `shrouds`, `holders`, `fairleads`, `all_rollers`, `panel_mount`, and the references `cell`, `motors`, `boards`, `antenna`, `panel`.
 - **Box ∩ doors:** this should be the two tongues' side squeeze only (~1950 mm³).
 - **Doors ∩ grommets:** this should be the press fit (~80 mm³).
 - **Grommets ∩ drive:** this should be the lip seals on the pinion hubs (~90 mm³).
@@ -86,13 +100,13 @@ Intersect each pair of assembly groups: `frame`, `doors`, `grommets`, `reels`, `
 - antenna and bulkhead 130 g
 - panel 110 g
 - boards ~65 g
-- bolts 100 g
+- bolts 110 g
 
-Compare the centre of mass's y against `line_y`. v4 came out about 2.6 mm behind, under 2° of tilt.
+Compare the centre of mass's y against `line_y`. v5 came out about 2.4 mm forward, about 1.5° of tilt. Before the box grew forward and the panel moved to the front it was 15–20 mm behind, about 10–14°.
 
 ## Open, unmeasured
 
-- **Motors:** a reel needs about 7 kg·cm at full radius to lift 2.9 kg; the gears give 4.7:1. JGY-370s probably need 6–12 V for that, more than the 3.2 V cell, so a boost converter is likely. The ratio and voltage aren't chosen. Everything about their mounting is a guess: the shaft's position across and along the gearbox sets `pinion_c`, and the reels' height follows from it.
-- **Roller bearings:** `pip_c` 0.25 with 84 mm pins is untested in PCTG on the U1.
+- **Motors:** a reel needs about 7 kg·cm at full radius to lift 3.6 kg; the gears give 4.7:1. JGY-370s probably need 6–12 V for that, more than the 3.2 V cell, so a boost converter is likely. The ratio and voltage aren't chosen. Everything about their mounting is a guess: the shaft's position across and along the gearbox sets `pinion_c`, and the reels' height follows from it.
+- **Roller bearings:** `pip_c` 0.25 with full-length pins (78 and 66 mm) is untested in PCTG on the U1.
 - **Not measured:** every board's size, the JGY-370's envelope and shaft, the solar panel (`panel_w`/`panel_h`), `n_body_d`/`n_body_len`, and the 5/8" connector's panel range.
 - The 12/20-tooth undercut is ignored (involute from the base circle, radial below it). It's slight at those counts.
