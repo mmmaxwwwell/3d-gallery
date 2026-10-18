@@ -179,11 +179,18 @@ cleat_mouth = 8;
 cleat_throat = 2.4;
 cleat_depth = 12;
 cleat_len = 10;
-// M5 bolt as the reel's front axle, threaded 8 mm into the front plate; at
-// the back the reel's hub turns in a bearing bore in the rear plate, this
-// much over the core
+// The reels turn on generously sized print-in-place roller bearings pressed
+// into the holder plates (the user's): the reel's front journal in the
+// front plate's, its hub's journal in the rear plate's. The front journal's
+// diameter (inside the spigot's flats, so the front flange slides over it);
+// the bearings' pins' radius, collar and gap, and their races' walls. They
+// press in rb_press tight. axle_d is the rollers' M5 axle bore.
 axle_d = 5.4;
-journal_clear = 0.5;
+front_journal_d = 19;
+rbp_rn = 2.5;
+rbp_b = 1;
+rbp_c = 0.3;
+rbp_wall = 2.5;
 // Holder plates (PCTG): thickness, crossmember width, the rings' gap to the
 // reel and width, and the gap between pieces. Each plate's inner edge sits
 // in a little channel on the box's side (the user's): on a TPU base between
@@ -399,6 +406,11 @@ xbar_r = (ring_r0 + ring_r1) / 2;
 xbar_len = front_y0 - rear_y1;
 xbar_total = xbar_len + 2 * dv_depth;
 
+// The reels' bearings, [bore, hub radius, pins' circle, outer race's inside, outside diameter].
+function reel_brg(bore) = let(hr = bore / 2 + rbp_wall, rc = hr + rbp_c + rbp_rn, ro = rc + rbp_rn + rbp_c)
+  [bore, hr, rc, ro, 2 * (ro + rbp_b + rbp_wall)];
+front_brg = reel_brg(front_journal_d + 0.4);
+rear_brg = reel_brg(spool_core_d + 0.4);
 pip_rc = pip_hub_r + pip_c + pip_rn;
 pip_ro = pip_rc + pip_rn + pip_c;
 
@@ -479,6 +491,8 @@ assert(pbar_cs[0][1] + pbar_w / 2 < -flange_h - 2, "the panel's top bar runs int
 panel_hi = [panel_y, panel_cz] + panel_h / 2 * panel_u;
 assert(panel_side > 0 ? panel_hi[0] - panel_hi[1] - flange_h > box_d + cover_t : panel_hi[0] + panel_hi[1] + flange_h < -cover_t, "the box shades the panel");
 assert(gear_helix <= 45, "herringbone flanks would overhang past 45°");
+assert(front_journal_d < spigot_af - 0.5, "the front journal must fit inside the spigot's flats");
+assert(rear_brg[4] / 2 + 6 < ring_r0 - 2, "the rear bearing's boss runs into the ring");
 assert(pip_hub_r - pip_b - pip_c - axle_d / 2 >= 1.4 && rb_d / 2 - pip_ro - pip_b >= 1.4, "the roller bearing's races are too thin");
 assert(2 * PI * pip_rc / pip_n > 2 * (pip_rn + pip_b) + 0.6, "too many pins for the roller bearing's circle");
 assert(roller_d / 2 - rb_d / 2 - rb_press >= 2.5, "the roller's wall round its bearings is too thin");
@@ -776,10 +790,10 @@ module reel_hub() {
 }
 
 // Reel (right side), axis Y at ring_c: its rear flange, the drum, and a
-// hex spigot at the front that the separate front flange keys onto, held
-// on by the front plate. The reel's hub keys into a hex socket in its rear
-// (its roof a 45° cone, as it prints rear down); its bore takes the front
-// axle. The line's end wedges into a V jam cleat at the core's front end,
+// hex spigot at the front that the separate front flange keys onto, and a
+// journal on past it into the front plate's bearing. The reel's hub keys
+// into a hex socket in its rear (its roof a 45° cone, as it prints rear
+// down). The line's end wedges into a V jam cleat at the core's front end,
 // under the flange.
 module spool() {
   difference() {
@@ -787,8 +801,8 @@ module spool() {
       xz_extrude(rflange_y0, drum_y0) translate(ring_c) circle(d = spool_od, $fn = 128);
       y_cyl(ring_c, drum_y0 - 0.01, drum_y1, spool_core_d, 64);
       xz_extrude(drum_y1 - 0.01, drum_y1 + spool_flange_t - 0.2) translate(ring_c) circle(d = spigot_af / cos(30), $fn = 6);
+      y_cyl(ring_c, drum_y1 + spool_flange_t - 0.21, front_y1 - 0.3, front_journal_d, 96);
     }
-    y_cyl(ring_c, rflange_y0 - 1, drum_y1 + spool_flange_t + 1, axle_d, 32);
     xz_extrude(rflange_y0 - 1, rflange_y0 + 12.3) translate(ring_c) circle(d = (spigot_af + 0.4) / cos(30), $fn = 6);
     translate([ring_c[0], rflange_y0 + 12.29, ring_c[1]]) rotate([-90, 0, 0]) cylinder(d1 = (spigot_af + 0.4) / cos(30), d2 = 0, h = (spigot_af + 0.4) / cos(30) / 2, $fn = 6);
     xz_extrude(drum_y1 - cleat_len, drum_y1 + spool_flange_t + 1) translate(ring_c)
@@ -928,7 +942,7 @@ module place_cheek(x0) { translate([x0, rear_y1 - dv_depth, 0]) children(); }
 module holder_2d() {
   translate(ring_c) {
     difference() { circle(r = ring_r1, $fn = 128); circle(r = ring_r0, $fn = 128); }
-    circle(d = 24, $fn = 48);
+    circle(d = rear_brg[4] + 12, $fn = 96);
     translate([-ring_r0 - 1, -bar_w / 2]) square([2 * ring_r0 + 2, bar_w]);
     for (a = [45, 135, 225, 315]) rotate(a) translate([0, -bar_w / 2]) square([ring_r0 + 1, bar_w]);
   }
@@ -988,7 +1002,7 @@ module front_plate(s = 1) {
   mirror([s < 0 ? 1 : 0, 0, 0])
     difference() {
       xz_extrude(front_y0, front_y1) holder_2d();
-      y_cyl(ring_c, front_y0 - 1, front_y1 + 1, m5_pilot_d, 32);
+      y_cyl(ring_c, front_y0 - 1, front_y1 + 1, front_brg[4] - 2 * rb_press, 128);
       for (p = lower_c) y_cyl(p, front_y0 - 1, front_y1 + 1, m5_pilot_d, 24);
       plate_edge(rail_ycs[1]);
       plate_joints(true);
@@ -1001,7 +1015,7 @@ module rear_plate(s = 1) {
   mirror([s < 0 ? 1 : 0, 0, 0])
     difference() {
       xz_extrude(rear_y0, rear_y1) holder_2d();
-      y_cyl(ring_c, rear_y0 - 1, rear_y1 + 1, spool_core_d + 2 * journal_clear, 96);
+      y_cyl(ring_c, rear_y0 - 1, rear_y1 + 1, rear_brg[4] - 2 * rb_press, 128);
       for (p = lower_c) plate_screw([p[0], rear_y1, p[1]], [0, -1, 0]);
       plate_edge(rail_ycs[0]);
       plate_joints(false);
@@ -1039,10 +1053,40 @@ module cheeks(s = 1) {
 // roller's middle; the race, rb_h tall; and pip_n pins between with a 45°
 // collar at mid height running in V grooves in both. All three start on
 // the bed.
+module pinp_2d(h, rn, b, grow = 0) {
+  polygon([[0, -1], [rn + grow, -1], [rn + grow, h / 2 - b - grow], [rn + b + grow, h / 2],
+           [rn + grow, h / 2 + b + grow], [rn + grow, h + 1], [0, h + 1]]);
+}
 module pin_2d(h, grow = 0) {
   polygon([[0, -1], [pip_rn + grow, -1], [pip_rn + grow, h / 2 - pip_b - grow], [pip_rn + pip_b + grow, h / 2],
            [pip_rn + grow, h / 2 + pip_b + grow], [pip_rn + grow, h + 1], [0, h + 1]]);
 }
+// A reel's bearing (g = front_brg or rear_brg), a plate thick, standing on
+// z = 0: the inner race on the journal, the outer race pressed into the
+// plate, and pins between with a 45° collar running in V grooves in both.
+module reel_bearing(g) {
+  h = cage_t;
+  n = floor(2 * PI * g[2] / (2 * (rbp_rn + rbp_b) + 1.2));
+  difference() {
+    union() {
+      difference() { cylinder(r = g[1], h = h, $fn = 96); translate([0, 0, -1]) cylinder(d = g[0], h = h + 2, $fn = 96); }
+      difference() { cylinder(d = g[4], h = h, $fn = 128); translate([0, 0, -1]) cylinder(r = g[3], h = h + 2, $fn = 128); }
+    }
+    rotate_extrude($fn = 128) intersection() {
+      offset(delta = rbp_c) translate([g[2], 0]) union() { pinp_2d(h, rbp_rn, rbp_b); mirror([1, 0]) pinp_2d(h, rbp_rn, rbp_b); }
+      translate([0, -1]) square([g[4], h + 2]);
+    }
+  }
+  for (k = [0 : n - 1]) rotate(k * 360 / n) translate([g[2], 0, 0])
+    rotate_extrude($fn = 24) intersection() { pinp_2d(h, rbp_rn, rbp_b); square([rbp_rn + rbp_b, h - 0.4]); }
+}
+module reel_bearings() {
+  y_place(front_y0) reel_bearing(front_brg);
+  y_place(rear_y0) reel_bearing(rear_brg);
+}
+// A shape built along +z placed on the reel's axis from y.
+module y_place(y) { translate([ring_c[0], y, ring_c[1]]) rotate([-90, 0, 0]) children(); }
+
 module roller_bearing(span) {
   hub_h = span / 2 - washer_t - 0.15;
   difference() {
@@ -1149,6 +1193,7 @@ module front_door_print() { translate([0, 0, box_d + cover_t]) rotate([-90, 0, 0
 module gear_cover_print(s = 1) { rotate([90, 0, 0]) translate([0, -cover_y0, 0]) gear_cover(s); }
 // Gears and reels print on a face: the reel on its rear flange, its hub on its key.
 module spool_print() { rotate([90, 0, 0]) translate([-ring_c[0], -rflange_y0, -ring_c[1]]) spool(); }
+module reel_bearing_print(front = true) { reel_bearing(front ? front_brg : rear_brg); }
 module reel_hub_print() { translate([0, 0, rflange_y0 + 12]) rotate([-90, 0, 0]) translate([-ring_c[0], 0, -ring_c[1]]) reel_hub(); }
 // The left output gear is the right one's mirror image (its hub is on one
 // side, so it can't just be turned over the way the idlers and pinions can).
@@ -1215,7 +1260,7 @@ module solar_connector() {
 module doors() { front_door(); }
 module covers() { gear_cover(1); gear_cover(-1); }
 module drive() { for (m = [0, 1]) mirror([m, 0, 0]) { pinion(); idler(0); idler(1); output_gear(); } }
-module reels() { for (m = [0, 1]) mirror([m, 0, 0]) { spool(); reel_flange(); reel_hub(); } }
+module reels() { for (m = [0, 1]) mirror([m, 0, 0]) { spool(); reel_flange(); reel_hub(); reel_bearings(); } }
 module holders() { for (s = [-1, 1]) { front_plate(s); rear_plate(s); } for (b = xbars()) xbar(b); }
 module fairleads() { cheeks(1); cheeks(-1); }
 module all_rollers() { rollers(1); rollers(-1); }

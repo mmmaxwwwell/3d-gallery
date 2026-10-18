@@ -18,7 +18,7 @@ Everything heavy is in the box, low between the two points the lines pull from, 
   - **Covers:** a small bolt-on cover each side (130 × 99 mm) protects the gears, on six M5 × 25s through solid 18 mm bosses. The box is sealed at its wall and slab, so the covers don't need to seal.
   - **Support:** every gear is held both sides. The idlers' pins run from the cover into sockets in the slab, the output gear sits on its pin behind with its hub in the slab in front, and the pinion's back rides on a peg in the cover.
 - **Reels:** one either side of the box. Each holds 150–200 ft (about 56 m) of 1/8" Dacron. The line's end wedges into a V jam cleat at the core's front end, under the front flange.
-  - **Support:** each reel's hub turns in a bearing bore in its rear plate, and its front axle in the front plate.
+  - **Bearings:** each reel turns in two big print-in-place roller bearings (PCTG), printed separately and pressed into its plates. The front one (43 mm across, 11 pins) takes a 19 mm journal on the reel's front, past the hex spigot. The rear one (54 mm across, 15 pins) takes the hub's 30 mm journal. Put a drop of silicone oil in each.
 - **Reel holders (PCTG):** two big flat skeleton plates per reel, each inside 220 × 220 mm.
   - **Shape:** each is a ring round the reel with spokes, and its flat outer part rises over the reel's outer edge to carry the rollers.
   - **Braces:** members run from the ring's top and bottom, and from the roller window's top, to the plate's inner edge.
@@ -44,7 +44,6 @@ The holder plates, the gear covers and the panel spine bolt into blind pilots in
 Every M5 × 10 gets 8 mm of thread. Each part it goes through is counterbored to leave 2 mm under the cap head, and every pilot is 9 mm deep.
 
 Longer bolts:
-- **Reel axles:** M5 × 25s threaded into the front plates.
 - **Lower rollers:** M5 × 90s, rear plate to front plate.
 - **Upper rollers:** M5 × 75s, outer cheek to inner cheek.
 - **Pinions:** an M3 grub screw on the shaft's flat holds each one, and pulls its motor onto the back wall.

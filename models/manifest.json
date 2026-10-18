@@ -777,18 +777,18 @@
       "slug": "meshtastic-drybag-node",
       "devOnly": true,
       "title": "Meshtastic Dry-Bag Node",
-      "description": "A Meshtastic/MeshCore node in a sealed box that winches itself up into a tree. You throw a line over a branch or two and tie both ends to the node's two reels; each reel winds its end in, and the node climbs the line with no tie line left hanging. The box sits in the middle, a reel either side, each reel holding 150\u2013200 ft of 1/8\" Dacron, the line's end wedged into a V jam cleat in the drum's core. Each reel turns between two big flat skeleton plates of PCTG, each inside 220 \u00d7 220 mm: a ring round the reel with spokes, members from the ring and the roller window back to the plate's inner edge, four dovetailed crossmembers round the reel, and a window of four rollers on top of its outer edge that holds the line both ways. Each roller is a printed sleeve with a print-in-place roller bearing pressed into each end. Each plate's inner edge sits in a little channel on the box's side, indexed by two square blocks, and bolted at 45\u00b0. The box is TPU 64D with a solid back wall, and opens at the front. The motors stand on the back wall inside, their pinions' hubs out through TPU lip seals; behind it, under a small bolt-on cover each side, each pinion drives two herringbone idlers, on print-in-place roller bearings in their hubs, onto an output gear on the reel's axis, whose hub runs out through a lip seal in the box's back slab into the reel's hub. The gears are module 2.25 and 16 mm wide, sized up so the printed parts run at low stress. The front door carries the protection board, the winch XIAO nRF52840 Sense, two DRV8871 drivers and the 12 V boost, and the saddles that hold the 32140 LiFePO4 cell standing up. The radio kit sits on the right wall under the N bulkhead in the top, within its 6\" pigtail, with room for a 1 W module instead; the antenna's stem is part of the box. The solar panel hangs under the front at 45\u00b0, facing forward and up, its edges in two grooved bars through a spine screwed up into the floor. The front door seals on a tongue wider than the groove round the TPU rim, with M5 \u00d7 10 screws outside the seal threading 8 mm into the TPU. All holes are round, no supports anywhere. Box 98 \u00d7 136 \u00d7 186 mm, 264 mm across its back slab. Not yet test-printed.",
+      "description": "A Meshtastic/MeshCore node in a sealed box that winches itself up into a tree. You throw a line over a branch or two and tie both ends to the node's two reels; each reel winds its end in, and the node climbs the line with no tie line left hanging. The box sits in the middle, a reel either side, each reel holding 150\u2013200 ft of 1/8\" Dacron, the line's end wedged into a V jam cleat in the drum's core. Each reel turns between two big flat skeleton plates of PCTG, each inside 220 \u00d7 220 mm: a ring round the reel with spokes, members from the ring and the roller window back to the plate's inner edge, four dovetailed crossmembers round the reel, and a window of four rollers on top of its outer edge that holds the line both ways. Each reel turns in two big print-in-place roller bearings pressed into its plates, on a journal at the front and its hub at the back. Each roller is a printed sleeve with a print-in-place roller bearing pressed into each end. Each plate's inner edge sits in a little channel on the box's side, indexed by two square blocks, and bolted at 45\u00b0. The box is TPU 64D with a solid back wall, and opens at the front. The motors stand on the back wall inside, their pinions' hubs out through TPU lip seals; behind it, under a small bolt-on cover each side, each pinion drives two herringbone idlers, on print-in-place roller bearings in their hubs, onto an output gear on the reel's axis, whose hub runs out through a lip seal in the box's back slab into the reel's hub. The gears are module 2.25 and 16 mm wide, sized up so the printed parts run at low stress. The front door carries the protection board, the winch XIAO nRF52840 Sense, two DRV8871 drivers and the 12 V boost, and the saddles that hold the 32140 LiFePO4 cell standing up. The radio kit sits on the right wall under the N bulkhead in the top, within its 6\" pigtail, with room for a 1 W module instead; the antenna's stem is part of the box. The solar panel hangs under the front at 45\u00b0, facing forward and up, its edges in two grooved bars through a spine screwed up into the floor. The front door seals on a tongue wider than the groove round the TPU rim, with M5 \u00d7 10 screws outside the seal threading 8 mm into the TPU. All holes are round, no supports anywhere. Box 98 \u00d7 136 \u00d7 186 mm, 264 mm across its back slab. Not yet test-printed.",
       "filament": [
         { "material": "TPU 64D", "color": "any", "note": "The box; the screws thread straight into it", "parts": ["frame.stl"] },
         { "material": "PCTG", "color": "any", "note": "Door, gear covers, reels, gears, holder plates, crossmembers, cheeks, rollers and their bearings, and the panel mount",
-          "parts": ["front-door.stl", "gear-cover.stl", "gear-cover-left.stl", "spool.stl", "reel-flange.stl", "reel-hub.stl", "pinion.stl", "idler.stl", "output-gear.stl", "output-gear-left.stl", "front-plate.stl", "front-plate-left.stl", "rear-plate.stl", "rear-plate-left.stl", "link-bar.stl", "fairlead-cheek.stl", "fairlead-cheek-inner.stl", "roller-long.stl", "roller-short.stl", "roller-bearing-long.stl", "roller-bearing-short.stl", "panel-spine.stl", "panel-bar.stl"] }
+          "parts": ["front-door.stl", "gear-cover.stl", "gear-cover-left.stl", "spool.stl", "reel-flange.stl", "reel-hub.stl", "reel-bearing-front.stl", "reel-bearing-rear.stl", "pinion.stl", "idler.stl", "output-gear.stl", "output-gear-left.stl", "front-plate.stl", "front-plate-left.stl", "rear-plate.stl", "rear-plate-left.stl", "link-bar.stl", "fairlead-cheek.stl", "fairlead-cheek-inner.stl", "roller-long.stl", "roller-short.stl", "roller-bearing-long.stl", "roller-bearing-short.stl", "panel-spine.stl", "panel-bar.stl"] }
       ],
       "previews": [
         { "file": "assembled.3mf", "format": "3mf", "label": "Assembled", "default": true,
           "legend": [
             { "color": "#2f3542", "label": "Box, TPU 64D", "part": "frame.stl" },
             { "color": "#747d8c", "label": "Front door and gear covers", "part": "front-door.stl", "parts": ["front-door.stl", "gear-cover.stl", "gear-cover-left.stl"] },
-            { "color": "#ffa502", "label": "Reels, their front flanges and hubs", "part": "spool.stl", "parts": ["spool.stl", "reel-flange.stl", "reel-hub.stl"] },
+            { "color": "#ffa502", "label": "Reels, their front flanges, hubs and bearings", "part": "spool.stl", "parts": ["spool.stl", "reel-flange.stl", "reel-hub.stl", "reel-bearing-front.stl", "reel-bearing-rear.stl"] },
             { "color": "#a4b0be", "label": "Holder plates and crossmembers", "part": "front-plate.stl", "parts": ["front-plate.stl", "front-plate-left.stl", "rear-plate.stl", "rear-plate-left.stl", "link-bar.stl"] },
             { "color": "#ced6e0", "label": "Roller cheeks; panel spine and bars", "part": "fairlead-cheek.stl", "parts": ["fairlead-cheek.stl", "fairlead-cheek-inner.stl", "panel-spine.stl", "panel-bar.stl"] },
             { "color": "#f1f2f6", "label": "Rollers and their print-in-place bearings", "part": "roller-long.stl", "parts": ["roller-long.stl", "roller-short.stl", "roller-bearing-long.stl", "roller-bearing-short.stl"] },
@@ -798,6 +798,7 @@
           ],
           "components": [ { "part": "frame.stl", "qty": 1 }, { "part": "front-door.stl", "qty": 1 }, { "part": "gear-cover.stl", "qty": 1 }, { "part": "gear-cover-left.stl", "qty": 1 },
                           { "part": "spool.stl", "qty": 2 }, { "part": "reel-flange.stl", "qty": 2 }, { "part": "reel-hub.stl", "qty": 2 },
+                          { "part": "reel-bearing-front.stl", "qty": 2 }, { "part": "reel-bearing-rear.stl", "qty": 2 },
                           { "part": "pinion.stl", "qty": 2 }, { "part": "idler.stl", "qty": 4 }, { "part": "output-gear.stl", "qty": 1 }, { "part": "output-gear-left.stl", "qty": 1 },
                           { "part": "front-plate.stl", "qty": 1 }, { "part": "front-plate-left.stl", "qty": 1 },
                           { "part": "rear-plate.stl", "qty": 1 }, { "part": "rear-plate-left.stl", "qty": 1 },
@@ -812,7 +813,7 @@
             { "color": "#2f3542", "label": "Box, TPU 64D", "part": "frame.stl" },
             { "color": "#747d8c", "label": "Front door and gear covers", "part": "front-door.stl", "parts": ["front-door.stl", "gear-cover.stl", "gear-cover-left.stl"] },
             { "color": "#e1b12c", "label": "Herringbone pinions, idlers and output gears", "part": "pinion.stl", "parts": ["pinion.stl", "idler.stl", "output-gear.stl", "output-gear-left.stl"] },
-            { "color": "#ffa502", "label": "Reels, their front flanges and hubs", "part": "spool.stl", "parts": ["spool.stl", "reel-flange.stl", "reel-hub.stl"] },
+            { "color": "#ffa502", "label": "Reels, their front flanges, hubs and bearings", "part": "spool.stl", "parts": ["spool.stl", "reel-flange.stl", "reel-hub.stl", "reel-bearing-front.stl", "reel-bearing-rear.stl"] },
             { "color": "#a4b0be", "label": "Holder plates and crossmembers", "part": "front-plate.stl", "parts": ["front-plate.stl", "front-plate-left.stl", "rear-plate.stl", "rear-plate-left.stl", "link-bar.stl"] },
             { "color": "#ced6e0", "label": "Roller cheeks; panel spine and bars", "part": "fairlead-cheek.stl", "parts": ["fairlead-cheek.stl", "fairlead-cheek-inner.stl", "panel-spine.stl", "panel-bar.stl"] },
             { "color": "#f1f2f6", "label": "Rollers and their print-in-place bearings", "part": "roller-long.stl", "parts": ["roller-long.stl", "roller-short.stl", "roller-bearing-long.stl", "roller-bearing-short.stl"] },
@@ -830,7 +831,7 @@
             { "color": "#2ed573", "label": "Boards: charge board on the back wall, radio kit on the right wall, the rest on the front door (reference)" },
             { "color": "#70a1ff", "label": "Room kept for a 1 W radio module (reference)" },
             { "color": "#57606f", "label": "N bulkhead and AOA-915-5ACM antenna (reference)" },
-            { "color": "#ffa502", "label": "Reels", "part": "spool.stl", "parts": ["spool.stl", "reel-flange.stl", "reel-hub.stl"] },
+            { "color": "#ffa502", "label": "Reels", "part": "spool.stl", "parts": ["spool.stl", "reel-flange.stl", "reel-hub.stl", "reel-bearing-front.stl", "reel-bearing-rear.stl"] },
             { "color": "#a4b0be", "label": "Holder plates and crossmembers", "part": "front-plate.stl", "parts": ["front-plate.stl", "front-plate-left.stl", "rear-plate.stl", "rear-plate-left.stl", "link-bar.stl"] }
           ]
         }
@@ -843,6 +844,8 @@
         { "file": "spool.stl", "format": "stl", "label": "Reel (print 2) \u2014 on its rear flange" },
         { "file": "reel-flange.stl", "format": "stl", "label": "Reel front flange (print 2) \u2014 flat" },
         { "file": "reel-hub.stl", "format": "stl", "label": "Reel hub (print 2) \u2014 on its hex key" },
+        { "file": "reel-bearing-front.stl", "format": "stl", "label": "Reel front bearing, print-in-place (print 2) \u2014 flat, pressed into the front plate" },
+        { "file": "reel-bearing-rear.stl", "format": "stl", "label": "Reel rear bearing, print-in-place (print 2) \u2014 flat, pressed into the rear plate" },
         { "file": "pinion.stl", "format": "stl", "label": "Herringbone pinion (print 2) \u2014 flat" },
         { "file": "idler.stl", "format": "stl", "label": "Herringbone idler with its print-in-place bearing (print 4) \u2014 flat" },
         { "file": "output-gear.stl", "format": "stl", "label": "Right output gear \u2014 gear down" },
@@ -889,11 +892,10 @@
         { "qty": 16, "label": "M5x10 cap screw \u2014 crossmembers' ends, through the plates", "usedBy": [ { "part": "link-bar.stl", "each": 2 } ] },
         { "qty": 16, "label": "M5x10 cap screw \u2014 roller cheeks' tenons, through the plates", "usedBy": [ { "part": "fairlead-cheek.stl", "each": 4 }, { "part": "fairlead-cheek-inner.stl", "each": 4 } ] },
         { "qty": 3, "label": "M5x10 cap screw \u2014 panel spine up into the floor", "usedBy": [ { "part": "panel-spine.stl", "each": 3 } ] },
-        { "qty": 2, "label": "M5x25 bolt \u2014 reel front axle, threaded 8 mm into the front plate", "usedBy": [ { "part": "spool.stl", "each": 1 } ] },
         { "qty": 4, "label": "M5x90 bolt \u2014 lower roller axles, rear plate to front plate", "usedBy": [ { "part": "roller-long.stl", "each": 1 } ] },
         { "qty": 4, "label": "M5x75 bolt \u2014 upper roller axles, outer cheek to inner cheek", "usedBy": [ { "part": "roller-short.stl", "each": 1 } ] },
         { "qty": 16, "label": "M5 washer \u2014 one each end of every roller, between its bearing's hub and the plate or cheek", "usedBy": [ { "part": "roller-long.stl", "each": 2 }, { "part": "roller-short.stl", "each": 2 } ] },
-        { "qty": 1, "label": "Silicone oil \u2014 the roller and idler bearings, the output gears' pins, and the reels' bearing bores" },
+        { "qty": 1, "label": "Silicone oil \u2014 the roller and idler bearings, the reels' bearings, and the output gears' pins" },
         { "qty": 4, "label": "Zip tie, 4.8 mm wide, 150 mm \u2014 two hold the antenna to its stem, two hold the panel bars to the spine", "usedBy": [ { "part": "panel-bar.stl", "each": 1 }, { "part": "frame.stl", "each": 2 } ] },
         { "qty": 7, "label": "Double-sided foam tape square \u2014 one behind each board in its pocket", "usedBy": [ { "part": "front-door.stl", "each": 5 }, { "part": "frame.stl", "each": 1 }, { "part": "frame.stl", "each": 1 } ] }
       ]

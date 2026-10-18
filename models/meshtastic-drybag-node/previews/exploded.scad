@@ -1,7 +1,8 @@
 include <../lib/meshtastic-drybag-node-lib.scad>;
 $fn = 40;
 // Each piece moved off along the way it goes on: the front door forward,
-// the gear covers and gears back, each reel's holder out sideways,
+// the gear covers and gears back, each reel's holder out sideways
+// and its bearings out along its axis,
 // its rollers and cheeks up, the panel mount down.
 ex_door = 90;
 ex_tray = 150;
@@ -22,6 +23,8 @@ color("#ffa502") for (s = [-1, 1]) translate([s * ex_side, 0, 0]) mirror([s < 0 
   spool();
   translate([0, ex_front / 2, 0]) reel_flange();
   translate([0, -ex_rear / 2, 0]) reel_hub();
+  translate([0, ex_front, 0]) y_place(front_y0) reel_bearing(front_brg);
+  translate([0, -ex_rear, 0]) y_place(rear_y0) reel_bearing(rear_brg);
 }
 color("#a4b0be") for (s = [-1, 1]) {
   translate([s * (ex_side + ex_bars), ex_front, 0]) front_plate(s);
