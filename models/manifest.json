@@ -777,37 +777,34 @@
       "slug": "meshtastic-drybag-node",
       "devOnly": true,
       "title": "Meshtastic Dry-Bag Node",
-      "description": "A cheap Meshtastic/MeshCore node in a sealed box, standing antenna up in a tree. The 32140 LiFePO4 cell lies across the bottom of the box in a seat, and the boards lie flat in pockets on a shelf over it, perpendicular to the antenna: the LiFePO4 protection board on the left, the XIAO nRF52840 + Wio-SX1262 kit and the power bank's charge board on the right. The pigtail's N female bulkhead clamps through the roof on its panel nut and O-ring, and the ALFA AOA-915-5ACM stands straight up from it, zip-tied to the frame's stem. The back plate slopes up from the box's top corners to the stem, so the stem is braced along its length. One cover closes the whole front. It squeezes a TPU bead printed in place in a groove round the frame's rim, 17%, with room in the groove for the TPU to spread into. Ten M3 \u00d7 12 cap screws run down the middle of the seal, each threading through a TPU disc in the groove. The solar cable comes in through a PG7 gland in the right end wall, beside the charge board's ports. Walls are 9 mm all round for the seal and for years of knocks. Made for a Snapmaker U1: the frame prints back face down in PETG with its TPU seal in the same print, and the cover prints front face down. No supports. 174 \u00d7 152 \u00d7 57 mm; about 286 mm tall with the antenna. Not yet test-printed.",
+      "description": "A cheap Meshtastic/MeshCore node in a sealed box, standing antenna up in a tree. The body is TPU 64D and the door is PCTG. The 32140 LiFePO4 cell lies across the bottom in a seat, and the boards lie flat in pockets on a shelf over it, perpendicular to the antenna: the LiFePO4 protection board on the left, the XIAO nRF52840 + Wio-SX1262 kit and the power bank's charge board on the right. The pigtail's N female bulkhead clamps through the roof on its panel nut and O-ring, and the ALFA AOA-915-5ACM stands straight up from it, zip-tied at two heights to a short stem. The back plate slopes up from the box's top corners to the stem, with a rounded rib along its foot. The door seals with a tongue round its back, 0.6 mm wider than the groove round the body's rim, so the TPU grips it from both sides and the screws only hold it on. Ten M5 \u00d7 10 screws, in ears outside the seal, thread straight into the TPU. The solar cable comes in through a 5/8\" watertight connector in the right end wall. No supports: the body prints back face down, the door front face down. 185 \u00d7 110 \u00d7 55 mm with the ears; about 280 mm tall with the antenna. Not yet test-printed.",
       "filament": [
-        { "material": "PETG", "color": "any", "note": "Frame and cover", "parts": ["frame.stl", "cover.stl"] },
-        { "material": "TPU 95A", "color": "any", "note": "The seal, printed in place in the frame's groove at 100% infill; any TPU from 85A to 95A works, softer squeezes easier", "parts": ["frame-gasket.stl"] }
+        { "material": "TPU 64D", "color": "any", "note": "The body; the screws thread straight into it", "parts": ["frame.stl"] },
+        { "material": "PCTG", "color": "any", "note": "The door", "parts": ["cover.stl"] }
       ],
       "previews": [
         { "file": "assembled.3mf", "format": "3mf", "label": "Closed", "default": true,
           "legend": [
-            { "color": "#2f3542", "label": "Frame", "part": "frame.stl" },
-            { "color": "#ff4757", "label": "Seal, TPU printed in place", "part": "frame-gasket.stl" },
-            { "color": "#747d8c", "label": "Cover", "part": "cover.stl" },
+            { "color": "#2f3542", "label": "Body, TPU 64D", "part": "frame.stl" },
+            { "color": "#747d8c", "label": "Door, PCTG", "part": "cover.stl" },
             { "color": "#57606f", "label": "N bulkhead and AOA-915-5ACM antenna (reference)" },
-            { "color": "#a4b0be", "label": "PG7 cable gland (reference)" }
+            { "color": "#a4b0be", "label": "5/8\" watertight solar connector (reference)" }
           ],
-          "components": [ { "part": "frame.stl", "qty": 1 }, { "part": "frame-gasket.stl", "qty": 1 }, { "part": "cover.stl", "qty": 1 } ]
+          "components": [ { "part": "frame.stl", "qty": 1 }, { "part": "cover.stl", "qty": 1 } ]
         },
-        { "file": "open.3mf", "format": "3mf", "label": "Cover off: the cell, the boards and the seal",
+        { "file": "open.3mf", "format": "3mf", "label": "Door off: the cell and the boards",
           "legend": [
-            { "color": "#2f3542", "label": "Frame", "part": "frame.stl" },
-            { "color": "#ff4757", "label": "Seal, TPU printed in place", "part": "frame-gasket.stl" },
+            { "color": "#2f3542", "label": "Body, TPU 64D", "part": "frame.stl" },
             { "color": "#7bed9f", "label": "32140 LiFePO4 cell (reference)" },
             { "color": "#57606f", "label": "N bulkhead and AOA-915-5ACM antenna (reference)" },
             { "color": "#2ed573", "label": "Protection board, XIAO kit and charge board (reference)" },
-            { "color": "#a4b0be", "label": "PG7 cable gland (reference)" }
+            { "color": "#a4b0be", "label": "5/8\" watertight solar connector (reference)" }
           ]
         }
       ],
       "parts": [
-        { "file": "frame.stl", "format": "stl", "label": "Frame \u2014 PETG, back face down, with its seal" },
-        { "file": "frame-gasket.stl", "format": "stl", "label": "Frame seal \u2014 TPU, printed in place with the frame" },
-        { "file": "cover.stl", "format": "stl", "label": "Cover \u2014 PETG, front face down" }
+        { "file": "frame.stl", "format": "stl", "label": "Body \u2014 TPU 64D, back face down" },
+        { "file": "cover.stl", "format": "stl", "label": "Door \u2014 PCTG, front face down" }
       ],
       "hardware": [
         { "qty": 1, "label": "Kingboss 15000 mAh LiFePO4 power bank \u2014 taken apart for its 32140 cell (3.2 V 15 Ah) and its charge board",
@@ -822,12 +819,11 @@
           "source": { "url": "https://www.amazon.com/dp/B0GM5MD5V6", "vendor": "Amazon" } },
         { "qty": 1, "label": "5 V 3 W mini USB solar panel \u2014 charges the cell through the charge board's USB input",
           "source": { "url": "https://www.amazon.com/dp/B0H93K5QL8", "vendor": "Amazon" } },
-        { "qty": 1, "label": "Zanhour 2 L roll-top dry bag \u2014 optional now the box seals; an outer layer for the antenna and the gland",
+        { "qty": 1, "label": "Zanhour 2 L roll-top dry bag \u2014 optional now the box seals; an outer layer for the antenna and the solar connector",
           "source": { "url": "https://www.amazon.com/dp/B0CBH9ZWVL", "vendor": "Amazon" } },
-        { "qty": 1, "label": "PG7 cable gland, IP68, 3\u20136.5 mm \u2014 solar cable through the right end wall",
-          "source": { "url": "https://www.amazon.com/dp/B0CZLGVKM6", "vendor": "Amazon" }, "usedBy": [ { "part": "frame.stl", "each": 1 } ] },
-        { "qty": 10, "label": "M3x12 socket head cap screw \u2014 cover onto the frame, down the middle of the seal", "usedBy": [ { "part": "cover.stl", "each": 10 } ] },
-        { "qty": 1, "label": "Zip tie, 3.6 mm wide, 150 mm \u2014 antenna to the stem's saddle", "usedBy": [ { "part": "frame.stl", "each": 1 } ] },
+        { "qty": 1, "label": "5/8\" watertight panel connector (the user's own) \u2014 solar cable through the right end wall", "usedBy": [ { "part": "frame.stl", "each": 1 } ] },
+        { "qty": 10, "label": "M5x10 screw \u2014 door onto the body, threading straight into the TPU", "usedBy": [ { "part": "cover.stl", "each": 10 } ] },
+        { "qty": 2, "label": "Zip tie, 4.8 mm wide, 150 mm \u2014 antenna to the stem, below and above its saddle", "usedBy": [ { "part": "frame.stl", "each": 2 } ] },
         { "qty": 3, "label": "Double-sided foam tape square \u2014 one under each board in its pocket", "usedBy": [ { "part": "frame.stl", "each": 3 } ] }
       ]
     },

@@ -1,53 +1,48 @@
 # meshtastic-drybag-node
 
-A Meshtastic node in a sealed box, standing antenna up in a tree for years. Three printed parts:
-- the frame (PETG)
-- its seal (TPU, printed in place with the frame)
-- the cover (PETG)
+A Meshtastic node in a sealed box, standing antenna up in a tree for years. Two printed parts:
+- the body: TPU 64D
+- the door (`cover()`): PCTG
 
-It's made for the user's Snapmaker U1, a 4-toolhead printer, so the TPU prints into the frame in the same print. devOnly, unprinted.
+devOnly, unprinted.
 
 How the user's layout got here:
 - It started from a photo of the parts laid out as a T.
-- The boards were turned flat, perpendicular to the antenna.
-- The whole thing was flipped: "the top is really the antenna".
-- The boards moved onto the battery, "installed from the top".
-- The cell was enclosed against "hits and banging around in a tree for a few years".
-- The T's inside corners were filled with slopes.
-- The widest board was rotated, and the electronics got a cover.
-- Last: "figure out how people are printing waterproof screw-together containers and make it happen".
+- The boards were turned flat, perpendicular to the antenna, and the whole thing was flipped: "the top is really the antenna".
+- The boards moved onto the battery, the cell was enclosed against knocks, and the T's inside corners were filled with slopes.
+- The protection board was rotated to lie along the cell.
+- The electronics got a cover.
+- The seal was replaced (below).
 
 ## Frames
 
 - **Use frame:** X along the cell, Z up as it hangs (antenna up), Y out of the front face. z = 0 is the box's bottom, y = 0 its back.
-- `frame_print()` and `frame_gasket_print()` put the frame and its TPU back face down (+Y up), in the same place, so their STLs overlay in the slicer. Keep them paired. Holes along Z and X are horizontal as the frame prints, so they're `tear_2d()`, peaked toward +Y. `cover_print()` puts the cover front face down.
+- `frame_print()` puts the body back face down (+Y up). Holes along Z are horizontal as it prints, so they're `tear_2d()`, peaked toward +Y, except the solar connector's hole: the user asked for it round. `cover_print()` puts the door front face down.
 
 ## Load-bearing choices
 
-- **The seal is the common printed-enclosure recipe:** a groove in the rim with a TPU gasket in it (2–2.5 mm deep), squeezed 15–25%, with clamping all round. Here:
-  - The groove is `groove_w` × `groove_depth`, centred in the wall.
-  - The TPU bead stands in it, `bead_w` wide and `bead_proud` above the rim, so the flat cover squeezes it about 17%.
-  - The bead is narrower than the groove on purpose: TPU doesn't compress in volume, so it needs side room to spread into. With no room, the cover can't close.
-- **Screws run down the middle of the seal** (the user's preference from the heltec case), on `screw_points`: four along the top, four along the bottom, one in the middle of each end.
-  - Round each one, the groove widens to `screw_pocket_d` and the bead to a `screw_disc_d` disc. The screw threads through the disc into a blind pilot, so the squeezed disc seals its own hole.
-  - `wall` (9) is set by the pocket plus PETG either side. It's also what takes the knocks.
-  - Screw length, counterbore and pilot depth are tied together (`pilot_depth`, asserted).
-- **One cover over the battery and the electronics.** The user asked for an electronics cover "like the battery has". One seal loop instead of two means fewer joints to leak. The cell drops into a half-round seat from the front, and ribs on the cover (`cell_rib_xs`) hold it there. The cell's leads go up through `lead_x`, a hole in the shelf beside the protection board. The shelf is an internal floor and isn't sealed.
+- **The seal is a tongue in a groove, gripped from the sides.** The user's earlier build used a squeezed TPU bead with screws through the seal. The cover wouldn't close, it leaked, and the screws through the seal were a problem. Their replacement: M5 × 10 straight into a TPU 64D body, and a PCTG door. So:
+  - The body's rim has a `groove_w` groove, `groove_depth` deep, centred in the `wall`.
+  - The door's tongue is `tongue_w`, 0.3 mm a side wider than the groove, and stops short of the groove's floor.
+  - The TPU walls either side flex out and grip it. That's where the seal is, so it doesn't depend on screw force.
+  - The tip starts narrower than the groove and widens over `tongue_lead` in steps, so it leads itself in.
+- **Screws are outside the seal**, in ears (`ear_out`, `ear_r`) that run the box's full depth: four along the top, four along the bottom, one mid-height in each end. M5 × 10 thread straight into `m5_pilot_d` pilots in the TPU. `pilot_depth` comes from the screw length and `cover_t`. The heads sit on the door; the user gave no head type, so there are no counterbores.
+- **One door over the battery and the electronics.** The cell drops into a half-round seat from the front, and ribs on the door (`cell_rib_xs`) hold it. The cell's leads go up through `lead_x`, a hole in the shelf beside the protection board. The shelf is an internal floor and isn't sealed.
 - **Boards lie flat in pockets** on the shelf, perpendicular to the antenna, dropped in from above and held with foam tape:
-  - left: the protection board (`bms_*`), lying along the cell. The user asked to rotate it so it's "less wide": it was 50 deep.
-  - right: the kit, then the charge board, its ports facing the right end and the gland.
+  - left: the protection board (`bms_*`), lying along the cell
+  - right: the kit, then the charge board, its ports facing the right end and the solar connector
   - The middle (`mid_gap`) is clear for the jack's body.
   - The front rim's underside is chamfered 45°.
-- **Bulkhead through the roof.** The roof is relieved from inside to `bulkhead_wall_t` (4 mm, user confirmed) round `n_body_d`. The jack's O-ring seals on the relief's floor, and the panel nut is on top, outside.
-- **The PG7 gland** goes through the right end wall at `gland_z`, relieved from inside to `gland_panel_t`. Its locknut sits in the relief, outboard of the charge board.
-- **The back plate slopes** straight from the box's top corners in to the stem's top. The user asked for this: "instead of a pole sticking up its a slope up and a slope down".
-- Reference geometry (`cell()`, `antenna()`, `boards()`, `gland()`) is preview only.
+- **Bulkhead through the roof.** The roof is relieved from inside to `bulkhead_wall_t` (4 mm, user confirmed) round `n_body_d`. The jack's O-ring seals on the relief's floor, and the panel nut is on top.
+- **Solar:** the user's own 5/8" watertight connector, in a plain round `solar_hole_d` through the right end wall, as the user asked.
+- **The stem is short** (`stem_len` 26, the user asked for about 1/3 of the earlier 70). It has a saddle in the middle and a pair of zip-tie slots below and above it (`tie_zs`).
+- **The back plate slopes** straight from the box's top corners in to the stem's top.
+- **`stem_rib()`** is a quarter-round fillet (`rib_r`) along the foot of the plate where it meets the roof, notched round the bulkhead's nut and the antenna (`rib_notch`). The user asked for "a rounded rib there to add strength".
+- Reference geometry (`cell()`, `antenna()`, `boards()`, `solar_connector()`) is preview only.
 
 ## Checks worth re-running after a change
 
-- Intersect the frame with its gasket: 0 volume.
-- Intersect the gasket with the cover: that's the squeeze, `bead_proud` deep.
-- Check that each screw's disc and pocket stay inside the wall.
+Intersect the body with the door. The only overlap should be the tongue's side squeeze, about 0.6 × the loop length × the tongue's depth in the groove (around 790 mm³ at the defaults). Anything else is a collision.
 
 ## Unmeasured
 
@@ -58,5 +53,5 @@ How the user's layout got here:
 - `rear_gap`
 - `end_clear`
 - `n_body_d`
-- the PG7's actual thread length against `gland_panel_t`
-- the Zanhour bag (now optional)
+- the 5/8" connector's panel range against the 6 mm wall
+- the tongue's interference, which needs a test print in the actual TPU 64D
