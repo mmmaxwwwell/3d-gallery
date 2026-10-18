@@ -516,11 +516,19 @@ module slit_profile(g) {
   }
 }
 
-module slit_edge_rod() {
+// low_top: where the -x rod stops, in a ball, for a slit whose outer side
+// is wall lower than the slit's top. Without the ball, the rod's round and
+// the wall's rolled top cross at a point.
+module slit_edge_rod(low_top = undef) {
   e = cutout_edge_radius;
   rr = slit_width / 2 + e;
   for (sx = [-1, 1])
-    translate([sx * rr, 0, 0]) cylinder(r = e, h = slit_top_z - slit_bottom_z);
+    translate([sx * rr, 0, 0])
+      if (sx < 0 && low_top != undef) {
+        cylinder(r = e, h = low_top);
+        translate([0, 0, low_top]) sphere(r = e);
+      } else
+        cylinder(r = e, h = slit_top_z - slit_bottom_z);
   rotate([90, 0, 0]) rotate([0, 0, 180]) rotate_extrude(angle = 180) translate([rr, 0]) circle(r = e);
 }
 
@@ -533,7 +541,9 @@ module slits() {
       rotate([90, 0, 0]) linear_extrude(wall + 2, center = true) slit_profile(0);
       difference() {
         rotate([90, 0, 0]) linear_extrude(wall + 0.02, center = true) slit_profile(e);
-        slit_edge_rod();
+        // Outside the last slit the wall stays at the side rim's height
+        // (under_back_rise()), its rolled top's centre an edge-radius under it.
+        slit_edge_rod(k == tabs ? rim_back_z - e - slit_bottom_z : undef);
       }
     }
 }
