@@ -44,7 +44,7 @@ The holster bolts to a Kanix belt clip (the user's own system, `~/git/kanix/scad
 
 ## USB-C opening
 
-In the −x side (the user's right; I first put it on +x and they moved it), centred `usb_z` (38) above the radio's bottom face and `usb_y` (7) back from its front face, `usb_width` (8) × `usb_height` (14), standing upright. A 9 mm-wide port lying front-to-back would run onto the bevel there; that's my inference, not measured. The rim at that spot is lower than the opening's top, so it's a U-notch down from the rim (`usb_notch()`), cut from the rim's ball path (grown by the edge radius) so the rolled rim rounds its edges.
+In the −x side (the user's right; I first put it on +x and they moved it), centred `usb_z` (38) above the radio's bottom face and `usb_y` (7) back from its front face, `usb_width` (8) × `usb_height` (14), standing upright. A 9 mm-wide port lying front-to-back would run onto the bevel there; that's my inference, not measured. The rim at that spot is lower than the opening's top, so it's a U-notch down from the rim (`usb_notch()`), cut from the rim's ball path (grown by the edge radius) so the rolled rim rounds its edges. Its front side is a straight ramp down from the side rim's front corner (a point at the front wall's mid-plane, rim height, in the notch's hull), so the rim only falls from the front into the notch; the user didn't want it rising first.
 
 ## Drainage
 

@@ -273,12 +273,16 @@ module under_rim() {
 usb_notch_y = -radio_thickness / 2 + usb_y;
 usb_notch_bottom = radio_bottom_z + usb_z - usb_height / 2;
 assert(usb_notch_bottom - cutout_edge_radius > lip_rim_z(cutout_half) - cutout_edge_radius - 2, "USB notch reaches below the rolled walls");
+// Its front side is a straight ramp down from the side rim's front corner,
+// so the rim only falls from the front into the notch instead of rising
+// first (the user's ask).
 module usb_notch(g) {
   r = usb_width / 2;
   mirror([1, 0, 0]) rotate([90, 0, 90]) linear_extrude(2 * radio_width)
     hull() {
       translate([usb_notch_y, usb_notch_bottom + r]) circle(r = r + g);
       translate([usb_notch_y - r - g, usb_notch_bottom + r]) square([2 * (r + g), 2 * radio_height]);
+      translate([-wall_mid_y, rim_front_z - cutout_edge_radius]) square(0.01);
     }
 }
 
