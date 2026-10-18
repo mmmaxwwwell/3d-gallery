@@ -11,6 +11,7 @@ import { buildViews, type ManifestPart, type ModelBuild } from '@3d-gallery/mode
 import { embedUrl } from '../../scripts/embed-source-url.mjs';
 import { copyPrintToolkitAssets } from '@3d-gallery/print-toolkit/vite-plugin';
 import { createMcpMiddleware } from '@3d-gallery/orca-bridge/mcp';
+import { galleryImportRecords, resolveOrcaPaths } from '@3d-gallery/orca-bridge';
 import { createDevStoreMiddleware } from '@3d-gallery/orca-bridge/devstore';
 import { createAgentBridge, AGENT_INSTRUCTIONS } from '@3d-gallery/agent-bridge';
 
@@ -279,6 +280,11 @@ function orcaMcpPlugin(): Plugin {
         // Read per call rather than shared with galleryModelsPlugin's forge:
         // always current, and a bad edit mid-save only fails that one call.
         catalog: () => JSON.parse(readFileSync(resolve(MODELS_DIR, 'manifest.json'), 'utf8')).models,
+        orcaImport: (input) => {
+          const paths = resolveOrcaPaths();
+          if (!paths) throw new Error('No OrcaSlicer config directory found on this machine.');
+          return galleryImportRecords(paths, input);
+        },
       });
       const middleware = createMcpMiddleware({
         repoRoot: REPO_ROOT,

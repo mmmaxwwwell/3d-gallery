@@ -59,6 +59,15 @@ export interface BridgeToolOptions {
   catalog: () => CatalogModel[];
   /** Opens a URL in the person's browser. */
   openUrl: (url: string) => Promise<void>;
+  /**
+   * The person's Orca presets, each with its inheritance chain, as the
+   * gallery's folder import reads them. Absent when no Orca install is wired.
+   */
+  orcaImport?: (input: { kinds?: Array<'printer' | 'filament'>; names?: string[] }) => {
+    records: unknown[];
+    notFound: string[];
+    warnings: string[];
+  };
   /** Overrides for tests. */
   timeouts?: Partial<typeof DEFAULT_TIMEOUTS>;
 }
@@ -396,6 +405,53 @@ export function createBridgeTools(options: BridgeToolOptions): BridgeTool[] {
           timeouts.action,
         );
         return { text: JSON.stringify(result, null, 2), data: result };
+      },
+    },
+    {
+      name: 'presets_import',
+      title: 'Import Orca presets into the gallery',
+      description:
+        'Import the person\'s OrcaSlicer printer and filament presets into the gallery, as Settings → '
+        + 'Import with the config folder would: each user preset with its inheritance chain, read '
+        + 'from the local Orca install (orca_list_presets shows what is there). Omit names to import '
+        + 'every user preset. Or pass files ([{name, text}]) holding exported .orca_printer / '
+        + '.orca_filament / preset .json contents. Re-importing keeps edits made in the gallery. '
+        + 'Afterwards, app_action presets.audit finds duplicates and checks which filament goes to '
+        + 'which printer.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          ...TAB_ARG,
+          names: { type: 'array', items: { type: 'string' }, description: 'Exact Orca preset names. Default: all user presets.' },
+          kinds: { type: 'array', items: { type: 'string', enum: ['printer', 'filament'] } },
+          files: {
+            type: 'array',
+            items: { type: 'object', properties: { name: { type: 'string' }, text: { type: 'string' } }, required: ['name', 'text'] },
+          },
+        },
+        additionalProperties: false,
+      },
+      readOnly: false,
+      async run(args) {
+        const files = Array.isArray(args['files']) ? args['files'] : [];
+        let fromOrca: ReturnType<NonNullable<BridgeToolOptions['orcaImport']>> = { records: [], notFound: [], warnings: [] };
+        if (!files.length) {
+          if (!options.orcaImport) throw new Error('No OrcaSlicer install is wired to this server. Pass files instead.');
+          const names = Array.isArray(args['names']) ? args['names'].map(String) : undefined;
+          const kinds = Array.isArray(args['kinds'])
+            ? args['kinds'].filter((k): k is 'printer' | 'filament' => k === 'printer' || k === 'filament')
+            : undefined;
+          fromOrca = options.orcaImport({ names, kinds });
+          if (!fromOrca.records.length) {
+            throw new Error(`Nothing to import.${fromOrca.notFound.length ? ` Not user presets in Orca: ${fromOrca.notFound.join(', ')}.` : ''}`);
+          }
+        }
+        const result = await onTab(args, 'act', {
+          action: 'presets.import',
+          args: { presets: fromOrca.records, files },
+        }, timeouts.action) as Record<string, unknown>;
+        const data = { ...result, notFound: fromOrca.notFound, warnings: fromOrca.warnings };
+        return { text: JSON.stringify(data, null, 2), data };
       },
     },
     {

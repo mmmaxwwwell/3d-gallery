@@ -16,6 +16,10 @@
 //   ; total filament cost: 0.42
 //   ; estimated printing time (normal mode): 45m 12s
 //   ; estimated printing time (silent mode): 51m 5s
+//
+// OrcaSlicer 2.3 writes the same keys with ` = ` instead of `:`
+// (`; estimated printing time (normal mode) = 3m 54s`), so every key below
+// takes either separator.
 
 export interface GcodeMetadata {
   printTimeSeconds?: number;
@@ -69,26 +73,26 @@ export function parseGcodeMetadata(gcode: string): GcodeMetadata {
   const out: GcodeMetadata = {};
 
   // Print time (normal + optional silent mode).
-  const timeNormal = gcode.match(/;\s*estimated printing time\s*\(normal mode\)\s*:\s*([^\r\n]+)/i);
+  const timeNormal = gcode.match(/;\s*estimated printing time\s*\(normal mode\)\s*[:=]\s*([^\r\n]+)/i);
   if (timeNormal) out.printTimeSeconds = parseDuration(timeNormal[1]);
-  const timeSilent = gcode.match(/;\s*estimated printing time\s*\(silent mode\)\s*:\s*([^\r\n]+)/i);
+  const timeSilent = gcode.match(/;\s*estimated printing time\s*\(silent mode\)\s*[:=]\s*([^\r\n]+)/i);
   if (timeSilent) out.printTimeSilentSeconds = parseDuration(timeSilent[1]);
   if (out.printTimeSeconds === undefined) {
     // Fallback for slicers that don't tag "normal mode".
-    const generic = gcode.match(/;\s*estimated printing time\s*:\s*([^\r\n]+)/i);
+    const generic = gcode.match(/;\s*estimated printing time\s*[:=]\s*([^\r\n]+)/i);
     if (generic) out.printTimeSeconds = parseDuration(generic[1]);
   }
 
-  out.filamentMm = firstFloat(/;\s*total filament used\s*\[mm\]\s*:\s*(-?\d+(?:\.\d+)?)/i, gcode);
-  out.filamentCm3 = firstFloat(/;\s*total filament used\s*\[cm3\]\s*:\s*(-?\d+(?:\.\d+)?)/i, gcode);
+  out.filamentMm = firstFloat(/;\s*total filament used\s*\[mm\]\s*[:=]\s*(-?\d+(?:\.\d+)?)/i, gcode);
+  out.filamentCm3 = firstFloat(/;\s*total filament used\s*\[cm3\]\s*[:=]\s*(-?\d+(?:\.\d+)?)/i, gcode);
   out.filamentGrams =
-    firstFloat(/;\s*total filament weight\s*\[g\]\s*:\s*(-?\d+(?:\.\d+)?)/i, gcode) ??
-    firstFloat(/;\s*total filament used\s*\[g\]\s*:\s*(-?\d+(?:\.\d+)?)/i, gcode);
-  out.filamentCost = firstFloat(/;\s*total filament cost\s*:\s*(-?\d+(?:\.\d+)?)/i, gcode);
-  out.filamentDensity = firstFloat(/;\s*filament_density\s*:\s*(-?\d+(?:\.\d+)?)/i, gcode);
-  out.filamentDiameter = firstFloat(/;\s*filament_diameter\s*:\s*(-?\d+(?:\.\d+)?)/i, gcode);
-  out.layerCount = firstFloat(/;\s*total layer number\s*:\s*(\d+)/i, gcode);
-  out.maxZ = firstFloat(/;\s*max_z_height\s*:\s*(-?\d+(?:\.\d+)?)/i, gcode);
+    firstFloat(/;\s*total filament weight\s*\[g\]\s*[:=]\s*(-?\d+(?:\.\d+)?)/i, gcode) ??
+    firstFloat(/;\s*total filament used\s*\[g\]\s*[:=]\s*(-?\d+(?:\.\d+)?)/i, gcode);
+  out.filamentCost = firstFloat(/;\s*total filament cost\s*[:=]\s*(-?\d+(?:\.\d+)?)/i, gcode);
+  out.filamentDensity = firstFloat(/;\s*filament_density\s*[:=]\s*(-?\d+(?:\.\d+)?)/i, gcode);
+  out.filamentDiameter = firstFloat(/;\s*filament_diameter\s*[:=]\s*(-?\d+(?:\.\d+)?)/i, gcode);
+  out.layerCount = firstFloat(/;\s*total layer number\s*[:=]\s*(\d+)/i, gcode);
+  out.maxZ = firstFloat(/;\s*max_z_height\s*[:=]\s*(-?\d+(?:\.\d+)?)/i, gcode);
 
   // Derive cm3 and grams from mm + density/diameter if the slicer skipped them.
   if (out.filamentMm !== undefined && out.filamentDiameter !== undefined) {

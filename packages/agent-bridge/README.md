@@ -55,6 +55,7 @@ MCP client ──POST /3d-gallery/__mcp──▶ dev server (orca-bridge's MCP s
 | `app_state` | The current view's state as data, the actions it offers, and the actions every view offers. |
 | `app_action` | Run one of those actions. |
 | `models_list`, `model_get` | The catalogue, straight from `models/manifest.json`. Need no tab. |
+| `presets_import` | Settings → Import without a file picker. Reads the local Orca install's user printer and filament presets with their inheritance chains (orca-bridge's `galleryImportRecords`), or takes exported files' contents, and stores them in the tab's browser. Re-imports keep gallery edits. |
 
 Refs (`[kq12]`) carry a per-page-load prefix. A ref read before a reload
 is refused instead of silently naming a control on the new page.
@@ -71,6 +72,7 @@ same functions its buttons do:
 | Project | `project.set_plate` (material, colour, skip, parts), `planner.update`, `project.wait_until_sliced`, `project.save`, `project.send` |
 | Printers | `printers.start` (asks about the bed until `confirm: true`), `printers.upload_all`, `printers.set_loaded` |
 | Any | `presets.list`, `printers.status` (live, plus AMS trays from bambu-klipper-proxy's `bambu_ams`), `projects.list`, `planner.settings`, `planner.update` |
+| Any (presets) | `presets.audit` (duplicates: identical printing values, near-identical names with the keys they differ in, printers sharing an address; and per filament which printers it's offered to vs. what its `@ …` name suggests), `presets.set_compatible`, `presets.delete` (asks until `confirm: true`), `presets.import` |
 
 Anything without an action is still reachable through the `ui_*` tools.
 
@@ -83,7 +85,9 @@ Anything without an action is still reachable through the `ui_*` tools.
   refusal carries the page's own bed question. The agent is told to ask the
   person and pass `confirm` only for the question they answered.
 - The agent can't pick files from the person's disk (`ui_fill` refuses a
-  file input).
+  file input). `presets_import` reads only the Orca config folder, which
+  the orca tools already read. Anything else, the agent passes as file
+  contents.
 - No auth, the same as the rest of the dev server: single user, and the
   caller is whoever started it.
 
@@ -94,8 +98,8 @@ Anything without an action is still reachable through the `ui_*` tools.
 - `packages/gallery-app/tests/e2e/agent-mcp.spec.ts`: a real tab driven
   only through `/__mcp`. It adds a part to a project, makes the plate black
   PCTG, slices it, sends it, uploads and starts it on the Moonraker
-  simulator. The spec also covers the ui tools across a view switch and a
-  `confirm()`.
+  simulator. It also covers the ui tools across a view switch and a
+  `confirm()`, and the preset tools: import, audit, set compatible, delete.
 
 ## Notes for maintainers
 

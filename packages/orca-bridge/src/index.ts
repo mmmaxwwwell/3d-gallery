@@ -48,3 +48,9 @@ export {
   type GalleryStore,
 } from './store.ts';
 export { createDevStoreMiddleware } from './devstore.ts';
+export {
+  galleryImportRecords,
+  type GalleryImportRecord,
+  type GalleryImportInput,
+  type GalleryImportResult,
+} from './gallery-import.ts';

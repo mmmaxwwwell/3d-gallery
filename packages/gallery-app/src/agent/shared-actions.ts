@@ -11,6 +11,7 @@ import { getActiveProjectId, listPlates, listProjects } from '../print/plate-sto
 import { loadPlannerSettings, savePlannerSettings, type PlannerSettings } from '../print/fleet-plan.js';
 import { projectUrl } from '../shell/views.js';
 import type { AgentAction } from './registry.js';
+import { PRESET_ACTIONS } from './preset-actions.js';
 
 const KINDS: PresetKind[] = ['printer', 'filament', 'process'];
 const PRINTER_TIMEOUT_MS = 8000;
@@ -96,6 +97,7 @@ function liveSummary(live: PrinterLiveStatus) {
 }
 
 export const SHARED_ACTIONS: Record<string, AgentAction> = {
+  ...PRESET_ACTIONS,
   'presets.list': {
     description:
       'The printer, filament and process presets imported in Settings. Printers carry their Moonraker '

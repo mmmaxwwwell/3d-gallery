@@ -22,6 +22,17 @@ const ORCA_SAMPLE = `
 `.trim();
 
 describe('parseGcodeMetadata', () => {
+  it('reads the `key = value` form OrcaSlicer 2.3 writes', () => {
+    const m = parseGcodeMetadata([
+      '; estimated printing time (normal mode) = 3m 54s',
+      '; total filament used [g] = 1.84',
+      '; filament_density = 1.27',
+    ].join('\n'));
+    expect(m.printTimeSeconds).toBe(3 * 60 + 54);
+    expect(m.filamentGrams).toBeCloseTo(1.84);
+    expect(m.filamentDensity).toBeCloseTo(1.27);
+  });
+
   it('parses OrcaSlicer header + trailer comments', () => {
     const m = parseGcodeMetadata(ORCA_SAMPLE);
     expect(m.slicerName).toBe('OrcaSlicer');

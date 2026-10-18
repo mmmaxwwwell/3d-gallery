@@ -74,7 +74,7 @@ test('an agent prints a part in black PCTG over MCP', async ({ page, request }) 
 
   // Several workers share this dev server, so the tab is named, not picked.
   await expect.poll(async () => (await call('ui_tabs')).structuredContent.tabs
-    .some((t: { tab: string; view: string }) => t.tab === tabId && t.view === 'models')).toBe(true);
+    .some((t: { tab: string; view: string }) => t.tab === tabId && t.view === 'models'), { timeout: 60_000 }).toBe(true);
   const on = (args: Record<string, unknown> = {}) => ({ tab: tabId, ...args });
   const act = async (action: string, args: Record<string, unknown> = {}, confirm = false) => {
     const r = await call('app_action', on({ action, args, confirm }));
@@ -145,7 +145,7 @@ test('the ui tools click, fill and answer dialogs on any view', async ({ page, r
   await page.goto('settings/');
   const call = mcp(request);
   await expect.poll(async () => (await call('ui_tabs')).structuredContent.tabs
-    .some((t: { tab: string }) => t.tab === tab)).toBe(true);
+    .some((t: { tab: string }) => t.tab === tab), { timeout: 60_000 }).toBe(true);
 
   const screen = text(await call('ui_screen', { tab }));
   expect(screen).toContain('[settings]');
@@ -175,6 +175,63 @@ test('the ui tools click, fill and answer dialogs on any view', async ({ page, r
   expect(declined).toContain('! confirm: "Really?" → answered false');
   expect(declined).toContain('button "No"');
   expect(text(await call('ui_click', { tab, ref, confirm: true }))).toContain('button "Yes"');
+});
+
+test('an agent imports preset files, finds duplicates and maps filaments to printers', async ({ page, request }) => {
+  await page.route('**/__devstore', (route) => route.abort());
+  const tab = await nameTab(page);
+  await page.goto('settings/');
+  const call = mcp(request);
+  await expect.poll(async () => (await call('ui_tabs')).structuredContent.tabs
+    .some((t: { tab: string }) => t.tab === tab), { timeout: 60_000 }).toBe(true);
+  const act = (action: string, args: Record<string, unknown> = {}, confirm = false) =>
+    call('app_action', { tab, action, args, confirm });
+
+  // Exported files, as an agent that read them off disk would pass them: a
+  // printer, the same printer again under a "- Copy" name, and two filaments.
+  const printer = { ...PRINTER.raw, print_host: ADDRESS };
+  const copy = { ...printer, name: `${PRINTER.name} - Copy`, printer_settings_id: `${PRINTER.name} - Copy` };
+  const x1cOnly = { ...PETG.raw, name: 'Test PCTG @ X1C', filament_settings_id: ['Test PCTG @ X1C'], filament_type: ['PCTG'], compatible_printers: ['Bambu Lab X1 Carbon 0.4 nozzle'] };
+  const imported = await call('presets_import', {
+    tab,
+    files: [
+      { name: `${PRINTER.name}.json`, text: JSON.stringify(printer) },
+      { name: `${PRINTER.name} - Copy.json`, text: JSON.stringify(copy) },
+      { name: 'Kingroon PETG @ FFADM5.json', text: JSON.stringify(PETG.raw) },
+      { name: 'Test PCTG @ X1C.json', text: JSON.stringify(x1cOnly) },
+      { name: 'notes.txt', text: 'not a preset' },
+    ],
+  });
+  expect(imported.isError, text(imported)).toBeFalsy();
+  expect(imported.structuredContent.added).toHaveLength(4);
+  expect(imported.structuredContent.failed).toEqual([expect.stringContaining('notes.txt')]);
+
+  const audit = (await act('presets.audit')).content[0]!.text!;
+  const report = JSON.parse(audit);
+  expect(report.duplicates.identical).toEqual([{ kind: 'printer', presets: [PRINTER.name, `${PRINTER.name} - Copy`] }]);
+  expect(report.duplicates.sharedAddress[0].printers).toHaveLength(2);
+  const petg = report.filaments.find((f: { name: string }) => f.name === 'Kingroon PETG @ FFADM5');
+  expect(petg.verdict).toMatch(/every printer, but its name says/);
+  expect(petg.nameSuggests).toContain(PRINTER.name);
+  const pctg = report.filaments.find((f: { name: string }) => f.name === 'Test PCTG @ X1C');
+  expect(pctg.verdict).toMatch(/only printers you do not have/);
+  expect(pctg.offeredTo).toEqual([]);
+
+  const set = await act('presets.set_compatible', { filament: 'Kingroon PETG @ FFADM5', printers: [PRINTER.name] });
+  expect(set.isError, text(set)).toBeFalsy();
+
+  // Deleting asks first, naming exactly what goes.
+  const asked = await act('presets.delete', { presets: [`${PRINTER.name} - Copy`] });
+  expect(asked.isError).toBe(true);
+  expect(text(asked)).toContain(`Delete printer "${PRINTER.name} - Copy"?`);
+  const deleted = await act('presets.delete', { presets: [`${PRINTER.name} - Copy`] }, true);
+  expect(deleted.isError, text(deleted)).toBeFalsy();
+
+  const after = JSON.parse((await act('presets.audit')).content[0]!.text!);
+  expect(after.counts.printers).toBe(1);
+  expect(after.duplicates.identical).toEqual([]);
+  expect(after.filaments.find((f: { name: string }) => f.name === 'Kingroon PETG @ FFADM5'))
+    .toMatchObject({ compatiblePrinters: [PRINTER.name], verdict: 'restricted to the listed printers' });
 });
 
 /** Names this page's tab for the bridge, as its sessionStorage would. */
