@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /**
  * Generate src/bbl-presets.generated.ts: the Bambu Lab X1 Carbon machine
- * preset, and AMS filament presets for it, from an OrcaSlicer source tree.
+ * preset, AMS filament presets and process presets for it, from an
+ * OrcaSlicer source tree. The process presets carry the X1C's speeds and
+ * accelerations; without them libslic3r falls back to its generic defaults
+ * (500 mm/s², 60 mm/s walls) and a plate takes twice as long.
  *
  * Bambu's machine G-code is a template full of slicer placeholders, and each
  * Orca release renames some (2.3.2's X1C start G-code reads
@@ -31,6 +34,11 @@ const FILAMENTS = [
   'Bambu TPU for AMS @BBL X1C',
 ];
 
+// One per layer height the gallery offers; a slice takes the nearest.
+const PROCESSES = [
+  '0.20mm Standard @BBL X1C',
+  '0.28mm Extra Draft @BBL X1C',
+];
 const src = process.argv[2];
 if (!src) {
   console.error('usage: node scripts/gen-bbl-presets.mjs <OrcaSlicer source>');
@@ -54,6 +62,7 @@ function walk(dir) {
 }
 walk(join(root, 'machine'));
 walk(join(root, 'filament'));
+walk(join(root, 'process'));
 
 /** The preset and its parents, own file first, root last — the shape the gallery stores. */
 function chain(name) {
@@ -83,6 +92,11 @@ const data = {
   orcaVersion: version,
   printers: PRINTERS.map((name) => ({ name, ...machineModel(name), chain: entry(name) })),
   filaments: FILAMENTS.map((name) => ({ name, chain: entry(name) })),
+  processes: PROCESSES.map((name) => {
+    const names = entry(name);
+    const layerHeight = names.map((n) => byName.get(n).layer_height).find((v) => v !== undefined);
+    return { name, layerHeight: Number(layerHeight), chain: names };
+  }),
   presets,
 };
 

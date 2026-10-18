@@ -73,6 +73,11 @@ export interface BambuSliceInput {
   colors: string[];
   /** The plate on the bed, as libslic3r names it (`curr_bed_type`): "Textured PEI Plate", … */
   bedType: string;
+  /**
+   * A Bambu process preset (`loadBblProcess`), merged: the machine's speeds and
+   * accelerations. Printer and filament settings go over it.
+   */
+  process?: OrcaPresetJson;
 }
 
 function asCells(value: OrcaValue | undefined): string[] | null {
@@ -94,7 +99,7 @@ export function bambuSliceConfig(input: BambuSliceInput): Record<string, string>
     config: orcaConfigFromJson(f),
   })));
   if (cold) throw new Error(cold);
-  const config = orcaConfigFromJson(printer);
+  const config = { ...(input.process ? orcaConfigFromJson(input.process) : {}), ...orcaConfigFromJson(printer) };
 
   const keys = new Set<string>();
   for (const f of filaments) for (const k of Object.keys(f)) if (FILAMENT_KEYS.has(k)) keys.add(k);

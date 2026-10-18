@@ -102,3 +102,15 @@ describe.skipIf(!existsSync(slicerWasmPath()))('X1 Carbon slice', () => {
       .toEqual([['1', '#000000'], ['2', '#FFFFFF']]);
   }, 120000);
 });
+
+describe('loadBblProcess', () => {
+  it('gives an X1C plate Bambu\'s own speeds, nearest its layer height', async () => {
+    const { loadBblProcess } = await import('../src/bbl-presets.js');
+    const draft = await loadBblProcess(0.28);
+    expect(draft.name).toBe('0.28mm Extra Draft @BBL X1C');
+    expect(draft.config['default_acceleration']).toBe('10000');
+    expect(Number(draft.config['outer_wall_speed'])).toBeGreaterThanOrEqual(150);
+    expect(draft.config['inherits']).toBeUndefined();
+    expect((await loadBblProcess(0.16)).name).toBe('0.20mm Standard @BBL X1C');
+  });
+});

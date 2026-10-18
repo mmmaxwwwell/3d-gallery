@@ -15,6 +15,8 @@ export interface BblPresetBundle {
   orcaVersion: string;
   printers: Array<{ name: string; model: string; modelId: string; chain: string[] }>;
   filaments: Array<{ name: string; chain: string[] }>;
+  /** Process presets: the X1C's speeds and accelerations, one per layer height. */
+  processes: Array<{ name: string; layerHeight: number; chain: string[] }>;
   /** Every preset any chain names, by name. */
   presets: Record<string, { [k: string]: OrcaValue }>;
 }
@@ -44,4 +46,21 @@ export async function loadBblPresets(): Promise<{ orcaVersion: string; printers:
     printers: BBL_PRESETS.printers.map(toPreset('printer')),
     filaments: BBL_PRESETS.filaments.map(toPreset('filament')),
   };
+}
+
+/**
+ * The X1C process preset nearest `layerHeight`, inheritance merged (root
+ * first, `inherits` dropped). It carries the machine's real speeds and
+ * accelerations; the gallery's own process knobs (walls, infill, layer
+ * height…) go over it.
+ */
+export async function loadBblProcess(layerHeight: number): Promise<{ name: string; config: { [k: string]: OrcaValue } }> {
+  const { BBL_PRESETS } = await import('./bbl-presets.generated.js');
+  const nearest = [...BBL_PRESETS.processes]
+    .sort((a, b) => Math.abs(a.layerHeight - layerHeight) - Math.abs(b.layerHeight - layerHeight))[0];
+  if (!nearest) throw new Error('No Bambu process preset is bundled.');
+  const config: { [k: string]: OrcaValue } = {};
+  for (const n of [...nearest.chain].reverse()) Object.assign(config, BBL_PRESETS.presets[n]);
+  delete config['inherits'];
+  return { name: nearest.name, config };
 }

@@ -166,6 +166,8 @@ export function sliceSetupKey(setup: SliceSetup): string {
     // Only AMS setups carry slots; leaving them out otherwise keeps every
     // one-spool slice's key what it was.
     ...(setup.slots ? [setup.slots.map((s) => [s.filament.id, flattenPresetForSlicer(s.filament), s.color, s.colors])] : []),
+    // AMS (Bambu) slices now carry the X1C's process speeds; older ones go stale.
+    ...(setup.slots ? ['bbl-process'] : []),
   ]));
 }
 

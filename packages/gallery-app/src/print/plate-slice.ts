@@ -222,6 +222,9 @@ export async function sliceInstances(
       filaments: slots.map((slot) => mergeInheritance(slot.filament)),
       colors: slots.map((slot) => slot.color),
       bedType: orcaBedType(bedSurface),
+      // Bambu keeps the X1C's speeds and accelerations in its process
+      // presets; without one the slicer's generic defaults halve the speed.
+      process: (await (await import('@3d-gallery/print-toolkit/bbl-presets')).loadBblProcess(Number(layerHeight))).config,
     })
     : { ...printerFlat, ...filamentFlat };
   const mergedConfig: Record<string, string> = {

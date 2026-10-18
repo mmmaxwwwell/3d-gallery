@@ -9,6 +9,8 @@
 import { deletePreset, importPreset, listPresets, savePreset, type PrintPreset } from '../print/print-storage.js';
 import { flattenPresetForSlicer } from '../print/preset-flatten.js';
 import { parseOrcaPresetFile, type ParsedPreset } from '../print/orca-import.js';
+import { setOverride } from '../print/preset-edit.js';
+import type { OrcaValue } from '../print/print-storage.js';
 import { NeedsConfirmation, type AgentAction } from './registry.js';
 
 /** Keys that name or file a preset rather than say how it prints. Two presets
@@ -223,6 +225,34 @@ export const PRESET_ACTIONS: Record<string, AgentAction> = {
       // Spread the record: it carries the person's edits (overrides).
       await savePreset({ ...filament, compatiblePrinters: names });
       return { filament: filament.name, compatiblePrinters: names.length ? names : 'every printer' };
+    },
+  },
+  'presets.set_value': {
+    description:
+      'Change one setting of a printer or filament preset, as the preset editor does: kept as an edit on '
+      + 'top of the imported preset, so a re-import from Orca keeps it, and setting it back to the '
+      + 'inherited value removes the edit. Orca keys and shapes, e.g. filament_max_volumetric_speed ["12"]. '
+      + 'Changes how every plate using the preset prints: say what you changed.',
+    writes: true,
+    args: {
+      type: 'object',
+      properties: {
+        preset: { type: 'string', description: 'Preset id or name.' },
+        key: { type: 'string', description: 'An Orca setting key.' },
+        value: { description: 'The value, in Orca\'s shape (per-extruder settings are arrays of strings).' },
+      },
+      required: ['preset', 'key', 'value'],
+    },
+    async run(args) {
+      const all = await listPresets();
+      const preset = presetFor(all, args['preset']);
+      const key = String(args['key'] ?? '');
+      if (!/^[a-z][a-z0-9_]*$/.test(key)) throw new Error(`"${key}" is not an Orca setting key.`);
+      const before = flat(preset)[key] ?? null;
+      const overrides = setOverride(preset, preset.overrides ?? {}, key, args['value'] as OrcaValue, undefined);
+      // Spread the record: it carries the person's other edits.
+      const saved = await savePreset({ ...preset, overrides });
+      return { preset: saved.name, key, before, after: flat(saved)[key] ?? null, edited: Object.keys(saved.overrides ?? {}) };
     },
   },
   'presets.delete': {
