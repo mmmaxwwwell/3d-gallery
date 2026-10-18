@@ -14,7 +14,9 @@
     "./node": "./src/node-slicer.ts",
     "./types": "./src/types.ts",
     "./orca-schema": "./src/orca-schema.ts",
-    "./orca-schema-data": "./src/orca-schema.generated.ts"
+    "./orca-schema-data": "./src/orca-schema.generated.ts",
+    "./bambu-slice-config": "./src/bambu-slice-config.ts",
+    "./bbl-presets": "./src/bbl-presets.ts"
   },
   "files": [
     "src",
@@ -26,7 +28,8 @@
     "postinstall": "node scripts/fetch-wasm.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "gen:orca-schema": "node scripts/gen-orca-schema.mjs"
+    "gen:orca-schema": "node scripts/gen-orca-schema.mjs",
+    "gen:bbl-presets": "node scripts/gen-bbl-presets.mjs"
   },
   "dependencies": {
     "fflate": "^0.8.2",

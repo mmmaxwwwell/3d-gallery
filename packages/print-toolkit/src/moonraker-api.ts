@@ -8,7 +8,7 @@
  * - GET /server/files/config/printer.cfg — raw config file text
  * - POST /server/files/upload — upload a G-code file (multipart)
  * - POST /printer/print/start — start printing an already-uploaded file
- * - GET /server/info, /printer/info — whether Klipper is up
+ * - GET /server/info, /printer/info — whether Klipper is up, and whether it's bambu-klipper-proxy
  * - GET /server/files/metadata — whether a file is on the printer
  * - GET /server/history/list — how past prints ended
  * - GET /server/webcams/list — camera URLs
@@ -20,6 +20,7 @@
 
 // Pulled in for the `window.AndroidPrinterDiscovery` feature-detect below.
 import './android-shim-types.js';
+import { isBambuProxyVersion, type AmsState, type AmsTray } from './bambu.js';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -222,6 +223,19 @@ export async function fetchKlippyState(address: string): Promise<KlippyState> {
   return { state, message: detail?.result.state_message?.trim() ?? '' };
 }
 
+/** What `/printer/info` says the printer is. */
+export interface PrinterInfo {
+  softwareVersion: string;
+  /** A Bambu Lab printer reached through bambu-klipper-proxy, not Klipper. */
+  bambu: boolean;
+}
+
+export async function fetchPrinterInfo(address: string): Promise<PrinterInfo> {
+  const info = await moonrakerGet<{ result: { software_version?: string } }>(address, '/printer/info');
+  const softwareVersion = info.result.software_version ?? '';
+  return { softwareVersion, bambu: isBambuProxyVersion(softwareVersion) };
+}
+
 /** Whether `fileName` is in the printer's gcodes root. */
 export async function fileExists(address: string, fileName: string): Promise<boolean> {
   const url = buildMoonrakerUrl(address, `/server/files/metadata?filename=${encodeURIComponent(fileName)}`);
@@ -326,9 +340,19 @@ export async function listWebcams(address: string): Promise<Webcam[]> {
     }));
 }
 
+export interface StartOptions {
+  /**
+   * Bambu printers only: the AMS tray (0–7, or 254 for the external spool)
+   * feeding each filament of the `.gcode.3mf`, in its filament id order. The
+   * proxy picks trays by type and colour itself when this is absent.
+   */
+  amsMapping?: number[];
+}
+
 /** Start printing a file that has already been uploaded. */
-export async function startPrint(address: string, fileName: string): Promise<void> {
-  await moonrakerPost(address, `/printer/print/start?filename=${encodeURIComponent(fileName)}`);
+export async function startPrint(address: string, fileName: string, options: StartOptions = {}): Promise<void> {
+  const mapping = options.amsMapping?.length ? `&ams_mapping=${options.amsMapping.join(',')}` : '';
+  await moonrakerPost(address, `/printer/print/start?filename=${encodeURIComponent(fileName)}${mapping}`);
 }
 
 /**
@@ -439,6 +463,8 @@ export interface PrinterLiveStatus {
   uptimeSec: number | null;
   /** Every `gcode_macro` the printer defines, by name as Klipper lists it. */
   macros: Set<string>;
+  /** A Bambu printer's AMS, from the proxy's `bambu_ams`; null on Klipper. */
+  ams: AmsState | null;
 }
 
 const LIGHT_OBJECT = 'led chamber_light';
@@ -447,6 +473,7 @@ const FAN_OBJECTS = ['fan', 'fan_generic fanM106'];
 const WANTED_OBJECTS = [
   'webhooks', 'print_stats', 'virtual_sdcard', 'display_status', 'extruder', 'heater_bed',
   'toolhead', 'gcode_move', 'exclude_object', 'idle_timeout', 'pause_resume', LIGHT_OBJECT, 'system_stats',
+  'bambu_ams',
 ];
 
 // A printer's objects only change with its config, and asking every poll would
@@ -482,6 +509,7 @@ interface LiveQueryStatus {
   idle_timeout?: { state: string };
   pause_resume?: { is_paused: boolean };
   system_stats?: { sysload: number; memavail: number };
+  bambu_ams?: { trays?: AmsTray[]; external?: AmsTray | null };
   [object: string]: unknown;
 }
 
@@ -563,6 +591,9 @@ export async function fetchPrinterLive(address: string): Promise<PrinterLiveStat
     host: status.system_stats ? { load: status.system_stats.sysload, memAvailKb: status.system_stats.memavail } : null,
     uptimeSec: await uptime,
     macros: new Set(objects.filter((o) => o.startsWith('gcode_macro ')).map((o) => o.slice('gcode_macro '.length))),
+    ams: status.bambu_ams
+      ? { trays: status.bambu_ams.trays ?? [], external: status.bambu_ams.external ?? null }
+      : null,
   };
 }
 
@@ -572,7 +603,7 @@ function offlineStatus(): PrinterLiveStatus {
     layer: null, totalLayers: null, elapsedSec: 0, remainingSec: 0, extruder: null, bed: null,
     fanPct: null, speedPct: null, flowPct: null, zOffset: null, homedAxes: '', position: null,
     sensors: [], lightOn: null, objects: [], idleState: null, paused: false, host: null,
-    uptimeSec: null, macros: new Set(),
+    uptimeSec: null, macros: new Set(), ams: null,
   };
 }
 

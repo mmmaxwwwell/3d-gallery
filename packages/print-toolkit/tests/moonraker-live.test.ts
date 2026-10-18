@@ -138,6 +138,7 @@ describe('fetchPrinterLive', () => {
       host: { load: 0.05, memAvailKb: 47348 },
       uptimeSec: 600956.26,
       macros: new Set(['LOAD_FILAMENT', '_CLIENT_EXTRUDE']),
+      ams: null,
     });
   });
 

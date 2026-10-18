@@ -40,6 +40,11 @@ export interface SchedulePrinter {
   freeAt: number;
   /** Family loaded now. Unknown means the first job's family costs no swap. */
   material?: string;
+  /**
+   * Feeds filament from an AMS rather than one spool: it changes material
+   * between jobs on its own, so no job costs it a swap.
+   */
+  multiMaterial?: boolean;
 }
 
 /** A span the operator cannot tend printers. Printers keep running through it. */
@@ -154,6 +159,7 @@ interface PrinterState {
   id: string;
   freeAt: number;
   material?: string;
+  multiMaterial?: boolean;
 }
 
 function eligible(job: ScheduleJob, printerId: string): boolean {
@@ -178,7 +184,9 @@ export function simulate(
   const last = new Set(opts.lastMaterials ?? []);
   const lastLimit = opts.lastMaterialPrinters ?? 2;
   const lastPrinters = new Set<string>();
-  const state: PrinterState[] = printers.map((p) => ({ id: p.id, freeAt: p.freeAt, material: p.material }));
+  const state: PrinterState[] = printers.map((p) => ({
+    id: p.id, freeAt: p.freeAt, material: p.multiMaterial ? undefined : p.material, multiMaterial: p.multiMaterial,
+  }));
   const unassigned = order.filter((j) => !printers.some((p) => eligible(j, p.id))).map((j) => j.id);
   let remaining = order.filter((j) => !unassigned.includes(j.id));
   const jobs: ScheduledJob[] = [];
@@ -225,7 +233,7 @@ export function simulate(
         starts.push(scheduled);
         jobs.push(scheduled);
         p.freeAt = scheduled.end;
-        p.material = job.material;
+        if (!p.multiMaterial) p.material = job.material;
         if (last.has(job.material)) lastPrinters.add(p.id);
         remaining = remaining.filter((j) => j !== job);
         took = true;

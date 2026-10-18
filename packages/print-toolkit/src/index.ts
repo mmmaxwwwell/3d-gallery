@@ -141,6 +141,9 @@ export {
   cancelPrint,
   rebootHost,
   shutdownHost,
+  fetchPrinterInfo,
+  type PrinterInfo,
+  type StartOptions,
   type PrinterLiveStatus,
   type HeaterLive,
   type FilamentSensorLive,
@@ -158,6 +161,36 @@ export {
   controlAvailable,
   type MacroControl,
 } from './moonraker-control.js';
+
+// ─── Bambu Lab printers (through bambu-klipper-proxy) ───────────────────────
+// The slice config (`./bambu-slice-config`) and the bundled presets
+// (`./bbl-presets`) carry tens of kB of data each, so they are subpath
+// exports to import lazily.
+export {
+  AMS_EXTERNAL,
+  BAMBU_PROXY_SOFTWARE,
+  amsFamily,
+  amsTrayLabel,
+  bambuModelId,
+  filamentUsePerSlot,
+  isBambuPrinterConfig,
+  isBambuProxyVersion,
+  matchAmsTrays,
+  type AmsAssignment,
+  type AmsFilamentNeed,
+  type AmsMatch,
+  type AmsState,
+  type AmsTray,
+} from './bambu.js';
+export {
+  bambuGcode3mfEntries,
+  packageBambuGcode3mf,
+  placeholderPng,
+  type BambuFilament,
+  type BambuPlateJob,
+} from './bambu-3mf.js';
+export { threeMfVolumes, volumeSlots, type ThreeMfVolume } from './threemf-volumes.js';
+export { md5Hex } from './md5.js';
 
 // ─── Print scheduling ───────────────────────────────────────────────────────
 export {

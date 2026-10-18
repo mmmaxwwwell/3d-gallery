@@ -96,6 +96,53 @@ Adventurer 5M (all three printers list the same set):
 temperature to restore), `RESUME` (reheats if idle timed out, and, with ZMOD's
 `filament_switch_sensor` on, refuses while `e0_sensor` sees no filament) and `CANCEL_PRINT` (parks, retracts, heaters off).
 
+## Bambu Lab printers
+
+A Bambu Lab printer (the X1 Carbon with its AMS) is reached through
+bambu-klipper-proxy, which speaks Moonraker, so every call above works on it.
+What differs, all in `src/bambu*.ts`:
+
+- **Telling one apart.** `isBambuPrinterConfig(flatPrinterPreset)` (its
+  `printer_model` starts with "Bambu Lab") decides how a plate is sliced and
+  packaged; `fetchPrinterInfo(address).bambu` (`software_version` starts with
+  `bambu-klipper-proxy`) confirms the address really is the proxy before a
+  `.gcode.3mf` goes to it.
+- **Slicing.** `@3d-gallery/print-toolkit/bambu-slice-config` →
+  `bambuSliceConfig({ printer, filaments, colors })`: the merged machine preset
+  plus one merged filament preset per AMS slot, every filament setting as one
+  value per slot, serialised the way libslic3r parses it (numbers and enums
+  comma-separated, strings escaped and `;`-separated). Bambu's tool-change
+  G-code (M620/M621) does the AMS switch and the purge. libslic3r only treats
+  a printer as Bambu when the GUI says so, which the WASM can't, so the config
+  adds `G92 E0` before each layer to pass the relative-E check, and the wipe
+  tower is libslic3r's own rather than Bambu's.
+- **Presets.** `@3d-gallery/print-toolkit/bbl-presets` → `loadBblPresets()`:
+  the X1 Carbon 0.4 machine preset and PLA / PETG / TPU AMS filaments, from the
+  same Orca release as the WASM (`scripts/gen-bbl-presets.mjs <orca-src>`;
+  rerun it when the WASM moves). Bambu's machine G-code uses placeholders that
+  change between releases, so an X1C preset imported from a newer Orca install
+  fails to export with "Not a variable name".
+- **Which volume prints in which slot.** `add3MFObject` doesn't keep a
+  gallery plate's per-part extruders (`threemf-volumes.ts` says why), so read
+  the volumes with `threeMfVolumes(bytes)`, pick each one's slot with
+  `volumeSlots(volumes, colorsPerSlot)` and set it with `setVolumeExtruder`.
+- **The file.** `packageBambuGcode3mf({ gcode, printerModelId, nozzleDiameter,
+  filaments, … })` writes the `.gcode.3mf`: `Metadata/plate_1.gcode` and its
+  `.md5`, `slice_info.config` (printer model id, one `<filament id type
+  color>` per slot), model settings, content types and relationships, and a
+  plate thumbnail (a grey tile unless one is passed). No geometry: the
+  firmware never reads it. `filamentUsePerSlot(gcode)` fills in the grams.
+- **Starting.** `uploadGcode(address, 'NN-plate.gcode.3mf', bytes)` then
+  `startPrint(address, name, { amsMapping })`: the tray (0–7, 254 external)
+  for each filament in slot order. `matchAmsTrays(needs, live.ams)` picks
+  them from the live `bambu_ams` trays (same family, nearest colour) because
+  the proxy's own matching needs the exact colour.
+- **Live status.** `fetchPrinterLive(...).ams` is the proxy's `bambu_ams`
+  (`trays`, `external`); null on Klipper. The proxy defines no
+  `gcode_macro`s, so `controlAvailable` already hides the ZMOD controls.
+- `scripts/slice-bambu-plate.mjs <slug> <plate>` (repo root) runs all of it in
+  Node on a manifest plate and writes the `.gcode.3mf`.
+
 ## Orca option schema
 
 `@3d-gallery/print-toolkit/orca-schema-data` is libslic3r's own table of printer

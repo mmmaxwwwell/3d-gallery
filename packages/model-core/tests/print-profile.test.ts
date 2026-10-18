@@ -5,6 +5,7 @@ import {
   DEFAULT_PRINT_PROFILE,
   describeProfile,
   materialFor,
+  plateFilaments,
   plateMaterial,
   recommendedProfile,
 } from '../src/print-profile.ts';
@@ -65,12 +66,58 @@ describe('validateManifest — print profile', () => {
     ]);
   });
 
-  it('rejects a print plate that mixes materials', () => {
+  it('accepts a print plate that mixes materials, for a printer with an AMS', () => {
     const m = model({
       parts: [part('peg.stl'), part('roller.stl')],
       previews: [{ ...part('plate-1.3mf'), plate: true, components: [{ part: 'peg.stl', qty: 1 }, { part: 'roller.stl', qty: 1 }] }],
       filament: [{ material: 'PETG', color: 'any' }, { material: 'TPU', color: 'any', parts: ['peg.stl'] }],
     });
-    expect(issuesOf({ models: [m] })).toEqual(['thing.plate-1.3mf: a print plate mixes TPU and PETG — one plate prints in one material']);
+    expect(issuesOf({ models: [m] })).toEqual([]);
+  });
+
+  it('rejects a plate flag that is not a boolean', () => {
+    const m = model({ previews: [{ ...part('plate-1.3mf'), plate: 'yes' }] });
+    expect(issuesOf({ models: [m] })).toEqual(['thing.plate-1.3mf: "plate" must be a boolean']);
+  });
+});
+
+describe('plateFilaments', () => {
+  const legend = (color: string, extra: Record<string, unknown> = {}) => ({ color, label: color, ...extra });
+
+  it('pairs part-less legend rows with part-less filaments by position', () => {
+    const tag = {
+      filament: [{ material: 'PLA', color: 'black' }, { material: 'PLA', color: 'white' }],
+    };
+    const plate = { ...part('plate.3mf'), legend: [legend('#000000'), legend('#FFFFFF')] } as never;
+    expect(plateFilaments(tag, plate)).toEqual([
+      { material: 'PLA', color: 'black', hexes: ['#000000'] },
+      { material: 'PLA', color: 'white', hexes: ['#ffffff'] },
+    ]);
+  });
+
+  it('gives colours that print in the same filament one slot', () => {
+    const roller = { filament: [{ material: 'PETG', color: 'any' }, { material: 'TPU', color: 'any', parts: ['peg.stl'] }] };
+    const plate = {
+      ...part('plate-1.3mf'),
+      legend: [
+        legend('#4a90d9', { part: 'roller.stl', shades: ['#2f6db0'] }),
+        legend('#e0e0e0', { part: 'stand.stl' }),
+        legend('#ff4757', { part: 'peg.stl' }),
+      ],
+    } as never;
+    expect(plateFilaments(roller, plate)).toEqual([
+      { material: 'PETG', hexes: ['#4a90d9', '#2f6db0', '#e0e0e0'] },
+      { material: 'TPU', hexes: ['#ff4757'] },
+    ]);
+  });
+
+  it('is the plate material alone when there is no legend', () => {
+    expect(plateFilaments({}, part('plate.3mf') as never)).toEqual([{ material: 'PETG', hexes: [] }]);
+  });
+});
+
+describe('validateManifest — print plates', () => {
+  it('still validates', () => {
+    expect(issuesOf({ models: [model({ previews: [{ ...part('p.3mf'), plate: true }] })] })).toEqual([]);
   });
 });

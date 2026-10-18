@@ -40,7 +40,7 @@ export const DEFAULT_PRINT_PROFILE: RecommendedProfile = {
 
 interface ProfiledModel {
   printProfile?: PrintProfileHint;
-  filament?: Array<{ material: string; parts?: string[] }>;
+  filament?: Array<{ material: string; color?: string; parts?: string[] }>;
 }
 
 /**
@@ -68,12 +68,58 @@ export function materialFamily(material: string): string {
 }
 
 /**
- * A print plate's material: its pieces', which validation holds to one
- * family. A plate that lists no pieces is the file itself.
+ * A print plate's material: its first piece's. A plate that lists no pieces
+ * is the file itself. `plateFilaments` has every filament a plate uses.
  */
 export function plateMaterial(model: ProfiledModel, plate: ManifestPart): string {
   const files = plate.components?.map((c) => c.part) ?? [];
   return files.length > 0 ? materialFor(model, files[0]) : materialFor(model, plate.file);
+}
+
+/** One filament a plate prints with, and the colours of its 3MF that it prints. */
+export interface PlateFilament {
+  material: string;
+  /** The `filament` entry's colour, when it names one ("black"; never "any"). */
+  color?: string;
+  /** Lowercase `#rrggbb` of every legend colour (and shade) this filament prints. */
+  hexes: string[];
+}
+
+/**
+ * The filaments a print plate needs, in the order its legend first uses them:
+ * what an AMS printer loads, one slot each. A legend colour belongs to the
+ * `filament` entry naming one of its parts; legend rows that name no part pair
+ * with part-less filament entries by position when there are as many of each
+ * (two-colour QR models list body then modules in both); anything else is the
+ * model's catch-all filament. Colours that come to the same filament share it,
+ * so a plate drawn in four shades of one PETG needs one slot.
+ */
+export function plateFilaments(model: ProfiledModel, plate: ManifestPart): PlateFilament[] {
+  const entries = model.filament ?? [];
+  const partless = entries.filter((f) => !f.parts);
+  const legend = plate.legend ?? [];
+  const legendPartless = legend.filter((l) => !l.part && !l.parts?.length);
+  const pairByPosition = partless.length > 1 && partless.length === legendPartless.length;
+  const fallback = { material: plateMaterial(model, plate), color: partless[0]?.color };
+
+  const out: Array<PlateFilament & { key: unknown }> = [];
+  for (const row of legend) {
+    const files = [...(row.part ? [row.part] : []), ...(row.parts ?? [])];
+    const named = entries.find((f) => f.parts?.some((p) => files.includes(p)));
+    const entry = named
+      ?? (pairByPosition && files.length === 0 ? partless[legendPartless.indexOf(row)] : undefined);
+    const material = entry?.material ?? (files.length > 0 ? materialFor(model, files[0]) : fallback.material);
+    const color = entry ? entry.color : fallback.color;
+    const key = entry ?? materialFamily(material);
+    const hexes = [row.color, ...(row.shades ?? [])].map((h) => h.toLowerCase());
+    const slot = out.find((f) => f.key === key);
+    if (slot) slot.hexes.push(...hexes.filter((h) => !slot.hexes.includes(h)));
+    else out.push({ key, material, ...(color && color !== 'any' ? { color } : {}), hexes });
+  }
+  if (out.length === 0) {
+    return [{ material: fallback.material, ...(fallback.color && fallback.color !== 'any' ? { color: fallback.color } : {}), hexes: [] }];
+  }
+  return out.map(({ key: _, ...f }) => f);
 }
 
 export function describeProfile(p: RecommendedProfile): string {
@@ -86,7 +132,7 @@ function isObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
 }
 
-/** Validation for a model's `printProfile`, and for plates that would mix materials. */
+/** Validation for a model's `printProfile`, and for each print plate's `plate` flag. */
 export function checkPrintProfile(model: Record<string, unknown>, label: string, issues: string[]): void {
   const hint = model.printProfile;
   if (hint !== undefined) {
@@ -121,24 +167,14 @@ export function checkPrintProfile(model: Record<string, unknown>, label: string,
     }
   }
 
-  // A single-extruder printer can't swap filament mid-plate, so one plate is one material.
+  // A plate may mix materials; the planner sends one that does only to a printer with an AMS.
   const owners = Array.isArray(model.builds) ? model.builds.filter(isObject) : [model];
-  const profiled = model as ProfiledModel;
   for (const owner of owners) {
     const previews = Array.isArray(owner.previews) ? owner.previews.filter(isObject) : [];
     for (const preview of previews) {
       if (preview.plate === undefined) continue;
       const where = `${label}.${String(preview.file)}`;
-      if (typeof preview.plate !== 'boolean') {
-        issues.push(`${where}: "plate" must be a boolean`);
-        continue;
-      }
-      const files = (Array.isArray(preview.components) ? preview.components : [])
-        .filter(isObject).map((c) => c.part).filter((p): p is string => typeof p === 'string');
-      const families = [...new Set(files.map((f) => materialFamily(materialFor(profiled, f))))];
-      if (families.length > 1) {
-        issues.push(`${where}: a print plate mixes ${families.join(' and ')} — one plate prints in one material`);
-      }
+      if (typeof preview.plate !== 'boolean') issues.push(`${where}: "plate" must be a boolean`);
     }
   }
 }
