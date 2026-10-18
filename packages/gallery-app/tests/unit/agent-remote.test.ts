@@ -19,6 +19,10 @@ afterEach(() => vi.unstubAllGlobals());
 
 const remote = () => import('../../src/agent/remote');
 
+/** An unsigned JWT with an exp an hour out: only its payload is read in the browser. */
+const jwt = (sub: string) => `h.${Buffer.from(JSON.stringify({ sub, exp: Math.floor(Date.now() / 1000) + 3600 })).toString('base64url')}.s`;
+const TOK2 = jwt('max');
+
 const hello = () => ({
   tab: 'tq1', view: 'printers', origin: 'http://localhost:5173', url: '/3d-gallery/printers/', title: 'Printers',
   visible: true, focused: true, load: 'l1',
@@ -39,7 +43,7 @@ function fakeRunner(calls: Array<{ id: string; op: string; args: object }>) {
   const fetchFn = vi.fn(async (url: string, init: RequestInit = {}) => {
     const auth = new Headers(init.headers).get('authorization');
     if (url.startsWith('https://idm.test/oauth2/token')) {
-      return new Response(JSON.stringify({ access_token: 'tok-2', refresh_token: 'ref-2', expires_in: 300 }), { status: 200 });
+      return new Response(JSON.stringify({ access_token: 'opaque', id_token: TOK2, refresh_token: 'ref-2' }), { status: 200 });
     }
     if (init.method === 'POST') {
       posts.push({ url, auth, body: JSON.parse(String(init.body)) });
@@ -116,8 +120,10 @@ describe('remote', () => {
     const link = connectRelay(hello, (async () => null) as never, { fetch: runner.fetchFn as never });
     await vi.waitFor(() => expect(runner.streams.length).toBeGreaterThan(0));
     link.stop();
-    expect(runner.streams[0]).toMatch(/Bearer tok-2$/);
-    expect(JSON.parse(localStorage.getItem('3dg:agent:remote')!).tokens).toMatchObject({ access: 'tok-2', refresh: 'ref-2' });
+    expect(runner.streams[0].endsWith(`Bearer ${TOK2}`)).toBe(true);
+    const stored = JSON.parse(localStorage.getItem('3dg:agent:remote')!).tokens;
+    expect(stored).toMatchObject({ access: TOK2, refresh: 'ref-2' });
+    expect(stored.expires).toBeGreaterThan(Date.now() + 3_500_000);
   });
 
   it('stops for good when signed out', async () => {

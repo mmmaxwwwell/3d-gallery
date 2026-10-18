@@ -32,6 +32,10 @@ export const DEFAULT_CONFIG: RemoteConfig = {
 };
 
 interface Tokens {
+  /**
+   * The OIDC ID token: carme's oauth2-proxy checks a bearer as an ID token of a
+   * kanidm client it trusts (homelab modules/runner-portal), as for runner-cli.
+   */
   access: string;
   refresh: string | null;
   /** ms since epoch. */
@@ -121,7 +125,8 @@ export async function startSignIn(config: RemoteConfig = DEFAULT_CONFIG): Promis
   url.searchParams.set('response_type', 'code');
   url.searchParams.set('client_id', config.clientId);
   url.searchParams.set('redirect_uri', redirectUri());
-  url.searchParams.set('scope', 'openid');
+  // groups: the edge admits the bearer only for members of runner.<domain>'s gate groups.
+  url.searchParams.set('scope', 'openid profile groups');
   url.searchParams.set('state', state);
   url.searchParams.set('code_challenge', challenge);
   url.searchParams.set('code_challenge_method', 'S256');
@@ -135,12 +140,19 @@ async function tokenRequest(config: RemoteConfig, form: Record<string, string>, 
     body: new URLSearchParams({ client_id: config.clientId, ...form }),
   });
   if (!res.ok) throw new Error(`kanidm refused the sign-in (${res.status}): ${(await res.text()).slice(0, 200)}`);
-  const body = (await res.json()) as { access_token: string; refresh_token?: string; expires_in?: number };
-  return {
-    access: body.access_token,
-    refresh: body.refresh_token ?? null,
-    expires: Date.now() + (body.expires_in ?? 300) * 1000,
-  };
+  const body = (await res.json()) as { id_token?: string; refresh_token?: string };
+  if (!body.id_token) throw new Error('kanidm sent no ID token; is the client asked for "openid"?');
+  return { access: body.id_token, refresh: body.refresh_token ?? null, expires: jwtExpiry(body.id_token) };
+}
+
+/** A JWT's exp, ms since epoch; now when it can't be read (so it's refreshed at once). */
+function jwtExpiry(jwt: string): number {
+  try {
+    const payload = JSON.parse(atob(jwt.split('.')[1]!.replace(/-/g, '+').replace(/_/g, '/'))) as { exp?: number };
+    return (payload.exp ?? 0) * 1000;
+  } catch {
+    return Date.now();
+  }
 }
 
 /**
