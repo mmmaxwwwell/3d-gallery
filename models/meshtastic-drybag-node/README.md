@@ -20,7 +20,7 @@ The cell crosses the antenna at right angles, below its feed, and every board's 
 ## How it seals
 
 - **Tongue in a groove:** the door has a tongue running round its back. It's 2.2 mm wide, and it goes into a 1.6 mm groove round the TPU body's rim. The TPU either side of the groove flexes out and grips the tongue from both sides, so the seal doesn't depend on how hard the screws are tightened. The tongue's tip is narrower than the groove, so it leads itself in, and it stops short of the groove's floor.
-- **Screws:** ten M5 × 10 screws, in ears outside the seal, thread straight into the TPU. They only hold the door on; water reaching a screw is outside the seal.
+- **Screws:** twelve M5 × 10 screws thread straight into the TPU, in ears outside the seal. They only hold the door on; water reaching a screw is outside the seal. Each ear flares into the wall instead of standing off it, for plenty of TPU round each screw. There's a pair either side of every corner, sharing one solid corner block, plus two along the top and two along the bottom.
 - **Antenna:** the bulkhead's own O-ring seals the roof.
 - **Solar:** your 5/8" watertight connector seals the end wall.
 
@@ -39,7 +39,7 @@ With the box sealed, the dry bag is optional. It's still a cheap outer layer ove
 3. Push the bulkhead up through the roof from inside and tighten its nut on top. Clip the U.FL on.
 4. Fit the solar connector in the right end wall and wire it to the charge board's input.
 5. Drop the boards into their pockets on foam tape.
-6. Press the door on, so the tongue goes into the groove all the way round, and drive the ten screws.
+6. Press the door on, so the tongue goes into the groove all the way round, and drive the twelve screws.
 7. Screw the antenna on and zip-tie it to the stem.
 
 ## Wiring
@@ -71,4 +71,4 @@ Every bought part has its Amazon link in the parts list:
 - 5 V 3 W solar panel
 - Zanhour 2 L dry bag (optional)
 
-Plus your 5/8" watertight connector, ten M5 × 10 screws, two zip ties, and foam tape.
+Plus your 5/8" watertight connector, twelve M5 × 10 screws, two zip ties, and foam tape.

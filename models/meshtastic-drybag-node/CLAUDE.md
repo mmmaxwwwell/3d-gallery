@@ -26,7 +26,11 @@ How the user's layout got here:
   - The door's tongue is `tongue_w`, 0.3 mm a side wider than the groove, and stops short of the groove's floor.
   - The TPU walls either side flex out and grip it. That's where the seal is, so it doesn't depend on screw force.
   - The tip starts narrower than the groove and widens over `tongue_lead` in steps, so it leads itself in.
-- **Screws are outside the seal**, in ears (`ear_out`, `ear_r`) that run the box's full depth: four along the top, four along the bottom, one mid-height in each end. M5 × 10 thread straight into `m5_pilot_d` pilots in the TPU. `pilot_depth` comes from the screw length and `cover_t`. The heads sit on the door; the user gave no head type, so there are no counterbores.
+- **Screws are outside the seal**, in ears. M5 × 10 thread straight into `m5_pilot_d` pilots in the TPU.
+  - **Placement:** a pair sits either side of every corner, where its curve starts. The user asked for them "immediately on both sides of every corner". Two more go along the top and two along the bottom (`screw_xs`). `ear_groups` holds them, and each corner pair shares one ear.
+  - **Shape:** each ear is its boss (`ear_r`, centre `ear_out` past the wall) hulled into an `ear_base`-wide strip on the wall, so it blends in. The user said the round ears were "too round", and asked for more meat round each screw.
+  - **Depth:** ears run `ear_len` back from the front, then taper into the wall at 45° (their underside as the body prints).
+  - The solar connector sits low in its wall (`solar_y`) so its nut clears those tapers (asserted). `pilot_depth` comes from the screw length and `cover_t`. The heads sit on the door; the user gave no head type, so there are no counterbores.
 - **One door over the battery and the electronics.** The cell drops into a half-round seat from the front, and ribs on the door (`cell_rib_xs`) hold it. The cell's leads go up through `lead_x`, a hole in the shelf beside the protection board. The shelf is an internal floor and isn't sealed.
 - **Boards lie flat in pockets** on the shelf, perpendicular to the antenna, dropped in from above and held with foam tape:
   - left: the protection board (`bms_*`), lying along the cell
@@ -34,7 +38,7 @@ How the user's layout got here:
   - The middle (`mid_gap`) is clear for the jack's body.
   - The front rim's underside is chamfered 45°.
 - **Bulkhead through the roof.** The roof is relieved from inside to `bulkhead_wall_t` (4 mm, user confirmed) round `n_body_d`. The jack's O-ring seals on the relief's floor, and the panel nut is on top.
-- **Solar:** the user's own 5/8" watertight connector, in a plain round `solar_hole_d` through the right end wall, as the user asked.
+- **Solar:** the user's own 5/8" watertight connector, in a plain round `solar_hole_d` through the right end wall, as the user asked. `solar_nut_d` (not measured) is its outside nut or flange.
 - **The stem is short** (`stem_len` 26, the user asked for about 1/3 of the earlier 70). It has a saddle in the middle and a pair of zip-tie slots below and above it (`tie_zs`).
 - **The back plate slopes** straight from the box's top corners in to the stem's top.
 - **`stem_rib()`** is a quarter-round fillet (`rib_r`) along the foot of the plate where it meets the roof, notched round the bulkhead's nut and the antenna (`rib_notch`). The user asked for "a rounded rib there to add strength".

@@ -6,7 +6,7 @@
 // the power-bank board on the right. The N bulkhead clamps through the roof
 // on its panel nut, and the antenna stands up from it, zip-tied to the stem.
 // The door seals with a tongue round its back that's wider than the groove
-// round the body's rim, so the TPU grips it from the sides. Ten M5 x 10
+// round the body's rim, so the TPU grips it from the sides. Twelve M5 x 10
 // screws, outside the seal in ears, thread straight into the TPU and only
 // hold the door on. The solar cable comes in through the user's 5/8"
 // watertight connector in the right end wall.
@@ -43,11 +43,15 @@ tongue_lead = 0.8;
 screw_len = 10;
 m5_clear_d = 5.5;
 m5_pilot_d = 4.2;
-// Each screw is in an ear outside the wall: how far out its centre is, and the ear's radius
-ear_out = 3;
-ear_r = 5.5;
-// Screws along the top and bottom, at these x; one more mid-height in each end
-screw_xs = [-70, -30, 30, 70];
+// Each screw is in an ear outside the wall: how far out its centre is, the
+// boss's radius, and how wide the ear blends into the wall
+ear_out = 3.5;
+ear_r = 6.5;
+ear_base = 26;
+// How deep the ears run back from the front; below that they taper into the wall at 45°
+ear_len = 12;
+// A screw either side of every corner, plus these along the top and the bottom
+screw_xs = [-30, 30];
 // Cell leads up through the shelf to the protection board, outboard of it
 lead_d = 6;
 // N female bulkhead: 5/8-24 UNEF thread, 3/4" hex panel nut
@@ -72,6 +76,8 @@ stem_len = 26;
 rib_r = 8;
 // The user's 5/8" watertight connector for the solar panel, through the right end wall
 solar_hole_d = 15.875 + 0.4;
+// and the nut or flange round it outside (not measured)
+solar_nut_d = 22;
 // Power-bank charge board, measured off a photo against the cell: along
 // the cell (its USB ports face the right end), out from the plate, and its
 // tallest part above the shelf (not measured)
@@ -127,10 +133,16 @@ inner_half = max(board_x1 + rim_w, -lead_x + lead_d / 2 + 1, cell_len / 2 + end_
 bar_half = inner_half + wall;
 
 seal_inset = wall / 2;
-screw_points = concat(
-  [for (x = screw_xs) [x, -ear_out]],
-  [for (x = screw_xs) [x, box_h + ear_out]],
-  [[-bar_half - ear_out, box_h / 2], [bar_half + ear_out, box_h / 2]]);
+// Screws as [centre, outward normal], in groups that share one ear: a pair
+// either side of each corner, where its curve starts, then the singles.
+corner_x = bar_half - box_corner_r;
+ear_groups = concat(
+  [for (sx = [-1, 1], top = [false, true])
+    [[[sx * corner_x, top ? box_h + ear_out : -ear_out], [0, top ? 1 : -1]],
+     [[sx * (bar_half + ear_out), top ? box_h - box_corner_r : box_corner_r], [sx, 0]]]],
+  [for (x = screw_xs, top = [false, true]) [[[x, top ? box_h + ear_out : -ear_out], [0, top ? 1 : -1]]]]);
+screws = [for (g = ear_groups) each g];
+screw_points = [for (e = screws) e[0]];
 pilot_depth = screw_len - cover_t + 1;
 
 n_hole_d = n_thread_d + n_hole_clear;
@@ -138,7 +150,8 @@ nut_r = n_nut_af / sqrt(3);
 antenna_y = plate_t + n_body_d / 2 + 1;
 
 solar_z = (shelf_top + board_t + roof_z) / 2;
-solar_y = (plate_t + front_y) / 2;
+// Low in the wall, so its outer nut clears the ears' tapers.
+solar_y = plate_t + solar_nut_d / 2 + 1;
 
 stem_half = antenna_d / 2 + 0.5 + tie_t + 3;
 stem_top = box_h + stem_len;
@@ -147,12 +160,13 @@ tie_zs = [box_h + tie_w / 2 + 1, stem_top - tie_w / 2 - 2];
 rib_notch = nut_r + 3;
 
 assert(shelf_top + max(board_t, kit_t, bms_t) < roof_z - 2, "boards reach the roof");
-// The locknut sits in the end wall's relief, outboard of the boards, so it only has to clear the shelf and roof.
 assert(solar_z + solar_hole_d / 2 < roof_z && solar_z - solar_hole_d / 2 > shelf_top, "solar connector's hole runs into the shelf or the roof");
 assert(solar_y + solar_hole_d / 2 < front_y - groove_depth && solar_y - solar_hole_d / 2 > plate_t, "solar connector's hole breaks into the groove or the back");
 assert(tongue_w > groove_w && tongue_len < groove_depth, "the tongue must be wider than the groove and stop short of its floor");
 assert((wall - groove_w) / 2 >= 2, "too little TPU either side of the groove");
 assert(ear_out - m5_pilot_d / 2 + seal_inset - groove_w / 2 >= 2.5, "screw pilots too close to the groove");
+assert(solar_y + solar_nut_d / 2 < front_y - ear_len - (ear_out + ear_r), "solar connector's nut hits an ear's taper");
+assert(norm([bar_half + ear_out - corner_x, box_h - box_corner_r - (box_h + ear_out)]) > 2 * m5_pilot_d + 4, "a corner's two screws are too close");
 assert(pilot_depth < front_y - plate_t, "screw pilots run out of the back");
 assert(-bms_x0 + rim_w < inner_half, "protection board runs into the left end wall");
 assert(antenna_y + n_body_d / 2 * sqrt(2) < front_y - 1, "bulkhead relief's peak breaks out of the front");
@@ -192,8 +206,21 @@ module screw_holes_2d(d) {
   for (p = screw_points) translate(p) circle(d = d);
 }
 
+// Where an ear meets the wall: a strip along its outer face.
+module ear_base_2d(e) {
+  translate(e[0] - e[1] * ear_out) rotate(atan2(e[1][1], e[1][0])) translate([-1, -ear_base / 2]) square([1, ear_base]);
+}
+
+// The screw's boss hulled into a wide base on the wall, so it blends in.
+module ear_2d(e) {
+  hull() {
+    translate(e[0]) circle(r = ear_r);
+    ear_base_2d(e);
+  }
+}
+
 module ears_2d() {
-  for (p = screw_points) translate(p) circle(r = ear_r);
+  for (g = ear_groups) hull() for (e = g) ear_2d(e);
 }
 
 // The back plate: the box's outline, then straight slopes from its top
@@ -203,12 +230,18 @@ module plate() {
     offset(corner_r) offset(-corner_r)
       polygon([[-bar_half, 0], [bar_half, 0], [bar_half, box_h],
                [stem_half, stem_top], [-stem_half, stem_top], [-bar_half, box_h]]);
-    ears_2d();
   }
 }
 
+// Each ear runs ear_len back from the front, then tapers into the wall at
+// 45° (as the body prints, its underside), so it needs no support.
 module ears() {
-  xz_extrude(plate_t - 0.01, front_y) ears_2d();
+  taper = ear_out + ear_r;
+  for (g = ear_groups)
+    hull() for (e = g) {
+      xz_extrude(front_y - ear_len, front_y) ear_2d(e);
+      xz_extrude(front_y - ear_len - taper, front_y - ear_len) ear_base_2d(e);
+    }
 }
 
 // Quarter-round fillet in the corner between the plate and the roof's top,
