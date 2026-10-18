@@ -184,6 +184,19 @@ Good to know:
   page talk to a printer over `http://`. To control printers, open the app
   over `http://` on your network, or use the Android app.
 
+## Your assistant
+
+If you run a personal assistant agent (claude-runner), it can use this app
+for you: find a model, set up a project, check a slice and send it, from
+your phone or watch. Open **Settings → Assistant** and press **Connect
+assistant**. You sign in with your own account, and from then on the tabs
+you open in this browser are connected to it. It works only in tabs you've
+connected, and it asks you before it starts a printer or deletes anything.
+**Disconnect** stops it.
+
+Connecting works when the app is open as `http://localhost:5173` or on the
+https site, not from another address.
+
 ## A workflow, start to finish
 
 1. **Set up once.** In Home → Settings, import your OrcaSlicer folder.
