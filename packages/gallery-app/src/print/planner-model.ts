@@ -8,6 +8,8 @@ import type { Schedule, ScheduleJob } from '@3d-gallery/print-toolkit';
 import { flattenPresetForSlicer } from './preset-flatten.js';
 import { plateSignature, type Plate, type SlicedGcode } from './plate-store.js';
 import type { SliceSetup } from './plate-slice.js';
+import type { PrintPreset } from './print-storage.js';
+import type { PlannerSettings } from './fleet-plan.js';
 
 // ── CI estimates ─────────────────────────────────────────
 
@@ -70,6 +72,49 @@ export function plateSlots(plate: Plate): PlateFilament[] {
 /** Material families a plate prints in. More than one needs a printer with an AMS. */
 export function plateFamilies(plate: Plate): string[] {
   return [...new Set(plateSlots(plate).map((f) => materialFamily(f.material)))];
+}
+
+// ── Filament presets ─────────────────────────────────────
+
+export function filamentFamily(preset: PrintPreset): string | undefined {
+  const type = flattenPresetForSlicer(preset)['filament_type']?.split(';')[0];
+  return type ? materialFamily(type) : undefined;
+}
+
+/** A filament preset made for this printer (or a parent of its preset). */
+export function madeFor(filament: PrintPreset, printer: PrintPreset): boolean {
+  const names = new Set([printer.name, ...printer.parents.map((p) => p.name)]);
+  return !!filament.compatiblePrinters?.some((n) => names.has(n));
+}
+
+/** Orca's rule: a filament listing no printers suits all of them. */
+export function compatible(filament: PrintPreset, printer: PrintPreset): boolean {
+  return !filament.compatiblePrinters?.length || madeFor(filament, printer);
+}
+
+/**
+ * The filament preset `family` slices with on `target.printer`: an AMS
+ * printer's own pick, else (on an AMS printer) one made for it, else the
+ * fleet's pick when it suits the printer, else one that does. Without a
+ * printer, the fleet's pick.
+ */
+export function pickFilament(
+  family: string,
+  filaments: PrintPreset[],
+  settings: Pick<PlannerSettings, 'filaments' | 'printerFilaments'>,
+  target?: { printer: PrintPreset; ams: boolean },
+): PrintPreset | undefined {
+  const ofFamily = filaments.filter((f) => filamentFamily(f) === family);
+  const fleetPick = filaments.find((f) => f.id === settings.filaments[family]);
+  if (!target) return fleetPick ?? ofFamily[0];
+  const { printer, ams } = target;
+  const own = ams ? filaments.find((f) => f.id === settings.printerFilaments?.[printer.id]?.[family]) : undefined;
+  if (own) return own;
+  const usable = ofFamily.filter((f) => compatible(f, printer));
+  const made = usable.find((f) => madeFor(f, printer));
+  if (ams && made) return made;
+  if (fleetPick && compatible(fleetPick, printer)) return fleetPick;
+  return made ?? usable[0];
 }
 
 // ── Slices ───────────────────────────────────────────────

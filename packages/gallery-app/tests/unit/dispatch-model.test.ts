@@ -187,6 +187,12 @@ describe('readinessChecks for a Bambu job', () => {
     expect(canStart(checks)).toBe(true);
   });
 
+  it('says when a spool feeding the plate is nearly out', () => {
+    const low = { trays: [{ ...trays[0], remain: 0 }, trays[1]], external: null };
+    expect(amsCheck(needs, low).text).toBe('1: AMS 1 · 1 PLA Basic (0% left) · 2: AMS 2 · 1 PLA Matte (nearest colour)');
+    expect(amsCheck(needs, low).ok).toBe(true);
+  });
+
   it('blocks when no tray holds a filament the plate needs', () => {
     const check = amsCheck([{ slot: 1, type: 'PETG', color: '#000000' }], live.ams);
     expect(check.ok).toBe(false);

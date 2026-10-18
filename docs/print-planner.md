@@ -43,13 +43,20 @@ A project's plates, scheduled across the printer fleet and sent to it.
    free). The slicer reports only its start and end, so the "Slicing now"
    bar runs on the clock against the plate's last slice time, or the median
    slicing rate times its print time (`expectedSliceMs`). Each plate is sliced at its
-   recommended profile, with the filament preset matched to its material.
+   recommended profile, with the filament preset matched to its material:
+   the fleet's pick for that family when it suits the printer (its
+   `compatible_printers` lists none, or names the printer or a parent of its
+   preset), else one that does.
    On a Bambu printer (its preset's `printer_model` is a Bambu Lab one) each
    of the plate's filaments is an AMS slot: the slicer gets the machine
    preset plus one filament preset per slot (`bambuSliceConfig`), the
    printer's own pick for that material, else one made for it, else the
-   fleet's; every volume of the plate's 3MF is set to the slot that prints
-   its colour. Its G-code is never moved or given a preheat.
+   fleet's (`pickFilament`); every volume of the plate's 3MF is set to the
+   slot that prints its colour. Each slot asks for the colour of the AMS
+   tray that will feed it (same family, nearest colour), not the model's
+   design colour, so the file names the spools that are loaded; slicing
+   waits for the AMS to report, and a reload of the AMS re-slices. Its
+   G-code is never moved or given a preheat.
    Bed surface, layer height, preheat and centring are the print dialog's
    last selections. The G-code is kept in IndexedDB (plate store v5,
    `gcode`), keyed by plate and printer, and goes stale when the plate's

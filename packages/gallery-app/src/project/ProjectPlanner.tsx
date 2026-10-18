@@ -22,6 +22,7 @@ import {
   fetchAms,
   fetchPrintStatus,
   isBambuPrinterConfig,
+  matchAmsTrays,
   printerBedFromConfig,
   type AmsState,
   type OperatorBlock,
@@ -77,6 +78,7 @@ import {
   plateNumbers,
   plateSeconds,
   plateSlots,
+  pickFilament,
   readiness,
   scheduleJobs,
   sliceFraction,
@@ -124,11 +126,6 @@ interface Slicing {
 /** The single-printer yardstick: one machine, every plate in turn. */
 const ONE_PRINTER = '__one';
 
-function filamentFamily(preset: PrintPreset): string | undefined {
-  const type = flattenPresetForSlicer(preset)['filament_type']?.split(';')[0];
-  return type ? materialFamily(type) : undefined;
-}
-
 function geometryProblem(g: Geometry | undefined): string | null {
   return g && 'failed' in g ? g.failed : null;
 }
@@ -145,12 +142,6 @@ function filamentSlots(printer: PrintPreset, ams: AmsState | null | undefined): 
   if (!isBambu(printer)) return 1;
   if (!ams) return DEFAULT_AMS_SLOTS;
   return ams.trays.length + (ams.external ? 1 : 0);
-}
-
-/** A filament preset made for this printer (or a parent of its preset). */
-function madeFor(filament: PrintPreset, printer: PrintPreset): boolean {
-  const names = new Set([printer.name, ...printer.parents.map((p) => p.name)]);
-  return !!filament.compatiblePrinters?.some((n) => names.has(n));
 }
 
 const NAMED_COLORS: Record<string, string> = {
@@ -341,17 +332,8 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
     return out;
   }, [geometry, printers, plates, ams, settings.enabled]);
 
-  /** The filament preset `family` slices with: on an AMS printer its own pick,
-   *  else one made for it, else the fleet's. */
-  const filamentFor = (family: string, printer?: PrintPreset): PrintPreset | undefined => {
-    if (printer && isBambu(printer)) {
-      const own = filaments.find((f) => f.id === settings.printerFilaments?.[printer.id]?.[family])
-        ?? filaments.find((f) => filamentFamily(f) === family && madeFor(f, printer));
-      if (own) return own;
-    }
-    return filaments.find((f) => f.id === settings.filaments[family])
-      ?? filaments.find((f) => filamentFamily(f) === family);
-  };
+  const filamentFor = (family: string, printer?: PrintPreset): PrintPreset | undefined =>
+    pickFilament(family, filaments, settings, printer && { printer, ams: isBambu(printer) });
 
   const procFor = (plate: Plate): ProcessSettings => {
     const template = listTemplates().find((t) => t.id === selections.templateId) ?? listTemplates()[0];
@@ -362,17 +344,25 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
   const setupFor = (plate: Plate, printer: PrintPreset): SliceSetup | { problem: string } => {
     let slots: SliceSlot[] | undefined;
     if (isBambu(printer)) {
-      slots = [];
-      for (const f of plateSlots(plate)) {
-        const family = materialFamily(f.material);
-        const filament = filamentFor(family, printer);
-        if (!filament) return { problem: `No ${family} filament preset for ${printer.name} — add the built-in Bambu presets in Settings.` };
+      const wanted = plateSlots(plate).map((f, i) => {
         const named = f.color ? NAMED_COLORS[f.color.toLowerCase()] : undefined;
-        slots.push({ filament, material: family, color: (f.hexes[0] ?? named ?? '#808080').toUpperCase(), colors: f.hexes });
+        return { slot: i + 1, type: materialFamily(f.material), color: (f.hexes[0] ?? named ?? '#808080').toUpperCase(), colors: f.hexes };
+      });
+      // The file asks for the colours of the spools loaded, not the model's
+      // design colours: the proxy matches a tray by its exact colour.
+      const trays = ams[printer.id];
+      const match = trays ? matchAmsTrays(wanted, trays) : null;
+      slots = [];
+      for (const w of wanted) {
+        const filament = filamentFor(w.type, printer);
+        if (!filament) return { problem: `No ${w.type} filament preset for ${printer.name} — add the built-in Bambu presets in Settings.` };
+        const tray = match?.assignments.find((a) => a.slot === w.slot);
+        const color = tray ? tray.trayColor.slice(0, 7).toUpperCase() : w.color;
+        slots.push({ filament, material: w.type, color, colors: w.colors });
       }
     }
     const family = plateMaterial(plate);
-    const filament = slots?.[0].filament ?? filamentFor(family);
+    const filament = slots?.[0].filament ?? filamentFor(family, printer);
     if (!filament) return { problem: `No ${family} filament preset — import one, or pick one under Printers.` };
     return {
       printer,
@@ -398,7 +388,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
       }
     }
     return out;
-  }, [plates, printers, filaments, settings.filaments, settings.printerFilaments]);
+  }, [plates, printers, filaments, settings.filaments, settings.printerFilaments, ams]);
 
   const freshIn = (map: Record<string, SlicedGcode[]>, plate: Plate) =>
     freshSlices(plate, map[plate.id], (printerId) => setupKeys[plate.id]?.[printerId] ?? null);
@@ -548,7 +538,9 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
   // Nor does it slice before every printer has reported: a plan made while
   // they're still loading counts busy printers as free, and would slice
   // plates for printers the settled plan then takes them off.
-  const statusesSettled = enabledPrinters.every((p) => !p.address || (statuses[p.id] !== undefined && statuses[p.id] !== 'loading'));
+  // An AMS printer's slice asks for the colours its trays hold, so it waits for them too.
+  const statusesSettled = enabledPrinters.every((p) => !p.address
+    || (statuses[p.id] !== undefined && statuses[p.id] !== 'loading' && (!isBambu(p) || ams[p.id] !== undefined)));
   useEffect(() => {
     if (busy || !plates || !statusesSettled || printable.some((p) => !geometry[p.id])) return;
     const todo = ordered
@@ -573,7 +565,7 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
         setSlicing(null);
       }
     })();
-  }, [busy, plates, geometry, plan, fresh, sliceFailed, statusesSettled]);
+  }, [busy, plates, geometry, plan, fresh, sliceFailed, statusesSettled, setupKeys]);
 
   // Keep the plan for the screens that don't compute it: the printers' stats and the runbook.
   useEffect(() => {

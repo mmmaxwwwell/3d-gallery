@@ -64,8 +64,10 @@ starts as an unsaved draft; save it to keep it.
   colour, sliced with that printer's own filament presets, and can even mix
   materials. Plates that need several filaments go to the AMS printer
   whenever it's switched on; anywhere else they print in one filament, as
-  before. The printers list shows what each AMS has loaded, and **… on
-  <printer> slices with** picks the filament preset per material for it.
+  before. The plate is sliced for the spools actually loaded: each of its
+  colours asks for the tray of that material nearest in colour. The printers
+  list shows what each AMS has loaded, and **… on <printer> slices with**
+  picks the filament preset per material for it.
 - **Send to printers** hands the plan to the printers and opens
   **Printers**. Uploads start in the background. Nothing prints until you
   start it.
@@ -169,7 +171,8 @@ Good to know:
   Orca's changes and keeps yours on top.
 - **Filament per material.** In the planner settings, choose which filament
   preset to use for each material family (PLA, PETG, TPU…). Plates are sliced
-  with it.
+  with it on every printer it suits; a printer it isn't made for gets one
+  that is. A Bambu printer can have its own pick per material.
 - **Printers must allow the browser in.** Moonraker needs your page's origin
   in `cors_domains`, and a `trusted_clients` entry that covers your phone or
   computer.

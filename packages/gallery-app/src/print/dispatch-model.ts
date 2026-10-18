@@ -4,7 +4,7 @@
 // came of each. No I/O — the dispatch daemon runs it, the screen draws it,
 // and a test can drive it.
 
-import { amsTrayLabel, matchAmsTrays, type AmsFilamentNeed, type AmsState, type HistoryJob, type KlippyState, type PrintStatus } from '@3d-gallery/print-toolkit';
+import { AMS_EXTERNAL, amsTrayLabel, matchAmsTrays, type AmsFilamentNeed, type AmsState, type HistoryJob, type KlippyState, type PrintStatus } from '@3d-gallery/print-toolkit';
 
 /** One plate on one printer's conveyor. */
 export interface DispatchJob {
@@ -344,6 +344,9 @@ export function readinessChecks(
   return checks;
 }
 
+/** A tray at or under this is called out: the AMS reads its spool as nearly empty. */
+const LOW_SPOOL_PCT = 10;
+
 /** Whether the AMS has a tray for every filament the job asks for, and which. */
 export function amsCheck(needs: AmsFilamentNeed[], ams: AmsState | null | undefined): Check {
   if (ams === undefined) return { id: 'ams', ok: null, text: 'AMS: not checked' };
@@ -353,7 +356,11 @@ export function amsCheck(needs: AmsFilamentNeed[], ams: AmsState | null | undefi
   return {
     id: 'ams',
     ok: true,
-    text: match.assignments.map((a) => `${a.slot}: ${amsTrayLabel(a.tray)} ${a.trayName || a.trayColor}${a.exact ? '' : ' (nearest colour)'}`).join(' · '),
+    text: match.assignments.map((a) => {
+      const remain = a.tray === AMS_EXTERNAL ? ams.external?.remain : ams.trays.find((t) => t.slot === a.tray)?.remain;
+      const low = remain !== undefined && remain >= 0 && remain <= LOW_SPOOL_PCT ? ` (${remain}% left)` : '';
+      return `${a.slot}: ${amsTrayLabel(a.tray)} ${a.trayName || a.trayColor}${a.exact ? '' : ' (nearest colour)'}${low}`;
+    }).join(' · '),
   };
 }
 

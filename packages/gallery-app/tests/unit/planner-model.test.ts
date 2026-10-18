@@ -12,6 +12,7 @@ import {
   plateNumbers,
   plateSeconds,
   plateSlots,
+  pickFilament,
   readiness,
   scheduleJobs,
   sliceFraction,
@@ -161,5 +162,39 @@ describe('plate filaments', () => {
     expect(plateSlots(qr)).toHaveLength(2);
     expect(plateFamilies(qr)).toEqual(['PLA']);
     expect(plateFamilies({ ...qr, filaments: [...qr.filaments, { material: 'TPU 95A', hexes: ['#ff0000'] }] })).toEqual(['PLA', 'TPU']);
+  });
+});
+
+describe('pickFilament', () => {
+  const preset = (name: string, type: string, compatiblePrinters?: string[]) => ({
+    id: `filament:${name}`, kind: 'filament' as const, name, raw: { filament_type: [type] }, parents: [],
+    ...(compatiblePrinters ? { compatiblePrinters } : {}), updatedAt: 0,
+  });
+  const printer = (name: string, parent: string) => ({
+    id: `printer:${name}`, kind: 'printer' as const, name, raw: {}, parents: [{ name: parent, raw: {} }], updatedAt: 0,
+  });
+  const fiveM = printer('Left', 'Flashforge Adventurer 5M 0.4 Nozzle');
+  const x1c = printer('X1C', 'Bambu Lab X1 Carbon 0.4 nozzle');
+  const pctgX1c = preset('American Filament PCTG @ BBL1C', 'PCTG', ['Bambu Lab X1 Carbon 0.4 nozzle']);
+  const pctg5m = preset('American Filament PCTG', 'PCTG', ['Flashforge Adventurer 5M 0.4 Nozzle']);
+  const anyPctg = preset('Generic PCTG', 'PCTG');
+  const filaments = [anyPctg, pctg5m, pctgX1c];
+
+  it("keeps the fleet's pick where it suits the printer", () => {
+    const settings = { filaments: { PCTG: pctg5m.id } };
+    expect(pickFilament('PCTG', filaments, settings, { printer: fiveM, ams: false })).toBe(pctg5m);
+    expect(pickFilament('PCTG', filaments, settings)).toBe(pctg5m);
+  });
+
+  it("doesn't hand a printer a filament made for another one", () => {
+    const settings = { filaments: { PCTG: pctgX1c.id } };
+    expect(pickFilament('PCTG', filaments, settings, { printer: fiveM, ams: false })).toBe(pctg5m);
+    expect(pickFilament('PCTG', [anyPctg, pctgX1c], settings, { printer: fiveM, ams: false })).toBe(anyPctg);
+  });
+
+  it('gives an AMS printer its own pick, else one made for it', () => {
+    expect(pickFilament('PCTG', filaments, { filaments: { PCTG: anyPctg.id } }, { printer: x1c, ams: true })).toBe(pctgX1c);
+    const own = { filaments: {}, printerFilaments: { [x1c.id]: { PCTG: anyPctg.id } } };
+    expect(pickFilament('PCTG', filaments, own, { printer: x1c, ams: true })).toBe(anyPctg);
   });
 });
