@@ -77,9 +77,11 @@ const list = (v: string | undefined): string[] | undefined => (v === undefined ?
  */
 function projectSettings(job: BambuPlateJob, gcode: string): Record<string, unknown> {
   const d = String(job.nozzleDiameter);
+  const model = gcodeSetting(gcode, 'printer_model') ?? 'Bambu Lab X1 Carbon';
   const out: Record<string, unknown> = {
-    printer_model: gcodeSetting(gcode, 'printer_model') ?? 'Bambu Lab X1 Carbon',
-    printer_settings_id: job.printerSettingsId ?? gcodeSetting(gcode, 'printer_settings_id') ?? '',
+    printer_model: model,
+    // Bambu's own preset name when nothing better is known (a slice from before it was kept).
+    printer_settings_id: job.printerSettingsId ?? gcodeSetting(gcode, 'printer_settings_id') ?? `${model} ${d} nozzle`,
     printer_variant: gcodeSetting(gcode, 'printer_variant') ?? d,
     nozzle_diameter: list(gcodeSetting(gcode, 'nozzle_diameter')) ?? [d],
     nozzle_type: list(gcodeSetting(gcode, 'nozzle_type')) ?? ['hardened_steel'],

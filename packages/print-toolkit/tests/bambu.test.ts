@@ -101,6 +101,8 @@ describe('packageBambuGcode3mf', () => {
       filament_colour: ['#000000', '#FFFFFF'],
       curr_bed_type: 'Textured PEI Plate',
     });
+    const older = JSON.parse(strFromU8(bambuGcode3mfEntries({ ...job, gcode })['Metadata/project_settings.config']));
+    expect(older.printer_settings_id).toBe('Bambu Lab X1 Carbon 0.4 nozzle');
   });
 
   it('names the plate it carries', () => {
