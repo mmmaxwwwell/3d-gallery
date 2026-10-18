@@ -777,21 +777,23 @@
       "slug": "meshtastic-drybag-node",
       "devOnly": true,
       "title": "Meshtastic Dry-Bag Node",
-      "description": "A flat T-shaped frame for a cheap Meshtastic/MeshCore node that hangs in a tree inside a 2 L dry bag. A 32140 LiFePO4 cell lies across the top in two saddles. Under its middle, the pigtail's N female bulkhead clamps through a wall on its panel nut, with the ALFA AOA-915-5ACM pointing straight down, so the cell crosses the antenna at right angles instead of running alongside it. The boards lie flat on shelves either side of the bulkhead, under the cell, so they're perpendicular to the antenna: the XIAO nRF52840 + Wio-SX1262 kit and the LiFePO4 protection board on the left, the power bank's charge board on the right. Everything is held with zip ties through slots in the plate, and a cord hole above the cell can carry the weight. Prints flat, back face down, no supports. 158 \u00d7 147 \u00d7 55 mm; with the antenna about 280 mm tall. Not yet test-printed.",
+      "description": "A cheap Meshtastic/MeshCore node that stands antenna up inside a 2 L dry bag hoisted into a tree. One flat T-shaped frame carries it all. At the bottom, the 32140 LiFePO4 cell is shut in a housing that takes the knocks: the frame carries one half, and a lid screws over it with four M3 cap screws through its end walls, with the leads coming out at the ends. The boards drop into pockets on the housing's top, flat, so they sit right on the battery and perpendicular to the antenna: the LiFePO4 protection board and the XIAO nRF52840 + Wio-SX1262 kit on the left, and the power bank's charge board on the right. Above them, the pigtail's N female bulkhead clamps through a wall on its panel nut, and the ALFA AOA-915-5ACM stands straight up from it, zip-tied to the frame's stem. Prints without supports: the frame back face down, the lid front face down. Frame 166 \u00d7 138 \u00d7 56 mm; about 272 mm tall with the antenna. Not yet test-printed.",
       "filament": [ { "material": "PETG", "color": "any" } ],
       "previews": [
         { "file": "assembled.3mf", "format": "3mf", "label": "Assembled", "default": true,
           "legend": [
             { "color": "#2f3542", "label": "Frame", "part": "frame.stl" },
+            { "color": "#747d8c", "label": "Battery lid", "part": "battery-lid.stl" },
             { "color": "#7bed9f", "label": "32140 LiFePO4 cell (reference)" },
             { "color": "#57606f", "label": "N bulkhead and AOA-915-5ACM antenna (reference)" },
-            { "color": "#2ed573", "label": "XIAO kit, protection board and charge board (reference)" }
+            { "color": "#2ed573", "label": "Protection board, XIAO kit and charge board (reference)" }
           ],
-          "components": [ { "part": "frame.stl", "qty": 1 } ]
+          "components": [ { "part": "frame.stl", "qty": 1 }, { "part": "battery-lid.stl", "qty": 1 } ]
         }
       ],
       "parts": [
-        { "file": "frame.stl", "format": "stl", "label": "Frame \u2014 print back face down" }
+        { "file": "frame.stl", "format": "stl", "label": "Frame \u2014 print back face down" },
+        { "file": "battery-lid.stl", "format": "stl", "label": "Battery lid \u2014 print front face down" }
       ],
       "hardware": [
         { "qty": 1, "label": "Kingboss 15000 mAh LiFePO4 power bank \u2014 taken apart for its 32140 cell (3.2 V 15 Ah) and its charge board",
@@ -808,7 +810,9 @@
           "source": { "url": "https://www.amazon.com/dp/B0H93K5QL8", "vendor": "Amazon" } },
         { "qty": 1, "label": "Zanhour 2 L roll-top dry bag \u2014 holds the whole node",
           "source": { "url": "https://www.amazon.com/dp/B0CBH9ZWVL", "vendor": "Amazon" } },
-        { "qty": 6, "label": "Zip tie, 3.6 mm wide, 150 mm \u2014 cell (2), antenna (1), each of the three boards (1 each)", "usedBy": [ { "part": "frame.stl", "each": 6 } ] }
+        { "qty": 4, "label": "M3x16 socket head cap screw \u2014 battery lid onto the frame", "usedBy": [ { "part": "battery-lid.stl", "each": 4 } ] },
+        { "qty": 1, "label": "Zip tie, 3.6 mm wide, 150 mm \u2014 antenna to the stem's saddle", "usedBy": [ { "part": "frame.stl", "each": 1 } ] },
+        { "qty": 3, "label": "Double-sided foam tape square \u2014 one under each board in its pocket", "usedBy": [ { "part": "frame.stl", "each": 3 } ] }
       ]
     },
     {

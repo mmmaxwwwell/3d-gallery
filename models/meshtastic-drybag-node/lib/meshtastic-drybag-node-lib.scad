@@ -1,29 +1,44 @@
-// Meshtastic dry-bag node: a flat T-shaped frame. The LiFePO4 cell lies
-// across the top, the N bulkhead hangs under its middle with the antenna
-// pointing down, and the boards lie flat on shelves either side of the
-// bulkhead, under the cell, so they're perpendicular to the antenna: the
-// XIAO kit and the LiFePO4 protection board on the left, the power-bank board
-// on the right. Everything is zip-tied.
+// Meshtastic dry-bag node: a flat T-shaped frame, antenna up. The LiFePO4
+// cell lies across the bottom, shut in a housing (the frame's half and a
+// lid screwed onto it) that takes the knocks. The boards lie flat in pockets
+// on the housing's top, dropped in from above, so they're perpendicular to
+// the antenna: the LiFePO4 protection board and the XIAO kit on the left,
+// the power-bank board on the right. Above them the N bulkhead clamps
+// through a wall on its panel nut, and the antenna stands up from it.
 //
 // Use frame: X along the cell, Z up as it hangs, Y out of the front face.
-// z = 0 is the underside of the bulkhead wall, where its panel nut seats.
-// The frame prints back face down (frame_print()).
+// z = 0 is the housing's bottom. The frame prints back face down
+// (frame_print()); the lid prints front face down (battery_lid_print()).
 
 // BEGIN_PARAMS
 // 32140 LiFePO4 cell
 cell_d = 32;
 cell_len = 140;
-// Gap round the cell in its saddles
+// Gap round the cell in its housing
 cell_clear = 0.4;
+// Room past each end of the cell for its welded tab and lead
+end_clear = 3;
 // Back plate thickness
 plate_t = 3;
+// Housing wall round the cell (the back plate is its back)
+housing_wall = 3;
+// Housing's end walls, which carry the lid's screws
+end_wall = 10;
+// Lid's M3 cap screws: length under the head, and how much of it threads into the frame
+lid_screw_len = 16;
+lid_screw_thread = 8;
+m3_clear_d = 3.4;
+m3_pilot_d = 2.5;
+m3_head_d = 6.2;
+// Cell leads out through the end walls, along the joint, between the screws
+lead_d = 6;
 // N female bulkhead: 5/8-24 UNEF thread, 3/4" hex panel nut
 n_thread_d = 15.9;
 n_hole_clear = 0.5;
 n_nut_af = 19.05;
 // Wall the bulkhead clamps through. Thin, so the panel nut leaves the antenna enough thread (user confirmed 4 mm)
 bulkhead_wall_t = 4;
-// Room between the wall and the cell for the jack's body and the coax's bend (not measured)
+// Room between the boards' shelf and the bulkhead wall, for the boards and for the jack's body and the coax's bend (not measured)
 rear_gap = 22;
 // Antenna radome
 antenna_d = 22;
@@ -31,7 +46,7 @@ antenna_len = 180;
 // Its N male coupling nut
 antenna_nut_d = 21.5;
 antenna_nut_len = 20;
-// How far the frame's stem runs down the antenna from the bulkhead wall
+// How far the frame's stem runs up the antenna from the bulkhead wall
 stem_len = 70;
 // Power-bank charge board, measured off a photo against the cell: along
 // the cell (its USB ports face the crossbar's end), out from the plate,
@@ -47,21 +62,36 @@ kit_t = 12;
 bms_w = 25;
 bms_d = 50;
 bms_t = 4;
-// Space between the boards and the bulkhead wall
+// Space between the boards and the middle, where the jack's body comes down
 board_gap = 4;
-// Shelves the boards lie on, either side of the bulkhead wall
+// Shelf on the housing's top that the boards lie on
 shelf_t = 3;
-// Saddles under the cell and the antenna
+// Pocket round each board: clearance, and the rim's width and height
+pocket_clear = 0.5;
+rim_w = 2;
+rim_h = 3;
+// Saddle and zip tie at the top of the stem, round the antenna
 saddle_w = 6;
-saddle_inset = 18;
-// Zip-tie slots, for 3.6 mm ties
 tie_w = 4.5;
 tie_t = 2;
-// Cord hole above the cell
-hang_d = 6;
-hang_tab = 12;
 corner_r = 4;
 // END_PARAMS
+
+cell_r = cell_d / 2 + cell_clear;
+cell_y = plate_t + cell_r;
+cell_z = housing_wall + cell_r;
+cavity_half_x = cell_len / 2 + end_clear;
+housing_half_x = cavity_half_x + end_wall;
+housing_top = cell_z + cell_r + housing_wall;
+lid_front_y = cell_y + cell_r + housing_wall;
+lid_t = lid_front_y - cell_y;
+lid_screw_x = cavity_half_x + end_wall / 2;
+lid_screw_dz = cell_r - m3_head_d / 2;
+lid_counterbore = lid_t - (lid_screw_len - lid_screw_thread);
+// At the centreline, between the lid's screws.
+lead_z = cell_z;
+
+shelf_top = housing_top + shelf_t;
 
 n_hole_d = n_thread_d + n_hole_clear;
 // The nut's corners swing through this as it's tightened.
@@ -69,32 +99,31 @@ nut_r = n_nut_af / sqrt(3);
 wall_half_x = nut_r + 3;
 antenna_y = plate_t + max(nut_r, antenna_nut_d / 2) + 1;
 wall_top_y = antenna_y + nut_r + 3;
+wall_z = shelf_top + rear_gap;
 
-cell_r = cell_d / 2 + cell_clear;
-cell_y = plate_t + cell_r;
-cell_z = bulkhead_wall_t + rear_gap + cell_r;
-saddle_x = cell_len / 2 - saddle_inset;
-
+// Pocket interiors, inboard edge first: x0 < x1 either way.
 kit_x1 = -(wall_half_x + board_gap);
-kit_x0 = kit_x1 - kit_w;
-// Room between the kit and the protection board for each one's tie slot.
-bms_x1 = kit_x0 - 2 * (1 + tie_t) - 1;
-bms_x0 = bms_x1 - bms_w;
+kit_x0 = kit_x1 - kit_w - 2 * pocket_clear;
+bms_x1 = kit_x0 - rim_w;
+bms_x0 = bms_x1 - bms_w - 2 * pocket_clear;
 board_x0 = wall_half_x + board_gap;
-board_x1 = board_x0 + board_w;
+board_x1 = board_x0 + board_w + 2 * pocket_clear;
+shelf_d = max(kit_d, bms_d, board_d) + 2 * pocket_clear + rim_w;
 
-bar_bottom = -3;
-bar_half = max(cell_len / 2, -(bms_x0 - 2 - tie_t) + 3, board_x1 + 2 + tie_t + 3);
-bar_top = cell_z + cell_r + tie_t + 4;
+bar_half = max(housing_half_x, -bms_x0 + rim_w, board_x1 + rim_w);
+bar_top = shelf_top + max(kit_t, board_t, bms_t) + 4;
 stem_half = antenna_d / 2 + 2 + tie_t + 3;
-stem_bottom = -stem_len;
-antenna_saddle_z = stem_bottom + 3 + saddle_w / 2;
-antenna_tie_z = antenna_saddle_z + saddle_w / 2 + tie_w / 2 + 2;
+stem_top = wall_z + bulkhead_wall_t + stem_len;
+antenna_saddle_z = stem_top - 3 - saddle_w / 2;
+antenna_tie_z = antenna_saddle_z - saddle_w / 2 - tie_w / 2 - 2;
 
-assert(shelf_t + max(board_t, kit_t, bms_t) < cell_z - cell_r - 2, "boards on their shelves reach the cell");
+assert(shelf_top + max(board_t, kit_t, bms_t) < wall_z - 2, "boards reach the bulkhead wall");
+assert(bar_top < wall_z, "crossbar runs up past the bulkhead wall");
+assert(lid_counterbore > 1 && lid_counterbore < lid_t - 3, "lid screw length doesn't suit the lid's thickness");
+assert(lid_screw_thread < cell_y - 1, "lid screws would break through the back");
+assert(end_wall >= m3_head_d + 2, "end walls too thin for the lid's counterbores");
 assert(antenna_y + n_hole_d / 2 * sqrt(2) < wall_top_y - 1, "bulkhead hole's peak breaks out of the wall");
 assert(antenna_y - antenna_d / 2 > plate_t, "antenna radome hits the back plate");
-assert(saddle_x + saddle_w / 2 <= cell_len / 2, "saddles past the cell's ends");
 
 // Round hole along Z, peaked at 45° toward +Y: up as the frame prints.
 module tear_2d(d) {
@@ -111,36 +140,76 @@ module rounded_rect_xz(x0, x1, z0, z1, r) {
 }
 
 module plate_outline() {
-  union() {
-    rounded_rect_xz(-bar_half, bar_half, bar_bottom, bar_top, corner_r);
-    rounded_rect_xz(-stem_half, stem_half, stem_bottom, bar_bottom + corner_r * 2, corner_r);
-    rounded_rect_xz(-hang_d - 3, hang_d + 3, bar_top - corner_r * 2, bar_top + hang_tab, hang_d);
-  }
+  rounded_rect_xz(-bar_half, bar_half, 0, bar_top, corner_r);
+  rounded_rect_xz(-stem_half, stem_half, bar_top - corner_r * 2, stem_top, corner_r);
   // Fill the inside corners where the stem meets the crossbar.
   for (s = [-1, 1])
     difference() {
-      translate([s > 0 ? stem_half : -stem_half - corner_r, 0, bar_bottom - corner_r])
-        cube([corner_r, plate_t, corner_r]);
-      translate([s * (stem_half + corner_r), -1, bar_bottom - corner_r])
+      translate([s > 0 ? stem_half : -stem_half - corner_r, 0, bar_top]) cube([corner_r, plate_t, corner_r]);
+      translate([s * (stem_half + corner_r), -1, bar_top + corner_r])
         rotate([-90, 0, 0]) cylinder(r = corner_r, h = plate_t + 2);
     }
 }
 
-// Slot through the plate: w along X, h along Z.
-module tie_slot(x, z, w, h) {
-  translate([x - w / 2, -1, z - h / 2]) cube([w, plate_t + 2, h]);
+module cell_cavity() {
+  translate([0, cell_y, cell_z]) rotate([0, 90, 0]) cylinder(r = cell_r, h = 2 * cavity_half_x, center = true, $fn = 96);
+  for (s = [-1, 1])
+    translate([s * (cavity_half_x + end_wall / 2), cell_y, lead_z])
+      rotate([0, 90, 0]) cylinder(d = lead_d, h = end_wall + 2, center = true, $fn = 24);
 }
 
-module saddle(len, r, centre_y) {
+module lid_screw_axes() {
+  for (sx = [-1, 1], sz = [-1, 1])
+    translate([sx * lid_screw_x, 0, cell_z + sz * lid_screw_dz]) children();
+}
+
+// The frame's half of the housing: back plate to the joint at the cell's centreline.
+module housing_back() {
   difference() {
-    translate([-len / 2, plate_t - 0.01, -r - 3]) cube([len, centre_y - plate_t, 2 * (r + 3)]);
-    translate([0, centre_y, 0]) rotate([0, 90, 0]) cylinder(r = r, h = len + 2, center = true, $fn = 96);
+    translate([-housing_half_x, plate_t - 0.01, 0]) cube([2 * housing_half_x, cell_y - plate_t + 0.01, housing_top]);
+    cell_cavity();
+    lid_screw_axes() translate([0, cell_y - lid_screw_thread - 1, 0]) rotate([-90, 0, 0]) cylinder(d = m3_pilot_d, h = lid_screw_thread + 2, $fn = 24);
   }
 }
 
-module cell_saddles() {
-  for (s = [-1, 1])
-    translate([s * saddle_x, 0, cell_z]) saddle(saddle_w, cell_r, cell_y);
+module battery_lid() {
+  difference() {
+    translate([-housing_half_x, cell_y, 0]) cube([2 * housing_half_x, lid_t, housing_top - 0.3]);
+    cell_cavity();
+    lid_screw_axes() {
+      translate([0, cell_y - 1, 0]) rotate([-90, 0, 0]) cylinder(d = m3_clear_d, h = lid_t + 2, $fn = 24);
+      translate([0, lid_front_y - lid_counterbore, 0]) rotate([-90, 0, 0]) cylinder(d = m3_head_d, h = lid_counterbore + 1, $fn = 32);
+    }
+  }
+}
+
+// Front rim, its underside chamfered 45° so it prints.
+module front_rim(x0, x1, y) {
+  hull() {
+    translate([x0, y - rim_w, shelf_top - 0.01]) cube([x1 - x0, rim_w, rim_h]);
+    translate([x0, y - rim_w - rim_h, shelf_top - 0.01]) cube([x1 - x0, 0.01, 0.01]);
+  }
+}
+
+module pocket_rims(x0, x1, depth) {
+  front = plate_t + depth + 2 * pocket_clear + rim_w;
+  for (x = [x0 - rim_w, x1])
+    translate([x, plate_t - 0.01, shelf_top - 0.01]) cube([rim_w, front - plate_t, rim_h]);
+  front_rim(x0 - rim_w, x1 + rim_w, front);
+}
+
+module shelf() {
+  translate([-bar_half, plate_t - 0.01, housing_top]) cube([2 * bar_half, shelf_d + 0.01, shelf_t]);
+  pocket_rims(kit_x0, kit_x1, kit_d);
+  pocket_rims(bms_x0, bms_x1, bms_d);
+  pocket_rims(board_x0, board_x1, board_d);
+}
+
+module bulkhead_wall() {
+  difference() {
+    translate([-wall_half_x, plate_t - 0.01, wall_z]) cube([2 * wall_half_x, wall_top_y - plate_t, bulkhead_wall_t]);
+    translate([0, antenna_y, wall_z - 1]) linear_extrude(bulkhead_wall_t + 2) tear_2d(n_hole_d);
+  }
 }
 
 module antenna_saddle() {
@@ -152,49 +221,28 @@ module antenna_saddle() {
   }
 }
 
-module bulkhead_wall() {
-  difference() {
-    translate([-wall_half_x, plate_t - 0.01, 0]) cube([2 * wall_half_x, wall_top_y - plate_t, bulkhead_wall_t]);
-    translate([0, antenna_y, -1]) linear_extrude(bulkhead_wall_t + 2) tear_2d(n_hole_d);
-  }
-}
-
-module shelf(x0, x1, depth) {
-  translate([x0 - tie_t - 3, plate_t - 0.01, 0]) cube([x1 - x0 + 2 * tie_t + 6, depth + 2, shelf_t]);
-}
-
-// Slot through a shelf, for a tie across the board's top.
-module shelf_slot(x, y) {
-  translate([x - tie_t / 2, y - tie_w / 2, -1]) cube([tie_t, tie_w, shelf_t + 2]);
-}
-
 module frame() {
   difference() {
     union() {
       plate_outline();
-      cell_saddles();
+      housing_back();
+      shelf();
       bulkhead_wall();
       antenna_saddle();
-      shelf(bms_x0, kit_x1, max(kit_d, bms_d));
-      shelf(board_x0, board_x1, board_d);
     }
-    for (s = [-1, 1], side = [-1, 1])
-      tie_slot(s * (saddle_x - saddle_w / 2 - tie_w / 2 - 1), cell_z + side * (cell_r + tie_t / 2 + 0.5), tie_w, tie_t);
+    cell_cavity();
     for (side = [-1, 1])
-      tie_slot(side * (antenna_d / 2 + 1 + tie_t / 2), antenna_tie_z, tie_t, tie_w);
-    for (x = [kit_x0 - 1 - tie_t / 2, kit_x1 + 1 + tie_t / 2])
-      shelf_slot(x, plate_t + kit_d / 2);
-    for (x = [bms_x0 - 1 - tie_t / 2, bms_x1 + 1 + tie_t / 2])
-      shelf_slot(x, plate_t + bms_d / 2);
-    for (x = [board_x0 - 1 - tie_t / 2, board_x1 + 1 + tie_t / 2])
-      shelf_slot(x, plate_t + board_d / 2);
-    translate([0, -1, bar_top + hang_tab - hang_d])
-      rotate([-90, 0, 0]) cylinder(d = hang_d, h = plate_t + 2);
+      translate([side * (antenna_d / 2 + 1 + tie_t / 2) - tie_t / 2, -1, antenna_tie_z - tie_w / 2])
+        cube([tie_t, plate_t + 2, tie_w]);
   }
 }
 
 module frame_print() {
   rotate([90, 0, 0]) frame();
+}
+
+module battery_lid_print() {
+  translate([0, 0, lid_front_y]) rotate([-90, 0, 0]) battery_lid();
 }
 
 // Reference hardware, not printed.
@@ -203,16 +251,16 @@ module cell() {
 }
 
 module antenna() {
-  translate([0, antenna_y, 0]) {
-    translate([0, 0, -4]) cylinder(r = nut_r, h = 4, $fn = 6);
-    translate([0, 0, -4 - antenna_nut_len]) cylinder(d = antenna_nut_d, h = antenna_nut_len, $fn = 48);
-    translate([0, 0, -4 - antenna_nut_len - antenna_len]) cylinder(d = antenna_d, h = antenna_len, $fn = 48);
-    translate([0, 0, bulkhead_wall_t]) cylinder(r = nut_r, h = 15, $fn = 6);
+  translate([0, antenna_y, wall_z + bulkhead_wall_t]) {
+    cylinder(r = nut_r, h = 4, $fn = 6);
+    translate([0, 0, 4]) cylinder(d = antenna_nut_d, h = antenna_nut_len, $fn = 48);
+    translate([0, 0, 4 + antenna_nut_len]) cylinder(d = antenna_d, h = antenna_len, $fn = 48);
   }
+  translate([0, antenna_y, wall_z - 15]) cylinder(r = nut_r, h = 15, $fn = 6);
 }
 
 module boards() {
-  translate([board_x0, plate_t, shelf_t]) cube([board_w, board_d, 1.6]);
-  translate([kit_x0, plate_t, shelf_t]) cube([kit_w, kit_d, kit_t]);
-  translate([bms_x0, plate_t, shelf_t]) cube([bms_w, bms_d, bms_t]);
+  translate([board_x0 + pocket_clear, plate_t + pocket_clear, shelf_top]) cube([board_w, board_d, 1.6]);
+  translate([kit_x0 + pocket_clear, plate_t + pocket_clear, shelf_top]) cube([kit_w, kit_d, kit_t]);
+  translate([bms_x0 + pocket_clear, plate_t + pocket_clear, shelf_top]) cube([bms_w, bms_d, bms_t]);
 }
