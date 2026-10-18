@@ -49,11 +49,11 @@ tab_lift = 3;
 back_edge_extra = 7;
 // The +x guard's outer top corner is cut off at 45°, this far along each leg
 guard_chamfer = 10;
-// A loop for a cord, just outside the case's -x side off the last tab's
-// straight-down end, hole upright: hole diameter, wall, and height
+// A loop for a cord in the -x back corner, joining the last tab's wrapped end
+// to the cut-down wall below it, hole upright: hole diameter, and the wall
+// round it
 cord_loop_hole = 4;
 cord_loop_wall = 2;
-cord_loop_height = 4;
 // The slits either side of the tab: how far down from the back wall's top
 slit_length = 20;
 // and how wide
@@ -465,8 +465,7 @@ module walls() {
         // the ball rolling that side's full-height wall spills over the slit
         // and leaves a lip; the ball rolls that side back out to the slit.
         big = 4 * radio_width;
-        // It drops a little further, so the cord loop's arm clears it.
-        translate([-big + slit_x(tabs) + slit_width / 2 + e - 0.1, 0, slit_bottom_z - cord_loop_gap - e + 0.1]) cube(big);
+        translate([-big + slit_x(tabs) + slit_width / 2 + e - 0.1, 0, slit_bottom_z - e + 0.1]) cube(big);
       }
     }
     sphere(r = e - 0.1);
@@ -586,36 +585,40 @@ module drain_holes() {
 }
 
 // The tabs go on after the pocket is cut, since their bends reach into it.
-// The cord loop: an upright ring just outside the case's -x side, on an arm
-// off the last tab's tongue. The arm starts on the tongue just above the
-// slit's bottom, so it flexes with the tab and every layer under it prints
-// on something, and its underside rises 45° out to the ring; that's what sets
-// how high the ring sits beside the tab's curve.
-cord_loop_od = cord_loop_hole + 2 * cord_loop_wall;
-cord_loop_x = -(radio_width / 2 + tolerance + wall + cord_loop_od / 2);
-cord_loop_y = radio_thickness / 2 + tolerance + wall / 2;
-cord_loop_root_x = slit_x(tabs) + slit_width / 2 + 2;
-cord_loop_root_z = slit_bottom_z + 2;
-cord_loop_z = cord_loop_root_z + cord_loop_root_x - (cord_loop_x - cord_loop_od / 2);
-// The wall outside the last slit drops this far below the slit's bottom, so
-// the arm clears it.
-cord_loop_gap = 3;
+// The cord loop fills the corner outside the last slit, from the cut-down
+// wall up to the underside of the last tab's wrapped end, across from the
+// slit to the case's side, so it's on both the tab and the case (the user's
+// call; that tab's outer end no longer springs). It reaches back behind the
+// back wall far enough for an upright hole that drops clear past the corner.
+// Its foot is only the strip of flat back wall beside the slit (round the
+// corner the wall turns in, away from it); its back and outer faces lean out
+// from there no more than 45° as they rise.
+cord_loop_x0 = slit_x(tabs) - slit_width / 2;
+cord_loop_x1 = -(radio_width / 2 + tolerance + wall);
+cord_loop_yi = radio_thickness / 2 + tolerance;
+cord_loop_yo = cord_loop_yi + wall;
+cord_loop_hole_y = cord_loop_yo + 0.5 + cord_loop_hole / 2;
+cord_loop_back = cord_loop_hole_y + cord_loop_hole / 2 + cord_loop_wall;
+cord_loop_bottom = slit_bottom_z;
+cord_loop_top = back_corner_z(-1) + 1;
+cord_loop_foot = 1.5;
 assert(tab_wrap == 90, "the cord loop needs the last tab to wrap round to upright");
+assert(norm([cord_loop_back - cord_loop_yo, cord_loop_x0 - cord_loop_foot - cord_loop_x1]) <= cord_loop_top - cord_loop_bottom, "cord loop's faces lean out more than 45°");
 
 module cord_loop() {
   r = 1;
   difference() {
     minkowski() {
       hull() {
-        translate([cord_loop_x, cord_loop_y, cord_loop_z + r]) cylinder(d = cord_loop_od - 2 * r, h = cord_loop_height - 2 * r);
-        translate([cord_loop_root_x, cord_loop_y - wall / 2 + r, cord_loop_root_z + r])
-          cube([0.01, wall - 2 * r, cord_loop_z + cord_loop_height - cord_loop_root_z - 2 * r]);
+        translate([cord_loop_x0 - cord_loop_foot + r, cord_loop_yi + r, cord_loop_bottom + r])
+          cube([cord_loop_foot - 2 * r + 0.01, wall - 2 * r, 0.01]);
+        translate([cord_loop_x1 + r, cord_loop_yi + r, cord_loop_top - r])
+          cube([cord_loop_x0 - cord_loop_x1 - 2 * r, cord_loop_back - cord_loop_yi - 2 * r, 0.01]);
       }
       sphere(r = r, $fn = 16);
     }
-    translate([cord_loop_x, cord_loop_y, cord_loop_z - 1]) cylinder(d = cord_loop_hole, h = cord_loop_height + 2);
-    // The arm under the ring is solid, so the hole runs on down through it.
-    translate([cord_loop_x, cord_loop_y, cord_loop_root_z - 1]) cylinder(d = cord_loop_hole, h = cord_loop_z - cord_loop_root_z + 2);
+    translate([(cord_loop_x0 + cord_loop_x1) / 2, cord_loop_hole_y, cord_loop_bottom - 10])
+      cylinder(d = cord_loop_hole, h = cord_loop_top - cord_loop_bottom + 20);
   }
 }
 
