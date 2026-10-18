@@ -1,3 +1,3 @@
 include <../lib/meshtastic-drybag-node-lib.scad>;
 $fn = 40;
-panel_rib_print();
+panel_plate_print();

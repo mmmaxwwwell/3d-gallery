@@ -184,11 +184,12 @@ cage_gap = 1;
 slot_clear = 0.3;
 // Linking bars: width (along the ring) and thickness (across it), and
 // their angles round each reel (right reel; the left mirrors it). The
-// cradle's corners come first: its outer top corner (0°, at the axle),
-// outer bottom corner (-40°), then inner bottom (-140°).
+// cradle's corners come first: its outer top corner (0°, at the axle) and
+// outer bottom corner (-40°). Under each reel, the panel plate is the
+// bottom crossmember.
 xbar_w = 16;
 xbar_t = 8;
-xbar_angles = [0, -40, -140];
+xbar_angles = [0, -40];
 // Dovetail on every bar's ends: its depth into the plate, its width at the
 // shoulder and at the tip, and its clearance in the plate's socket
 dv_depth = 3.5;
@@ -198,22 +199,26 @@ dv_clear = 0.25;
 // Where the back plate screws to the box's back: into the solid strips
 // above and below the cell, at these x
 front_screw_xs = [-20, 20];
-// Solar panel (5 V 3 W, not measured): its size, tilt (facing back and up),
-// and how much of it sticks out behind the outside plate (the user's 3/4)
+// Solar panel (5 V 3 W, not measured): its size and tilt (facing back and
+// up), and how far behind the outside plate its top edge sits. It's set
+// back to balance the box's weight on the other side of the reels.
 panel_w = 145;
 panel_h = 120;
 panel_t = 3;
 panel_tilt = 45;
-panel_out = 0.75;
-// Panel ribs: their members' width, how far the panel's top edge sits back
-// from where the slope meets the top member, and the lugs either side of the
-// outside plate's bottom bar
-pr_t = 12;
-pr_e = 4;
-pr_lug = 5;
-// Panel frame: border round the panel, its lip over the panel's face
-frame_border = 6;
-frame_lip = 4;
+panel_back = 4;
+// Panel plates, one just outside each of the panel's side edges: each fits
+// the rectangle under its reel (doubling as the reel's bottom crossmember),
+// comes out behind with a top member and a diagonal crossmember, and has
+// the panel's groove cut in it. Their members' width, the rectangle's
+// depth, how deep the panel's edge sits in each groove, the material either
+// side of the panel along the groove, and the lugs either side of the
+// outside plate's bottom bar.
+pp_t = 12;
+pp_sq_h = 20;
+pp_groove = 4;
+pp_band = 8;
+pp_lug = 5;
 // Battery straps: two PCTG caps over the cell's front, each screwed into the
 // solid strips above and below the cell at both ends. Their x, width, the
 // cap's thickness over the cell, the tabs' thickness, and the strips' height
@@ -316,12 +321,9 @@ antenna_saddle_z = box_h + stem_len / 2;
 tie_zs = [box_h + tie_w / 2 + 1, stem_top - tie_w / 2 - 2];
 rib_notch = nut_r + 3;
 
-// Panel: it lies on the panel ribs' slopes, its top edge (1 - panel_out) of
-// its depth forward of the outside plate.
-panel_half = panel_h / 2 + frame_border;
-frame_half_w = panel_w / 2 + frame_border;
-panel_top_y = rear_y1 + (1 - panel_out) * 2 * panel_half * cos(panel_tilt);
-panel_screw_lys = [panel_half - frame_border / 2, -panel_half + frame_border / 2];
+// Panel plates sit just outside the panel's side edges, its edges in their grooves.
+pp_x0 = panel_w / 2 + 0.5 - pp_groove;
+pp_x1 = pp_x0 + cage_t;
 
 assert(roof_z - n_body_len > boards_top, "the bulkhead's body hangs into the boards");
 assert(max(kit_pocket[2], drv_pocket[2], mcu_pocket[2]) + rim_w < mot_x0 - 1, "boards run into the right motor");
@@ -333,13 +335,13 @@ assert((wall - groove_w) / 2 >= 2, "too little TPU either side of the groove");
 assert(ear_out - m5_pilot_d / 2 + seal_inset - groove_w / 2 >= 2.5, "screw pilots too close to the groove");
 assert(pilot_depth < front_y - plate_t, "door screw pilots run out of the back");
 assert(plate_t + boss_t + mot_d < front_y, "motor doesn't fit the box's depth");
-assert(panel_c[2] - panel_half * sin(panel_tilt) > -60, "panel hangs far below the box");
+assert(pp_bot[1] > -80, "panel hangs far below the box");
 assert(spool_x - spool_od / 2 > 0, "reels overlap across the middle");
 assert(cover_t > under_head && strap_tab_t > under_head && cage_t > under_head, "a part is thinner than the screws' under-head length");
 assert(cage_t >= thread_len, "outside plate too thin for the axles' 8 mm of thread");
 assert(xbar_t >= m5_pilot_d + 3 && xbar_w > dv_w1 + 1, "linking bars too small for their pilots or dovetails");
 assert(ring_r0 < xbar_r - xbar_t / 2 && xbar_r + xbar_t / 2 < ring_r1, "linking bars hang off their rings");
-assert(spool_x + cage_t / 2 < frame_half_w - frame_lip, "panel ribs land outside the panel");
+assert(pp_x1 < spool_x + spool_od / 2 - 2, "panel plates aren't under the reels");
 assert(spool_x - spool_od / 2 > xbar_t / 2 + 1, "the middle bar runs into the reels");
 assert(boss_d / 2 > 11 + m5_pilot_d / 2 + 1 && 11 - m5_pilot_d / 2 > (hub_d - hub_seal) / 2 + 2, "motor-boss screws crowd the hub's seal or the boss's edge");
 assert(antenna_y - antenna_d / 2 > plate_t, "antenna radome hits the back plate");
@@ -573,16 +575,9 @@ module spool() {
 
 module spool_left() { mirror([1, 0, 0]) spool(); }
 
-module panel_frame_2d() {
-  difference() {
-    square([2 * frame_half_w, 2 * panel_half], center = true);
-    square([panel_w - 2 * frame_lip, panel_h - 2 * frame_lip], center = true);
-  }
-}
-
-// Place a shape drawn in the panel's plane: x across, y up its slope
-// (toward the front), z out of its face, which looks back and up, the way
-// the reels face (the user's call). The frame is local z -panel_t-2..0.
+// Place a shape drawn in the panel's plane, centred on the panel: x across,
+// y up its slope (toward the front), z out of its face, which looks back
+// and up, the way the reels face (the user's call).
 module on_panel() {
   translate(panel_c) rotate([panel_tilt, 0, 0]) children();
 }
@@ -676,7 +671,7 @@ module cage_rings_2d() {
     for (s = [-1, 1]) translate([s * spool_x, shaft_z]) difference() { circle(r = ring_r1, $fn = 128); circle(r = ring_r0, $fn = 128); }
     translate([-500, -500]) square([1000, shaft_z + 500]);
   }
-  translate([-spool_x - bar_w, shaft_z - ring_r1]) square([2 * (spool_x + bar_w), plate_bar_h]);
+  translate([-pp_x1 - bar_w, shaft_z - ring_r1]) square([2 * (pp_x1 + bar_w), plate_bar_h]);
   // Where the two rings meet, solid enough for the middle bar's socket.
   translate([-xbar_t / 2 - bar_w / 2, shaft_z - xbar_w - 4 - bar_w / 2]) square([xbar_t + bar_w, xbar_w + 4 + bar_w / 2]);
 }
@@ -695,11 +690,11 @@ module front_plate() {
       for (z = [wall + strap_lug_h / 2, seat_top - strap_lug_h / 2]) translate([-bar_half + 2, z - bar_w / 2]) square([2 * bar_half - 4, bar_w]);
       translate([-bar_half + 2, shaft_z - bar_w / 2]) square([2 * bar_half - 4, bar_w]);
       for (s = [-1, 1]) translate([s * spool_x, shaft_z]) circle(d = boss_d + 6, $fn = 64);
-      for (s = [-1, 1]) translate([s * spool_x - cage_t / 2 - bar_w, pr_z0 - bar_w / 2]) square([cage_t + 2 * bar_w, pr_z1 - pr_z0 + bar_w]);
+      for (s = [-1, 1]) translate([s > 0 ? pp_x0 - bar_w : -pp_x1 - bar_w, pp_z0 - bar_w / 2]) square([cage_t + 2 * bar_w, pp_z1 - pp_z0 + bar_w]);
     }
     for (s = [-1, 1]) translate([s * spool_x, front_y0 - 1, shaft_z]) rotate([-90, 0, 0]) cylinder(d = hub_d + 1, h = cage_t + 2, $fn = 48);
     for (b = xbars()) { xbar_socket(b, true); xbar_screw(b, true); }
-    for (s = [-1, 1]) { pr_socket(s); pr_screw(s); }
+    for (s = [-1, 1]) { pp_socket(s); pp_screw(s); }
     // Heads on the back face, threads into the box.
     for (p = front_screw_points()) plate_screw([p[0], front_y1, p[1]], [0, -1, 0]);
   }
@@ -722,77 +717,70 @@ module rear_plate() {
     for (s = [-1, 1]) translate([s * spool_x, rear_y1 + 1, shaft_z]) rotate([90, 0, 0]) cylinder(d = m5_pilot_d, h = cage_t + 2, $fn = 32);
     for (b = xbars()) { xbar_socket(b, false); xbar_screw(b, false); }
     // Pilots in the bottom bar for the panel ribs' screws, from below.
-    for (s = [-1, 1]) translate([s * spool_x, (rear_y0 + rear_y1) / 2, pr_z1 - 0.01]) cylinder(d = m5_pilot_d, h = pilot_depth, $fn = 24);
+    for (s = [-1, 1]) translate([s * (pp_x0 + pp_x1) / 2, (rear_y0 + rear_y1) / 2, pp_z1 - 0.01]) cylinder(d = m5_pilot_d, h = pilot_depth, $fn = 24);
   }
 }
 
-// Panel rib (s = +1 right, -1 left; the same piece flipped), under each reel:
-// a top member from the back plate (dovetailed into it) along under the
-// outside plate's bottom bar (screwed up into it, with a lug either side)
-// straight out behind; a leg down from its end; and a slope from under the
-// reels down to the leg's foot that the panel lies on. A triangle, so it's
-// rigid; the panel frame screws into the slope's edge.
-pr_z1 = shaft_z - ring_r1;
-pr_z0 = pr_z1 - xbar_w;
-pr_back_top = [panel_top_y - pr_e, pr_z0 - pr_e];
-pr_back_bot = pr_back_top - 2 * panel_half * [cos(panel_tilt), sin(panel_tilt)];
-pr_down = [sin(panel_tilt), -cos(panel_tilt)];
-pr_y1 = pr_back_bot[0] - pr_t - 3;
+// Panel plate (s = +1 right, -1 left; the same piece flipped). In its plane:
+// - a rectangle under the reel, from the back plate (dovetailed into a pad
+//   on it) to the outside plate, whose bottom bar sits on it between two
+//   lugs and is screwed into from below;
+// - a top member straight out behind from there to the panel's top edge;
+// - a member along the panel, its groove holding the panel's edge;
+// - a diagonal crossmember from the rectangle's bottom to the panel's
+//   bottom edge.
+// A truss, so it's rigid.
+pp_z1 = shaft_z - ring_r1;
+pp_z0 = pp_z1 - pp_sq_h;
+pp_r = panel_t / 2 + pp_band;
+// The panel's top and bottom edges (mid-thickness), [y, z].
+pp_top = [rear_y0 - panel_back - pp_r, pp_z1 - pp_t / 2 - pp_r];
+pp_bot = pp_top - panel_h * [cos(panel_tilt), sin(panel_tilt)];
+panel_c = concat([0], (pp_top + pp_bot) / 2);
 
-module pr_2d() {
-  // Top member, from the back plate's back face out past the leg.
-  translate([pr_y1, pr_z0]) square([front_y0 - pr_y1, pr_z1 - pr_z0]);
+module pp_2d() {
+  // The rectangle under the reel.
+  translate([rear_y0 - 0.01, pp_z0]) square([front_y0 - rear_y0, pp_sq_h]);
   // Lugs either side of the outside plate's bottom bar.
-  for (y = [rear_y0 - pr_lug - slot_clear, rear_y1 + slot_clear]) translate([y, pr_z1 - 0.01]) square([pr_lug, pr_lug]);
-  // Leg.
-  translate([pr_y1, pr_back_bot[1] - pr_t]) square([pr_t, pr_z0 - pr_back_bot[1] + pr_t + 0.01]);
-  // Slope under the panel.
-  polygon([pr_back_top, pr_back_bot, pr_back_bot + pr_t * pr_down, pr_back_top + pr_t * pr_down]);
-  // Join the slope's top end to the top member, on its forward side, clear of the panel.
-  hull() { translate(pr_back_top) square(0.01); translate(pr_back_top + pr_t * pr_down) square(0.01); translate([pr_back_top[0], pr_z0 - 0.01]) square([pr_t + pr_e, 0.01]); }
+  for (y = [rear_y0 - pp_lug - slot_clear, rear_y1 + slot_clear]) translate([y, pp_z1 - 0.01]) square([pp_lug, pp_lug]);
+  // Top member, out to the panel's top edge.
+  hull() {
+    translate([rear_y0, pp_z1 - pp_t]) square([0.01, pp_t]);
+    translate(pp_top) circle(r = pp_r, $fn = 48);
+  }
+  // Along the panel.
+  hull() for (p = [pp_top, pp_bot]) translate(p) circle(r = pp_r, $fn = 48);
+  // Diagonal crossmember.
+  hull() {
+    translate([rear_y0 + pp_t, pp_z0]) square([0.01, pp_t]);
+    translate(pp_bot) circle(r = pp_r, $fn = 48);
+  }
 }
 
-// The panel lies on the slopes: its frame's back face is on the slope's
-// top edge, so its centre is half way down it and the frame's thickness out.
-panel_c = concat([0], (pr_back_top + pr_back_bot) / 2 + (panel_t + 2) * [-sin(panel_tilt), cos(panel_tilt)]);
-
-// The rib's dovetail socket in the back plate's pad: it slides in from outboard.
-module pr_socket(s) {
-  translate([s > 0 ? spool_x - cage_t / 2 : -spool_x - cage_t / 2, front_y0, (pr_z0 + pr_z1) / 2])
+// The plate's dovetail socket in the back plate's pad: it slides in from outboard.
+module pp_socket(s) {
+  translate([s > 0 ? pp_x0 : -pp_x1, front_y0, (pp_z0 + pp_z1) / 2])
     translate([s > 0 ? 0 : cage_t, 0, 0]) mirror([s > 0 ? 0 : 1, 0, 0]) dovetail(cage_t, dv_clear, 40);
 }
 
-module pr_screw(s) {
-  plate_screw([s * spool_x, front_y0 + dv_depth, (pr_z0 + pr_z1) / 2], [0, 1, 0], cage_t - dv_depth);
+module pp_screw(s) {
+  plate_screw([s * (pp_x0 + pp_x1) / 2, front_y0 + dv_depth, (pp_z0 + pp_z1) / 2], [0, 1, 0], cage_t - dv_depth);
 }
 
-module panel_rib(s) {
-  x0 = s * spool_x - cage_t / 2;
+module panel_plate(s) {
+  x0 = s > 0 ? pp_x0 : -pp_x1;
+  xc = s * (pp_x0 + pp_x1) / 2;
   difference() {
     union() {
-      yz_extrude(x0, x0 + cage_t) pr_2d();
-      translate([x0, front_y0, (pr_z0 + pr_z1) / 2]) dovetail(cage_t);
+      yz_extrude(x0, x0 + cage_t) pp_2d();
+      translate([x0, front_y0, (pp_z0 + pp_z1) / 2]) dovetail(cage_t);
     }
+    // The panel's groove, in the plate's inner face.
+    on_panel() translate([0, 0, 0]) cube([panel_w + 1, panel_h + 1, panel_t + 0.4], center = true);
     // Pilot in its front end for the back plate's screw.
-    translate([s * spool_x, front_y0 + dv_depth + 0.01, (pr_z0 + pr_z1) / 2]) rotate([90, 0, 0]) cylinder(d = m5_pilot_d, h = pilot_depth, $fn = 24);
-    // Up through the top member into the outside plate's bottom bar.
-    plate_screw([s * spool_x, (rear_y0 + rear_y1) / 2, pr_z1], [0, 0, -1], pr_z1 - pr_z0);
-    // Pilots in the slope's edge for the panel frame's screws, square to the panel.
-    for (ly = panel_screw_lys) on_panel() translate([s * spool_x, ly, -panel_t - 2 - pilot_depth]) cylinder(d = m5_pilot_d, h = pilot_depth + 0.01, $fn = 24);
-  }
-}
-
-// Panel frame: holds the panel in a pocket with a lip over its face. The
-// panel's back lies on the panel ribs' slopes, and the frame screws down
-// into them through its top and bottom borders.
-module solar_mount() {
-  on_panel() difference() {
-    translate([0, 0, -panel_t - 2]) linear_extrude(panel_t + 2) panel_frame_2d();
-    translate([0, 0, -panel_t - 2.01]) linear_extrude(panel_t + 0.01) square([panel_w + 0.6, panel_h + 0.6], center = true);
-    for (s = [-1, 1], ly = panel_screw_lys) translate([s * spool_x, ly, -panel_t - 2]) {
-      translate([0, 0, -1]) cylinder(d = m5_clear_d, h = panel_t + 4, $fn = 32);
-      translate([0, 0, under_head]) cylinder(d = m5_head_d, h = panel_t + 4, $fn = 32);
-    }
+    translate([xc, front_y0 + dv_depth + 0.01, (pp_z0 + pp_z1) / 2]) rotate([90, 0, 0]) cylinder(d = m5_pilot_d, h = pilot_depth, $fn = 24);
+    // Up through the rectangle into the outside plate's bottom bar.
+    plate_screw([xc, (rear_y0 + rear_y1) / 2, pp_z1], [0, 0, -1], pp_sq_h);
   }
 }
 
@@ -825,11 +813,6 @@ module frame_print() {
   rotate([90, 0, 0]) frame();
 }
 
-// The panel frame prints face side down, its pocket open upward.
-module solar_mount_print() {
-  rotate([180, 0, 0]) rotate([-panel_tilt, 0, 0]) translate(-panel_c) solar_mount();
-}
-
 module cover_print() {
   translate([0, 0, front_y + cover_t]) rotate([-90, 0, 0]) cover();
 }
@@ -844,7 +827,8 @@ module front_plate_print() { rotate([-90, 0, 0]) front_plate(); }
 module rear_plate_print() { rotate([90, 0, 0]) translate([0, -rear_y0, 0]) rear_plate(); }
 // Linking bars lie on their inner face, so their dovetails' outlines are in the bed's plane.
 module xbar_print() { rotate([0, -90, 0]) xbar_local(); }
-module panel_rib_print() { rotate([0, -90, 0]) translate([-(spool_x - cage_t / 2), 0, 0]) panel_rib(1); }
+// Panel plates print on their outer face, groove up.
+module panel_plate_print() { rotate([0, 90, 0]) translate([-pp_x1, 0, 0]) panel_plate(1); }
 
 // Reference hardware, not printed.
 module cell() {
@@ -874,7 +858,7 @@ module motors() {
 }
 
 module panel() {
-  on_panel() translate([0, 0, -panel_t - 2]) linear_extrude(panel_t) square([panel_w, panel_h], center = true);
+  on_panel() cube([panel_w, panel_h, panel_t], center = true);
 }
 
 module solar_connector() {

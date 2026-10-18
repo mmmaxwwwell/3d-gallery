@@ -8,4 +8,4 @@ color("#2ed573") boards();
 color("#ff6348") motors();
 color("#ffa502") { spool(); spool_left(); }
 color("#a4b0be") { front_plate(); rear_plate(); }
-color("#ced6e0") { for (b = xbars()) xbar(b); panel_rib(1); panel_rib(-1); }
+color("#ced6e0") { for (b = xbars()) xbar(b); panel_plate(1); panel_plate(-1); }

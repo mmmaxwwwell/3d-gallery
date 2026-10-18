@@ -15,10 +15,11 @@ A Meshtastic/MeshCore repeater in a sealed box that winches itself up into a tre
 - **Cage (PCTG, flat-pack):** it cradles each reel's lower half, following its curve. Every piece prints flat, loaded along its strong axis:
   - a back plate screwed flat to the box's back
   - an outside plate behind the reels carrying their outer axles, both as half rings round the reels
-  - seven linking bars between the plates, tying the cradles' corners first
+  - five linking bars between the plates, tying the cradles' corners
 
   Each bar's ends are dovetails that slide into sockets in the plates, locked with a screw.
-- **Solar panel:** it sits behind the reels, on the far side from the antenna and battery, three quarters out, facing back and up at 45°. It lies on two triangular panel ribs that run from the back plate under the outside plate and straight out behind. Its frame sandwiches it and screws down into them.
+- **Panel plates:** under each reel, a panel plate fills the rectangle between the two cage plates as that reel's bottom crossmember. Behind, it comes out as a truss: a top member, a member along the panel, and a diagonal crossmember.
+- **Solar panel:** its edges sit in grooves cut into the two panel plates, behind the reels, facing back and up at 45°. The plates are just outside its edges, so nothing shades it.
 - **Antenna:** the N bulkhead clamps through the roof, and the ALFA AOA-915-5ACM stands up from it, zip-tied at two heights to a short stem. The back plate slopes up to the stem with a rounded rib at its foot.
 - **Solar:** your 5/8" watertight connector goes in the door, in front of the charge board.
 
@@ -44,9 +45,8 @@ No supports anywhere.
 | Battery strap | PCTG | front face down | 2 |
 | Reel | PCTG | on its outer flange | 2 |
 | Cage back plate, outside plate | PCTG | flat, sockets up | 1 each |
-| Linking bar | PCTG | flat | 7 |
-| Panel rib | PCTG | flat | 2 (one flipped) |
-| Solar panel frame | PCTG | face side down | 1 |
+| Linking bar | PCTG | flat | 5 |
+| Panel plate | PCTG | flat, groove up | 2 (one flipped) |
 
 Every piece fits a 270 mm bed.
 
@@ -58,7 +58,7 @@ The XIAO's own charger charges to 4.2 V, which is too high for LiFePO4 (3.65 V m
 
 - **Motors:** a full reel needs about 7 kg·cm to lift the node. JGY-370 worm motors can do that, but probably at 6–12 V, not the cell's 3.2 V, so expect a boost converter. The ratio and voltage aren't picked.
 - **Weight:** the printed parts come to about 1.5 kg at 100% infill.
-- **Pitch:** the line pulls from behind the box, so the node will hang tilted back until the weight behind balances it.
+- **Pitch:** the box is heavier than everything behind the reels, so the node will hang tipped forward about 15–20°. The panel is too light to balance it.
 - **Not measured:** every board, the motors, the solar panel (145 × 120 mm assumed), the bulkhead's body, and your connector's panel range.
 
 ## Parts
@@ -76,5 +76,5 @@ Plus:
 - two JGY-370 worm motors, a XIAO nRF52840 Sense and a DRV8833
 - two 50–60 m lengths of 1/8" Dacron
 - your 5/8" connector
-- fifty-seven M5 × 10 cap screws and two M5 × 25 bolts
+- forty-nine M5 × 10 cap screws and two M5 × 25 bolts
 - two zip ties and foam tape

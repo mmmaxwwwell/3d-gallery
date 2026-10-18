@@ -20,7 +20,8 @@ It started as a flat T frame in a dry bag, from a photo of the parts laid out. A
 - asked for a screwed battery retainer, the panel facing the other way, and the reels higher ("just flip the motors around")
 - asked to cut the wind area and move the panel behind the reels, high under them, three quarters of the way out
 - asked for the reels' line holes to become rope-wedging cleats
-- asked for a cage that holds the reels close, as flat-pack slotted pieces; then thinner, following the reels' curve, only halfway up, corners tied first, dovetail joints with screws, and a truss straight out under the panel
+- asked for a cage that holds the reels close, as flat-pack slotted pieces; then thinner, following the reels' curve, only halfway up, corners tied first, dovetail joints with screws
+- asked for the panel to sit in two plates that double as the reels' bottom crossmembers, and to balance the box
 - asked for more door screws (five a side), sealed screw posts, and the boards rearranged round them
 
 The user wants independent control of the reels with an IMU to level the node ("stepper motors or independent control somehow like have an accelerometer"). I chose self-locking worm gearmotors, because a stepper needs holding current to hang on the line for years.
@@ -49,16 +50,15 @@ The user wants independent control of the reels with an IMU to level the node ("
 - **Cage: flat-pack**, the user's idea: "a series of flat pieces that go together like those cardboard 3D cutouts... we use the strong axis". Every piece is `cage_t` (8) PCTG, printed flat.
   - **Shape:** it cradles each reel's lower half only ("only take up to 1/2 way up the spool"), following the reel's curve ("contours like bars that go across it... not one giant piece").
   - **Plates:** `front_plate()` (the user's "back plate") sits flat on the box's back, screwed into the solid strips round the cell and the motors' bosses (`front_screw_points()`). `rear_plate()` (the "outside plate") carries the reels' outer axles, M5 × 25 threaded 8 mm into it. Both share `cage_rings_2d()`: the lower half of a ring round each reel, a bar across the bottoms, and a solid block where the rings meet. The outside plate adds a bar across each reel at its axle, plus spokes.
-  - **Linking bars:** seven identical bars (`xbars()`) run between the plates. Each reel gets three at `xbar_angles`: the outer top corner (0°), the outer bottom corner (−40°), and inner bottom (−140°). A seventh sits on edge between the reels at the axle. The user's priority: "make sure we tack the corners together".
+  - **Linking bars:** five identical bars (`xbars()`) run between the plates. Each reel gets two at `xbar_angles`: the outer top corner (0°) and outer bottom corner (−40°). A fifth sits on edge between the reels at the axle. The panel plates are the bottom crossmembers. The user's priority: "make sure we tack the corners together".
   - **Joints:** each bar's ends are dovetails (`dovetail()`, `dv_*`) that slide radially into sockets in the plates (`xbar_socket()`), open outward. A screw through the plate into the bar's end locks it (`xbar_screw()`). That's the user's "dovetail... snap with screw". The dovetails widen 30° each side: the sockets' undercut prints within 45°, and the bars print on their inner face, so the dovetails' outlines lie in the bed's plane.
   - **Line clearance:** the line leaves the drum's top between the flanges, so the cradle never meets it.
   - **Assembly order:** bars into the back plate (front-face screws), back plate onto the box (back-face screws), reels onto their shafts, then the outside plate slides onto the bars' rear dovetails.
-- **Solar panel:** it sits behind the reels, three quarters out (`panel_out`), facing back and up at `panel_tilt`. It lies on two `panel_rib()`s at x = ±`spool_x`. Each rib is a triangle:
-  - a top member from the back plate (dovetailed into a pad on it) running under the outside plate's bottom bar (screwed up into it, with a lug either side) and straight out behind (the user: "another truss from the bottom of the plate straight out")
-  - a leg down from its end
-  - a slope from under the reels to the leg's foot, which the panel's back lies on
-
-  `solar_mount()` sandwiches the panel and screws into the slopes' edges through its top and bottom borders.
+- **Panel plates** (`panel_plate()`, two, one flipped), the user's design: "two plates that mate with the square underneath the spool and come out with a diagonal crossmember, then the solar panel mount is cut into it... those plates can double as the underneath crossmembers".
+  - **Under each reel:** each plate fills the rectangle between the back plate (dovetailed into a pad on it) and the outside plate (whose bottom bar sits on it between lugs, screwed into from below).
+  - **Behind:** it comes out behind as a truss (`pp_2d()`): a top member, a member along the panel, and a diagonal crossmember to the panel's bottom edge.
+  - **Panel:** the plates sit just outside the panel's side edges (`pp_x0`), so they don't shade it. Its edges sit `pp_groove` deep in grooves cut in their inner faces, at `panel_tilt` facing back and up.
+  - **Balance:** `panel_back` sets the panel as far back as the plate can go. It isn't enough: see Open.
 - **Sealed screw posts** (`post_points`), the user's ask: TPU posts from the back wall to the door. Each is `post_squeeze` proud, so the door presses its end round the screw's hole.
   - There's a line of three over the battery between its straps (`low_post_xs`), and one at the top under the bulkhead (`top_post_x`, just right of the charge board).
   - The top post is the top run's middle screw, because the bulkhead's nut is on the roof there.
@@ -72,10 +72,10 @@ Intersect each pair of parts and reference parts.
 - **Body ∩ door:** this should be the tongue's side squeeze only, about 0.6 × the loop length × its depth (~1130 mm³).
 - **Body ∩ reels:** this should be the hubs' lip seals only (~160 mm³ for both).
 - **Body ∩ door** also includes the posts' squeeze.
-- **Everything else** should be clear, cage pieces with each other included: dovetails sit in their sockets with `dv_clear`. Panel ribs ∩ panel frame leaves a rounding sliver under 1 mm³.
+- **Everything else** should be clear, cage pieces with each other included: dovetails sit in their sockets with `dv_clear`. 
 
 ## Open, unmeasured
 
 - **Mass and torque:** the parts come to about 1.5 kg at 100% infill. At full radius a reel needs about 7 kg·cm to lift a 2.4 kg node. JGY-370s probably need 6–12 V for that, more than the 3.2 V cell gives, so a boost converter is likely. The motor's ratio and voltage aren't chosen.
-- **Pitch:** the line pulls behind the box's centre of mass, so the node will hang pitched until the reels' weight balances it. The reels, line and panel are the weight behind.
+- **Pitch:** at 60% infill the node weighs 1.63–2.36 kg (no line to a full reel). Its centre of mass is 26–38 mm in front of where the line pulls (the drums' middle, y −49), so it'll hang tipped forward about 15–20°. A 100 g panel would need to sit about 780 mm back to balance it. Moving the cell (290 g) behind the reels, or the reels forward, would do it.
 - **Not measured:** every board's size, the JGY-370's envelope and shaft, the solar panel (`panel_w`/`panel_h`), `n_body_d`/`n_body_len`, and the 5/8" connector's panel range.

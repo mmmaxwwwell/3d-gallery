@@ -777,11 +777,11 @@
       "slug": "meshtastic-drybag-node",
       "devOnly": true,
       "title": "Meshtastic Dry-Bag Node",
-      "description": "A Meshtastic/MeshCore node in a sealed box that winches itself up into a tree. You throw a line over a branch or two and tie both ends to the node's two reels; each reel winds its end in, and the node climbs the line with no tie line left hanging. The reels sit behind the box, one at each end, each holding 150\u2013200 ft of 1/8\" Dacron, the line's end wedged into a V jam cleat in the drum's core. Their drums run front to back, square to the line's pull, so the line comes straight up off them. Each reel has its own self-locking worm motor standing inside the box, its shaft out through the back wall's TPU, so the node holds its height with the power off; a second XIAO (the nRF52840 Sense, for its IMU) drives them through a DRV8833 to level the node as it climbs. A PCTG cage cradles each reel's lower half, built flat-pack so every piece prints flat and is loaded along its strong axis: a back plate screwed flat to the box's back, an outside plate behind the reels carrying their outer axles, both following the reels' curve as half rings, and seven linking bars between them that tie the cradles' corners first. Every bar's ends are dovetails that slide into sockets in the plates, locked with a screw. The solar panel sits behind the reels, on the far side from the antenna and battery, three quarters out behind the cage, facing back and up at 45\u00b0. It lies on two triangular panel ribs that run from the back plate under the outside plate and straight out, and its frame screws down into them. The body is TPU 64D; the door is PCTG, sealed by a tongue wider than the groove round the TPU rim. Nineteen M5 \u00d7 10 screws in ears outside the seal thread 8 mm into the TPU: five along the top (the middle one into a sealed post), five along the bottom, five up each end. Four sealed screw posts inside take more door screws, each post's end squeezed by the door round its screw: three in a line over the battery between its straps, one at the top under the bulkhead. Inside: the 32140 cell along the bottom, held by two screwed straps; above it the boards stand flat on the back wall in pockets; the motors stand at the ends. The N bulkhead clamps through the roof and the ALFA AOA-915-5ACM stands up from it, zip-tied to a short stem. The solar lead comes in through a 5/8\" watertight connector in the door. No supports anywhere, and every piece fits a 270 mm bed. Box 188 \u00d7 174 \u00d7 44 mm; cage 262 mm wide; about 410 mm from the panel's bottom edge to the antenna's tip. Not yet test-printed.",
+      "description": "A Meshtastic/MeshCore node in a sealed box that winches itself up into a tree. You throw a line over a branch or two and tie both ends to the node's two reels; each reel winds its end in, and the node climbs the line with no tie line left hanging. The reels sit behind the box, one at each end, each holding 150\u2013200 ft of 1/8\" Dacron, the line's end wedged into a V jam cleat in the drum's core. Their drums run front to back, square to the line's pull, so the line comes straight up off them. Each reel has its own self-locking worm motor standing inside the box, its shaft out through the back wall's TPU, so the node holds its height with the power off; a second XIAO (the nRF52840 Sense, for its IMU) drives them through a DRV8833 to level the node as it climbs. A PCTG cage cradles each reel's lower half, built flat-pack so every piece prints flat and is loaded along its strong axis: a back plate screwed flat to the box's back, an outside plate behind the reels carrying their outer axles, both following the reels' curve as half rings, and five linking bars between them that tie the cradles' corners. Every bar's ends are dovetails that slide into sockets in the plates, locked with a screw. Under each reel, a panel plate fills the rectangle between the two plates as that reel's bottom crossmember, then comes out behind as a truss: a top member, a member along the panel, and a diagonal crossmember. The solar panel's edges sit in grooves cut into the two panel plates, behind the reels on the far side from the antenna and battery, facing back and up at 45\u00b0. The body is TPU 64D; the door is PCTG, sealed by a tongue wider than the groove round the TPU rim. Nineteen M5 \u00d7 10 screws in ears outside the seal thread 8 mm into the TPU: five along the top (the middle one into a sealed post), five along the bottom, five up each end. Four sealed screw posts inside take more door screws, each post's end squeezed by the door round its screw: three in a line over the battery between its straps, one at the top under the bulkhead. Inside: the 32140 cell along the bottom, held by two screwed straps; above it the boards stand flat on the back wall in pockets; the motors stand at the ends. The N bulkhead clamps through the roof and the ALFA AOA-915-5ACM stands up from it, zip-tied to a short stem. The solar lead comes in through a 5/8\" watertight connector in the door. No supports anywhere, and every piece fits a 270 mm bed. Box 188 \u00d7 174 \u00d7 44 mm; cage 262 mm wide; about 410 mm from the panel's bottom edge to the antenna's tip. Not yet test-printed.",
       "filament": [
         { "material": "TPU 64D", "color": "any", "note": "The body; the screws thread straight into it", "parts": ["frame.stl"] },
         { "material": "PCTG", "color": "any", "note": "Door, reels, battery straps, cage and panel frame",
-          "parts": ["cover.stl", "spool.stl", "battery-strap.stl", "front-plate.stl", "rear-plate.stl", "link-bar.stl", "panel-rib.stl", "solar-mount.stl"] }
+          "parts": ["cover.stl", "spool.stl", "battery-strap.stl", "front-plate.stl", "rear-plate.stl", "link-bar.stl", "panel-plate.stl"] }
       ],
       "previews": [
         { "file": "assembled.3mf", "format": "3mf", "label": "Assembled", "default": true,
@@ -791,16 +791,14 @@
             { "color": "#747d8c", "label": "Door", "part": "cover.stl" },
             { "color": "#ffa502", "label": "Reels", "part": "spool.stl" },
             { "color": "#a4b0be", "label": "Cage: back plate and outside plate", "part": "front-plate.stl", "parts": ["front-plate.stl", "rear-plate.stl"] },
-            { "color": "#ced6e0", "label": "Cage: linking bars and panel ribs", "part": "link-bar.stl", "parts": ["link-bar.stl", "panel-rib.stl"] },
-            { "color": "#dfe4ea", "label": "Solar panel frame", "part": "solar-mount.stl" },
+            { "color": "#ced6e0", "label": "Cage: linking bars and panel plates", "part": "link-bar.stl", "parts": ["link-bar.stl", "panel-plate.stl"] },
             { "color": "#3742fa", "label": "Solar panel (reference)" },
             { "color": "#57606f", "label": "N bulkhead and AOA-915-5ACM antenna (reference)" },
             { "color": "#f1f2f6", "label": "5/8\" watertight solar connector (reference)" }
           ],
           "components": [ { "part": "frame.stl", "qty": 1 }, { "part": "cover.stl", "qty": 1 }, { "part": "battery-strap.stl", "qty": 2 },
                           { "part": "spool.stl", "qty": 2 }, { "part": "front-plate.stl", "qty": 1 }, { "part": "rear-plate.stl", "qty": 1 },
-                          { "part": "link-bar.stl", "qty": 7 }, { "part": "panel-rib.stl", "qty": 2 },
-                          { "part": "solar-mount.stl", "qty": 1 } ]
+                          { "part": "link-bar.stl", "qty": 5 }, { "part": "panel-plate.stl", "qty": 2 } ]
         },
         { "file": "open.3mf", "format": "3mf", "label": "Door off: cell, straps, posts, boards and motors",
           "legend": [
@@ -812,7 +810,7 @@
             { "color": "#ff6348", "label": "JGY-370 worm motors (reference)" },
             { "color": "#ffa502", "label": "Reels", "part": "spool.stl" },
             { "color": "#a4b0be", "label": "Cage plates", "part": "front-plate.stl", "parts": ["front-plate.stl", "rear-plate.stl"] },
-            { "color": "#ced6e0", "label": "Linking bars and panel ribs", "part": "link-bar.stl", "parts": ["link-bar.stl", "panel-rib.stl"] }
+            { "color": "#ced6e0", "label": "Linking bars and panel plates", "part": "link-bar.stl", "parts": ["link-bar.stl", "panel-plate.stl"] }
           ]
         }
       ],
@@ -823,9 +821,8 @@
         { "file": "spool.stl", "format": "stl", "label": "Reel (print 2) \u2014 on its outer flange" },
         { "file": "front-plate.stl", "format": "stl", "label": "Cage back plate (on the box) \u2014 flat, sockets up" },
         { "file": "rear-plate.stl", "format": "stl", "label": "Cage outside plate \u2014 flat, sockets up" },
-        { "file": "link-bar.stl", "format": "stl", "label": "Linking bar (print 7) \u2014 flat" },
-        { "file": "panel-rib.stl", "format": "stl", "label": "Panel rib (print 2, one flipped) \u2014 flat" },
-        { "file": "solar-mount.stl", "format": "stl", "label": "Solar panel frame \u2014 face side down" }
+        { "file": "link-bar.stl", "format": "stl", "label": "Linking bar (print 5) \u2014 flat" },
+        { "file": "panel-plate.stl", "format": "stl", "label": "Panel plate (print 2, one flipped) \u2014 flat, groove up" }
       ],
       "hardware": [
         { "qty": 1, "label": "Kingboss 15000 mAh LiFePO4 power bank \u2014 taken apart for its 32140 cell (3.2 V 15 Ah) and its charge board",
@@ -849,9 +846,9 @@
         { "qty": 2, "label": "1/8\" Dacron line, 50\u201360 m \u2014 one per reel (or one line, both ends tied in), its end wedged into the reel's V cleat" },
         { "qty": 23, "label": "M5x10 cap screw \u2014 door onto the body: 19 in the ears, 4 into the sealed posts", "usedBy": [ { "part": "cover.stl", "each": 23 } ] },
         { "qty": 4, "label": "M5x10 cap screw \u2014 battery straps into the strips above and below the cell", "usedBy": [ { "part": "battery-strap.stl", "each": 2 } ] },
-        { "qty": 17, "label": "M5x10 cap screw \u2014 cage back plate: 8 into the box's back, 7 into the linking bars, 2 into the panel ribs", "usedBy": [ { "part": "front-plate.stl", "each": 17 } ] },
-        { "qty": 7, "label": "M5x10 cap screw \u2014 cage outside plate into the linking bars", "usedBy": [ { "part": "rear-plate.stl", "each": 7 } ] },
-        { "qty": 6, "label": "M5x10 cap screw \u2014 panel ribs up into the outside plate (2), panel frame down into the ribs (4)", "usedBy": [ { "part": "panel-rib.stl", "each": 1 }, { "part": "solar-mount.stl", "each": 4 } ] },
+        { "qty": 15, "label": "M5x10 cap screw \u2014 cage back plate: 8 into the box's back, 5 into the linking bars, 2 into the panel plates", "usedBy": [ { "part": "front-plate.stl", "each": 15 } ] },
+        { "qty": 5, "label": "M5x10 cap screw \u2014 cage outside plate into the linking bars", "usedBy": [ { "part": "rear-plate.stl", "each": 5 } ] },
+        { "qty": 2, "label": "M5x10 cap screw \u2014 panel plates up into the outside plate", "usedBy": [ { "part": "panel-plate.stl", "each": 1 } ] },
         { "qty": 2, "label": "M5x25 bolt \u2014 reel outer axle, threaded into the outside plate", "usedBy": [ { "part": "spool.stl", "each": 1 } ] },
         { "qty": 2, "label": "Zip tie, 4.8 mm wide, 150 mm \u2014 antenna to the stem, below and above its saddle", "usedBy": [ { "part": "frame.stl", "each": 2 } ] },
         { "qty": 5, "label": "Double-sided foam tape square \u2014 one behind each board in its pocket", "usedBy": [ { "part": "frame.stl", "each": 5 } ] }
