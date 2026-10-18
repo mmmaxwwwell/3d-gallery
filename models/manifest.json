@@ -807,6 +807,20 @@
                           { "part": "roller-bearing-long.stl", "qty": 8 }, { "part": "roller-bearing-short.stl", "qty": 8 },
                           { "part": "panel-spine.stl", "qty": 1 }, { "part": "panel-bar.stl", "qty": 2 } ]
         },
+        { "file": "exploded.3mf", "format": "3mf", "label": "Exploded",
+          "legend": [
+            { "color": "#2f3542", "label": "Box, TPU 64D", "part": "frame.stl" },
+            { "color": "#747d8c", "label": "Front door and gear tray", "part": "front-door.stl", "parts": ["front-door.stl", "tray.stl"] },
+            { "color": "#8395a7", "label": "Motor plate", "part": "motor-plate.stl" },
+            { "color": "#e1b12c", "label": "Herringbone pinions, idlers and output gears", "part": "pinion.stl", "parts": ["pinion.stl", "idler.stl", "output-gear.stl", "output-gear-left.stl"] },
+            { "color": "#ffa502", "label": "Reels, their front flanges and hubs", "part": "spool.stl", "parts": ["spool.stl", "reel-flange.stl", "reel-hub.stl"] },
+            { "color": "#a4b0be", "label": "Holder plates and crossmembers", "part": "front-plate.stl", "parts": ["front-plate.stl", "front-plate-left.stl", "rear-plate.stl", "rear-plate-left.stl", "link-bar.stl"] },
+            { "color": "#ced6e0", "label": "Roller cheeks; panel spine and bars", "part": "fairlead-cheek.stl", "parts": ["fairlead-cheek.stl", "fairlead-cheek-inner.stl", "panel-spine.stl", "panel-bar.stl"] },
+            { "color": "#f1f2f6", "label": "Rollers and their print-in-place bearings", "part": "roller-long.stl", "parts": ["roller-long.stl", "roller-short.stl", "roller-bearing-long.stl", "roller-bearing-short.stl"] },
+            { "color": "#3742fa", "label": "Solar panel (reference)" },
+            { "color": "#57606f", "label": "N bulkhead and AOA-915-5ACM antenna (reference)" }
+          ]
+        },
         { "file": "open.3mf", "format": "3mf", "label": "Front door off: gears in the tray, motors on their plate, the cell, the radio and the 1 W room",
           "legend": [
             { "color": "#2f3542", "label": "Box, TPU 64D", "part": "frame.stl" },
