@@ -39,8 +39,8 @@ tab_start = 23;
 // and this far round that corner's curve (degrees), the last tab following it
 tab_wrap = 70;
 // How far the tab bends forward over the radio's top back bevel, front to
-// back: half the bevel's depth
-tab_reach = 3;
+// back: three quarters of the bevel's depth
+tab_reach = 4.5;
 // How far above the radio's top back edge each tab's bend starts
 tab_lift = 3;
 // On the +x side (the user's left, seen from the back) the radio's top back

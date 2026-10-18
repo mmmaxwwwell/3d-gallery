@@ -17,7 +17,7 @@ A U-notch in the right side (seen from the front) clears a USB-C plug in the rad
 
 ## Locking tabs
 
-The back wall comes up over the back of the radio, following the rounded corners of its back face. Two 17 mm tabs across the top, from 23 mm in from the left edge (seen from the back) across to the right corner, rise 3 mm past the radio's top back edge, then bend forward over half the top back bevel to keep it in. The right one runs on round the corner's curve, its bend following the curved bevel. A guard stands beside the row on the left, level with the tabs' tops and with its outer corner cut off at 45°, so a strap or branch can't catch them. Slits, rounded over at the edges like the rim, let each tab spring back: push the radio down and it clicks in; pull the tabs back to lift it out.
+The back wall comes up over the back of the radio, following the rounded corners of its back face. Two 17 mm tabs across the top, from 23 mm in from the left edge (seen from the back) across to the right corner, rise 3 mm past the radio's top back edge, then bend forward over three quarters of the top back bevel to keep it in. The right one runs on round the corner's curve, its bend following the curved bevel. A guard stands beside the row on the left, level with the tabs' tops and with its outer corner cut off at 45°, so a strap or branch can't catch them. Slits, rounded over at the edges like the rim, let each tab spring back: push the radio down and it clicks in; pull the tabs back to lift it out.
 
 ## Mounting
 
