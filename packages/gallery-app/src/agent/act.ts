@@ -164,8 +164,14 @@ export function press(key: string, ref?: string): void {
   else if ((key === 'Enter' || key === ' ') && (el instanceof HTMLButtonElement || el instanceof HTMLAnchorElement)) el.click();
 }
 
-/** A PNG of a canvas, read inside an animation frame, before a WebGL buffer is cleared. */
-export function capture(ref?: string): Promise<{ ref: string; width: number; height: number; png: string }> {
+/** Longest side of a capture. Keeps a picture under the 1 MB request limit on the relay's nginx hops. */
+const CAPTURE_MAX_PX = 1280;
+
+/**
+ * A picture of a canvas, read inside an animation frame (before a WebGL
+ * buffer is cleared), scaled down and sent as JPEG so it fits in one request.
+ */
+export function capture(ref?: string): Promise<{ ref: string; width: number; height: number; mimeType: string; data: string }> {
   let canvas: HTMLCanvasElement | undefined;
   if (ref) {
     const el = elementFor(ref);
@@ -181,8 +187,17 @@ export function capture(ref?: string): Promise<{ ref: string; width: number; hei
   return new Promise((resolve, reject) => {
     requestAnimationFrame(() => {
       try {
-        const png = target.toDataURL('image/png').replace(/^data:image\/png;base64,/, '');
-        resolve({ ref: refFor(target), width: target.width, height: target.height, png });
+        const scale = Math.min(1, CAPTURE_MAX_PX / Math.max(target.width, target.height));
+        const out = document.createElement('canvas');
+        out.width = Math.round(target.width * scale);
+        out.height = Math.round(target.height * scale);
+        const ctx = out.getContext('2d')!;
+        // A transparent WebGL canvas would come out black as JPEG.
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, out.width, out.height);
+        ctx.drawImage(target, 0, 0, out.width, out.height);
+        const data = out.toDataURL('image/jpeg', 0.85).replace(/^data:image\/jpeg;base64,/, '');
+        resolve({ ref: refFor(target), width: out.width, height: out.height, mimeType: 'image/jpeg', data });
       } catch (err) {
         reject(new Error(`Could not read the canvas: ${(err as Error).message}`));
       }

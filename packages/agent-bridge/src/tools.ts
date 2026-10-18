@@ -336,7 +336,7 @@ export function createBridgeTools(options: BridgeToolOptions): BridgeTool[] {
       name: 'ui_capture',
       title: 'Picture of the 3D view',
       description:
-        'A PNG of a canvas on the page: the model viewer, a plate preview, a G-code preview or a '
+        'A picture (JPEG, at most 1280 px) of a canvas on the page: the model viewer, a plate preview, a G-code preview or a '
         + 'camera. Pass the canvas\'s ref from ui_screen, or omit it for the largest canvas.',
       inputSchema: {
         type: 'object',
@@ -346,11 +346,11 @@ export function createBridgeTools(options: BridgeToolOptions): BridgeTool[] {
       readOnly: true,
       async run(args) {
         const shot = (await onTab(args, 'capture', { ref: str(args['ref']) })) as {
-          ref: string; width: number; height: number; png: string;
+          ref: string; width: number; height: number; mimeType: string; data: string;
         };
         return {
           text: `Canvas ${shot.ref}, ${shot.width}×${shot.height}`,
-          images: [{ mimeType: 'image/png', data: shot.png }],
+          images: [{ mimeType: shot.mimeType, data: shot.data }],
         };
       },
     },
