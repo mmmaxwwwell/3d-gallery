@@ -63,6 +63,11 @@ http://localhost:5173/3d-gallery/__mcp
 Dev only — `configureServer` never runs during a build, so it cannot reach the
 published site. Attach with the repo's `.mcp.json`.
 
+The same endpoint also serves the agent bridge's tools (`ui_*`, `app_*`,
+`models_*`, from `packages/agent-bridge`), handed in through the server's
+`extraTools` option, so a client configures one server. Those drive an open
+gallery tab; see that package's README.
+
 Transport is **stateless Streamable HTTP**: POST JSON-RPC, get one
 `application/json` response. No session ids and no server-initiated SSE, because
 every tool is a synchronous read — so `GET` and `DELETE` are `405`. Notifications

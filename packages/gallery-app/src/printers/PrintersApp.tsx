@@ -27,7 +27,9 @@ import { QueueWatch } from './queue/queue-watch.js';
 import { PrinterQueue } from './queue/PrinterQueue.js';
 import { FocusBar } from './queue/FocusBar.js';
 import { QueueSheet } from './queue/QueueSheet.js';
-import { openTasks, unshownPrinters } from './queue/queue-model.js';
+import { bedQuestion, openTasks, printerShares, unshownPrinters } from './queue/queue-model.js';
+import { canStart, jobPhase, nextJob, readinessChecks } from '../print/dispatch-model.js';
+import { registerAgentView, NeedsConfirmation } from '../agent/registry.js';
 
 const TOAST_MS = 4_000;
 
@@ -132,6 +134,123 @@ export function PrintersApp() {
       poller.current?.pollNow(printerId);
     })();
   };
+
+  // ── Agent bridge (dev server only) ─────────────────────
+  // Registered once; the actions read this render's values through the ref.
+  const agent = useRef({ fleet, polls, queues });
+  agent.current = { fleet, polls, queues };
+  useEffect(() => {
+    const printerFor = (key: unknown) => {
+      const on = agent.current.fleet?.on ?? [];
+      const p = on.find((x) => x.id === key) ?? on.find((x) => x.name === key)
+        ?? on.find((x) => typeof key === 'string' && x.name.toLowerCase().includes(key.toLowerCase()));
+      if (!p) throw new Error(`No printer "${String(key)}" shown. Printers: ${on.map((x) => x.name).join(', ')}.`);
+      return p;
+    };
+    /** Each sent plan with plates for the printer: its next plate and whether it may start. */
+    const queueOf = (printerId: string) => {
+      const entries = agent.current.queues?.entries() ?? [];
+      const loadedNow = agent.current.queues?.loaded ?? {};
+      return printerShares(entries.map((e) => e.snap.dispatch), printerId).map((share) => {
+        const entry = entries.find((e) => e.projectId === share.projectId)!;
+        const d = entry.snap.dispatch;
+        const live = entry.snap.live[printerId];
+        const next = nextJob(d, printerId);
+        const checks = readinessChecks(live, next, loadedNow[printerId] ?? '', !!entry.snap.printers.get(printerId)?.address);
+        return { entry, live, next, checks, canStart: !!next && canStart(checks), share };
+      });
+    };
+    registerAgentView({
+      state: () => {
+        const { fleet: f, polls: ps } = agent.current;
+        return {
+          printers: (f?.on ?? []).map((p) => {
+            const live = ps[p.id]?.live;
+            return {
+              id: p.id,
+              name: p.name,
+              address: p.address,
+              condition: printerCondition(ps[p.id]),
+              error: ps[p.id]?.error ?? null,
+              state: live?.state ?? null,
+              file: live?.file || null,
+              progress: live ? Math.round(live.progress * 1000) / 10 : null,
+              remainingMin: live?.remainingSec ? Math.round(live.remainingSec / 60) : null,
+              nozzle: live?.extruder ? Math.round(live.extruder.actual) : null,
+              bed: live?.bed ? Math.round(live.bed.actual) : null,
+              loaded: agent.current.queues?.loaded[p.id] ?? null,
+              queue: queueOf(p.id).map((q) => ({
+                project: q.entry.name,
+                projectId: q.entry.projectId,
+                plates: q.share.jobs.map((j) => ({ file: j.file, plate: j.plateName, material: j.material, phase: jobPhase(q.entry.snap.dispatch, j) })),
+                next: q.next ? { file: q.next.file, plate: q.next.plateName } : null,
+                checks: q.checks.map((c) => ({ ok: c.ok, text: c.text })),
+                canStart: q.canStart,
+              })),
+            };
+          }),
+          switchedOff: (f?.off ?? []).map((p) => p.name),
+          queueTasks: openTasks((agent.current.queues?.entries() ?? []).map((e) => e.snap.dispatch))
+            .map((t) => ({ kind: t.kind, state: t.state, printer: t.printerId, file: t.file, error: t.error ?? null })),
+        };
+      },
+      actions: {
+        'printers.start': {
+          description:
+            'REACHES A PRINTER. Start the plate at the head of a printer\'s queue, once its checks pass '
+            + '(online, Klipper ready, idle, file uploaded). Asks whether the bed is clear: put that '
+            + 'question to the person, and repeat with confirm: true only when they say it is.',
+          writes: true,
+          args: {
+            type: 'object',
+            properties: {
+              printer: { type: 'string', description: 'Printer id or name.' },
+              project: { type: 'string', description: 'Project id, when several sent plans queue on this printer.' },
+            },
+            required: ['printer'],
+          },
+          run(args, ctx) {
+            const printer = printerFor(args['printer']);
+            const queue = queueOf(printer.id).filter((q) => !args['project'] || q.entry.projectId === args['project']);
+            const q = queue.find((x) => x.next);
+            if (!q || !q.next) throw new Error(`${printer.name} has nothing queued to start.`);
+            if (!q.canStart) {
+              throw new Error(`${printer.name} can't start ${q.next.file} yet: ${q.checks.filter((c) => c.ok !== true && c.id !== 'filament').map((c) => c.text).join('; ')}.`);
+            }
+            if (!ctx.confirmed) {
+              throw new NeedsConfirmation(`Start ${q.next.file} (${q.next.plateName}) on ${printer.name}? ${bedQuestion(q.live)}`);
+            }
+            q.entry.daemon.print(printer.id);
+            return { starting: q.next.file, printer: printer.name, next: 'app_state shows it printing once the printer reports it.' };
+          },
+        },
+        'printers.upload_all': {
+          description: 'REACHES A PRINTER. Upload every queued plate that has not gone to its printer yet. Nothing starts.',
+          writes: true,
+          run() {
+            const entries = agent.current.queues?.entries() ?? [];
+            for (const e of entries) e.daemon.uploadAll();
+            return { plans: entries.length };
+          },
+        },
+        'printers.set_loaded': {
+          description: 'Record which filament family a printer has loaded (PLA, PETG, PCTG, TPU…). Advisory: the queue warns on a mismatch.',
+          writes: true,
+          args: {
+            type: 'object',
+            properties: { printer: { type: 'string' }, material: { type: 'string' } },
+            required: ['printer', 'material'],
+          },
+          run(args) {
+            const printer = printerFor(args['printer']);
+            const settings = loadPlannerSettings();
+            savePlannerSettings({ ...settings, loaded: { ...settings.loaded, [printer.id]: String(args['material']) } });
+            return { printer: printer.name, loaded: String(args['material']) };
+          },
+        },
+      },
+    });
+  }, []);
 
   if (!fleet) return <main class="printers" aria-busy="true" />;
 

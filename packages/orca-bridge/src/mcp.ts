@@ -315,9 +315,27 @@ export const TOOLS: ToolDef[] = [
 
 const TOOLS_BY_NAME = new Map(TOOLS.map((t) => [t.name, t]));
 
+/**
+ * A tool served alongside the Orca ones by another package (the gallery's
+ * agent bridge), so an MCP client configures one server, not two.
+ */
+export interface ExtraTool {
+  name: string;
+  title: string;
+  description: string;
+  inputSchema: Json;
+  readOnly: boolean;
+  destructive?: boolean;
+  run(args: Json): Promise<{ text: string; data?: unknown; images?: Array<{ mimeType: string; data: string }> }>;
+}
+
 export interface McpServerOptions {
   /** Override the Orca config root. Defaults to platform discovery. */
   configDir?: string;
+  /** More tools to list and call. Names must not collide with the Orca tools. */
+  extraTools?: () => ExtraTool[];
+  /** Appended to the server's `initialize` instructions. */
+  instructions?: string;
   /** Repo root the gallery store is written under. Required by the `gallery_*`
    *  tools; they refuse rather than guess a location. */
   repoRoot?: string;
@@ -353,26 +371,61 @@ function rpcOk(id: JsonRpcRequest['id'], result: unknown) {
   return { jsonrpc: '2.0', id: id ?? null, result };
 }
 
+function toolError(err: unknown) {
+  // A failed tool is a tool-level error, not a protocol error: report it in
+  // the result so the model can correct its arguments and retry.
+  const message = err instanceof Error ? err.message : String(err);
+  const suggestions = err instanceof OrcaQueryError ? err.suggestions : [];
+  const text = suggestions.length
+    ? `${message}\n\nDid you mean:\n${suggestions.map((s) => `  ${s}`).join('\n')}`
+    : message;
+  return { result: { content: [{ type: 'text', text }], isError: true } };
+}
+
+async function callExtra(tool: ExtraTool, args: Json) {
+  try {
+    const out = await tool.run(args);
+    return {
+      result: {
+        content: [
+          { type: 'text', text: out.text },
+          ...(out.images ?? []).map((img) => ({ type: 'image', mimeType: img.mimeType, data: img.data })),
+        ],
+        // structuredContent must be an object; arrays and scalars stay in the text.
+        ...(out.data && typeof out.data === 'object' && !Array.isArray(out.data)
+          ? { structuredContent: out.data }
+          : {}),
+      },
+    };
+  } catch (err) {
+    return toolError(err);
+  }
+}
+
 async function callTool(
   getPaths: () => OrcaPaths,
   params: Json,
-  repoRoot: string | undefined,
+  options: McpServerOptions,
 ): Promise<{ result: unknown } | { error: { code: number; message: string; data?: unknown } }> {
+  const { repoRoot } = options;
   const name = str(params['name']);
   if (!name) return { error: { code: -32602, message: 'tools/call requires a tool name.' } };
+  const args = (params['arguments'] && typeof params['arguments'] === 'object'
+    ? params['arguments']
+    : {}) as Json;
   const tool = TOOLS_BY_NAME.get(name);
   if (!tool) {
+    const extras = options.extraTools?.() ?? [];
+    const extra = extras.find((t) => t.name === name);
+    if (extra) return callExtra(extra, args);
     return {
       error: {
         code: -32602,
         message: `Unknown tool "${name}".`,
-        data: { available: TOOLS.map((t) => t.name) },
+        data: { available: [...TOOLS, ...extras].map((t) => t.name) },
       },
     };
   }
-  const args = (params['arguments'] && typeof params['arguments'] === 'object'
-    ? params['arguments']
-    : {}) as Json;
 
   try {
     if (!tool.readOnly && !repoRoot) {
@@ -388,14 +441,7 @@ async function callTool(
       },
     };
   } catch (err) {
-    // A failed read is a tool-level error, not a protocol error: report it in
-    // the result so the model can correct its arguments and retry.
-    const message = err instanceof Error ? err.message : String(err);
-    const suggestions = err instanceof OrcaQueryError ? err.suggestions : [];
-    const text = suggestions.length
-      ? `${message}\n\nDid you mean:\n${suggestions.map((s) => `  ${s}`).join('\n')}`
-      : message;
-    return { result: { content: [{ type: 'text', text }], isError: true } };
+    return toolError(err);
   }
 }
 
@@ -417,11 +463,16 @@ async function handleMessage(
         protocolVersion:
           requested && SUPPORTED_PROTOCOLS.includes(requested) ? requested : SUPPORTED_PROTOCOLS[0],
         capabilities: { tools: { listChanged: false } },
-        serverInfo: { name: SERVER_NAME, title: 'OrcaSlicer bridge', version: SERVER_VERSION },
+        serverInfo: {
+          name: SERVER_NAME,
+          title: options.extraTools ? '3D gallery' : 'OrcaSlicer bridge',
+          version: SERVER_VERSION,
+        },
         instructions:
           'Read-only access to a local OrcaSlicer install. Call orca_doctor first to confirm the '
           + 'install was found, then enumerate presets, machines, usage history and sliced '
-          + 'projects. Nothing here writes to the Orca config.',
+          + 'projects. Nothing here writes to the Orca config.'
+          + (options.instructions ? `\n\n${options.instructions}` : ''),
       });
     }
     case 'notifications/initialized':
@@ -431,21 +482,36 @@ async function handleMessage(
       return isNotification ? null : rpcOk(id, {});
     case 'tools/list':
       return rpcOk(id, {
-        tools: TOOLS.map((t) => ({
-          name: t.name,
-          title: t.title,
-          description: t.description,
-          inputSchema: t.inputSchema,
-          annotations: {
-            readOnlyHint: t.readOnly,
-            idempotentHint: true,
-            destructiveHint: !t.readOnly,
-            openWorldHint: false,
-          },
-        })),
+        tools: [
+          ...TOOLS.map((t) => ({
+            name: t.name,
+            title: t.title,
+            description: t.description,
+            inputSchema: t.inputSchema,
+            annotations: {
+              readOnlyHint: t.readOnly,
+              idempotentHint: true,
+              destructiveHint: !t.readOnly,
+              openWorldHint: false,
+            },
+          })),
+          ...(options.extraTools?.() ?? []).map((t) => ({
+            name: t.name,
+            title: t.title,
+            description: t.description,
+            inputSchema: t.inputSchema,
+            annotations: {
+              readOnlyHint: t.readOnly,
+              idempotentHint: t.readOnly,
+              destructiveHint: t.destructive === true,
+              // These reach the person's printers.
+              openWorldHint: !t.readOnly,
+            },
+          })),
+        ],
       });
     case 'tools/call': {
-      const outcome = await callTool(pathsGetter(options), params, options.repoRoot);
+      const outcome = await callTool(pathsGetter(options), params, options);
       if ('error' in outcome) return rpcError(id, outcome.error.code, outcome.error.message, outcome.error.data);
       return rpcOk(id, outcome.result);
     }

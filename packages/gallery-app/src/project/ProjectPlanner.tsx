@@ -86,6 +86,7 @@ import type { DispatchJob } from '../print/dispatch-model.js';
 import { savePlanSnapshot } from '../print/plan-snapshot.js';
 import { refreshOperatorBadge } from '../print/operator-badge.js';
 import { operatorUrl } from '../shell/views.js';
+import { registerAgentView } from '../agent/registry.js';
 
 export interface ProjectPlannerProps {
   projectId: string;
@@ -121,6 +122,10 @@ const ONE_PRINTER = '__one';
 function filamentFamily(preset: PrintPreset): string | undefined {
   const type = flattenPresetForSlicer(preset)['filament_type']?.split(';')[0];
   return type ? materialFamily(type) : undefined;
+}
+
+function geometryProblem(g: Geometry | undefined): string | null {
+  return g && 'failed' in g ? g.failed : null;
 }
 
 function plural(n: number, one: string, many = `${one}s`): string {
@@ -641,6 +646,172 @@ export function ProjectPlanner({ projectId, onClose, onOpenPlate, onOpenProjects
     const fresh = await openNewProject();
     if (fresh) onShowProject(fresh.id);
   });
+
+  // ── Agent bridge (dev server only) ─────────────────────
+  // Registered once; the actions read this render's values through the ref.
+  const agent = useRef({ state: () => ({}) as unknown, ready, busy, sliceFailed, plates, saveTicks, setSettings, handleSaveProject, handleSend });
+  agent.current = {
+    ready, busy, sliceFailed, plates, saveTicks, setSettings, handleSaveProject, handleSend,
+    state: () => ({
+      project: project && { id: project.id, name: project.name, draft: project.draft === true },
+      plates: ordered.map((plate) => {
+        const printer = targetFor(plate);
+        const setup = printer && setupFor(plate, printer);
+        const failed = printer ? sliceFailed[failKey(plate, printer)] : undefined;
+        return {
+          id: plate.id,
+          number: numbers.get(plate.id) ?? null,
+          name: plate.name,
+          material: plate.material ?? 'PETG',
+          color: plate.color ?? null,
+          skipped: plate.skip === true,
+          items: plate.items.map((i) => ({ id: i.id, label: i.label, model: i.slug, qty: i.qty, skipped: i.skip === true })),
+          printer: printer?.name ?? null,
+          filament: setup && !('problem' in setup) ? setup.filament.name : null,
+          problem: setup && 'problem' in setup ? setup.problem : geometryProblem(geometry[plate.id]),
+          sliced: !!printer && (fresh[plate.id] ?? []).some((s) => s.printerId === printer.id),
+          sliceFailed: failed ?? null,
+          minutes: times[plate.id] ? Math.round(times[plate.id]!.value / 60) : null,
+          grams: grams[plate.id] ? Math.round(grams[plate.id]!.value) : null,
+        };
+      }),
+      printers: printers.map((p) => ({
+        id: p.id,
+        name: p.name,
+        inPlan: settings.enabled[p.id] !== false,
+        loaded: settings.loaded[p.id] ?? null,
+      })),
+      filamentPerFamily: settings.filaments,
+      objective: settings.objective,
+      busy,
+      ready,
+      readyToSend: isReady(ready),
+      plan: plan && { finish: new Date(plan.finish).toISOString(), jobs: plan.jobs.length, trips: plan.visits.length },
+      sent,
+      error: error || null,
+      log: log.slice(-5),
+    }),
+  };
+  useEffect(() => {
+    const findPlate = (key: unknown) => {
+      const all = agent.current.plates ?? [];
+      const plate = all.find((p) => p.id === key) ?? all.find((p) => p.name === key);
+      if (!plate) throw new Error(`No plate "${String(key)}". Plates: ${all.map((p) => p.name).join(', ')}.`);
+      return plate;
+    };
+    registerAgentView({
+      state: () => agent.current.state(),
+      actions: {
+        'project.set_plate': {
+          description:
+            'Change a plate: its name, material (PLA, PETG, PCTG, TPU…, which picks the filament preset '
+            + 'it slices with), colour (#rrggbb), whether it is in the plan (skip), and which of its parts '
+            + 'print (items: {itemId: skip}). The plate re-slices on its own afterwards.',
+          writes: true,
+          args: {
+            type: 'object',
+            properties: {
+              plate: { type: 'string', description: 'Plate id or name.' },
+              name: { type: 'string' },
+              material: { type: 'string' },
+              color: { type: 'string' },
+              skip: { type: 'boolean' },
+              items: { type: 'object', additionalProperties: { type: 'boolean' } },
+            },
+            required: ['plate'],
+          },
+          run(args) {
+            const plate = findPlate(args['plate']);
+            const items = (args['items'] && typeof args['items'] === 'object' ? args['items'] : {}) as Record<string, boolean>;
+            const next: Plate = {
+              ...plate,
+              ...(typeof args['name'] === 'string' && args['name'].trim() ? { name: args['name'].trim() } : {}),
+              ...(typeof args['material'] === 'string' && args['material'].trim() ? { material: args['material'].trim() } : {}),
+              ...(typeof args['color'] === 'string' ? { color: args['color'] || undefined } : {}),
+              ...(typeof args['skip'] === 'boolean' ? { skip: args['skip'] || undefined } : {}),
+              items: plate.items.map((i) => (i.id in items ? { ...i, skip: items[i.id] || undefined } : i)),
+            };
+            agent.current.saveTicks(next);
+            return { plate: next.id, name: next.name, material: next.material ?? 'PETG', color: next.color ?? null };
+          },
+        },
+        'planner.update': {
+          description:
+            'Change the planner settings this page plans with. Maps merge key by key: enabled '
+            + '{printerId: bool} puts a printer in or out of the plan (to send to one printer, leave only '
+            + 'it in), loaded {printerId: family} records what a printer has on, filaments {family: '
+            + 'filamentPresetId} picks the preset that slices a material.',
+          writes: true,
+          args: {
+            type: 'object',
+            properties: {
+              enabled: { type: 'object', additionalProperties: { type: 'boolean' } },
+              loaded: { type: 'object', additionalProperties: { type: 'string' } },
+              filaments: { type: 'object', additionalProperties: { type: 'string' } },
+              objective: { type: 'string', enum: ['makespan', 'visits'] },
+            },
+          },
+          run(args) {
+            const current = loadPlannerSettings();
+            const map = <T,>(key: 'enabled' | 'loaded' | 'filaments') =>
+              ({ ...(current[key] as Record<string, T>), ...((args[key] && typeof args[key] === 'object' ? args[key] : {}) as Record<string, T>) });
+            const patch: Partial<PlannerSettings> = {
+              enabled: map<boolean>('enabled'),
+              loaded: map<string>('loaded'),
+              filaments: map<string>('filaments'),
+              ...(args['objective'] === 'makespan' || args['objective'] === 'visits' ? { objective: args['objective'] as ScheduleObjective } : {}),
+            };
+            agent.current.setSettings(patch);
+            return patch;
+          },
+        },
+        'project.wait_until_sliced': {
+          description:
+            'Waits while the plates slice (on their own, one after another) until every plate in the '
+            + 'plan has a fresh slice, one fails, or the time runs out. Returns the plates\' state.',
+          args: { type: 'object', properties: { timeoutSec: { type: 'number', description: 'Default 300.' } } },
+          async run(args) {
+            const until = Date.now() + (typeof args['timeoutSec'] === 'number' ? args['timeoutSec'] : 300) * 1000;
+            // Give a change just made a moment to re-plan before judging it.
+            await new Promise((r) => setTimeout(r, 1500));
+            while (Date.now() < until) {
+              const { ready: r, busy: b, sliceFailed: failed } = agent.current;
+              if (Object.keys(failed).length || (r.sliced && !b)) break;
+              await new Promise((res) => setTimeout(res, 1000));
+            }
+            return agent.current.state();
+          },
+        },
+        'project.save': {
+          description: 'Save the draft project so it is kept, optionally under a new name.',
+          writes: true,
+          args: { type: 'object', properties: { name: { type: 'string' } } },
+          run(args) {
+            if (typeof args['name'] === 'string' && args['name'].trim()) setNameDraft(args['name'].trim());
+            // The name draft lands on the next render; save after it.
+            setTimeout(() => agent.current.handleSaveProject(), 0);
+            return { saving: true };
+          },
+        },
+        'project.send': {
+          description:
+            'Send to printers: hand the plan to the printers and open Printers. Uploads start in the '
+            + 'background; nothing prints until a print is started there (printers.start). Needs every '
+            + 'planned plate sliced (readyToSend in app_state).',
+          writes: true,
+          run() {
+            const { ready: r } = agent.current;
+            if (!isReady(r)) {
+              const missing = Object.entries(r).filter(([, ok]) => !ok).map(([k]) => k).join(', ');
+              throw new Error(`Not ready to send: ${missing}. app_state shows each plate's problem.`);
+            }
+            agent.current.handleSend();
+            return { sent: true, next: 'The tab moves to Printers. Read printers.status / app_state there.' };
+          },
+        },
+      },
+    });
+  }, []);
 
   if (error && !project) {
     return <Page label="Project" onClose={onClose}><p class="plate-empty">{error}</p></Page>;

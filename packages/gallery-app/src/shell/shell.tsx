@@ -17,6 +17,9 @@ export function mountShell(root: HTMLElement, viewId: PageId): void {
   document.documentElement.classList.add('has-shell');
   document.documentElement.dataset.shellView = viewId;
   render(<NavBar current={viewId} />, root);
+  // The dev server's MCP tools drive the page through this. A build replaces
+  // import.meta.hot with undefined, so the bridge isn't even bundled.
+  if (import.meta.hot) void import('../agent/bridge.js').then((m) => m.startAgentBridge(viewId));
 
   if (viewId === 'settings' || !viewById(viewId).resumes) return;
   const remember = () => recordLastOpen(viewId, location.pathname + location.search);

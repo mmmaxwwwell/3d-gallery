@@ -1,0 +1,25 @@
+{
+  "name": "@3d-gallery/agent-bridge",
+  "private": true,
+  "version": "0.1.0",
+  "license": "MIT",
+  "type": "module",
+  "description": "Lets an MCP client drive an open gallery tab: read what is on screen, click, type, navigate, and call the actions each view registers. Node side of a relay over the Vite dev server's HMR socket; dev server only.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./protocol": "./src/protocol.ts"
+  },
+  "files": ["src", "README.md"],
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "typescript": "^5.7.0",
+    "vitest": "4.0.18"
+  }
+}

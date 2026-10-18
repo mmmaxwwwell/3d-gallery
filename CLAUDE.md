@@ -22,6 +22,7 @@ Five views plus Settings, each its own Vite page (own `index.html` entry, own bu
 - **Old links keep working.** `src/shell/legacy-routes.ts` is the only code that knows the old query routes (`?model=`, `?project=`, `?plate=`, `?dispatch=`, `?operator=`, `?projects=`, `?settings=`); Home and Models run it first and forward to the page that owns the route now.
 - **Printer control needs plain HTTP.** Browsers block an HTTPS page from reaching `http://` Moonraker. Printers/Operator controls work when served over HTTP on the LAN (dev server, local build) or inside the Android shell. On HTTPS they explain why they're read-only, not fail silently.
 - **Printers safety rules.** Emergency stop fires instantly, no confirm. Cancel, cancel-an-object, reboot, power off, firmware restart and mesh-and-save are hold-to-confirm. Anything that would ruin a running print (home, mesh, load/unload, firmware restart, temperature presets) is disabled while printing. Machine controls call the printers' own macros (the fleet runs ZMOD: `LOAD_FILAMENT`, `UNLOAD_FILAMENT`, `AUTO_FULL_BED_LEVEL`, `CLEAR_NOZZLE`, `COLDPULL`, `SET_PAUSE_NEXT_LAYER`, `CAMERA_RESTART`, …) — don't reimplement them in G-code. `print-toolkit/README.md` → *Controls and the ZMOD macros* records what each does.
+- **Agents drive the app over MCP.** In dev, `/3d-gallery/__mcp` (the repo's `.mcp.json`) serves `packages/agent-bridge`'s tools next to orca-bridge's. They act on a real open tab over the Vite HMR socket: read the screen as an outline with refs (`ui_screen`), click / fill / hold / navigate (`ui_*`), and run the actions each view registers (`app_state`, `app_action`). Every page's shell starts `src/agent/bridge.ts` behind `import.meta.hot`, so none of it ships. A view registers its state and actions with `registerAgentView` (`src/agent/registry.ts`), calling the functions its own buttons call. When a view gains a user-facing action worth naming, register it there too. Anything printer-reaching must refuse until `confirm: true`, carrying the page's own question. See `packages/agent-bridge/README.md`.
 - **No printer needed to test.** `MoonrakerSim` (`gallery-app/tests/fixtures/moonraker-sim.ts`) is a Klipper + Moonraker state machine the e2e specs route a fake printer origin to; `scripts/fake-printers.ts` serves three of them over HTTP for work by hand. See `packages/gallery-app/CLAUDE.md`. Never test a printer write against the real fleet.
 - **History.** The views used to be query-routed panels over the one gallery SPA (`src/print/mount.tsx`). They were split out by the swarm in `docs/app-split-swarm.md`; don't add panels or routers back.
 
@@ -61,6 +62,7 @@ packages/gallery-app/     the web app (one Vite page per view — see App shape)
   src/main.ts             Models page: sidebar, part loader, customizer host
   src/shell/              nav bar/rail, badges, legacy routes — every page
   src/print/              shared stores + pure models (no view code)
+  src/agent/              page side of the MCP agent bridge (dev only)
   src/{home,project,printers,operator,settings}/  one directory per page
 packages/*/               model-core, model-forge, viewer, print-toolkit, … (see Workspaces)
 public/models/            build output copied here at build time (Vite-served)
@@ -273,6 +275,7 @@ The repo is an npm workspace (`workspaces: ["packages/*"]` in root `package.json
   - **The gallery's own store is writable** (`.cache/orca-bridge/gallery-presets.json`, via `gallery_*` tools). That is the only write path, and it exists because MCP runs in Node while the gallery's presets live in browser IndexedDB.
   - **The gallery is local-first.** IndexedDB is the real store; the server store is opt-in, so a hosted deployment costs nothing to run without one. `server-store.ts` in gallery-app probes `__devstore` and hides its UI unless a real JSON response comes back — a 200 from the SPA fallback is HTML, not a store.
   - See its README for why 3MF import is reconciliation rather than import, and why the Orca logs are useless for change detection.
+- **`packages/agent-bridge/`** — Node side of the agent bridge: the tab hub (tabs over Vite's HMR socket, calls relayed and followed across reloads) and the `ui_*` / `app_*` / `models_*` MCP tools, served through orca-bridge's MCP server via `extraTools`. `protocol.ts` is shared with the page and stays free of Node and DOM. The page side is `gallery-app/src/agent/`. Loaded by `vite.config.ts` through Node's type stripping, like orca-bridge, so `npm run dev` watches it too.
 - **`packages/astro/`** — Astro integration + `<ModelViewer>`. Consumed by an external Astro site; must not become a dependency of `gallery-app`.
 - **`packages/android-shell/`** — planned WebView host. Not seeded.
 

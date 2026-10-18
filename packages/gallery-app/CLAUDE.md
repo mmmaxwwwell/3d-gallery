@@ -21,6 +21,7 @@ One Vite page per view, listed in `PAGES` in `vite.config.ts` (build inputs, and
 - `gallery/index.html` + `src/main.ts` — Models. The only page that loads `src/style.css`; the other pages import their own stylesheet next to their code.
 - `project/`, `printers/`, `operator/`, `settings/` — each an `index.html` that loads `src/<page>/main.ts(x)`, which mounts the page inside the shell frame.
 - `src/shell/` — the frame, nav bar/rail, badges, last-open URLs and `legacy-routes.ts`. `src/print/` — shared stores (with the cross-tab change bus in `change-bus.ts`) and pure models. A page imports these, never another page's directory.
+- `src/agent/` — the page side of the MCP agent bridge (dev only, started by the shell): screen outline, input simulation, shared actions, and `registerAgentView`, which a page calls to expose its state and named actions. A page may import it like `src/shell/`.
 - `tests/unit/style-coverage.test.ts` checks that every class a page directory renders has a rule in some stylesheet. A new page directory must be added to its `RENDERERS` table.
 - `tests/unit/shell.test.ts` and `tests/e2e/shell.spec.ts` pin the nav, badges and legacy forwards.
 

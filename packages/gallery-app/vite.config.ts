@@ -1,6 +1,6 @@
 import { defineConfig, type Connect, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
-import { readdirSync, existsSync, statSync } from 'node:fs';
+import { readdirSync, existsSync, statSync, readFileSync } from 'node:fs';
 import { cpus } from 'node:os';
 import { resolve, sep } from 'node:path';
 import { createForge, targetOf, createArtifactMiddleware, createManifestMiddleware } from '@3d-gallery/model-forge';
@@ -12,6 +12,7 @@ import { embedUrl } from '../../scripts/embed-source-url.mjs';
 import { copyPrintToolkitAssets } from '@3d-gallery/print-toolkit/vite-plugin';
 import { createMcpMiddleware } from '@3d-gallery/orca-bridge/mcp';
 import { createDevStoreMiddleware } from '@3d-gallery/orca-bridge/devstore';
+import { createAgentBridge, AGENT_INSTRUCTIONS } from '@3d-gallery/agent-bridge';
 
 // libslic3r.wasm is fetched on demand from GitHub Releases (T4). Until that
 // release exists the assets/ dir is empty and the toolkit's Vite plugin
@@ -273,7 +274,17 @@ function orcaMcpPlugin(): Plugin {
     enforce: 'pre',
     apply: 'serve',
     configureServer(server) {
-      const middleware = createMcpMiddleware({ repoRoot: REPO_ROOT });
+      const agent = createAgentBridge(server.ws, {
+        appUrl: () => server.resolvedUrls?.local[0] ?? `http://localhost:${server.config.server.port ?? 5173}${BASE}`,
+        // Read per call rather than shared with galleryModelsPlugin's forge:
+        // always current, and a bad edit mid-save only fails that one call.
+        catalog: () => JSON.parse(readFileSync(resolve(MODELS_DIR, 'manifest.json'), 'utf8')).models,
+      });
+      const middleware = createMcpMiddleware({
+        repoRoot: REPO_ROOT,
+        extraTools: () => agent.tools,
+        instructions: AGENT_INSTRUCTIONS,
+      });
       for (const path of MCP_PATHS) server.middlewares.use(path, middleware);
       // The browser's half of the same store. Absent in production, which is
       // what makes the server store opt-in rather than something every user

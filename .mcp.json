@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "orca": {
+    "gallery": {
       "type": "http",
       "url": "http://localhost:5173/3d-gallery/__mcp"
     }

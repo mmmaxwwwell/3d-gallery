@@ -249,3 +249,50 @@ describe('missing install', () => {
     expect(result.content[0].text).toMatch(/No OrcaSlicer config directory found/);
   });
 });
+
+describe('extra tools', () => {
+  const extra = {
+    name: 'ui_tabs',
+    title: 'Tabs',
+    description: 'Connected tabs.',
+    inputSchema: { type: 'object', properties: {} },
+    readOnly: true,
+    run: async (args: Record<string, unknown>) => ({
+      text: `tabs ${JSON.stringify(args)}`,
+      data: { tabs: [] },
+      images: [{ mimeType: 'image/png', data: 'AAAA' }],
+    }),
+  };
+  const failing = { ...extra, name: 'app_action', readOnly: false, destructive: true, run: async () => { throw new Error('No tab'); } };
+  const withExtras = () => ({ ...opts(), extraTools: () => [extra, failing], instructions: 'Drive the gallery.' });
+
+  it('lists them after the Orca tools, with their hints', async () => {
+    const { body } = await handleMcpBody({ jsonrpc: '2.0', id: 1, method: 'tools/list' }, withExtras()) as { body: RpcEnvelope };
+    const tools = body.result!['tools'] as Array<{ name: string; annotations: Record<string, boolean> }>;
+    expect(tools.slice(0, TOOLS.length).map((t) => t.name)).toEqual(TOOLS.map((t) => t.name));
+    expect(tools.find((t) => t.name === 'ui_tabs')!.annotations).toMatchObject({ readOnlyHint: true, destructiveHint: false });
+    expect(tools.find((t) => t.name === 'app_action')!.annotations).toMatchObject({ readOnlyHint: false, destructiveHint: true });
+  });
+
+  it('calls one and passes text, images and structured data through', async () => {
+    const { body } = await handleMcpBody({
+      jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name: 'ui_tabs', arguments: { a: 1 } },
+    }, withExtras()) as { body: RpcEnvelope };
+    expect(body.result).toEqual({
+      content: [{ type: 'text', text: 'tabs {"a":1}' }, { type: 'image', mimeType: 'image/png', data: 'AAAA' }],
+      structuredContent: { tabs: [] },
+    });
+  });
+
+  it('reports a failing one as a tool error', async () => {
+    const { body } = await handleMcpBody({
+      jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'app_action', arguments: {} },
+    }, withExtras()) as { body: RpcEnvelope };
+    expect(body.result).toEqual({ content: [{ type: 'text', text: 'No tab' }], isError: true });
+  });
+
+  it('appends their instructions to the handshake', async () => {
+    const { body } = await handleMcpBody({ jsonrpc: '2.0', id: 4, method: 'initialize', params: {} }, withExtras()) as { body: RpcEnvelope };
+    expect(String(body.result!['instructions'])).toMatch(/Nothing here writes to the Orca config\.\n\nDrive the gallery\.$/);
+  });
+});

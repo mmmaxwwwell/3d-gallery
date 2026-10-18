@@ -99,6 +99,7 @@ import {
   type ArtifactSource,
 } from "@3d-gallery/viewer";
 import { forwardLegacyRoute } from "./shell/legacy-routes";
+import { registerAgentView } from "./agent/registry";
 import { syncFromServerOnce } from "./print/server-store";
 import { openNewProject } from "./print/current-project";
 import { projectUrl } from "./shell/views";
@@ -2729,10 +2730,11 @@ function showPlateNotice(projectId: string, where: string): void {
   plateNoticeTimer = window.setTimeout(() => { plateNotice.hidden = true; }, 8000);
 }
 
-async function addCurrentPartToPlate(): Promise<void> {
-  if (!printBtn || !currentModel || !currentPart || !artifactClient) return;
+/** Where the part landed, or null when there was nothing to add or it failed (the error is on screen). */
+async function addCurrentPartToPlate(): Promise<{ projectId: string; plateId: string; where: string } | null> {
+  if (!printBtn || !currentModel || !currentPart || !artifactClient) return null;
   const format = currentPrintFormat();
-  if (!format) return;
+  if (!format) return null;
   const model = currentModel;
   const part = currentPart;
   const target = targetOf(part);
@@ -2758,9 +2760,12 @@ async function addCurrentPartToPlate(): Promise<void> {
       qty: 1,
     });
     setError(null);
-    showPlateNotice(project.id, `${project.name} / ${plate.name}`);
+    const where = `${project.name} / ${plate.name}`;
+    showPlateNotice(project.id, where);
+    return { projectId: project.id, plateId: plate.id, where };
   } catch (err) {
     setError(err instanceof Error ? err.message : String(err));
+    return null;
   } finally {
     printBtn.disabled = false;
   }
@@ -2933,6 +2938,112 @@ async function init() {
 }
 
 init();
+
+// ── Agent bridge (dev server only) ───────────────────────
+
+/** Resolves once `part` of the open model is on screen, or rejects with the viewer's error. */
+async function partShown(file: string, timeoutMs = 120_000): Promise<void> {
+  const until = Date.now() + timeoutMs;
+  while (Date.now() < until) {
+    if (currentPart?.file === file && loadingOverlay.hidden) {
+      if (!errorEl.hidden && errorEl.textContent) throw new Error(errorEl.textContent);
+      return;
+    }
+    await new Promise((r) => setTimeout(r, 200));
+  }
+  throw new Error(`${file} did not finish loading within ${timeoutMs / 1000} s.`);
+}
+
+registerAgentView({
+  state: () => {
+    const model = currentModel;
+    return {
+      model: model && {
+        slug: model.slug,
+        title: model.title,
+        build: model.build ? { id: model.build.id, label: model.build.label } : null,
+        builds: model.builds?.map((b) => ({ id: b.id, label: b.label })) ?? [],
+        customizable: model.customizable === true,
+        filament: model.filament ?? [],
+        printProfile: recommendedProfile(model),
+        entries: allItemsFor(model).map(({ part, group }) => ({
+          file: part.file,
+          label: part.label,
+          kind: group === "Previews" ? "preview" : "part",
+          plate: part.plate === true,
+        })),
+      },
+      shown: currentPart && {
+        file: currentPart.file,
+        label: currentPart.label,
+        loading: !loadingOverlay.hidden,
+        error: !errorEl.hidden && errorEl.textContent ? errorEl.textContent : null,
+        customizedParams: lastCustomizerRequest?.params ?? null,
+        canAddToProject: !!printBtn && !printBtn.hidden,
+      },
+      openProjectId: getActiveProjectId(),
+    };
+  },
+  actions: {
+    "models.open": {
+      description:
+        "Open a model in the viewer, at one of its entries (a part .stl or preview .3mf) and build. "
+        + "Waits until it is on screen.",
+      args: {
+        type: "object",
+        properties: {
+          slug: { type: "string" },
+          file: { type: "string", description: "Entry to show, e.g. holster.stl. Default: the model's default view." },
+          build: { type: "string", description: "Build id, for a model with builds." },
+        },
+        required: ["slug"],
+      },
+      async run(args) {
+        const found = models.find((m) => m.slug === args.slug);
+        if (!found) throw new Error(`No model "${String(args.slug)}". models_list has the slugs.`);
+        const model = viewOf(found, typeof args.build === "string" ? args.build : undefined);
+        const items = allItemsFor(model);
+        const part = typeof args.file === "string"
+          ? items.find((i) => i.part.file === args.file)?.part
+          : defaultItemFor(model)?.part;
+        if (!part) throw new Error(`"${String(args.file)}" is not an entry of ${model.slug}: ${items.map((i) => i.part.file).join(", ")}.`);
+        selectModel(model, part);
+        await partShown(part.file);
+        return { shown: part.file, label: part.label };
+      },
+    },
+    "models.load_project": {
+      description:
+        "Load project: make a new open project holding every print plate of the open model (and "
+        + "build), each plate carrying its material and colour. Only for models whose entries include "
+        + "plates. Replacing an unsaved draft that has plates asks first: pass confirm: true once the "
+        + "person agrees to drop it.",
+      writes: true,
+      async run() {
+        if (!currentModel) throw new Error("No model is open. Run models.open first.");
+        const plates = (currentModel.previews ?? []).filter((p) => p.plate);
+        if (!plates.length) throw new Error(`${currentModel.slug} has no print plates. Open a part and use models.add_to_project.`);
+        const projectId = await loadBuildProject(currentModel, plates);
+        if (!projectId) return { loaded: false, reason: "Kept the unsaved draft project." };
+        return { loaded: true, projectId, plates: plates.length, path: projectUrl(projectId) };
+      },
+    },
+    "models.add_to_project": {
+      description:
+        "Add to project: put the part on screen (with any customized parameters) onto the open "
+        + "project's active plate, making a project or plate if there is none. The plate prints in "
+        + "PETG unless its material is changed (project.set_plate).",
+      writes: true,
+      async run() {
+        if (!currentPart) throw new Error("Nothing is on screen. Run models.open first.");
+        await partShown(currentPart.file);
+        const added = await addCurrentPartToPlate();
+        if (!added) throw new Error(errorEl.textContent || `${currentPart.file} cannot be added to a project.`);
+        return { ...added, path: projectUrl(added.projectId) };
+      },
+    },
+  },
+});
 
 if (import.meta.hot) {
   // Spelled out in full: Vite finds HMR boundaries by scanning for the literal
