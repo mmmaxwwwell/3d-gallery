@@ -1,61 +1,63 @@
 # meshtastic-drybag-node
 
-A Meshtastic node in a sealed box, standing antenna up in a tree for years. Two printed parts:
+A Meshtastic node in a sealed box that winches itself up into a tree and stays there for years. Printed parts:
 - the body: TPU 64D
-- the door (`cover()`): PCTG
+- the door (`cover()`), two battery straps, two reels, and the rear frame: PCTG
 
 devOnly, unprinted.
 
-How the user's layout got here:
-- It started from a photo of the parts laid out as a T.
-- The boards were turned flat, perpendicular to the antenna, and the whole thing was flipped: "the top is really the antenna".
-- The boards moved onto the battery, the cell was enclosed against knocks, and the T's inside corners were filled with slopes.
-- The protection board was rotated to lie along the cell.
-- The electronics got a cover.
-- The seal was replaced (below).
+## How the user's design got here
+
+It started as a flat T frame in a dry bag, from a photo of the parts laid out. Along the way the user:
+- turned the boards and flipped the node antenna-up
+- put the cell in a housing and added slopes to the stem
+- sealed the box. The first seal (a TPU bead with screws through it) is the layout that had failed on an earlier build. It became M5 screws straight into a TPU 64D body with a PCTG door ([[seal-screws-through-tpu-failed]] in memory).
+- shortened the stem, added zip-tie slots and a rib, and blended the ears
+- asked for a winch: "toss a line over some branches, tie both ends into the spools and it reels each in at the same time, pulling itself into the tree without having a tie line down"
+- asked for reels square to the pull and far out to the side, holding 150–200 ft each, with the motor shafts out the back
+- asked for no guides over the reels, just "a plate linking the spool free ends together and with the solar panel"
+- asked for M5 × 10 screws with 8 mm of thread
+- asked for a screwed battery retainer, the panel facing the other way, and the reels higher ("just flip the motors around")
+
+The user wants independent control of the reels with an IMU to level the node ("stepper motors or independent control somehow like have an accelerometer"). I chose self-locking worm gearmotors, because a stepper needs holding current to hang on the line for years.
 
 ## Frames
 
-- **Use frame:** X along the cell, Z up as it hangs (antenna up), Y out of the front face. z = 0 is the box's bottom, y = 0 its back.
-- `frame_print()` puts the body back face down (+Y up). Holes along Z are horizontal as it prints, so they're `tear_2d()`, peaked toward +Y, except the solar connector's hole: the user asked for it round. `cover_print()` puts the door front face down.
+- **Use frame:** X along the cell, Z up as it hangs, Y out of the front face. z = 0 is the box's bottom, y = 0 its back (the reels and rear frame are at y < 0).
+- Each part's `*_print()` puts it in its print orientation. Holes along Z in the body are horizontal as it prints, so they're `tear_2d()`, peaked toward +Y. The solar connector's hole is round: the user asked.
 
 ## Load-bearing choices
 
-- **The seal is a tongue in a groove, gripped from the sides.** The user's earlier build used a squeezed TPU bead with screws through the seal. The cover wouldn't close, it leaked, and the screws through the seal were a problem. Their replacement: M5 × 10 straight into a TPU 64D body, and a PCTG door. So:
-  - The body's rim has a `groove_w` groove, `groove_depth` deep, centred in the `wall`.
-  - The door's tongue is `tongue_w`, 0.3 mm a side wider than the groove, and stops short of the groove's floor.
-  - The TPU walls either side flex out and grip it. That's where the seal is, so it doesn't depend on screw force.
-  - The tip starts narrower than the groove and widens over `tongue_lead` in steps, so it leads itself in.
-- **Screws are outside the seal**, in ears. M5 × 10 thread straight into `m5_pilot_d` pilots in the TPU.
-  - **Placement:** a pair sits either side of every corner, where its curve starts. The user asked for them "immediately on both sides of every corner". Two more go along the top and two along the bottom (`screw_xs`). `ear_groups` holds them, and each corner pair shares one ear.
-  - **Shape:** each ear is its boss (`ear_r`, centre `ear_out` past the wall) hulled into an `ear_base`-wide strip on the wall, so it blends in. The user said the round ears were "too round", and asked for more meat round each screw.
-  - **Depth:** ears run `ear_len` back from the front, then taper into the wall at 45° (their underside as the body prints).
-  - The solar connector sits low in its wall (`solar_y`) so its nut clears those tapers (asserted). `pilot_depth` comes from the screw length and `cover_t`. The heads sit on the door; the user gave no head type, so there are no counterbores.
-- **One door over the battery and the electronics.** The cell drops into a half-round seat from the front, and ribs on the door (`cell_rib_xs`) hold it. The cell's leads go up through `lead_x`, a hole in the shelf beside the protection board. The shelf is an internal floor and isn't sealed.
-- **Boards lie flat in pockets** on the shelf, perpendicular to the antenna, dropped in from above and held with foam tape:
-  - left: the protection board (`bms_*`), lying along the cell
-  - right: the kit, then the charge board, its ports facing the right end and the solar connector
-  - The middle (`mid_gap`) is clear for the jack's body.
-  - The front rim's underside is chamfered 45°.
-- **Bulkhead through the roof.** The roof is relieved from inside to `bulkhead_wall_t` (4 mm, user confirmed) round `n_body_d`. The jack's O-ring seals on the relief's floor, and the panel nut is on top.
-- **Solar:** the user's own 5/8" watertight connector, in a plain round `solar_hole_d` through the right end wall, as the user asked. `solar_nut_d` (not measured) is its outside nut or flange.
-- **The stem is short** (`stem_len` 26, the user asked for about 1/3 of the earlier 70). It has a saddle in the middle and a pair of zip-tie slots below and above it (`tie_zs`).
-- **The back plate slopes** straight from the box's top corners in to the stem's top.
-- **`stem_rib()`** is a quarter-round fillet (`rib_r`) along the foot of the plate where it meets the roof, notched round the bulkhead's nut and the antenna (`rib_notch`). The user asked for "a rounded rib there to add strength".
-- Reference geometry (`cell()`, `antenna()`, `boards()`, `solar_connector()`) is preview only.
+- **Seal: a tongue in a groove, gripped from the sides.** The door's tongue (`tongue_w`) is 0.3 mm a side wider than the groove (`groove_w`) round the TPU rim, and stops short of the groove's floor. Its tip leads in narrower over `tongue_lead`. The screws only hold the door on.
+- **Screws:** M5 × 10 everywhere, with `thread_len` (8, the user's) of thread.
+  - Every part a screw passes through is counterbored to leave `under_head` (2) under the cap head.
+  - Every pilot is `pilot_depth` (9) deep.
+  - The door's screws sit in ears outside the seal (`ear_groups`): a pair either side of each corner sharing one hulled ear, one mid-height in each end, and `screw_xs_top` / `screw_xs_bottom`. Each ear is its boss hulled into an `ear_base` strip on the wall, `ear_len` deep, then tapering at 45°.
+- **Battery:** the cell's back half sits in `cell_seat()`. The seat carries solid strips `strap_lug_h` tall above and below the cell. Two PCTG straps (`strap_xs`) cup the cell's front, 0.1 mm tighter than the seat, and screw into those strips at both ends.
+- **Boards:** they stand flat on the back wall in rimmed pockets and go straight in from the front, on foam tape. There are two rows between the motors:
+  - lower row: the radio kit, then the charge board, its ports facing +X into the open space before the right motor (asserted ≥ 20 mm)
+  - upper row: the protection board, the DRV8833, and the winch XIAO Sense
+  - The bulkhead's body hangs `n_body_len` from the roof above them.
+- **Winch:**
+  - **Motors:** the JGY-370 worm motors stand inside each end, gearbox up (`mot_shaft_down`) so the reels sit high. Each one's mounting face is on a boss (`boss_d`, `boss_t`) round its shaft hole in the back wall.
+  - **Reels:** each reel's hub goes through that hole, 0.4 mm tight in the TPU as a lip seal, onto the motor's D-shaft. The drums run along Y behind the box (`drum_y0`..`drum_y1`), so the line comes straight up off them with no guide (the user's call). `spool_x` keeps the two 120 mm reels clear across the middle and sets the box's width.
+  - **Capacity:** 0.57 L of winding space each, about 56 m (185 ft) of 1/8" line.
+- **Rear frame:** one PCTG part.
+  - **Upright:** it sits `rear_gap` behind the reels, `rear_t` (9) thick and flat behind so it prints on its back. Each reel's outer axle is an M5 × 25 threaded 8 mm into it, and the reel turns on the shank.
+  - **Floor:** it runs under the box and screws to the bottom, into pilots under the cell's seat. Gussets join it to the upright, clear of the reels.
+  - **Solar panel:** it hangs from the upright's foot at `panel_tilt`, facing back and up (the user asked to flip it). Its frame's top edge meets the upright (`panel_y` is derived from that), so the frame climbs from the upright at 45° as the part prints. Side plates join the frame to the floor.
+- **Bulkhead** through the roof, relieved from inside to `bulkhead_wall_t` (4 mm, user confirmed) round `n_body_d`. The panel nut is on top.
+- **Stem:** it's short (`stem_len` 26) with a saddle and zip-tie slots at two heights (`tie_zs`). The back plate's slopes run from the stem's top to `slope_foot_x`, with a quarter-round fillet rib (`stem_rib()`) along their foot.
 
 ## Checks worth re-running after a change
 
-Intersect the body with the door. The only overlap should be the tongue's side squeeze, about 0.6 × the loop length × the tongue's depth in the groove (around 790 mm³ at the defaults). Anything else is a collision.
+Intersect each pair of parts and reference parts; the scratch loop in this model's history does it.
+- **Body ∩ door:** this should be the tongue's side squeeze only, about 0.6 × the loop length × its depth (~1130 mm³).
+- **Body ∩ reel:** this should be the hub's lip seal only (~80 mm³).
+- **Everything else** should be clear: straps, cell, boards, motors, rear frame, reels, panel.
 
-## Unmeasured
+## Open, unmeasured
 
-- `board_w`/`board_d`: from the photo, scaled off the cell's 32 mm. The Kingboss 15000 mAh LiFePO4 bank's 150 × 40 × 50 case bounds the board at about 37 × 47.
-- `board_t`
-- `bms_*`: a typical 1S 24 A board
-- `kit_t`
-- `rear_gap`
-- `end_clear`
-- `n_body_d`
-- the 5/8" connector's panel range against the 6 mm wall
-- the tongue's interference, which needs a test print in the actual TPU 64D
+- **Mass and torque:** the parts come to about 1.6 kg at 100% infill. At full radius a reel needs about 7 kg·cm to lift a 2.4 kg node. JGY-370s probably need 6–12 V for that, more than the 3.2 V cell gives, so a boost converter is likely. The motor's ratio and voltage aren't chosen.
+- **Pitch:** the line pulls behind the box's centre of mass, so the node will hang pitched until the reels' weight balances it. The rear frame and panel are the ballast behind.
+- **Not measured:** every board's size, the JGY-370's envelope and shaft, the solar panel (`panel_w`/`panel_h`), `n_body_d`/`n_body_len`, and the 5/8" connector's panel range.

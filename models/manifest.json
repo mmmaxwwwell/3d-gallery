@@ -777,34 +777,45 @@
       "slug": "meshtastic-drybag-node",
       "devOnly": true,
       "title": "Meshtastic Dry-Bag Node",
-      "description": "A cheap Meshtastic/MeshCore node in a sealed box, standing antenna up in a tree. The body is TPU 64D and the door is PCTG. The 32140 LiFePO4 cell lies across the bottom in a seat, and the boards lie flat in pockets on a shelf over it, perpendicular to the antenna: the LiFePO4 protection board on the left, the XIAO nRF52840 + Wio-SX1262 kit and the power bank's charge board on the right. The pigtail's N female bulkhead clamps through the roof on its panel nut and O-ring, and the ALFA AOA-915-5ACM stands straight up from it, zip-tied at two heights to a short stem. The back plate slopes up from the box's top corners to the stem, with a rounded rib along its foot. The door seals with a tongue round its back, 0.6 mm wider than the groove round the body's rim, so the TPU grips it from both sides and the screws only hold it on. Twelve M5 \u00d7 10 screws thread straight into the TPU, in ears outside the seal that flare into the walls: a pair either side of every corner, sharing one solid block, plus two along the top and two along the bottom. The solar cable comes in through a 5/8\" watertight connector in the right end wall. No supports: the body prints back face down, the door front face down. 185 \u00d7 110 \u00d7 55 mm with the ears; about 280 mm tall with the antenna. Not yet test-printed.",
+      "description": "A Meshtastic/MeshCore node in a sealed box that winches itself up into a tree. You throw a line over a branch or two and tie both ends to the node's two reels; each reel winds its end in, and the node climbs the line with no tie line left hanging. The reels sit behind the box, one at each end, as far out to the sides as they go, each holding 150\u2013200 ft of 1/8\" Dacron. Their drums run front to back, square to the line's pull, so the line comes straight up off them. Each reel has its own self-locking worm motor standing inside the box, its shaft out through the back wall's TPU, so the node holds its height with the power off. A second XIAO (the nRF52840 Sense, for its IMU) drives them through a DRV8833, so it can level the node as it climbs. A PCTG rear frame ties the reels' free ends together: their outer axles thread into an upright behind them, a floor under the box screws to its bottom, and the solar panel hangs from the upright at 45\u00b0, facing back and up. The battery at the bottom and the panel are the ballast. The body is TPU 64D; the door is PCTG, sealed by a tongue that's wider than the groove round the TPU rim, so the TPU grips it from the sides. Fourteen M5 \u00d7 10 screws in ears outside the seal (a pair either side of every corner, one mid-height in each end, two along the top and two along the bottom) thread 8 mm straight into the TPU. Inside: the 32140 LiFePO4 cell along the bottom, locked into its seat by two screwed straps; above it the boards stand flat on the back wall in pockets, going straight in from the front; the motors stand at the ends. The N bulkhead clamps through the roof and the ALFA AOA-915-5ACM stands up from it, zip-tied to a short stem. The solar panel's lead comes in through a 5/8\" watertight connector in the door. No supports anywhere. Box 176 \u00d7 165 \u00d7 44 mm; reels 120 mm across. From the panel's bottom edge to the antenna's tip it's about 480 mm. Not yet test-printed.",
       "filament": [
         { "material": "TPU 64D", "color": "any", "note": "The body; the screws thread straight into it", "parts": ["frame.stl"] },
-        { "material": "PCTG", "color": "any", "note": "The door", "parts": ["cover.stl"] }
+        { "material": "PCTG", "color": "any", "note": "Door, reels, battery straps and rear frame", "parts": ["cover.stl", "spool.stl", "battery-strap.stl", "rear-frame.stl"] }
       ],
       "previews": [
-        { "file": "assembled.3mf", "format": "3mf", "label": "Closed", "default": true,
+        { "file": "assembled.3mf", "format": "3mf", "label": "Assembled", "default": true,
           "legend": [
             { "color": "#2f3542", "label": "Body, TPU 64D", "part": "frame.stl" },
-            { "color": "#747d8c", "label": "Door, PCTG", "part": "cover.stl" },
+            { "color": "#eccc68", "label": "Battery straps", "part": "battery-strap.stl" },
+            { "color": "#747d8c", "label": "Door", "part": "cover.stl" },
+            { "color": "#ffa502", "label": "Reels", "part": "spool.stl" },
+            { "color": "#a4b0be", "label": "Rear frame: reel axles, floor and solar panel hanger", "part": "rear-frame.stl" },
             { "color": "#57606f", "label": "N bulkhead and AOA-915-5ACM antenna (reference)" },
-            { "color": "#a4b0be", "label": "5/8\" watertight solar connector (reference)" }
+            { "color": "#3742fa", "label": "Solar panel (reference)" },
+            { "color": "#ced6e0", "label": "5/8\" watertight solar connector (reference)" }
           ],
-          "components": [ { "part": "frame.stl", "qty": 1 }, { "part": "cover.stl", "qty": 1 } ]
+          "components": [ { "part": "frame.stl", "qty": 1 }, { "part": "cover.stl", "qty": 1 }, { "part": "battery-strap.stl", "qty": 2 },
+                          { "part": "spool.stl", "qty": 2 }, { "part": "rear-frame.stl", "qty": 1 } ]
         },
-        { "file": "open.3mf", "format": "3mf", "label": "Door off: the cell and the boards",
+        { "file": "open.3mf", "format": "3mf", "label": "Door off: cell, straps, boards and motors",
           "legend": [
             { "color": "#2f3542", "label": "Body, TPU 64D", "part": "frame.stl" },
+            { "color": "#eccc68", "label": "Battery straps", "part": "battery-strap.stl" },
             { "color": "#7bed9f", "label": "32140 LiFePO4 cell (reference)" },
             { "color": "#57606f", "label": "N bulkhead and AOA-915-5ACM antenna (reference)" },
-            { "color": "#2ed573", "label": "Protection board, XIAO kit and charge board (reference)" },
-            { "color": "#a4b0be", "label": "5/8\" watertight solar connector (reference)" }
+            { "color": "#2ed573", "label": "Boards: radio kit, charge board, protection board, motor driver, winch XIAO (reference)" },
+            { "color": "#ff6348", "label": "JGY-370 worm motors (reference)" },
+            { "color": "#ffa502", "label": "Reels", "part": "spool.stl" },
+            { "color": "#a4b0be", "label": "Rear frame", "part": "rear-frame.stl" }
           ]
         }
       ],
       "parts": [
         { "file": "frame.stl", "format": "stl", "label": "Body \u2014 TPU 64D, back face down" },
-        { "file": "cover.stl", "format": "stl", "label": "Door \u2014 PCTG, front face down" }
+        { "file": "cover.stl", "format": "stl", "label": "Door \u2014 PCTG, front face down" },
+        { "file": "battery-strap.stl", "format": "stl", "label": "Battery strap (print 2) \u2014 PCTG, front face down" },
+        { "file": "spool.stl", "format": "stl", "label": "Reel (print 2) \u2014 PCTG, on its outer flange" },
+        { "file": "rear-frame.stl", "format": "stl", "label": "Rear frame \u2014 PCTG, on the upright's back face" }
       ],
       "hardware": [
         { "qty": 1, "label": "Kingboss 15000 mAh LiFePO4 power bank \u2014 taken apart for its 32140 cell (3.2 V 15 Ah) and its charge board",
@@ -815,16 +826,23 @@
           "source": { "url": "https://www.amazon.com/dp/B08ZYK5SL9", "vendor": "Amazon" } },
         { "qty": 1, "label": "ALFA AOA-915-5ACM 5 dBi 915 MHz antenna, N male \u2014 screws onto the bulkhead, pointing down",
           "source": { "url": "https://www.amazon.com/dp/B08H8J6ZV6", "vendor": "Amazon" } },
-        { "qty": 1, "label": "KOOBOOK 3.2 V LiFePO4 protection board (3-pack, one used) \u2014 between the cell and the loads, flat in the left pocket",
+        { "qty": 1, "label": "KOOBOOK 3.2 V LiFePO4 protection board (3-pack, one used) \u2014 between the cell and the loads",
           "source": { "url": "https://www.amazon.com/dp/B0GM5MD5V6", "vendor": "Amazon" } },
         { "qty": 1, "label": "5 V 3 W mini USB solar panel \u2014 charges the cell through the charge board's USB input",
           "source": { "url": "https://www.amazon.com/dp/B0H93K5QL8", "vendor": "Amazon" } },
         { "qty": 1, "label": "Zanhour 2 L roll-top dry bag \u2014 optional now the box seals; an outer layer for the antenna and the solar connector",
           "source": { "url": "https://www.amazon.com/dp/B0CBH9ZWVL", "vendor": "Amazon" } },
-        { "qty": 1, "label": "5/8\" watertight panel connector (the user's own) \u2014 solar cable through the right end wall", "usedBy": [ { "part": "frame.stl", "each": 1 } ] },
-        { "qty": 12, "label": "M5x10 screw \u2014 door onto the body, threading straight into the TPU", "usedBy": [ { "part": "cover.stl", "each": 12 } ] },
+        { "qty": 1, "label": "5/8\" watertight panel connector (the user's own) \u2014 solar lead through the door", "usedBy": [ { "part": "cover.stl", "each": 1 } ] },
+        { "qty": 2, "label": "JGY-370 worm gearmotor, 6 mm D-shaft \u2014 one per reel, self-locking (not chosen yet: ratio and voltage)", "usedBy": [ { "part": "spool.stl", "each": 1 } ] },
+        { "qty": 1, "label": "Seeed XIAO nRF52840 Sense \u2014 winch controller, its IMU levels the node" },
+        { "qty": 1, "label": "DRV8833 dual motor driver module \u2014 drives both reels" },
+        { "qty": 2, "label": "1/8\" Dacron line, 50\u201360 m \u2014 one per reel (or one line, both ends tied in)" },
+        { "qty": 14, "label": "M5x10 cap screw \u2014 door onto the body, 8 mm into the TPU", "usedBy": [ { "part": "cover.stl", "each": 14 } ] },
+        { "qty": 4, "label": "M5x10 cap screw \u2014 battery straps into the strips above and below the cell", "usedBy": [ { "part": "battery-strap.stl", "each": 2 } ] },
+        { "qty": 2, "label": "M5x10 cap screw \u2014 rear frame's floor into the box's bottom", "usedBy": [ { "part": "rear-frame.stl", "each": 2 } ] },
+        { "qty": 2, "label": "M5x25 bolt \u2014 reel outer axle, threaded into the rear frame's upright", "usedBy": [ { "part": "spool.stl", "each": 1 } ] },
         { "qty": 2, "label": "Zip tie, 4.8 mm wide, 150 mm \u2014 antenna to the stem, below and above its saddle", "usedBy": [ { "part": "frame.stl", "each": 2 } ] },
-        { "qty": 3, "label": "Double-sided foam tape square \u2014 one under each board in its pocket", "usedBy": [ { "part": "frame.stl", "each": 3 } ] }
+        { "qty": 5, "label": "Double-sided foam tape square \u2014 one behind each board in its pocket", "usedBy": [ { "part": "frame.stl", "each": 5 } ] }
       ]
     },
     {
