@@ -24,7 +24,8 @@ const SETTING_KEYS = [
 function settings(gcode: string): Record<string, string> {
   const out: Record<string, string> = {};
   for (const key of SETTING_KEYS) {
-    const m = new RegExp(`^;\\s*${key}\\s*[=:]\\s*(.*)$`, 'm').exec(gcode);
+    // [ \t] not \s: an empty value must not run on into the next line.
+    const m = new RegExp(`^;[ \\t]*${key}[ \\t]*[=:][ \\t]*(.*)$`, 'm').exec(gcode);
     if (m) out[key] = m[1]!.trim();
   }
   return out;
