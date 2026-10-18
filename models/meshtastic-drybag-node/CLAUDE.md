@@ -74,6 +74,7 @@ The user wants independent control of the reels with an IMU to level the node ("
 - **Reels:** the rear flange is the herringbone ring. The core runs on through the rear plate's bearing bore (`journal_clear`) to the drum. The front flange (`reel_flange()`) is a separate disc keyed on a hex spigot, trapped by the front plate. The V jam cleat runs out through the spigot's end.
 - **Holder plates** (`holder_2d()`, the user's "220x220 flat large skeleton pieces"). Each fits inside 220 × 220 (asserted).
   - **Shape:** a ring round the reel with a bar across at the axle round a boss, four spokes, the flat outer part up to the roller window, and the flat inner edge for the channel.
+  - **Ties to the mounting face** (the user's): members from the ring's top and bottom, and from the roller window's top, to the inner edge's top and bottom ends, so the plate is triangulated against the box.
   - **Crossmembers** (`xbars()`, `xbar_angles`) go all the way round, except on the box's side; dovetailed ends, each locked with a screw.
 - **Rollers, two axes** (the user: "the 2nd set of rollers so we have two axis control"):
   - **Window:** at [`fl_xc`, `line_y`], `fl_in` in from the reel's edge.

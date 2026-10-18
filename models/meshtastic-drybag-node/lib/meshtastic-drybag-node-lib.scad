@@ -739,7 +739,8 @@ module place_cheek(x0) { translate([x0, rear_y1 - dv_depth, 0]) children(); }
 // What both holder plates share (right reel): a ring all the way round the
 // reel with a bar across it at the axle round a boss and four spokes; the
 // flat outer part, up the ring's outer side to the roller window on top;
-// and the flat inner edge that seats in the box's channel.
+// the flat inner edge that seats in the box's channel; and members from the
+// ring's top and bottom, and the roller window's top, to that edge's ends.
 module holder_2d() {
   translate(ring_c) {
     difference() { circle(r = ring_r1, $fn = 128); circle(r = ring_r0, $fn = 128); }
@@ -762,6 +763,17 @@ module holder_2d() {
   hull() {
     translate([seat_x0, strip_z0]) square([seat_x1 - seat_x0, box_h - strip_z0]);
     translate(ring_c) for (a = [165, 195]) rotate(a) translate([ring_r0, -1]) square([ring_w, 2]);
+  }
+  // Crossmembers from the ring's top and bottom to the mounting face's top
+  // and bottom ends (the user's), tying the ring to the box both ways.
+  for (top = [true, false]) hull() {
+    translate(ring_c + [0, top ? ring_r1 - bar_w / 2 : -ring_r1 + bar_w / 2]) circle(d = bar_w, $fn = 32);
+    translate([seat_x0, top ? box_h - bar_w : strip_z0]) square([seat_x1 - seat_x0, bar_w]);
+  }
+  // And from the roller window's top to the mounting face's top.
+  hull() {
+    translate([win_x0, win_z1 - bar_w]) square([bar_w, bar_w]);
+    translate([seat_x0, box_h - bar_w]) square([seat_x1 - seat_x0, bar_w]);
   }
 }
 
