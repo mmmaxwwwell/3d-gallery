@@ -360,6 +360,8 @@ kanix_margin = 7;
 kanix_screw_reach = 10 - (5 - 2.4);
 kanix_pilot_depth = kanix_screw_reach + 0.6;
 kanix_skin = 0.8;
+// A 45° chamfer at each pilot's mouth, so a screw starts square.
+kanix_pilot_chamfer = 0.8;
 kanix_pad = kanix_pilot_depth + kanix_skin - wall;
 kanix_face_w = kanix_pitch * (kanix_cols - 1) + 2 * kanix_margin;
 // Kanix plates are as tall as their belt: 38 mm for 2 rows, 52 for 3.
@@ -398,7 +400,10 @@ module kanix_pilots() {
     translate([(i - (kanix_cols - 1) / 2) * kanix_pitch,
                back_outer_y + kanix_pad + 1,
                kanix_grid_z + (j - (kanix_rows - 1) / 2) * kanix_pitch])
-      rotate([90, 0, 0]) cylinder(d = kanix_pilot, h = kanix_pilot_depth + 1);
+      rotate([90, 0, 0]) {
+        cylinder(d = kanix_pilot, h = kanix_pilot_depth + 1);
+        cylinder(r1 = kanix_pilot / 2 + kanix_pilot_chamfer + 1, r2 = kanix_pilot / 2, h = kanix_pilot_chamfer + 1);
+      }
 }
 
 // The radio's shape grown by tolerance + wall: the holster's outside, a

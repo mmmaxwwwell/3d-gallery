@@ -36,7 +36,7 @@ The holster bolts to a Kanix belt clip (the user's own system, `~/git/kanix/scad
 
 - `kanix_cols` × `kanix_rows` = 3 × 2 (the user's pick, the long side horizontal), centred on the back, its pad's top just below the slits so the tabs still flex.
 - An M5×10 through the clip (5 mm plate, 2.4 mm head counterbore) reaches 7.4 mm in. The pilots go 8 mm, mostly through the pad and on into the wall, and the pad (`kanix_pad`, 5.8) is sized to leave `kanix_skin` (0.8, the user's number) before the pocket, so no screw tip reaches the radio (the user's concern). Check: the pilots must clear `pocket()` shifted 0.79 toward them and touch it at 0.81. That's also why `wall` went from 2.4 to 3.
-- The pad (`kanix_pad()`) is a hull of rounded corners. Its face is the plate's size; its flanks spread into the back wall at 45° underneath (no overhang) and only a rounding's width at the sides and top, to fit the back's flat and stay clear of the slits. Pilots are plain round holes; the user dropped my teardrops, so their tops bridge.
+- The pad (`kanix_pad()`) is a hull of rounded corners. Its face is the plate's size; its flanks spread into the back wall at 45° underneath (no overhang) and only a rounding's width at the sides and top, to fit the back's flat and stay clear of the slits. Pilots are plain round holes; the user dropped my teardrops, so their tops bridge. Each mouth has a 45° chamfer, `kanix_pilot_chamfer` (0.8, my pick; 4.2 opens to 5.8), so a screw starts square (the user's ask).
 
 ## USB-C opening
 
