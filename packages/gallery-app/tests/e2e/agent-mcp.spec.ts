@@ -175,6 +175,21 @@ test('the ui tools click, fill and answer dialogs on any view', async ({ page, r
   expect(declined).toContain('! confirm: "Really?" → answered false');
   expect(declined).toContain('button "No"');
   expect(text(await call('ui_click', { tab, ref, confirm: true }))).toContain('button "Yes"');
+
+  // A button inside a <summary> (a card's edit pencil) is listed and clickable.
+  await page.evaluate(() => {
+    const d = document.createElement('details');
+    const s = document.createElement('summary');
+    const b = document.createElement('button');
+    b.textContent = 'Edit card';
+    b.onclick = (e) => { e.preventDefault(); b.textContent = 'Edited'; };
+    s.append('Card ', b);
+    d.append(s);
+    document.querySelector('main')!.append(d);
+  });
+  const edit = /button "Edit card" \[([a-z]{2}\d+)\]/.exec(text(await call('ui_screen', { tab, find: 'Edit card' })));
+  expect(edit).toBeTruthy();
+  expect(text(await call('ui_click', { tab, ref: edit![1] }))).toContain('button "Edited"');
 });
 
 test('an agent imports preset files, finds duplicates and maps filaments to printers', async ({ page, request }) => {

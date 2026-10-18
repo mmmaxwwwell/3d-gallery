@@ -209,8 +209,14 @@ export function snapshot(options: SnapshotOptions = {}): string {
     if (el.matches(CONTROL_SELECTOR) || looksClickable(el)) {
       lines.push({ depth, text: `- ${controlLine(el)}`, heading: false });
       // A control's text is its name. Only a clickable container (a card) has
-      // controls worth listing inside it.
-      if (roleOf(el) !== 'clickable') return;
+      // its contents walked; any other control lists just the controls it
+      // holds (a <summary>'s edit button), which are otherwise unreachable.
+      if (roleOf(el) !== 'clickable') {
+        for (const inner of el.querySelectorAll(CONTROL_SELECTOR)) {
+          if (!hidden(inner)) lines.push({ depth: depth + 1, text: `- ${controlLine(inner)}`, heading: false });
+        }
+        return;
+      }
     }
 
     const heading = /^H[1-6]$/.test(el.tagName) || el.getAttribute('role') === 'heading';
