@@ -777,7 +777,7 @@
       "slug": "kobo-meshcore-case",
       "devOnly": true,
       "title": "Kobo Clara HD MeshCore Case",
-      "description": "A slim prototype case that turns a Kobo Clara HD into a MeshCore handheld. The Kobo sits in landscape in a frame that lips over its bezel. Up its right side runs a cylinder sized for an 18650, flush with the front and standing out at the back, and its depth carries on 48 mm inward behind the Kobo, the case's whole height, as a hollow cover whose inner end rounds down to the back plate. The cylinder splits at its axis: take the cover off and the cell (with its leads) lifts out of the back, and the SMA bulkhead's jack drops into place. The cylinder stops 25 mm short of the case's top in a hex mount: the jack's hex sits in a pocket under the end panel, its nut tightens on top and clamps the two halves, and the antenna stands in the open on the cylinder's axis, the cutout's edges rounded. Two Seeed XIAO boards lie flat on the back plate up by the antenna, located by corner posts and held down by posts in the cover; a window from above the cell carries the pigtail's cable and the cell's leads to them. The Kobo's power button sits at the bottom of a 45° trough in the front. Three PETG pieces and seven M3 cap screws. 195 × 117 mm, 22.4 mm thick at the cylinder, 12.65 behind the Kobo. Kobo dimensions are Kobo's spec; the screen and button positions are estimated from Kobo's drawing. Not yet printed.",
+      "description": "A slim prototype case that turns a Kobo Clara HD into a MeshCore handheld. The Kobo sits in landscape in a frame that lips over its bezel. Up its right side a thick part runs the case's whole height: an 18650 cylinder, flush with the front and standing out at the back, its depth carrying on 48 mm inward behind the Kobo. The thick part is an open tub: the frame is its outer wall and its back is open, so the cell (with its leads), two Seeed XIAO boards and the SMA bulkhead are all reached from behind. The SMA mounts in the top of the cylinder, at the top of the case: the jack's hex sits in a pocket under the top wall and the nut tightens on top. One back plate covers the Kobo and stops at the thick part; it carries the tub's rounded inner end, and its top strip has a window for each XIAO so the boards lie flat on the Kobo's back by the antenna. The Kobo's power button sits at the bottom of a 45° trough in the front. Two PETG pieces and four M3 cap screws. 195 × 117 mm, 22.4 mm thick at the thick part, 12.65 behind the Kobo. Kobo dimensions are Kobo's spec; the screen and button positions are estimated from Kobo's drawing. Not yet printed.",
       "filament": [
         { "material": "PETG", "color": "any" }
       ],
@@ -785,7 +785,7 @@
         { "file": "assembled.3mf", "format": "3mf", "label": "Assembled, with the Kobo, the 18650, the XIAOs and the SMA", "default": true,
           "legend": [
             { "color": "#3b6fb6", "label": "Frame", "part": "shell.stl" },
-            { "color": "#e8a33d", "label": "Back plate and electronics cover", "parts": ["back-plate.stl", "electronics-cover.stl"] },
+            { "color": "#e8a33d", "label": "Back plate", "part": "back-plate.stl" },
             { "color": "#9aa0a6", "label": "Kobo Clara HD (reference)" },
             { "color": "#2b2b2b", "label": "Kobo screen (reference)" },
             { "color": "#5aa469", "label": "18650 cell (reference)" },
@@ -794,33 +794,25 @@
           ],
           "components": [
             { "part": "shell.stl", "qty": 1 },
-            { "part": "back-plate.stl", "qty": 1 },
-            { "part": "electronics-cover.stl", "qty": 1 }
+            { "part": "back-plate.stl", "qty": 1 }
           ] },
         { "file": "plate-1-shell.3mf", "format": "3mf", "label": "Print plate 1: frame, face down", "plate": true,
           "legend": [ { "color": "#3b6fb6", "label": "Frame", "part": "shell.stl" } ],
           "components": [ { "part": "shell.stl", "qty": 1 } ] },
-        { "file": "plate-2-covers.3mf", "format": "3mf", "label": "Print plate 2: back plate, electronics cover (standing on its end)", "plate": true,
-          "legend": [ { "color": "#e8a33d", "label": "Back plate and electronics cover", "parts": ["back-plate.stl", "electronics-cover.stl"] } ],
-          "components": [ { "part": "back-plate.stl", "qty": 1 }, { "part": "electronics-cover.stl", "qty": 1 } ] }
+        { "file": "plate-2-back.3mf", "format": "3mf", "label": "Print plate 2: back plate, inner face down", "plate": true,
+          "legend": [ { "color": "#e8a33d", "label": "Back plate", "part": "back-plate.stl" } ],
+          "components": [ { "part": "back-plate.stl", "qty": 1 } ] }
       ],
       "parts": [
         { "file": "shell.stl", "format": "stl", "label": "Frame — print face down" },
-        { "file": "back-plate.stl", "format": "stl", "label": "Back plate — print inner face down" },
-        { "file": "electronics-cover.stl", "format": "stl", "label": "Electronics cover — print standing on its bottom end" }
+        { "file": "back-plate.stl", "format": "stl", "label": "Back plate — print inner face down" }
       ],
       "hardware": [
-        { "qty": 2, "label": "M3x8 socket head cap screw — back plate's left end to the frame",
-          "usedBy": [ { "part": "back-plate.stl", "each": 2 } ] },
-        { "qty": 2, "label": "M3x16 socket head cap screw — electronics cover and back plate to the frame beside the cylinder",
-          "usedBy": [ { "part": "electronics-cover.stl", "each": 2 } ] },
-        { "qty": 2, "label": "M3x6 socket head cap screw — electronics cover's inner end to the back plate's bosses",
-          "usedBy": [ { "part": "electronics-cover.stl", "each": 2 } ] },
-        { "qty": 1, "label": "M3x10 socket head cap screw — the cylinder's halves at its bottom",
-          "usedBy": [ { "part": "electronics-cover.stl", "each": 1 } ] },
-        { "qty": 1, "label": "SMA female bulkhead pigtail (1/4\"-36 thread, 8 mm hex) — antenna out of the cylinder's hex mount" },
+        { "qty": 4, "label": "M3x8 socket head cap screw — back plate to the frame",
+          "usedBy": [ { "part": "back-plate.stl", "each": 4 } ] },
+        { "qty": 1, "label": "SMA female bulkhead pigtail (1/4\"-36 thread, 8 mm hex) — antenna out of the top of the cylinder" },
         { "qty": 1, "label": "18650 cell with wire leads — in the cylinder" },
-        { "qty": 2, "label": "Seeed XIAO board, no headers — on the back plate under the cover" }
+        { "qty": 2, "label": "Seeed XIAO board, no headers — in the back plate's windows" }
       ]
     },
     {
