@@ -777,17 +777,24 @@
       "slug": "kobo-meshcore-case",
       "devOnly": true,
       "title": "Kobo Clara HD MeshCore Grip",
-      "description": "A handheld grip that turns a Kobo Clara HD into a MeshCore device without modifying it. The Kobo, held in landscape, slides its chin (the wide bezel at its bottom edge) sideways into a slot in the grip, onto a 90\u00b0 micro USB plug in the slot's end that charges it, and a tab cut in the slot's floor presses it into the lip so it clicks home; it slides out the same way. The slot has a lip over the chin in front, stopping short of the screen, and the grip's floor behind. The end wall clears the power button, which the grip covers. The grip is an 18650 cylinder, flush with the front and standing out at the back, whose depth carries on inward behind the Kobo to a rounded inner end. Every outside edge is rounded, and shallow finger indents run up the right side every 15 mm. A back cover on three M3 cap screws closes it. Inside: the cell (with its leads) in the cylinder; a TP4056 USB-C charger board on the floor just above the cell, carried over the open cylinder by a platform, its USB-C through the right side under the first antenna; and three Seeed XIAO boards (an nRF and two SX1262 radios) standing on end on the floor behind the chin. Pairs of zip-tie bars on the floor hold the boards down: one tie runs over the XIAO stack, one across the charger. Two SMA bulkheads stand in the top wall: one over the cylinder, its jack pushed up the cylinder from below, and one in the top of the rounded inner end, its jack slid in from behind. One radio can use an internal strip antenna stuck inside the inner end instead. Two PETG pieces: the grip prints standing on its end, the cover face down. 72.1 \u00d7 117 \u00d7 24.4 mm. Kobo dimensions are Kobo's spec; the screen, button and USB positions are estimated from Kobo's drawing. Not yet printed.",
+      "description": "A sealed handheld grip that turns a Kobo Clara HD into a MeshCore device without modifying it. The Kobo, held in landscape, slides its chin (the wide bezel at its bottom edge) sideways into a slot in the grip, onto a 90\u00b0 micro USB plug that charges it, and a soft TPU pad in the slot's floor holds it. In front of the chin a 2.13\" e-paper stands under a screwed-on bezel. The grip is an 18650 cylinder, flush with the front and standing out at the back, whose depth carries on inward behind the Kobo; its edges are rounded and finger indents run up both sides. Inside: the cell; a TP4056 USB-C charger above it, its port through the right side under the first antenna; three Seeed XIAO boards (an nRF and two SX1262 radios) held by zip ties; and two SMA bulkheads in the top. Sealed by the dry-bag node's rules: PCTG body and lids, soft TPU seals squeezed from the side, screws outside the seals. The back cover's tongue presses into a U-section TPU 85A gasket in a groove round the grip's back rim, which turns in round each of its seven corner and edge screws; a smooth boss lifts the seal over the second SMA. A TPU 70A frame seals the bezel to the panel, the SMAs seal on TPU washers, the USB-C takes a TPU plug, and the micro USB plug and the display's wires are potted where they pass in. 75 \u00d7 125 \u00d7 30.3 mm. Kobo dimensions are Kobo's spec; the screen, button, USB and display positions are estimates. Not yet printed.",
       "filament": [
-        { "material": "PETG", "color": "any" }
+        { "material": "PCTG", "color": "any", "note": "Grip, back cover and bezel", "parts": ["grip.stl", "cover.stl", "bezel.stl"] },
+        { "material": "TPU 85A", "color": "any", "note": "Back gasket, USB-C plug and SMA washers", "parts": ["back-gasket.stl", "usbc-plug.stl", "sma-washer.stl"] },
+        { "material": "TPU 70A", "color": "any", "note": "Bezel gasket and the pad that holds the Kobo", "parts": ["bezel-gasket.stl", "kobo-pad.stl"] }
       ],
+      "printProfile": { "material": "PCTG" },
       "previews": [
-        { "file": "assembled.3mf", "format": "3mf", "label": "Assembled, cover off: the Kobo, the 18650, the boards, the plug and both SMAs", "default": true,
+        { "file": "assembled.3mf", "format": "3mf", "label": "Assembled, cover and bezel off: the Kobo, the e-paper, the 18650, the boards and both SMAs", "default": true,
           "legend": [
             { "color": "#3b6fb6", "label": "Grip", "part": "grip.stl" },
+            { "color": "#2f5a99", "label": "Bezel", "part": "bezel.stl" },
             { "color": "#e8a33d", "label": "Back cover", "part": "cover.stl" },
+            { "color": "#222222", "label": "Back gasket", "part": "back-gasket.stl" },
             { "color": "#9aa0a6", "label": "Kobo Clara HD (reference)" },
             { "color": "#2b2b2b", "label": "Kobo screen (reference)" },
+            { "color": "#141414", "label": "2.13\" e-paper board (reference)" },
+            { "color": "#e6e4dc", "label": "2.13\" e-paper panel (reference)" },
             { "color": "#5aa469", "label": "18650 cell (reference)" },
             { "color": "#7a3fb0", "label": "Seeed XIAO boards (reference)" },
             { "color": "#1e90ff", "label": "TP4056 USB-C charger (reference)" },
@@ -796,28 +803,54 @@
           ],
           "components": [
             { "part": "grip.stl", "qty": 1 },
-            { "part": "cover.stl", "qty": 1 }
+            { "part": "cover.stl", "qty": 1 },
+            { "part": "bezel.stl", "qty": 1 },
+            { "part": "back-gasket.stl", "qty": 1 },
+            { "part": "bezel-gasket.stl", "qty": 1 },
+            { "part": "usbc-plug.stl", "qty": 1 },
+            { "part": "sma-washer.stl", "qty": 2 },
+            { "part": "kobo-pad.stl", "qty": 1 }
           ] },
-        { "file": "plate-1-grip.3mf", "format": "3mf", "label": "Print plate 1: grip, standing on its bottom end", "plate": true,
+        { "file": "plate-1-grip.3mf", "format": "3mf", "label": "Print plate 1 (PCTG): grip, standing on its bottom end", "plate": true,
           "legend": [ { "color": "#3b6fb6", "label": "Grip", "part": "grip.stl" } ],
           "components": [ { "part": "grip.stl", "qty": 1 } ] },
-        { "file": "plate-2-cover.3mf", "format": "3mf", "label": "Print plate 2: back cover, outer face down", "plate": true,
-          "legend": [ { "color": "#e8a33d", "label": "Back cover", "part": "cover.stl" } ],
-          "components": [ { "part": "cover.stl", "qty": 1 } ] }
+        { "file": "plate-2-lids.3mf", "format": "3mf", "label": "Print plate 2 (PCTG): back cover and bezel, outer faces down", "plate": true,
+          "legend": [ { "color": "#e8a33d", "label": "Back cover", "part": "cover.stl" },
+                      { "color": "#2f5a99", "label": "Bezel", "part": "bezel.stl" } ],
+          "components": [ { "part": "cover.stl", "qty": 1 }, { "part": "bezel.stl", "qty": 1 } ] },
+        { "file": "plate-3-tpu-85a.3mf", "format": "3mf", "label": "Print plate 3 (TPU 85A): back gasket, USB-C plug, SMA washers", "plate": true,
+          "legend": [ { "color": "#222222", "label": "Back gasket", "part": "back-gasket.stl" },
+                      { "color": "#555555", "label": "USB-C plug", "part": "usbc-plug.stl" },
+                      { "color": "#888888", "label": "SMA washers", "part": "sma-washer.stl" } ],
+          "components": [ { "part": "back-gasket.stl", "qty": 1 }, { "part": "usbc-plug.stl", "qty": 1 }, { "part": "sma-washer.stl", "qty": 2 } ] },
+        { "file": "plate-4-tpu-70a.3mf", "format": "3mf", "label": "Print plate 4 (TPU 70A): bezel gasket and Kobo pad", "plate": true,
+          "legend": [ { "color": "#333333", "label": "Bezel gasket", "part": "bezel-gasket.stl" },
+                      { "color": "#666666", "label": "Kobo pad", "part": "kobo-pad.stl" } ],
+          "components": [ { "part": "bezel-gasket.stl", "qty": 1 }, { "part": "kobo-pad.stl", "qty": 1 } ] }
       ],
       "parts": [
-        { "file": "grip.stl", "format": "stl", "label": "Grip — print standing on its bottom end" },
-        { "file": "cover.stl", "format": "stl", "label": "Back cover — print outer face down" }
+        { "file": "grip.stl", "format": "stl", "label": "Grip — PCTG, print standing on its bottom end" },
+        { "file": "cover.stl", "format": "stl", "label": "Back cover — PCTG, print outer face down" },
+        { "file": "bezel.stl", "format": "stl", "label": "Display bezel — PCTG, print outer face down" },
+        { "file": "back-gasket.stl", "format": "stl", "label": "Back gasket — TPU 85A, print flat" },
+        { "file": "bezel-gasket.stl", "format": "stl", "label": "Bezel gasket — TPU 70A, print flat" },
+        { "file": "usbc-plug.stl", "format": "stl", "label": "USB-C plug — TPU 85A, flange down" },
+        { "file": "sma-washer.stl", "format": "stl", "label": "SMA washer — TPU 85A (print 2)" },
+        { "file": "kobo-pad.stl", "format": "stl", "label": "Kobo pad — TPU 70A" }
       ],
       "hardware": [
-        { "qty": 3, "label": "M3x8 socket head cap screw — back cover to the grip",
-          "usedBy": [ { "part": "cover.stl", "each": 3 } ] },
-        { "qty": 2, "label": "SMA female bulkhead pigtail (1/4\"-36 thread, 8 mm hex) — one over the cylinder, one in the inner end" },
+        { "qty": 7, "label": "M3x8 socket head cap screw — back cover to the grip, outside the seal",
+          "usedBy": [ { "part": "cover.stl", "each": 7 } ] },
+        { "qty": 4, "label": "M2x5 socket head cap screw — bezel to the grip",
+          "usedBy": [ { "part": "bezel.stl", "each": 4 } ] },
+        { "qty": 2, "label": "SMA female bulkhead pigtail (1/4\"-36 thread, 8 mm hex) — one over the cylinder, one top left" },
         { "qty": 1, "label": "18650 cell with wire leads — in the cylinder" },
         { "qty": 3, "label": "Seeed XIAO board, no headers (nRF + two SX1262) — on the floor behind the chin" },
         { "qty": 1, "label": "TP4056 USB-C 18650 charger board (about 28 \u00d7 17.5 mm) — its USB-C through the right side" },
         { "qty": 1, "label": "90\u00b0 (up/down angle) micro USB plug with a short lead — in the slot's end, into the Kobo" },
-        { "qty": 2, "label": "Zip tie, up to 3.6 mm wide, 200 mm long — one over the XIAOs, one across the charger" }
+        { "qty": 1, "label": "2.13\" e-paper HAT (65 \u00d7 30.2 mm), 40-pin header and JST removed — under the bezel" },
+        { "qty": 2, "label": "Zip tie, up to 3.6 mm wide, 200 mm long — one over the XIAOs, one across the charger" },
+        { "qty": 1, "label": "Neutral-cure silicone or potting epoxy — seals the micro USB plug's pocket and the display's wire channel" }
       ]
     },
     {

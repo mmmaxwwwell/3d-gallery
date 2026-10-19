@@ -1,28 +1,30 @@
 // Kobo Clara HD MeshCore handheld: a grip the Kobo slots into, used in
-// landscape with the grip on the right. The Kobo stays whole: its chin (the
-// wide bezel at its bottom edge) slides sideways into a slot in the grip,
-// onto a micro USB plug that charges it, and a tab in the slot's floor
-// presses it home. It comes out again as it went in.
+// landscape with the grip on the right, built to keep water out. The Kobo
+// stays whole: its chin (the wide bezel at its bottom edge) slides sideways
+// into a slot in the grip, onto a micro USB plug that charges it, and a soft
+// TPU pad in the slot's floor holds it. It comes out again as it went in.
 //
 // - The grip is an 18650 cylinder, flush with the front and standing out at
 //   the back, whose depth carries on inward behind the Kobo to a rounded
-//   inner end. Its back is a cover held by three M3 cap screws; inside are
-//   the cell, three Seeed XIAOs, a TP4056 USB-C charger board and two SMA
-//   bulkheads.
-// - The slot: a lip over the chin in front (stopping short of the screen),
-//   the tub's floor behind, and the grip's top and bottom walls at its ends.
-//   The floor reaches further in than the lip.
-// - The micro USB plug (a 90° one, its cable leaving toward the back) sits
-//   in a pocket in the slot's end wall, its shell through a window to meet
-//   the Kobo's port. The end wall clears the power button, which is covered.
-// - The charger lies on the floor under the first SMA, its USB-C through
-//   the right side, above the cell.
-// - The XIAOs (nRF + two SX1262 radios) stand on end, stacked down the floor
-//   behind the chin, left of the charger.
-// - Two SMA bulkheads in the top wall: one over the cylinder, its jack pushed
-//   up the cylinder from below; one in the top of the rounded inner end, its
-//   jack slid in from behind before the cover goes on. One radio's antenna
-//   may be an internal strip instead, stuck inside the inner end.
+//   inner end. A back cover closes it; inside are the cell, three Seeed
+//   XIAOs, a TP4056 USB-C charger board and two SMA bulkheads.
+// - A 2.13" e-paper stands in front of the Kobo's chin, under a bezel.
+// - The slot: the display's wall in front, the tub's floor behind, and the
+//   grip's top and bottom walls at its ends.
+//
+// Sealing (the rules from the dry-bag node and the failed screw-through-bead
+// seal): the body and lids are PCTG; seals are soft TPU, squeezed from the
+// side, never face-clamped by screws, and every screw sits outside its seal.
+// - Back cover: a U-section TPU 85A gasket lies in a groove round the grip's
+//   back rim; the cover's tongue, wider than the gasket's slot, presses into
+//   it from the side. The groove turns in round each of the seven screws,
+//   so they sit outside it. Where the second SMA's hole comes close under
+//   the groove, a smooth boss lifts the groove over it, into a pocket in
+//   the cover.
+// - Bezel: a TPU 70A frame between the bezel and the panel's border.
+// - Through-holes: the SMAs seal under their nuts on TPU washers; the USB-C
+//   takes a TPU plug; the micro USB plug's pocket and the display's wire
+//   channel are potted once wired.
 //
 // Assembly frame: X along the device (cylinder at +X), Y up the device as
 // it's held (SMA at +Y), Z out of the screen. The parts are modelled in the
@@ -30,9 +32,9 @@
 // top edge is at x = 0, its bottom edge (the chin's end) at pocket_x1.
 //
 // The grip prints standing on its bottom end: every wall runs along Y, so
-// it only bridges short spans, and the SMAs' undersides rise at 45°. Lying
-// face down it couldn't print: the floor would span the slot in mid-air.
-// The cover prints outer face down, its edges 45° chamfers.
+// it only bridges short spans, and anything hung under a wall rises at 45°.
+// Lying face down it couldn't print: the floor would span the slot in
+// mid-air. The cover and bezel print outer face down; the TPU parts flat.
 
 // BEGIN_PARAMS
 // Kobo Clara HD, long side (Kobo spec)
@@ -50,7 +52,7 @@ screen_height = 91;
 // edge (a side bezel), estimated from Kobo's drawing
 screen_left = 10.5;
 screen_bottom = 9.5;
-// How far short of the screen the lip over the chin stops
+// How far short of the screen the grip's front starts
 window_margin = 2;
 // Where the power button and the micro USB port sit along the Kobo's bottom
 // edge, measured from the Kobo's lower edge as it's held (estimated from
@@ -59,12 +61,53 @@ power_button_y = 55;
 usb_y = 34;
 // Gap round the Kobo in the slot, per side and over its thickness
 tolerance = 0.3;
-// The lip over the chin
-front_thickness = 2;
-// The grip's walls
+// 2.13" e-paper HAT (with its 40-pin header and JST removed; wired to its
+// row of 8 holes), standing portrait in front of the Kobo's chin: the
+// board's outline (along Y, along X), the panel and board thicknesses, the
+// tallest part left on its back, and how far the panel's ribbon loops past
+// the board's end (at the top)
+display_length = 65;
+display_width = 30.2;
+display_panel = 1.05;
+display_pcb = 1.6;
+display_parts = 3;
+display_fpc = 2;
+// The panel's active area (along Y, along X), assumed centred on the board,
+// and the window's margin round it
+display_view_length = 48.55;
+display_view_width = 23.71;
+display_view_margin = 0.5;
+// The bezel over the display: thickness, the shoulder it rests on round
+// the pocket, how far it reaches past the pocket's ends for its screws, its
+// corner radius, and the wall behind the display that the Kobo slides on
+bezel_thickness = 1.2;
+bezel_shoulder = 1.5;
+bezel_end = 9;
+bezel_round = 2;
+display_wall = 0.8;
+// The TPU 70A gasket between the bezel and the panel's border: its
+// thickness squeezed, and its width round the window
+bezel_gasket = 0.5;
+bezel_gasket_free = 0.8;
+// Where the board's bottom sits, above the slot's bottom
+display_y_in_slot = 19;
+// The bezel's M2 cap screws: pilot, clearance, counterbore, and the floor
+// left under it
+bezel_pilot_d = 1.6;
+bezel_clear_d = 2.4;
+bezel_head_d = 4.2;
+bezel_head_depth = 2.2;
+bezel_head_floor = 0.8;
+// The grip's walls, and its bottom wall, thick enough for the cover's
+// corner screws to clear the cell
 wall = 3;
+bottom_wall = 11.5;
 // The tub's floor behind the Kobo
 floor_thickness = 2;
+// How far the boards stand off the floor, USB-C included (the XIAOs lie
+// under the cover, with room for a zip tie over them)
+xiao_height = 4.6;
+tie_thickness = 1.5;
 // Solid strip between the slot's end and the cell's bore; it holds the
 // micro USB plug
 right_ledge = 10;
@@ -115,21 +158,40 @@ usb_body_below = 3.5;
 // Relief in the slot's end wall over the power button, so it isn't pressed
 button_relief = 12;
 button_relief_depth = 1.5;
-// Retention tab in the floor: width, length, the slot round it, and how far
-// its bump stands into the slot
-tab_width = 12;
-tab_length = 22;
-tab_slot = 1;
-tab_bump = 0.8;
-// Where the tab sits, from the grip's bottom
-tab_y = 22;
-// Back cover thickness
-cover_thickness = 2;
+// TPU 70A pad in the slot's floor that holds the Kobo: length, width,
+// thickness, how deep it sits in the floor, and where (above the slot's
+// bottom)
+kobo_pad_length = 22;
+kobo_pad_width = 12;
+kobo_pad_t = 1.8;
+kobo_pad_recess = 1;
+kobo_pad_y_in_slot = 19;
+// The back cover's seal: PCTG either side of the groove, the gasket's walls
+// and slot, the groove's depth and the gasket's floor, the tongue's width
+// and length, and the side squeeze (per side)
+seal_wall = 1.2;
+gasket_wall = 1.2;
+gasket_slot = 1.2;
+groove_depth = 2.5;
+gasket_floor = 0.4;
+tongue_len = 2;
+seal_squeeze = 0.2;
+// Chamfer round the cover's outer edge
+cover_chamfer = 1;
+// TPU USB-C plug: its fit in the opening, how deep it goes in, and its
+// flange and pull tab
+usbc_plug_fit = 0.3;
+usbc_plug_depth = 3;
+usbc_plug_flange = 1.5;
+usbc_plug_flange_t = 1.2;
+// TPU washers under the SMAs' outer nuts
+sma_washer_od = 11;
+sma_washer_t = 1.2;
 // Rounding on the grip's outside edges; the bottom edges' rounds turn into
 // 45° at the bed. The lip's end and the floor's front edge get a smaller one.
 edge_round = 3;
 lip_round = 1.5;
-// Finger indents up the right side: pitch, flat between indents, depth
+// Finger indents up both sides: pitch, flat between indents, depth
 indent_pitch = 15;
 indent_land = 2;
 indent_depth = 1.5;
@@ -148,6 +210,10 @@ head_d = 6.2;
 head_depth = 3.2;
 // Material left under a counterbore
 head_floor = 1.3;
+// The cover's screws are M3x8: how deep their pilots go below its inner
+// face, and how far in from the edges they sit
+screw_depth = 7.2;
+screw_inset = 4.1;
 // END_PARAMS
 
 eps = 0.01;
@@ -157,62 +223,121 @@ pocket_l = kobo_length + 2 * tolerance;
 pocket_w = kobo_width + 2 * tolerance;
 pocket_t = kobo_thickness + tolerance;
 pocket_x1 = pocket_l;
-pocket_y0 = wall;
+pocket_y0 = bottom_wall;
 
-// Depths from the front face
-kobo_back_z = front_thickness + pocket_t;
+// Depths from the front face: the skin, the display, the Kobo, the floor
+display_back_z = bezel_thickness + bezel_gasket + display_panel + display_pcb + display_parts + 0.3;
+kobo_front_z = display_back_z + display_wall;
+kobo_back_z = kobo_front_z + pocket_t;
 floor_back_z = kobo_back_z + floor_thickness;
 
-case_w = pocket_w + 2 * wall;
+case_w = pocket_w + wall + bottom_wall;
+display_y = pocket_y0 + display_y_in_slot;
 
-// The lip over the chin ends window_margin short of the screen
+// The grip's front, over the chin, starts window_margin short of the screen
 lip_x0 = tolerance + screen_left + screen_width + window_margin;
+
+// The display's pocket: in front of the chin, a wall between it and the
+// Kobo. The display goes in from the front and a bezel screws on over it.
+display_x0 = lip_x0 + 3;
+display_x1 = display_x0 + display_width + 0.4;
+display_y1 = display_y + display_length + display_fpc + 0.4;
+bezel_x0 = display_x0 - bezel_shoulder;
+bezel_x1 = display_x1 + bezel_shoulder;
+bezel_y0 = display_y - bezel_end;
+bezel_y1 = display_y1 + bezel_end;
+// Its screws, one in each corner, above and below the pocket; each head
+// sinks into a pad behind the bezel, on a seat cut into the grip
+bezel_pad_h = bezel_head_floor + bezel_head_depth;
+bezel_pad_d = bezel_head_d + 3;
+bezel_screws = [for (x = [bezel_x0 + bezel_pad_d / 2 + 0.5, bezel_x1 - bezel_pad_d / 2 - 0.5],
+                     y = [bezel_y0 + bezel_end / 2, bezel_y1 - bezel_end / 2]) [x, y]];
+bezel_screw_depth = kobo_front_z - 0.5 - bezel_pad_h - bezel_gasket;
 
 tube_d = cell_bore + 2 * tube_wall;
 ledge_x = pocket_x1 + right_ledge;          // the cell's bore starts here
 tube_x = ledge_x + cell_bore / 2;
 tube_z = tube_d / 2;
-case_l = tube_x + tube_d / 2 + indent_depth;   // the right side stands off for the indents
-split_z = tube_d;                           // the grip's back, the cover's inner face
-back_z = split_z + cover_thickness;
+// The back cover's seal band, in from the grip's back edge: the groove, its
+// walls, the gasket's slot, and the tongue
+groove_w = 2 * gasket_wall + gasket_slot;
+rim_w = 2 * seal_wall + groove_w;
+tongue_in = seal_wall + gasket_wall - seal_squeeze;
+tongue_w = gasket_slot + 2 * seal_squeeze;
+cover_thickness = head_floor + head_depth;
+// The right side stands off from the bore by the seal's rim
+case_l = ledge_x + cell_bore + rim_w;
+side_out = case_l - tube_x - tube_d / 2;
 
-// The grip's inner end: a quarter round from the floor up to its back
+// The second SMA, behind the Kobo near the top-left corner; its hex sinks
+// into the floor, 0.4 mm off the Kobo, flats front and back
+hex_r = sma_hex / 2 / cos(30);
+sma2_z = kobo_back_z + 0.4 + sma_hex / 2;
+// Where its hex comes under the back's seal band, a boss lifts the band
+// clear: up to the hex's top plus a wall and the groove. The cover keeps
+// seal_wall over the boss.
+sma2_lift = sma2_z + sma_hex / 2 + 0.8 + groove_depth;
+
+// The grip's back, the cover's inner face: deep enough for the cylinder,
+// the XIAOs and a tie over them, and the second SMA's boss under the cover
+split_z = max(tube_d, floor_back_z + xiao_height + tie_thickness,
+              sma2_lift - (cover_thickness - seal_wall));
+back_z = split_z + cover_thickness;
+sma2_bump_h = max(0, sma2_lift - split_z);
+
+// The grip's inner end: a quarter round from the floor up to its back, then
+// the seal's rim, solid
 thick_x0 = tube_x - tube_d / 2 - thick_width;
 end_r = split_z - floor_back_z;
+back_x0 = thick_x0 + end_r;               // where the back face starts
+tub_x0 = back_x0 + rim_w;
 
 // SMA mounts: the jack's hex under the top wall, the nut on top
-hex_r = sma_hex / 2 / cos(30);
 hex_y1 = case_w - wall;
 hex_y0 = hex_y1 - sma_hex_depth;
-cell_y1 = wall + cell_bay_length;
+cell_y1 = bottom_wall + cell_bay_length;
 cone_h = cell_bore / 2 - cell_stop_r;
 
-// The second SMA, in the top of the inner end: flats facing the round and
-// the tub, its channel 1 mm clear of the round where that is widest (at
-// the back), its front corner on the floor
-sma2_x = thick_x0 + end_r + 1 + sma_hex / 2;
-sma2_z = floor_back_z + hex_r;
-sma2_block_x1 = sma2_x + sma_hex / 2 + 2;
+// The second SMA sits right of the top-left screw: its boss clears the
+// screw's head. The jack goes up through its block from below.
+sma2_x = back_x0 + screw_inset + head_d / 2 + 0.5 + sma2_bump_h + 1 + hex_r;
+sma2_block_x1 = sma2_x + hex_r + 2;
 
-// The charger: on the floor, its USB-C end against the right wall, just
-// above the cell
+// The charger: in a pocket in the ledge, its USB-C end against the right
+// wall, just above the cell. It sits low enough that its port's opening
+// stays clear of the back's seal.
 charger_x1 = ledge_x + cell_bore;
 charger_x0 = charger_x1 - charger_length;
 charger_y0 = cell_y1 + 1.5;
-charger_port_z = floor_back_z + charger_pcb + 1.6;
-// A rib on the floor behind it takes the plug's push
-charger_stop = 1.2;
+charger_port_z = split_z - groove_depth - seal_wall - charger_port_h / 2;
+charger_z = charger_port_z - 1.6 - charger_pcb;
+// The pocket's end wall takes the plug's push
+charger_stop = charger_x0 - pocket_x1;
 // A tie across it, where it lies on the floor
 charger_tie_x = (charger_x0 + ledge_x) / 2;
+
+// The cover's seven screws, outside the seal: [x, y, outward x, outward y].
+// The corners, the middle of the top and bottom, and the middle of the
+// left; the right side is the cylinder. Each head sinks into the cover.
+// The groove turns in round each, keeping seal_wall to its pilot.
+s_i = screw_inset;
+seal_bite = pilot_d / 2;
+boss_half = seal_bite + rim_w + 0.5;
+top_mid_x = (sma2_x + hex_r + 1 + sma2_bump_h + head_d / 2 + 0.5 + ledge_x) / 2;
+screws = [[back_x0 + s_i, case_w - s_i, -1, 1], [top_mid_x, case_w - s_i, 0, 1],
+          [case_l - s_i, case_w - s_i, 1, 1], [back_x0 + s_i, case_w / 2, -1, 0],
+          [back_x0 + s_i, s_i, -1, -1], [(back_x0 + case_l) / 2, s_i, 0, -1],
+          [case_l - s_i, s_i, 1, -1]];
+tie_top_y = case_w - s_i - boss_half - (split_z - floor_back_z) - tie_turn - tie_bar;
 
 // XIAOs stand on end on the floor behind the chin, left of the charger,
 // stacked down from under the second SMA's mount
 xiao_x1 = charger_x0 - charger_stop - xiao_margin;
 xiao_x0 = xiao_x1 - xiao_width;
 xiao_xc = (xiao_x0 + xiao_x1) / 2;
-// Tie bars above and below the stack
+// Tie bars above and below the stack; the top one under the top-middle
+// screw's boss
 tie_h = tie_t + tie_roof;
-tie_top_y = hex_y1 - tie_turn - tie_bar;
 xiao_top = min(hex_y0 - max(0, sma2_block_x1 - xiao_x0) - xiao_margin, tie_top_y - 0.5);
 xiao_y0s = [for (i = [1 : xiao_count]) xiao_top - i * xiao_length - (i - 1) * xiao_margin];
 
@@ -224,37 +349,34 @@ tie_bars = [[xiao_xc, xiao_y0s[xiao_count - 1] - 0.5 - tie_bar],
             [charger_tie_x, charger_y0 + charger_width + 0.5]];
 
 usb_case_y = pocket_y0 + tolerance + usb_y;
-usb_z = front_thickness + kobo_thickness / 2;
+kobo_pad_x0 = thick_x0 + 4;
+kobo_pad_y0 = pocket_y0 + kobo_pad_y_in_slot;
+usb_z = kobo_front_z + kobo_thickness / 2;
 button_case_y = pocket_y0 + tolerance + power_button_y;
 
-tab_x0 = thick_x0 + wall + tab_slot;
 
-// The cover's screws: one in the first SMA's mount, two in bosses at the
-// bottom. Each head sits in a pad under the cover, on a seat cut that far
-// into the grip.
-pad_h = head_floor + head_depth;
-pad_d = head_d + 4;
-pad_drop = pad_h - cover_thickness;
-seat_z = split_z - pad_drop;
-screws = [[ledge_x + cell_bore - 1.6, case_w - 6.1],
-          [thick_x0 + end_r + pad_d / 2, 6.1],
-          [ledge_x - pad_d / 2 - 1, 6.1]];
-screw_depth = 8;
-
-assert(sma2_z + hex_r <= split_z, "the second SMA's hex stands out of the grip's back");
-assert(tie_bars[0][1] >= tab_y + tab_width + tab_slot + 0.5, "the XIAOs' bottom tie bar runs into the retention tab");
+assert(sma2_z + sma_hex / 2 <= split_z + 0.01, "the second SMA's hex stands out of the grip's back");
+assert(sma2_bump_h <= cover_thickness - seal_wall + 0.01, "the second SMA's boss comes through the cover");
+assert(charger_z >= tube_z + 1, "the charger sits too low for its platform");
+assert(floor_thickness - kobo_pad_recess >= 0.8, "the Kobo pad's recess leaves too thin a floor");
+assert(screw_depth <= split_z - kobo_back_z - 0.5, "the cover's screws break into the slot");
+assert(cell_y1 - cell_bay_length >= s_i + seal_bite + rim_w, "the bottom corner screws' seal runs into the cell");
+assert(tie_bars[0][1] >= bottom_wall + 1, "the XIAO stack runs into the bottom wall");
+assert(display_x1 + 1 <= ledge_x, "the display runs into the cylinder");
+assert(bezel_y0 >= edge_round && bezel_y1 <= case_w - edge_round, "the bezel runs onto the grip's rounded ends");
+assert(bezel_x0 >= lip_x0 + lip_round, "the bezel runs onto the rounded edge by the screen");
+assert(bezel_screw_depth >= 4, "the bezel's screws have too little to bite");
+assert(display_y + 8 <= usb_case_y - usb_body_w / 2 - 0.5, "the display's wire channel runs into the micro USB plug");
 assert(charger_tie_x - tie_w / 2 - 2 >= xiao_x1 + charger_stop, "the charger's tie bars run into the XIAOs");
 assert(charger_tie_x + tie_w / 2 + 2 <= ledge_x, "the charger's tie bars run into the cell's bore");
 assert(tie_bar >= tie_h, "a tie bar's underside is steeper than 45°");
 assert(charger_y0 + charger_width <= hex_y0 - cell_bore - 0.5, "the charger runs into the first SMA's mount");
-assert(charger_port_z + charger_port_h / 2 <= split_z, "the charger's port breaks into the cover");
 assert(ledge_x - (pocket_x1 + usb_end_wall + usb_body_t) >= 1.5, "the micro USB pocket breaks into the cell's bore");
 assert(abs(usb_case_y - button_case_y) >= (usb_body_w + button_relief) / 2 + 1, "the micro USB plug runs into the power button");
-assert(tab_x0 + tab_length + tab_slot <= pocket_x1 - 5, "the retention tab runs into the slot's end");
 assert(thick_x0 < lip_x0, "the floor behind the Kobo must reach further in than the lip");
 assert(hex_y0 - cell_bore - cell_y1 - cone_h - cell_stop >= 10,
        "no room above the cell for the first SMA's pigtail");
-assert(screw_depth <= seat_z - kobo_back_z, "the cover's screws break into the slot");
+
 
 // An octagon with a flat at the bottom and top: a round that prints standing
 // up, its overhangs no steeper than 45°
@@ -287,8 +409,8 @@ module thick_outline_2d() {
     }
     translate([thick_x0, 0]) square([eps, floor_back_z]);
     translate([tube_x, tube_z]) circle(d = tube_d);
-    translate([tube_x + indent_depth, tube_z]) circle(d = tube_d);
-    translate([tube_x + indent_depth + tube_d / 2 * (sqrt(2) - 1), 0]) square(eps);
+    translate([tube_x + side_out, tube_z]) circle(d = tube_d);
+    translate([tube_x + side_out + tube_d / 2 * (sqrt(2) - 1), 0]) square(eps);
     translate([case_l - eps, split_z - eps]) square(eps);
   }
 }
@@ -336,25 +458,23 @@ module notch_2d() {
   }
 }
 
-// Finger indents up the right side: shallow scallops across its depth
+// Finger indents up both sides: shallow scallops across the right side's
+// depth, and across the inner end where the fingertips reach round it. They
+// stop short of the back's seal.
 module indent_cuts() {
   n = floor((case_w - 2 * edge_round) / indent_pitch);
   y0 = (case_w - n * indent_pitch) / 2;
   c = indent_pitch - indent_land;
   r = (c * c / 4 + indent_depth * indent_depth) / (2 * indent_depth);
-  for (i = [0 : n - 1])
-    translate([case_l + r - indent_depth, y0 + (i + 0.5) * indent_pitch, -1])
-      cylinder(r = r, h = back_z + 2, $fn = 180);
+  for (i = [0 : n - 1], x = [case_l + r - indent_depth, thick_x0 - r + indent_depth])
+    translate([x, y0 + (i + 0.5) * indent_pitch, -1])
+      cylinder(r = r, h = split_z - groove_depth - seal_wall + 1, $fn = 180);
 }
 
-// The tub's inside: behind the floor, a wall in from the inner end's round,
-// open at the back; over the cell above its axis; and the cell's bore
+// The tub's inside: behind the floor, in from the seal's rim at the inner
+// end, open at the back; over the cell above its axis; and the cell's bore
 module tub_2d() {
-  intersection() {
-    offset(delta = -wall) thick_outline_2d();
-    translate([0, floor_back_z]) square([ledge_x, split_z]);
-  }
-  translate([thick_x0 + end_r, floor_back_z]) square([ledge_x - thick_x0 - end_r, split_z]);
+  translate([tub_x0, floor_back_z]) square([ledge_x - tub_x0, split_z]);
   translate([ledge_x - eps, tube_z]) square([cell_bore + eps, split_z]);
   translate([tube_x, tube_z]) circle(d = cell_bore);
 }
@@ -384,30 +504,73 @@ module sma1_cuts() {
   along_y(hex_y1 - 1, case_w + 1) translate([tube_x, tube_z]) circle(d = sma_hole);
 }
 
-// The second SMA: a block in the inner end hung off its round, with a hex
-// channel and a slot through the top wall, both open to the back, so the
-// jack slides in from behind
+// The second SMA: a block hung off the inner end's rim, the hex through it
+// so the jack goes up from below
 module sma2_block() {
-  hung_block(sma2_block_x1 - thick_x0) {
+  hung_block(sma2_block_x1 - tub_x0) {
     intersection() {
       thick_outline_2d();
       translate([thick_x0, floor_back_z]) square([sma2_block_x1 - thick_x0, split_z]);
     }
     intersection() {
       thick_outline_2d();
-      translate([thick_x0, floor_back_z]) square([wall, split_z]);
+      translate([thick_x0, floor_back_z]) square([tub_x0 - thick_x0, split_z]);
     }
   }
 }
 
 module sma2_cuts() {
-  along_y(hex_y0 - (sma2_block_x1 - thick_x0) - 1, hex_y1) hull() {
-    translate([sma2_x, sma2_z]) rotate(90) circle(r = hex_r, $fn = 6);
-    translate([sma2_x - sma_hex / 2, sma2_z]) square([sma_hex, split_z]);
+  along_y(hex_y0 - (sma2_block_x1 - tub_x0) - 1, hex_y1) translate([sma2_x, sma2_z]) circle(r = hex_r, $fn = 6);
+  along_y(hex_y1 - 1, case_w + 1) translate([sma2_x, sma2_z]) circle(d = sma_hole);
+}
+
+// The boss over the second SMA, its flanks 45°, d out from its surface: the
+// top over the hex and a wall either side, from in front of the seal band
+// to past the top
+module sma2_bump(d = 0) {
+  e = d * (sqrt(2) - 1);
+  x0 = sma2_x - hex_r - 1;
+  x1 = sma2_x + hex_r + 1;
+  y0 = case_w - rim_w - 0.5;
+  hull() {
+    translate([x0 - sma2_bump_h - e, y0 - sma2_bump_h - e, split_z + d - eps])
+      cube([x1 - x0 + 2 * (sma2_bump_h + e), case_w + 5 - y0 + sma2_bump_h + e, eps]);
+    translate([x0 - e, y0 - e, split_z + sma2_bump_h + d - eps]) cube([x1 - x0 + 2 * e, case_w + 5 - y0 + e, eps]);
   }
-  along_y(hex_y1 - 1, case_w + 1) hull() {
-    translate([sma2_x, sma2_z]) circle(d = sma_hole);
-    translate([sma2_x - sma_hole / 2, sma2_z]) square([sma_hole, split_z]);
+}
+
+// Everything in front of the back's seal face, d out from it
+module back_region(d = 0) {
+  translate([-1, -1, -1]) cube([case_l + 2, case_w + 2, split_z + d + 1]);
+  if (sma2_bump_h > 0) sma2_bump(d);
+}
+
+// The seal's plan: the grip's back face with a bite out of it at each screw,
+// from the screw to the edge, so the seal turns in round it
+module seal_plan() {
+  difference() {
+    cover_plan();
+    for (p = screws) hull() {
+      translate([p[0], p[1]]) circle(r = seal_bite);
+      translate([p[0] + 10 * p[2], p[1] + 10 * p[3]]) circle(r = seal_bite);
+    }
+  }
+}
+
+// A band of the seal's plan from in0 to in1 in from its edge
+module seal_band(in0, in1) {
+  difference() {
+    offset(delta = -in0) seal_plan();
+    offset(delta = -in1) seal_plan();
+  }
+}
+
+// The PCTG rim the groove is cut into: the back face round the edge, out to
+// rim_w past the bites
+module rim_2d() {
+  difference() {
+    cover_plan();
+    offset(delta = -rim_w) seal_plan();
   }
 }
 
@@ -432,8 +595,50 @@ module usb_cuts() {
     cube([usb_end_wall + 2, usb_shell_w, usb_shell_h]);
 }
 
+module bezel_plan(grow = 0) {
+  translate([bezel_x0 - grow, bezel_y0 - grow])
+    rounded_rect(bezel_x1 - bezel_x0 + 2 * grow, bezel_y1 - bezel_y0 + 2 * grow, bezel_round + grow);
+}
+
+// The bezel's recess and seats, the display's pocket (its top a 30 mm
+// bridge as it prints), and a channel at its bottom end, behind the board,
+// for its wires: back through the ledge to the tub
+module display_cuts() {
+  translate([0, 0, -1]) linear_extrude(bezel_thickness + bezel_gasket + 1) bezel_plan(0.2);
+  translate([display_x0, display_y, bezel_thickness + bezel_gasket - eps])
+    cube([display_x1 - display_x0, display_y1 - display_y, display_back_z - bezel_thickness - bezel_gasket + eps]);
+  translate([pocket_x1 + 0.5, display_y + 0.5, display_back_z - display_parts])
+    cube([display_x1 - pocket_x1 - 1.5, 7, floor_back_z]);
+  for (p = bezel_screws) translate([p[0], p[1], 0]) {
+    linear_extrude(bezel_pad_h + bezel_gasket + 0.2) octagon(bezel_pad_d / 2 + 0.3);
+    translate([0, 0, bezel_pad_h]) cylinder(d = bezel_pilot_d, h = bezel_screw_depth);
+  }
+}
+
+// The bezel in the depth frame: a plate over the display's pocket with the
+// window over the panel's active area, bevelled out, and a pad behind each
+// screw head
+module bezel_shape() {
+  vl = display_view_length + 2 * display_view_margin;
+  vw = display_view_width + 2 * display_view_margin;
+  difference() {
+    union() {
+      linear_extrude(bezel_thickness) bezel_plan();
+      for (p = bezel_screws) translate([p[0], p[1], 0]) linear_extrude(bezel_pad_h + bezel_gasket) octagon(bezel_pad_d / 2);
+    }
+    translate([(display_x0 + display_x1) / 2, (display_y + display_y1 - display_fpc) / 2, 0]) hull() {
+      translate([0, 0, bezel_thickness / 2]) cube([vw, vl, bezel_thickness + 2 * eps], center = true);
+      translate([0, 0, -eps]) cube([vw + 2 * bezel_thickness, vl + 2 * bezel_thickness, eps], center = true);
+    }
+    for (p = bezel_screws) translate([p[0], p[1], -1]) {
+      cylinder(d = bezel_clear_d, h = bezel_pad_h + 2);
+      cylinder(d = bezel_head_d, h = bezel_head_depth + 1);
+    }
+  }
+}
+
 module button_relief_cut() {
-  translate([pocket_x1 - eps, button_case_y - button_relief / 2, front_thickness + 1])
+  translate([pocket_x1 - eps, button_case_y - button_relief / 2, kobo_front_z + 1])
     cube([button_relief_depth, button_relief, pocket_t - 2]);
 }
 
@@ -444,16 +649,16 @@ module charger_port_cut() {
       offset(r = 2) offset(delta = -2) square([charger_port_h, charger_port_w], center = true);
 }
 
-module charger_stop_rib() {
-  translate([charger_x0 - charger_stop, charger_y0, floor_back_z - eps])
-    cube([charger_stop, charger_width, 2.5]);
+// The charger's pocket in the ledge, down to where it sits
+module charger_pocket_cut() {
+  translate([charger_x0, charger_y0, charger_z]) cube([ledge_x - charger_x0 + eps, charger_width, split_z]);
 }
 
 // Under the charger's free end, across the bore: a bridge between the ledge
-// and the right wall, its top level with the floor
+// and the right wall, its top level with the pocket's floor
 module charger_platform() {
   translate([ledge_x - eps, charger_y0, tube_z - 1])
-    cube([cell_bore + 2 * eps, charger_width, floor_back_z - tube_z + 1]);
+    cube([cell_bore + 2 * eps, charger_width, charger_z - tube_z + 1]);
 }
 
 // A bar on the floor with a slot under it for a zip tie. Its underside
@@ -470,73 +675,96 @@ module tie_slots() {
     translate([b[0] - tie_w / 2, b[1] - 1, floor_back_z - eps]) cube([tie_w, tie_bar + 2, tie_t]);
 }
 
-// A tongue cut free of the floor on three sides, its free end toward the
-// slot's mouth, with a ridge across it that presses the Kobo into the lip
-module tab_cuts() {
-  translate([tab_x0 - tab_slot, tab_y - tab_slot, kobo_back_z - 1]) difference() {
-    cube([tab_length + tab_slot, tab_width + 2 * tab_slot, floor_thickness + 2]);
-    translate([tab_slot, tab_slot, -1]) cube([tab_length + 1, tab_width, floor_thickness + 4]);
-  }
+// The Kobo pad's recess in the slot's floor; it doesn't go through, so the
+// tub stays sealed
+module kobo_pad_cut() {
+  translate([kobo_pad_x0 - 0.2, kobo_pad_y0 - 0.2, kobo_back_z - eps])
+    cube([kobo_pad_length + 0.4, kobo_pad_width + 0.4, kobo_pad_recess + eps]);
 }
 
-module tab_bump() {
-  r = 1.5;
-  intersection() {
-    along_y(tab_y, tab_y + tab_width) translate([tab_x0 + 3, kobo_back_z + r - tab_bump]) circle(r = r);
-    translate([0, 0, -1]) cube([case_l, case_w, kobo_back_z + 1]);
-  }
-}
-
-// Bosses for the bottom screws, standing on the bottom wall
+// Bosses for the screws, standing off the floor, their undersides rising at
+// 45° so they print standing up; each holds its screw and the seal's turn
+// round it
 module screw_bosses() {
-  for (p = [screws[1], screws[2]])
+  h = split_z - floor_back_z;
+  for (p = screws)
     intersection() {
-      translate([p[0] - pad_d / 2 - 1.5, 0, floor_back_z - eps])
-        cube([pad_d + 3, p[1] + pad_d / 2 + 1.5, split_z]);
+      translate([p[0] - boss_half, 0, 0]) rotate([90, 0, 90]) linear_extrude(2 * boss_half)
+        polygon([[p[1] - boss_half - h, floor_back_z - eps], [p[1] + boss_half, floor_back_z - eps],
+                 [p[1] + boss_half, split_z], [p[1] - boss_half, split_z]]);
       along_y(0, case_w) thick_outline_2d();
     }
 }
 
 module screw_cuts() {
-  for (p = screws) {
-    translate([p[0], p[1], seat_z]) linear_extrude(split_z) octagon(pad_d / 2 + 0.3);
-    translate([p[0], p[1], seat_z - screw_depth]) cylinder(d = pilot_d, h = screw_depth + 1);
+  for (p = screws) translate([p[0], p[1], split_z - screw_depth]) cylinder(d = pilot_d, h = screw_depth + 1);
+}
+
+// The back's seal rim, solid from the floor to the back face, its top band
+// (under the top wall) hung off the floor at 45°
+module seal_rim() {
+  h = split_z - floor_back_z;
+  translate([0, 0, floor_back_z - eps]) linear_extrude(h + eps) rim_2d();
+  intersection() {
+    translate([tub_x0, 0, 0]) rotate([90, 0, 90]) linear_extrude(ledge_x - tub_x0)
+      polygon([[case_w - rim_w - h, floor_back_z - eps], [case_w - wall, floor_back_z - eps],
+               [case_w - wall, split_z], [case_w - rim_w, split_z]]);
+    along_y(0, case_w) thick_outline_2d();
+  }
+}
+
+// The groove for the gasket, following the back face over the SMA's boss
+module seal_groove_cut() {
+  intersection() {
+    translate([0, 0, -1]) linear_extrude(back_z + 10) seal_band(seal_wall, seal_wall + groove_w);
+    difference() {
+      back_region(eps);
+      back_region(-groove_depth);
+    }
   }
 }
 
 // The grip in the depth frame
 module grip_shape() {
   difference() {
-    intersection() {
-      union() {
-        difference() {
-          grip_body();
-          along_y(-1, case_w + 1) notch_2d();
-          along_y(wall, case_w - wall) tub_2d();
+    union() {
+      intersection() {
+        union() {
+          difference() {
+            grip_body();
+            along_y(-1, case_w + 1) notch_2d();
+            along_y(bottom_wall, case_w - wall) tub_2d();
+          }
+          sma1_block();
+          sma2_block();
+          screw_bosses();
+          seal_rim();
+          charger_platform();
+          tie_bars();
         }
-        sma1_block();
-        sma2_block();
-        screw_bosses();
-        charger_stop_rib();
-        charger_platform();
-        tie_bars();
+        grip_body();
       }
-      grip_body();
+      if (sma2_bump_h > 0) intersection() {
+        sma2_bump();
+        translate([0, 0, split_z - eps]) linear_extrude(sma2_bump_h + 1) cover_plan();
+      }
     }
+    charger_pocket_cut();
     // the slot the Kobo's chin slides into
-    translate([-1, pocket_y0, front_thickness]) cube([pocket_x1 + 1, pocket_w, pocket_t]);
+    translate([-1, pocket_y0, kobo_front_z]) cube([pocket_x1 + 1, pocket_w, pocket_t]);
+    display_cuts();
     sma1_cuts();
     sma2_cuts();
     usb_cuts();
     button_relief_cut();
     charger_port_cut();
-    tab_cuts();
+    kobo_pad_cut();
     screw_cuts();
     tie_slots();
     indent_cuts();
+    seal_groove_cut();
   }
   cell_stop();
-  tab_bump();
 }
 
 // The cover's plan: the grip's back face
@@ -544,21 +772,29 @@ module cover_plan() {
   projection(cut = true) translate([0, 0, -split_z + 0.05]) grip_body();
 }
 
-// The cover in the depth frame: a plate on the grip's back, its outer edges
-// 45° chamfers, with a pad under each screw head
+// The cover in the depth frame: a plate on the grip's back with a 45°
+// chamfer round its outer edge, a pocket over the SMA's boss, and the
+// tongue that presses into the gasket, its tip narrowed to lead it in. Each
+// screw head sinks into it.
 module cover_shape() {
   difference() {
     union() {
-      hull() {
-        translate([0, 0, split_z]) linear_extrude(eps) cover_plan();
-        translate([0, 0, back_z - eps]) linear_extrude(eps) offset(delta = -cover_thickness) cover_plan();
+      difference() {
+        hull() {
+          translate([0, 0, split_z]) linear_extrude(back_z - split_z - cover_chamfer) cover_plan();
+          translate([0, 0, back_z - eps]) linear_extrude(eps) offset(delta = -cover_chamfer) cover_plan();
+        }
+        back_region();
       }
       intersection() {
-        for (p = screws) translate([p[0], p[1], seat_z]) linear_extrude(pad_drop + eps) octagon(pad_d / 2);
-        grip_body();
+        translate([0, 0, -1]) linear_extrude(back_z + 10) seal_band(tongue_in, tongue_in + tongue_w);
+        difference() { back_region(eps); back_region(-(tongue_len - 0.5)); }
+      }
+      intersection() {
+        translate([0, 0, -1]) linear_extrude(back_z + 10) seal_band(tongue_in + 0.25, tongue_in + tongue_w - 0.25);
+        difference() { back_region(eps); back_region(-tongue_len); }
       }
     }
-    indent_cuts();
     for (p = screws) translate([p[0], p[1], 0]) {
       cylinder(d = clear_d, h = back_z + 1);
       translate([0, 0, back_z - head_depth]) cylinder(d = head_d, h = head_depth + 1);
@@ -566,15 +802,57 @@ module cover_shape() {
   }
 }
 
+// The back's gasket: TPU 85A, a U-section ring in the groove, its slot
+// narrower than the tongue. Printed flat; over the SMA's boss it stretches
+// up the 45° flanks.
+module back_gasket() {
+  difference() {
+    linear_extrude(groove_depth) seal_band(seal_wall + 0.05, seal_wall + groove_w - 0.05);
+    translate([0, 0, gasket_floor]) linear_extrude(groove_depth) seal_band(seal_wall + gasket_wall, seal_wall + gasket_wall + gasket_slot);
+  }
+}
+
+// The bezel's gasket: TPU 70A, a frame between the bezel and the panel's
+// border and the pocket's shoulder, inside the bezel's screws
+module bezel_gasket() {
+  vl = display_view_length + 2 * display_view_margin;
+  vw = display_view_width + 2 * display_view_margin;
+  linear_extrude(bezel_gasket_free) difference() {
+    translate([bezel_x0 + 0.3, display_y - 1.5]) rounded_rect(bezel_x1 - bezel_x0 - 0.6, display_y1 - display_y + 3, 1);
+    translate([(display_x0 + display_x1) / 2 - vw / 2 - 0.3, (display_y + display_y1 - display_fpc) / 2 - vl / 2 - 0.3])
+      square([vw + 0.6, vl + 0.6]);
+  }
+}
+
+// TPU 85A plug for the USB-C: a core a fit over the opening, its tip
+// narrowed to lead in, a flange outside, and a pull tab
+module usbc_plug() {
+  module port(grow) offset(r = 2 + grow) offset(delta = -2) square([charger_port_w, charger_port_h], center = true);
+  linear_extrude(usbc_plug_flange_t) port(usbc_plug_flange);
+  translate([0, 0, usbc_plug_flange_t - eps]) hull() {
+    linear_extrude(usbc_plug_depth - 0.5) port(usbc_plug_fit);
+    linear_extrude(usbc_plug_depth) port(usbc_plug_fit - 0.5);
+  }
+  translate([charger_port_w / 2 + usbc_plug_flange - 1, -3, 0]) cube([8, 6, usbc_plug_flange_t]);
+}
+
+module sma_washer() {
+  linear_extrude(sma_washer_t) difference() { circle(d = sma_washer_od); circle(d = sma_hole); }
+}
+
+module kobo_pad() { cube([kobo_pad_length, kobo_pad_width, kobo_pad_t]); }
+
 // Print frames. The grip stands on its bottom end, front face toward -Y;
 // the cover lies outer face down, pads up.
 module grip() { rotate([90, 0, 0]) translate([-thick_x0, 0, 0]) grip_shape(); }
 module cover() { translate([-thick_x0, 0, back_z]) mirror([0, 0, 1]) cover_shape(); }
+module bezel() { translate([-bezel_x0, -bezel_y0, 0]) bezel_shape(); }
 
 // Assembly: the depth frame mirrored in Z, so the front face is at z = 0,
 // facing +Z. The cover can stand off behind (explode) to show the inside.
 module grip_assembled() { mirror([0, 0, 1]) grip_shape(); }
 module cover_assembled(explode = 0) { translate([0, 0, -explode]) mirror([0, 0, 1]) cover_shape(); }
+module bezel_assembled(explode = 0) { translate([0, 0, explode]) mirror([0, 0, 1]) bezel_shape(); }
 
 // The assembly stood up for the preview: antenna up (+Z), screen facing -Y
 module upright() { rotate([90, 0, 0]) children(); }
@@ -586,18 +864,18 @@ module rounded_rect(l, w, r) {
 // Reference: the Kobo, an 18650, the boards, the plug, and the SMA
 // bulkheads with a stub of antenna each
 module kobo() {
-  translate([tolerance, pocket_y0 + tolerance, -front_thickness - kobo_thickness])
+  translate([tolerance, pocket_y0 + tolerance, -kobo_front_z - kobo_thickness])
     linear_extrude(kobo_thickness)
       rounded_rect(kobo_length, kobo_width, kobo_corner_radius);
 }
 
 module kobo_screen() {
-  translate([tolerance + screen_left, pocket_y0 + tolerance + screen_bottom, -front_thickness])
+  translate([tolerance + screen_left, pocket_y0 + tolerance + screen_bottom, -kobo_front_z])
     cube([screen_width, screen_height, 0.2]);
 }
 
 module cell() {
-  translate([tube_x, wall + 1, -tube_z]) rotate([-90, 0, 0]) cylinder(d = 18.4, h = 65);
+  translate([tube_x, bottom_wall + 1, -tube_z]) rotate([-90, 0, 0]) cylinder(d = 18.4, h = 65);
 }
 
 module xiaos() {
@@ -609,7 +887,7 @@ module xiaos() {
 }
 
 module charger() {
-  translate([charger_x0, charger_y0, -floor_back_z - charger_pcb]) {
+  translate([charger_x0, charger_y0, -charger_z - charger_pcb]) {
     cube([charger_length, charger_width, charger_pcb]);
     translate([charger_length - 7.5, charger_width / 2 - 4.5, -3.2]) cube([8, 9, 3.2]);
   }
@@ -628,6 +906,17 @@ module sma_antenna(x, z) {
     translate([0, 0, sma_hex_depth + wall]) cylinder(r = 8 / 2 / cos(30), h = 2.5, $fn = 6);
     translate([0, 0, sma_hex_depth + wall + 4]) cylinder(d = 9.5, h = 60);
   }
+}
+
+// The e-paper: its board, and the panel on the board's front
+module display_board() {
+  translate([display_x0 + 0.2, display_y + 0.2, -display_back_z + 0.3])
+    cube([display_width, display_length, display_pcb + display_parts]);
+}
+
+module display_panel_ref() {
+  translate([display_x0 + 0.7, display_y + 0.2 + (display_length - 59.2) / 2, -bezel_thickness - bezel_gasket - display_panel])
+    cube([29.2, 59.2, display_panel]);
 }
 
 module sma_antennas() {

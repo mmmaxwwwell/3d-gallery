@@ -1,6 +1,7 @@
 include <../lib/kobo-meshcore-case-lib.scad>;
 $fn = 40;
 color("#3b6fb6") upright() grip_assembled();
+color("#2f5a99") upright() bezel_assembled(explode = 20);
 color("#e8a33d") upright() cover_assembled(explode = 30);
 color("#9aa0a6") upright() kobo();
 color("#2b2b2b") upright() kobo_screen();
@@ -9,3 +10,6 @@ color("#7a3fb0") upright() xiaos();
 color("#1e90ff") upright() charger();
 color("#444444") upright() usb_plug();
 color("#c9a227") upright() sma_antennas();
+color("#141414") upright() display_board();
+color("#222222") upright() translate([0, 0, -split_z]) mirror([0, 0, 1]) translate([0, 0, -groove_depth]) back_gasket();
+color("#e6e4dc") upright() display_panel_ref();
