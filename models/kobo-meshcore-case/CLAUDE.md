@@ -4,25 +4,28 @@ Prototype case for a Kobo Clara HD turned MeshCore device (nRF MCU + LoRa radio)
 
 User's brief (2026-10-19), in order:
 1. Landscape, thick part on the right, SMA pigtail vertical on top of that side ("wrap the kobo … let's go from there").
-2. Then "way more slim": only a 15 mm tube running vertically on the Kobo's right side. The bulkhead mount is 25 mm down from the top of the case, so the antenna is recessed and centred on the tube. The case's front face is flush with the tube's front, so the tube sticks out the back.
-3. Then: "I don't want the antenna hidden, the cylinder should come to an end with a hex mount". I read it as: the tube stops `tube_short` (25) below the case's top, its end face a hex pocket that captures the SMA nut, the antenna in the open above it.
-
-The first draft's 38 mm electronics bay and its lid are gone. Where the MCU, radio and battery go is open.
+2. "Way more slim": only a 15 mm cylinder up the Kobo's right side, the bulkhead 25 mm from the top of the case, front face flush with the cylinder's front so it sticks out the back.
+3. "I don't want the antenna hidden, the cylinder should come to an end with a hex mount". Then: "the hex is on the wrong side of that hole, it needs to be on the back": the hex pocket is under the end panel (the jack's hex from inside), the nut on top.
+4. An extra 18650 "aligned with the original cylinder, face equal with the front … grow the object to have the 18650 holder space go the entire way up, but the original cylinder is in a cutout, so the antenna is mounted there". Read as: the cylinder is 18650-sized for its whole length, still ending `tube_short` below the top where the antenna mounts.
+5. Micro USB: "no plug connection ever, forget it exists". Radio + MCU "sit right behind the thick edge of the kobo at the top": the pod.
 
 ## Frames
 
-- **Assembly frame**: X along the device (tube at +X), Y up as held (SMA at +Y), Z out of the screen, z = 0 on the front face, the case at negative Z.
-- **Print frame** = assembly mirrored in Z. `shell()` and `back_plate()` are in print orientation; the `*_assembled()` wrappers mirror them back. The tube lies along the bed as the frame prints.
+- **Depth frame**: X along the device (cylinder at +X), Y up as held (SMA at +Y), z = depth behind the front face. Every part is modelled here. It is the frame's print frame.
+- **Assembly** = depth frame mirrored in Z (`*_assembled()`).
+- **Print**: `back_plate_print()` is the plate's own frame. `pod_cover_print()` mirrors the cover roof down. `end_cap_print()` turns the cap inner face down.
 
-## Load-bearing choices
+## Load-bearing choices (mine unless noted)
 
-- **Kobo bottom edge toward the tube.** That was mine; the user liked the button trough and corrected the USB's side (USB below the mid-edge button, 34 mm along the edge; Kobo's drawing is mirrored). With no bay, the USB window runs right through the tube, so a cable plugs in from the right.
-- **Tube profile** (`tube_profile`): circle + a 45° tangent flat at its front-right so it doesn't overhang the bed, hulled back to `ledge_x` at the back plate's outer face height, so the plate butts into a vertical step.
-- **Hex mount**: `sma_hex` pocket (8 mm nut + 0.3) `sma_hex_depth` deep in the tube's end face, flats top and bottom as it prints (a hex with a vertex up has 30° roofs), over `sma_panel` with the round `sma_hole`. The nut is captured; the jack threads up into it from below.
-- **Bore** (`bore()`): a 45° teardrop flat-topped at `bore_top_z` (`bore_skin` under the tube's back). The pigtail goes in from the bottom end (`pigtail_bore` 10 clears the jack's 8 mm hex), so the bore runs the tube's length below the panel.
-- **Screws**: 4 × M3x8 through counterbored pads on the back plate; left pair in the 6 mm left wall, right pair in `right_ledge` beside the tube. The top-right one is above the tube's end, in the frame's strip.
-- **Asserts**: the trough's 45° side stays ≥ 1.2 mm off the pigtail bore (that's why `tube_offset` is 10, not less, and `button_depth_fraction` 0.75); the right pilots keep 1 mm to the bore; the case fits a 220 bed.
+- **Kobo bottom edge toward the cylinder** (mine, kept): the power button in a 45° trough (`button_trough_cut`).
+- **Cylinder** (`tube_profile`): `cell_bore` + 2 × `tube_wall`, front tangent at z = 0, with a 45° tangent flat at its front-right so it doesn't overhang the bed. It's hulled back to `plate_x1` (its leftmost point) at the back plate's outer-face height, so the plate butts into a vertical face. `right_ledge` (8) separates the pocket from the bore. That's sized so the right screw heads clear the cylinder (asserted), and it keeps the trough and lead groove apart.
+- **Cell access from the bottom** via `end_cap` (one M3x10 along Y into the ledge). The user said "back panel area"; a bottom cap was simpler to retain. Change it if they ask for a back door.
+- **Bores** (`bore_2d`): 45° teardrops flat-topped at `bore_top_z`. The cell's bay runs `cell_bay_length` above the cap. Above it the 10 mm pigtail bore runs to the hex pocket; the jack goes up through the empty bay.
+- **Pod** (`pod_cover`): a separate open box printed roof down, standing on the back plate. Its right wall is at `plate_x1`, beside the cylinder. Two M3x8 screws go through counterbored columns into bosses on the plate. Size (45 × 40 × 9 inside) is my guess for a XIAO nRF52840 + Wio-SX1262 class stack. `pod_hole_cut` runs from the pigtail bore into it, teardrop peaked the other way in the cover (it prints inverted).
+- **Lead groove** at 225° on the bore (`groove_2d`), clear of the trough and the front (asserted); the cap has a matching notch.
+- The SMA hole through the panel is round (a 6.6 mm hole in a 2 mm panel).
 
-## Unmeasured (from Kobo's drawing in the user guide, ±2 mm)
+## Unmeasured
 
-`screen_*`, `kobo_corner_radius`, `power_button_y`, `usb_y`. Also unknown: the user's boards and battery, the pigtail's nut size (8 mm assumed) and thread length (pocket 3 + floor 2 mm).
+- From Kobo's drawing in the user guide, ±2 mm: `screen_*`, `kobo_corner_radius`, `power_button_y`.
+- Also unknown: the user's boards (pod size), the pigtail's hex size and thread length (panel 2 mm), the cell's real length (protected cells run to ~69 mm; the bay is 72), and the cell contacts. Nothing holds contacts yet.
