@@ -1,23 +1,26 @@
 // Modular insert for a Harbor Freight Apache case, first built as a portable
 // MeshCore repeater in an Apache 1800 (small).
 //
-// - A baseplate fills the case floor. It carries a grid of M3 pilots at
-//   `pitch`, and every module screws down onto the grid with M3 cap screws,
-//   so nothing rattles when the case is carried.
+// - A baseplate fills the case floor. It carries a grid of M5 pilots at
+//   `pitch`, and every module screws down onto the grid with M5 x 10 cap
+//   screws, so nothing rattles when the case is carried.
 // - Every module's holes are whole multiples of `pitch` apart, so a module
 //   lands on any grid point and can move without reprinting the plate.
-// - Repeater modules: two clips with screwed hooks for a 32140 LiFePO4
-//   cell lying front to back against the case's right end wall, and two board trays with zip-tie slots: the
-//   cell's charge board, and a perfboard carrier with the radio (Ebyte
-//   E22P-915M30S, 1 W), the MCU (Seeed XIAO nRF54LM20A) and the radio's 5 V
-//   boost (Pololu U3V40F5).
+// - Repeater modules:
+//   - a cell bed: a 32140 LiFePO4 cell lies front to back in it against the
+//     case's right end wall, held by two screwed hooks, with the cell's
+//     charge board in a slot under it
+//   - a tray for a perfboard carrying the radio (Ebyte E22P-915M30S, 1 W),
+//     the MCU (Seeed XIAO nRF54LM20A) and the radio's 5 V boost (Pololu
+//     U3V40F5)
 // - The antenna's N bulkhead goes through a hole drilled in the case's left
 //   end wall; the modules keep clear of it.
 //
-// Frame: X along the case (the cell's end at +X, the bulkhead's at -X), Y across it (+Y toward
-// the hinge), Z up from the case's inside floor. The plate is centred on
-// the origin. Each module is modelled with its first screw hole at its
-// origin and placed by grid index with `at()`.
+// Frame: X along the case (the cell's end at +X, the bulkhead's at -X), Y
+// across it (+Y toward the hinge), Z up from the case's inside floor. The
+// plate is centred on the origin. Trays are modelled with their first screw
+// hole at their origin and placed by grid index with `at()`; the cell bed
+// and its hooks are modelled about the cell's axis.
 
 // Case inside (the user's measurements: straight-sided, every corner about
 // r 5), at the floor and at the rim, and the base's inside depth. The lid
@@ -33,51 +36,60 @@ case_wall = 3;
 // round its bottom edge (clears the fillet where the case floor meets the
 // walls), the grid pitch, the closest a grid hole may come to the edge
 plate_clear = 1;
-plate_t = 6;
+plate_t = 7;
 plate_chamfer = 2;
 pitch = 20;
 grid_margin = 8;
 
-// M3 cap screws: clearance, pilot (threads into bare plastic), the head's
-// counterbore and its depth, and the thickness of every module's base
-m3_clear_d = 3.4;
-m3_pilot_d = 2.5;
-m3_cb_d = 6.2;
-m3_cb_depth = 3.2;
+// M5 x 10 cap screws everywhere (the user's pick): clearance, pilot (threads
+// into bare plastic), the head's counterbore, the screw's length under the
+// head, and how much of a part it clamps (the rest, 6, threads into the
+// 7 mm plate). Trays' base thickness.
+m5_clear_d = 5.5;
+m5_pilot_d = 4.2;
+m5_cb_d = 9.2;
+screw_len = 10;
+clamp_t = 4;
 base_t = 6;
 // A hole's centre from its module's outer edge
-ear = 5;
+ear = 7;
 
 // 32140 LiFePO4 cell (tabbed, wire leads), lying along X; gap round it
 cell_d = 32;
 cell_len = 140;
 cell_clear = 0.4;
-// Cell clips: the cell's axis lies one grid column outboard of the clips'
-// screws, on the last column, about 1 mm off the end wall. Each clip is a
-// cradle under the cell, open on the wall side: its length along the cell,
-// the seat's floor, its inner post's face (from the screw column), how far
-// past the axis it reaches toward the wall, and its two screws' spacing
-// (in tabs past its ends, so they're reached from above)
-clip_len = 24;
-clip_floor = 3;
-clip_post_x = -8;
-clip_reach = 13;
-clip_hole_dy = 40;
-// Hook: screwed onto the clip's post, it curls over the cell to
+// Cell bed: one cradle the cell's whole length, the cell's axis on the last
+// grid column, about 1 mm off the end wall; open on the wall side, so the
+// wall stops the cell rolling out. Its inner post's face and how far it
+// reaches toward the wall (both from the axis), the floor under the charge
+// board, the gap from the board's top to the cell, and its screws' Y
+// positions, down the axis under the cell (fit them before the cell)
+bed_post_x = -32;
+bed_reach = 13;
+bed_floor = 4;
+board_gap = 1.5;
+bed_hole_ys = [-60, -40, 40, 60];
+// Hooks: screwed onto the bed's post, each curls over the cell to
 // `hook_end_angle` above the axis on the wall side and presses it into the
-// cradle. Its wall, ear thickness, screws (inboard of the screw column, clear
-// of the arch) and their spacing, their pilots' depth, and its squeeze
+// bed. Their Y positions and length, wall, ear thickness, screws (from the
+// axis, with the heads clear of the arch) and their spacing, pilot depth
+// into the post, and squeeze
+hook_ys = [-45, 45];
+hook_len = 24;
 hook_t = 3;
 hook_ear_t = 5;
-hook_screw_x = -3;
+hook_screw_x = -24;
 hook_screw_dy = 12;
-hook_pilot_depth = 12;
+hook_pilot_depth = 8;
 hook_end_angle = 45;
 hook_squeeze = 0.3;
 
-// Boards, [along X, along Y, thickness]: the LiFePO4 charge board (from the
-// Kingboss bank, not measured) and the radio's carrier, a 50 x 70 perfboard
-charge_dims = [39, 44, 9];
+// Boards, [along X, along Y, thickness]. The LiFePO4 charge board (from the
+// Kingboss bank), under the cell with its USB-C and USB-A toward -X and its
+// button toward the wall: 33 wide (the user's caliper), 40 long (scaled
+// from a photo), 9 over the USB-A (a guess). The radio's carrier, a 50 x
+// 70 perfboard.
+charge_dims = [40, 33, 9];
 carrier_dims = [70, 50, 1.6];
 // On the carrier, for the reference render: the E22P-915M30S, the XIAO
 // nRF54LM20A and the U3V40F5 boost
@@ -117,7 +129,8 @@ grid_nx = floor((plate_l - 2 * grid_margin) / pitch) + 1;
 grid_ny = floor((plate_w - 2 * grid_margin) / pitch) + 1;
 
 seat_r = cell_d / 2 + cell_clear;
-cell_axis_z = plate_t + clip_floor + seat_r;
+// The cell's axis above the plate's top
+bed_axis_z = bed_floor + charge_dims[2] + board_gap + seat_r;
 // The hook's bore drops below the seat's axis so it bears on the cell
 // (which rests on the seat's floor) without pinching its sides
 hook_drop = cell_clear + (seat_r - cell_d / 2) + hook_squeeze;
@@ -139,11 +152,13 @@ module rounded_rect(size, r) {
 
 // Hole spacing that puts a module's holes outside a pocket of this size,
 // counterbores clear of its rim
-function hole_span(pocket) = ceil((pocket + 2 * rim_w + m3_cb_d + 1) / pitch) * pitch;
+function hole_span(pocket) = ceil((pocket + 2 * rim_w + m5_cb_d + 1) / pitch) * pitch;
 
-module m3_counterbored(h) {
-  translate([0, 0, -eps]) cylinder(d = m3_clear_d, h = h + 2 * eps);
-  translate([0, 0, h - m3_cb_depth]) cylinder(d = m3_cb_d, h = m3_cb_depth + eps);
+// An M5 x 10 through a part `h` thick: the head sinks to `clamp_t` above
+// the part's bottom
+module m5_seat(h) {
+  translate([0, 0, -eps]) cylinder(d = m5_clear_d, h = h + 2 * eps);
+  translate([0, 0, clamp_t]) cylinder(d = m5_cb_d, h = h - clamp_t + eps);
 }
 
 // ---- baseplate
@@ -155,48 +170,53 @@ module baseplate() {
       translate([0, 0, plate_chamfer]) linear_extrude(plate_t - plate_chamfer) rounded_rect([plate_l, plate_w], plate_r);
     }
     for (i = [0 : grid_nx - 1], j = [0 : grid_ny - 1])
-      translate([grid_pt(i, j)[0], grid_pt(i, j)[1], -eps]) cylinder(d = m3_pilot_d, h = plate_t + 2 * eps);
+      translate([grid_pt(i, j)[0], grid_pt(i, j)[1], -eps]) cylinder(d = m5_pilot_d, h = plate_t + 2 * eps);
   }
 }
 
-// ---- cell clip and hook (origin at the first screw hole; the cell's axis
-// runs along Y one `pitch` outboard, at +X)
+// ---- cell bed and hooks (modelled about the cell's axis: x = 0 on it,
+// y = 0 at the cell's middle, z = 0 on the plate's top)
 
-module clip() {
-  za = clip_floor + seat_r;
-  translate([0, clip_hole_dy / 2, 0]) difference() {
-    union() {
-      translate([clip_post_x, -clip_len / 2, 0]) cube([pitch + clip_reach - clip_post_x, clip_len, za]);
-      translate([0, 0, base_t / 2]) linear_extrude(base_t, center = true) rounded_rect([2 * ear, clip_hole_dy + 2 * ear], ear - 0.5);
-    }
-    translate([pitch, -clip_len, za]) rotate([-90, 0, 0]) cylinder(r = seat_r, h = 2 * clip_len, $fn = 96);
-    for (s = [-1, 1]) {
-      translate([0, s * clip_hole_dy / 2, 0]) m3_counterbored(base_t);
-      translate([hook_screw_x, s * hook_screw_dy / 2, za - hook_pilot_depth]) cylinder(d = m3_pilot_d, h = hook_pilot_depth + eps);
-    }
+// The charge board's slot: across the bed, open to the top so the board
+// drops in before the cell, the USB end flush with the post's face
+charge_slot_w = charge_dims[1] + 2 * pocket_clear + 2 * (tie_slot[1] + 1);
+charge_x0 = bed_post_x;
+
+module cell_bed() {
+  difference() {
+    translate([bed_post_x, -cell_len / 2, 0]) cube([bed_reach - bed_post_x, cell_len, bed_axis_z]);
+    translate([0, -cell_len, bed_axis_z]) rotate([-90, 0, 0]) cylinder(r = seat_r, h = 2 * cell_len, $fn = 96);
+    translate([bed_post_x - 1, -charge_slot_w / 2, bed_floor]) cube([bed_reach - bed_post_x + 2, charge_slot_w, bed_axis_z]);
+    // One zip tie across the board's middle: up beside it, over it, down,
+    // and back along a groove under the floor
+    tie_x = charge_x0 + charge_dims[0] / 2;
+    for (s = [-1, 1]) translate([tie_x, s * (charge_slot_w / 2 - tie_slot[1] / 2 - 0.5), bed_floor / 2]) cube([tie_slot[0], tie_slot[1], bed_floor + 1], center = true);
+    translate([tie_x, 0, 0]) cube([tie_slot[0], charge_slot_w, 2 * tie_groove_depth], center = true);
+    for (y = bed_hole_ys) translate([0, y, 0]) m5_seat(bed_axis_z);
+    for (hy = hook_ys, s = [-1, 1])
+      translate([hook_screw_x, hy + s * hook_screw_dy / 2, bed_axis_z - hook_pilot_depth]) cylinder(d = m5_pilot_d, h = hook_pilot_depth + eps);
   }
 }
 
-// The hook's profile in (x, z), z from the plate's top
+// The hook's profile in (x, z)
 module hook_2d() {
-  za = clip_floor + seat_r;
   a = hook_end_angle;
   difference() {
     union() {
       intersection() {
-        translate([pitch, za]) circle(r = seat_r + hook_t, $fn = 96);
-        translate([pitch, za]) polygon([[0, 0], [50 * cos(a), 50 * sin(a)], [-50, 50], [-50, 0]]);
+        translate([0, bed_axis_z]) circle(r = seat_r + hook_t, $fn = 96);
+        translate([0, bed_axis_z]) polygon([[0, 0], [50 * cos(a), 50 * sin(a)], [-50, 50], [-50, 0]]);
       }
-      translate([clip_post_x, za]) square([pitch - clip_post_x, hook_ear_t]);
+      translate([bed_post_x, bed_axis_z]) square([-bed_post_x, hook_ear_t]);
     }
-    translate([pitch, za - hook_drop]) circle(r = seat_r, $fn = 96);
+    translate([0, bed_axis_z - hook_drop]) circle(r = seat_r, $fn = 96);
   }
 }
 
 module hook() {
-  translate([0, clip_hole_dy / 2, 0]) difference() {
-    rotate([90, 0, 0]) linear_extrude(clip_len, center = true) hook_2d();
-    for (s = [-1, 1]) translate([hook_screw_x, s * hook_screw_dy / 2, clip_floor + seat_r - eps]) cylinder(d = m3_clear_d, h = hook_ear_t + 2 * eps);
+  difference() {
+    rotate([90, 0, 0]) linear_extrude(hook_len, center = true) hook_2d();
+    for (s = [-1, 1]) translate([hook_screw_x, s * hook_screw_dy / 2, bed_axis_z - eps]) cylinder(d = m5_clear_d, h = hook_ear_t + 2 * eps);
   }
 }
 
@@ -227,7 +247,7 @@ module board_tray(dims, open_side = [0, -1]) {
     }
     translate([0, 0, base_t - relief_depth]) linear_extrude(relief_depth + eps)
       square(pocket - [2 * ledge_w, 2 * ledge_w], center = true);
-    for (sx = [-1, 1], sy = [-1, 1]) translate([sx * span / 2, sy * pitch / 2, 0]) m3_counterbored(base_t);
+    for (sx = [-1, 1], sy = [-1, 1]) translate([sx * span / 2, sy * pitch / 2, 0]) m5_seat(base_t);
     for (x = tie_xs) {
       for (s = [-1, 1]) translate([x, s * tie_y, base_t / 2]) cube([tie_slot[0], tie_slot[1], base_t + 1], center = true);
       translate([x, 0, 0]) cube([tie_slot[0], 2 * tie_y + tie_slot[1], 2 * tie_groove_depth], center = true);
@@ -235,25 +255,17 @@ module board_tray(dims, open_side = [0, -1]) {
   }
 }
 
-module charge_tray() board_tray(charge_dims, [1, 0]);
 module carrier_tray() board_tray(carrier_dims, [0, -1]);
 
 // ---- the repeater's layout, by grid index
 
-// The cell runs along Y against the right end wall
-clip_at = [[8, 0], [8, 4]];
-charge_at = [0, 4];
+// The cell's axis on the last grid column, against the right end wall
+cell_axis = [grid_pt(grid_nx - 1, 0)[0], 0, plate_t + bed_axis_z];
 carrier_at = [0, 1];
 
-cell_axis = [
-  grid_pt(clip_at[0][0], 0)[0] + pitch,
-  (grid_pt(0, clip_at[0][1])[1] + grid_pt(0, clip_at[1][1])[1] + clip_hole_dy) / 2,
-  cell_axis_z
-];
-
-module clips_placed() for (p = clip_at) at(p[0], p[1]) clip();
-module hooks_placed() for (p = clip_at) at(p[0], p[1]) hook();
-module charge_tray_placed() at(charge_at[0], charge_at[1]) charge_tray();
+module on_cell_axis() translate([cell_axis[0], cell_axis[1], plate_t]) children();
+module cell_bed_placed() on_cell_axis() cell_bed();
+module hooks_placed() on_cell_axis() for (y = hook_ys) translate([0, y, 0]) hook();
 module carrier_tray_placed() at(carrier_at[0], carrier_at[1]) carrier_tray();
 
 // ---- reference: the case, cell, boards, bulkhead and antenna
@@ -306,7 +318,7 @@ module cell_ref() {
 // A board's centre on its tray's floor
 function tray_centre(at_ij, dims) = grid_pt(at_ij[0], at_ij[1]) + [tray_span(dims) / 2, pitch / 2, base_t];
 
-module charge_ref() translate(tray_centre(charge_at, charge_dims) + [0, 0, charge_dims[2] / 2]) cube(charge_dims, center = true);
+module charge_ref() on_cell_axis() translate([charge_x0 + charge_dims[0] / 2, 0, bed_floor + charge_dims[2] / 2]) cube(charge_dims, center = true);
 
 // Perfboard, the E22P at the end nearest the bulkhead (-X), the XIAO's
 // USB-C at the open (front) edge, the boost behind it
@@ -320,8 +332,7 @@ module carrier_parts_ref() {
 
 // ---- print layouts
 
-module clip_print() clip();
+module cell_bed_print() cell_bed();
 // On its side: the arch would otherwise print in mid-air
-module hook_print() translate([0, 0, clip_len / 2]) rotate([90, 0, 0]) translate([0, -clip_hole_dy / 2, 0]) hook();
-module charge_tray_print() charge_tray();
+module hook_print() translate([0, 0, hook_len / 2]) rotate([90, 0, 0]) hook();
 module carrier_tray_print() carrier_tray();

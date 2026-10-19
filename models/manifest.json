@@ -3803,7 +3803,7 @@
       "slug": "apache-case-modules",
       "devOnly": true,
       "title": "Apache Case Modules: MeshCore Repeater",
-      "description": "A modular insert for a Harbor Freight Apache case, first built as a portable MeshCore repeater in an Apache 1800 (small) emptied of its foam. A baseplate fills the case floor with a 20 mm grid of M3 pilots, and every module screws onto the grid with M3 cap screws in counterbores, so nothing rattles when the case is carried and any module can move without reprinting the plate. The repeater's modules: two clips that hold a 32140 LiFePO4 cell lying front to back against the right end wall, about 1 mm off it. Each clip is a cradle under the cell, open on the wall side, screwed down through tabs past its ends on the grid column next to the cell; a hook screws onto its inner post and curls over the cell to just past its top, pressing it into the cradle, and the wall stops it rolling out; a tray for the cell's charge board; and a tray for the radio's carrier, a 50 \u00d7 70 mm perfboard holding an Ebyte E22P-915M30S (1 W SX1262 radio), a Seeed XIAO nRF54LM20A running MeshCore, and a Pololu 5 V boost for the radio. Each tray is a pocket with a rim on three sides (the open side for the connectors) and two zip-tie slots that run under the tray, so a tie goes over the board and back underneath; the board rests on a ledge over a relief for its solder tails. Each tray's four screws sit at its two ends. The antenna's N female bulkhead goes through a hole drilled in the case's left end wall, 45 mm above the floor, beside the radio's tray, and the modules keep clear of the inside of it. The case is measured: 214 \u00d7 150 inside, 76 deep in the base, an 18 mm lid, r 5 corners; the plate is 212 \u00d7 148. The board sizes are guesses. All PETG, printed flat; the hooks print on their sides. Not yet printed.",
+      "description": "A modular insert for a Harbor Freight Apache case, first built as a portable MeshCore repeater in an Apache 1800 (small) emptied of its foam. A baseplate fills the case floor with a 20 mm grid of M5 pilots, and every module screws onto the grid with M5 \u00d7 10 cap screws, so nothing rattles when the case is carried and any module can move without reprinting the plate. The repeater's modules: a cell bed, in which a 32140 LiFePO4 cell lies front to back against the right end wall, about 1 mm off it. The bed is open on the wall side, so the wall stops the cell rolling out, and two hooks screwed onto its inner post curl over the cell to just past its top and press it down. The cell's charge board sits in a slot across the bed's middle, under the cell, its USB-C and USB-A facing the middle of the case, held by a zip tie. The second module is a tray for the radio's carrier, a 50 \u00d7 70 mm perfboard holding an Ebyte E22P-915M30S (1 W SX1262 radio), a Seeed XIAO nRF54LM20A running MeshCore, and a Pololu 5 V boost for the radio. The tray is a pocket with a rim on three sides (the open side for the connectors) and two zip-tie slots that run under it; the board rests on a ledge over a relief for its solder tails. The antenna's N female bulkhead goes through a hole drilled in the case's left end wall, 45 mm above the floor, beside the radio's tray. The case is measured: 214 \u00d7 150 inside, 76 deep in the base, an 18 mm lid, r 5 corners; the plate is 212 \u00d7 148. The charge board is 33 wide (measured), its length and height estimated. All PETG, printed flat; the hooks print on their sides. Not yet printed.",
       "filament": [
         {
           "material": "PETG",
@@ -3814,7 +3814,7 @@
         {
           "file": "assembled.3mf",
           "format": "3mf",
-          "label": "In the case: the plate, the cell in its clips, both boards, the N bulkhead and antenna",
+          "label": "In the case: the plate, the cell on its bed over the charge board, the radio carrier, the N bulkhead and antenna",
           "default": true,
           "legend": [
             {
@@ -3824,18 +3824,13 @@
             },
             {
               "color": "#e8a33d",
-              "label": "Cell clips",
-              "part": "clip.stl"
+              "label": "Cell bed",
+              "part": "cell-bed.stl"
             },
             {
               "color": "#f0c674",
-              "label": "Cell clip hooks",
+              "label": "Cell hooks",
               "part": "hook.stl"
-            },
-            {
-              "color": "#5aa469",
-              "label": "Charge board tray",
-              "part": "charge-tray.stl"
             },
             {
               "color": "#2e8b57",
@@ -3855,6 +3850,10 @@
               "label": "Charge board, E22P radio, XIAO nRF54LM20A and 5 V boost (reference)"
             },
             {
+              "color": "#1f6f4a",
+              "label": "Perfboard carrier (reference)"
+            },
+            {
               "color": "#c9a227",
               "label": "N female bulkhead (reference)"
             },
@@ -3869,16 +3868,12 @@
               "qty": 1
             },
             {
-              "part": "clip.stl",
-              "qty": 2
+              "part": "cell-bed.stl",
+              "qty": 1
             },
             {
               "part": "hook.stl",
               "qty": 2
-            },
-            {
-              "part": "charge-tray.stl",
-              "qty": 1
             },
             {
               "part": "carrier-tray.stl",
@@ -3908,23 +3903,18 @@
         {
           "file": "plate-2-modules.3mf",
           "format": "3mf",
-          "label": "Print plate 2: clips, hooks (on their sides) and trays",
+          "label": "Print plate 2: cell bed, hooks (on their sides) and radio tray",
           "plate": true,
           "legend": [
             {
               "color": "#e8a33d",
-              "label": "Cell clips",
-              "part": "clip.stl"
+              "label": "Cell bed",
+              "part": "cell-bed.stl"
             },
             {
               "color": "#f0c674",
-              "label": "Cell clip hooks",
+              "label": "Cell hooks",
               "part": "hook.stl"
-            },
-            {
-              "color": "#5aa469",
-              "label": "Charge board tray",
-              "part": "charge-tray.stl"
             },
             {
               "color": "#2e8b57",
@@ -3934,16 +3924,12 @@
           ],
           "components": [
             {
-              "part": "clip.stl",
-              "qty": 2
+              "part": "cell-bed.stl",
+              "qty": 1
             },
             {
               "part": "hook.stl",
               "qty": 2
-            },
-            {
-              "part": "charge-tray.stl",
-              "qty": 1
             },
             {
               "part": "carrier-tray.stl",
@@ -3959,19 +3945,14 @@
           "label": "Baseplate \u2014 the grid every module screws to"
         },
         {
-          "file": "clip.stl",
+          "file": "cell-bed.stl",
           "format": "stl",
-          "label": "Cell clip (\u00d72)"
+          "label": "Cell bed, with the charge board's slot under the cell"
         },
         {
           "file": "hook.stl",
           "format": "stl",
-          "label": "Cell clip hook (\u00d72) \u2014 print on its side"
-        },
-        {
-          "file": "charge-tray.stl",
-          "format": "stl",
-          "label": "Charge board tray"
+          "label": "Cell hook (\u00d72) \u2014 print on its side"
         },
         {
           "file": "carrier-tray.stl",
@@ -3982,26 +3963,16 @@
       "hardware": [
         {
           "qty": 12,
-          "label": "M3x8 socket head cap screw \u2014 clips and trays down into the baseplate's pilots",
+          "label": "M5x10 socket head cap screw \u2014 the bed and the tray down into the baseplate's pilots, the hooks onto the bed",
           "usedBy": [
             {
-              "part": "clip.stl",
-              "each": 2
-            },
-            {
-              "part": "charge-tray.stl",
+              "part": "cell-bed.stl",
               "each": 4
             },
             {
               "part": "carrier-tray.stl",
               "each": 4
-            }
-          ]
-        },
-        {
-          "qty": 4,
-          "label": "M3x12 socket head cap screw \u2014 hooks down into the clips' posts",
-          "usedBy": [
+            },
             {
               "part": "hook.stl",
               "each": 2
@@ -4009,12 +3980,12 @@
           ]
         },
         {
-          "qty": 4,
-          "label": "Zip tie, up to 3.6 mm wide \u2014 two across each board",
+          "qty": 3,
+          "label": "Zip tie, up to 3.6 mm wide \u2014 one across the charge board, two across the carrier",
           "usedBy": [
             {
-              "part": "charge-tray.stl",
-              "each": 2
+              "part": "cell-bed.stl",
+              "each": 1
             },
             {
               "part": "carrier-tray.stl",
@@ -4025,6 +3996,10 @@
         {
           "qty": 1,
           "label": "N female bulkhead to U.FL pigtail \u2014 through a 16.5 mm hole drilled in the case's left end wall"
+        },
+        {
+          "qty": 1,
+          "label": "Ebyte E22P-915M30S (1 W, SPI) \u2014 on the carrier, U.FL to the bulkhead pigtail"
         },
         {
           "qty": 1,
@@ -4040,15 +4015,11 @@
         },
         {
           "qty": 1,
-          "label": "32140 LiFePO4 cell (tabbed, wire leads) \u2014 in the clips"
+          "label": "32140 LiFePO4 cell (tabbed, wire leads) \u2014 on the bed"
         },
         {
           "qty": 1,
-          "label": "LiFePO4 charge board (from the Kingboss 15000 mAh bank) \u2014 in its tray"
-        },
-        {
-          "qty": 1,
-          "label": "Ebyte E22P-915M30S (1 W, SPI) \u2014 on the carrier, U.FL to the bulkhead pigtail"
+          "label": "LiFePO4 charge board (from the Kingboss 15000 mAh bank, 33 mm wide) \u2014 in the bed's slot under the cell"
         }
       ],
       "worksWith": [

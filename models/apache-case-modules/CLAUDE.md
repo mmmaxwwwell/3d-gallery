@@ -19,31 +19,33 @@ A modular insert for Harbor Freight Apache cases. The first build is a portable 
 ## Frame and placement
 
 - X runs along the case, with the cell's end at +X and the bulkhead's at -X. Y runs across it (+Y toward the hinge). z = 0 is the case's inside floor, and the plate is centred on the origin.
-- Each module is modelled with its first screw hole at its origin. `at(i, j)` places it on grid point (i, j), counted from the -X, -Y corner.
-- The layout is `clip_at`, `charge_at` and `carrier_at`.
+- Trays are modelled with their first screw hole at their origin. `at(i, j)` places a tray on grid point (i, j), counted from the -X, -Y corner. The layout is `carrier_at`.
+- The cell bed and its hooks are modelled about the cell's axis: x = 0 on it, y = 0 at the cell's middle, z = 0 on the plate's top. `on_cell_axis()` places them on the last grid column.
 - A new module only needs its holes on multiples of `pitch`. `hole_span()` rounds a pocket up to the next pitch with the counterbores clear of the rim.
 
 ## Load-bearing choices (mine)
 
-- **Fixings**: screws thread into bare 2.5 mm pilots in the 6 mm plate. No nuts or inserts. Module bases are 6 mm with 3.2 mm counterbores, so M3x8 leaves 0.8 mm short of the plate's bottom.
-- **Clip** (user: "a clip that puts it basically on the wall and uses 1 hole less space"): the cell's axis sits one `pitch` outboard of the clip's screw column, on the last column (x = 90), about 1 mm off the wall. It covers two grid columns where the old saddles covered three.
-  - The cradle is open on the wall side and reaches `clip_reach` past the axis. The wall stops the cell rolling out.
-  - Its screws are in tabs past its ends along Y (`clip_hole_dy`), because the hook's arch blocks straight-down access at the screw column inside the clip's length.
-  - The tabs' corner radius is `ear - 0.5`: at exactly `ear`, `offset(-r)` collapses the 10 mm strip and the tabs vanish.
-- **Hook**: it's screwed onto the clip's inner post at `hook_screw_x`, inboard far enough that the heads clear the arch. It curls over the cell to `hook_end_angle` (45°) past the top on the wall side.
-  - Its bore drops `hook_drop` below the seat's axis so it bears down with a `hook_squeeze` of 0.3 without pinching the sides.
-  - It prints on its side, so its screw holes print horizontal. It has no counterbore, because the 5 mm ear is too thin for one.
+- **Fixings** (user, 2026-10-19: "swap everything to work with m5x10 screws"): M5x10 cap screws thread into bare 4.2 mm pilots. Each part gets `clamp_t` (4) under the head, so 6 mm threads into the 7 mm plate and the tip stops 1 mm short of the case floor. `m5_seat(h)` is the hole plus a counterbore down to `clamp_t`.
+- **Cell position** (user: "put the battery vertical along the right side"): it runs front to back (along Y) at the right end. Standing on end can't fit, since 140 is more than the 94 the closed case gives (76 + 18), so "vertical" is read as seen from above. It leaves about 5 mm past each end for the tabs.
+- **Against the wall** (user: "a clip that puts it basically on the wall and uses 1 hole less space"): the axis is on the last column (x = 90), about 1 mm off the wall. The bed is open on the wall side and reaches `bed_reach` past the axis, so the wall stops the cell rolling out. Its inner face is at x = 58, so grid column x = 50 stays free.
+- **Charge board under the cell** (user: "can we add this underneath the battery", with a photo and a 33 mm caliper reading): this replaced the two clips with one full-length bed.
+  - The board sits in `charge_slot_w`, a slot across the bed's middle. The slot is open to the top, so it prints with no bridge, and the board drops in before the cell.
+  - The board's USB end is flush with the post's face (-X) and its button faces the wall. One zip tie runs across its middle.
+  - The cell rides `board_gap` above the board's tallest part. `bed_axis_z` follows `charge_dims[2]`.
+- **Bed screws**: four, down the axis under the cell (`bed_hole_ys`), counterbored from the seat. They go in before the cell. The hooks' arch blocks the post column from above, which is why the screws aren't there.
+- **Hooks**: each screws onto the bed's post at `hook_screw_x` (-24 from the axis). The post is thick enough for an M5 pilot, and the head clears the arch. Each hook curls over the cell to `hook_end_angle` (45°) past the top on the wall side.
+  - Its bore drops `hook_drop` below the seat's axis, so it bears down with a `hook_squeeze` of 0.3 without pinching the sides.
+  - It prints on its side, so its screw holes print horizontal. It has no counterbore, because the 5 mm ear is too thin for one; M5x10 threads 5 into the post.
   - It's a cantilever held from one side only. If it springs open, the fix is a thicker `hook_t`.
-- **Trays**: the -Y side has no rim (connectors, assumed). Zip-tie slots sit just outside the rim, joined by an underside groove. The four screws sit at the X ends, `pitch` apart, so a tray is only as deep as its board plus the ties. The board rests on a `ledge_w` ledge over a `relief_depth` relief for solder tails.
+- **Tray**: the -Y side has no rim (connectors, assumed). Zip-tie slots sit just outside the rim, joined by an underside groove. The four screws sit at the X ends, `pitch` apart, so a tray is only as deep as its board plus the ties. The board rests on a `ledge_w` ledge over a `relief_depth` relief for solder tails.
 - **Carrier**: a 50 x 70 perfboard (my pick of size) holds the E22P, the XIAO and the boost. The E22P sits at the bulkhead end, the XIAO's USB-C at the open front edge.
-- **Cell** (user, 2026-10-19: "put the battery vertical along the right side"): it runs front to back (along Y) at the right end, axis x = 70. Standing on end can't fit, since 140 is more than the 94 the closed case gives (76 + 18). Read "vertical" as seen from above. It leaves about 5 mm past each end for the tabs.
 - **Bulkhead**: on the left end wall at z = 45, y = 0, next to the carrier's E22P. It moved off the right end because the cell is there now. The lid top would point the antenna up when the case lies flat, but the pigtail would then cross the hinge.
-- **Reference case**: in the preview, the front and left walls are cut away. The walls taper linearly from `case_floor` to `case_rim`.
+- **Reference case**: in the preview, the front and right walls are cut away. The walls taper linearly from `case_floor` to `case_rim`.
 
 ## Open, unmeasured
 
 - The case: any ribs or bosses on the floor, and how flat the end wall is where the bulkhead goes.
-- `charge_dims` is the drybag node's guess. Which side each board's connectors face decides the trays' `open_side`.
+- `charge_dims`: 33 wide is measured, 40 long is scaled from the photo, and 9 tall over the USB-A is a guess. Nothing is known about the board's underside.
 - The XIAO nRF54LM20A's Bluetooth needs an antenna on its IPEX4 socket; there's no seat for one yet.
 - MeshCore doesn't run on the nRF54 family yet (from the earlier conversation); it needs a port.
 - Nothing yet charges the cell with the case closed. A solar or USB gland through the wall is the obvious next module.
