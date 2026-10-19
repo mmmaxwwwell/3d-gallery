@@ -1,38 +1,41 @@
 # kobo-meshcore-case
 
-Prototype case for a Kobo Clara HD turned MeshCore device (two Seeed XIAOs: nRF + LoRa). devOnly, unprinted.
+A grip a Kobo Clara HD slots into to become a MeshCore handheld (three Seeed XIAOs: nRF + two SX1262). devOnly, unprinted.
 
 ## The user's brief (2026-10-19)
 
-- Landscape, the thick part on the right, an SMA pigtail vertical at its top.
-- The front flush with the cylinder's front, so it stands out at the back.
-- An 18650 (with wire leads) in the cylinder; it must come in and out from the back. Micro USB: "forget it exists".
+- Landscape, the thick part on the right; the front flush with the cylinder's front, so it stands out at the back.
+- An 18650 (with wire leads) in the cylinder, in and out from the back. Micro USB: "forget it exists".
 - The cylinder's depth carries on inward behind the Kobo, the whole height, with no sharp edge at its inner end.
-- Two XIAOs (no pins) flat against the Kobo's back, near the antenna, at the top, "a space specifically" for them.
-
-The latest structure (the user's words): "just make 1 back plate to get back to the thicker part then stop. let the thicker part be the only outer wall. drop the teardrop holes. the radio sma mount will have to be moved to the top of the object, it needs the distance. the back plate shouldn't be part of the sma mount ring, but it should expose it."
-- Asked which way, the user picked the open tub: the frame is the thick part's wall, the back is open, and the plate covers the Kobo only.
-- They rejected an earlier split design (a cover carrying the cylinder's back half) as "doing bad". Keep it simple.
+- Latest: "a handheld device that the kobo slots into to hold, and is detachable and unmodified. The bottom 'chin' of the ereader that the xiao modules are behind, that slots into the case we have and that's it, it just sits there and is usable."
+  - So the frame round the Kobo and the back plate are gone. The grip is the old thick part with a slot for the chin.
+- Three XIAOs ("add another xiao module right underneath the last module"). There are two SX1262 radios, one with an internal strip antenna.
+- A second SMA "on the other rounded top part of the case": the top of the rounded inner end.
+- Earlier lessons: the user rejected a split cover as "doing bad", and wants open-tub simplicity. Keep parts few and plain.
 
 ## Frames
 
-- **Depth frame**: X along the device (cylinder at +X), Y up as held (SMA at +Y), z = depth behind the front face. Every part is modelled here. It's the frame's print frame (face down).
-- `back_plate()` is in its own print frame (z = 0 on its inner face). `back_plate_assembled()` puts it on the Kobo.
+- **Depth frame**: X along the device (cylinder at +X), Y up as held (SMA at +Y), z = depth behind the front face. The Kobo's top edge is at x = 0 and its bottom edge (the chin's end) at `pocket_x1`. `grip_shape()` is modelled here.
+- `grip()` is the print frame: standing on its bottom end (y → Z), front face toward -Y, the inner end at x = 0.
+- `grip_assembled()` mirrors the depth frame so the front faces +Z. `upright()` stands the assembly up for the preview.
 
 ## Load-bearing choices (mine)
 
-- **Thick part** (`thick_outline_2d`, `tub_cuts`):
-  - Its outline is the cylinder with a 45° front-right flat, a vertical right side with `rim_round` on top, and a flat back rim at `tube_d`. The inner end is a quarter round of `end_r` from the plate face up to the rim.
-  - `tub_cuts` opens everything above the Kobo frame between the end walls, and above the cell's axis, plus the bore.
-  - The frame keeps the long walls (on the Kobo frame's long walls, so they print) and the right wall.
-- **The tub's inner end is on the back plate**: over the Kobo the frame would print it in mid-air. It's a solid quarter round, straight up inside, so it prints.
-- **The plate's strips** across the Kobo reach `strip_x1` on the ledge for the right screws.
-  - XIAO windows (`xiao_y0s`) are cut in the top strip. The boards rest on the Kobo's back in a 2 mm window, 0.2 clear.
-  - Nothing holds them in from behind: the user wires them. If they ask for retention, a strap or tape before anything snap-like (they reject snap fingers).
-- **SMA** (`sma_block`, `sma_cuts`): a solid block across the cylinder under the top wall, up to `sma_block_top`, with the hex pocket (flats top/bottom as printed) and the round hole through the top wall.
-- **Cell**: bay `cell_bay_length` above the bottom wall, then the `cell_stop` half-ring. The cell isn't held in from behind (the back is open).
+- **Printed standing up.** Lying face down, the floor would span the slot in mid-air. Standing, everything is extruded along Y.
+  - So anything that bridges across Y needs a 45° underside: `hung_block()` for the SMA mounts, `octagon()` for the bottom plan corners, the trough's gabled top, and the cell stop's cone.
+  - Keep new features extruded along Y, or give them the same treatment.
+- **Slot** (`grip_outline_2d`): the lip runs from `lip_x0` (screen edge + `window_margin`) to the chin's end. The floor reaches further in, to `thick_x0`; in front of it, left of the lip, the grip is notched away.
+  - The slot is square-cornered: rounded corners would overhang standing up.
+  - Nothing retains the Kobo but the fit (`tolerance`). If it slides out, tighten the fit before adding anything snap-like (the user rejects snap fingers).
+- **Tub** (`tub_2d`): open at the back. The inner end is a `wall`-thick quarter round. It's open over the cell above its axis.
+- **SMA 1** (`sma1_block`): hung off the right wall, the hex through it, so the jack goes up the bore from below.
+- **SMA 2** (`sma2_block`): hung off the inner end's round. The hex channel and the top-wall slot are open to the back, so the jack slides in from behind.
+  - Its hex has a flat facing the round, and a corner 1 mm off the floor: the tub is only `end_r` (9.75) deep there.
+- **XIAOs**: `xiao_count` boards on the floor against the ledge, stacked down from `hex_y1`. There's nothing locating them; the user wires and sticks them.
+- **Strip antenna**: no geometry yet. Its home is the inside of the inner end below SMA 2's block. Ask its size before adding a seat.
+- **Power button**: a 45° trough through the front at the chin's end. Its top end is gabled so it prints standing.
 
 ## Unmeasured
 
-- From Kobo's drawing in the user guide, ±2 mm: `screen_*`, `kobo_corner_radius`, `power_button_y`.
-- The XIAO outline (21 × 17.8 from Seeed's spec), the pigtail's hex size and thread length (top wall 3 mm), and the cell's length with tabs.
+- From Kobo's drawing in the user guide, ±2 mm: `screen_*` (this sets where the lip stops), `kobo_corner_radius`, `power_button_y`.
+- Also unmeasured: the XIAO outline (21 × 17.8, Seeed's spec), the pigtail's hex size and thread length (top wall 3 mm), the cell's length with tabs, and the strip antenna.
