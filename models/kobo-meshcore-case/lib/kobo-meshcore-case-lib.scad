@@ -122,11 +122,25 @@ tab_length = 22;
 tab_slot = 1;
 tab_bump = 0.8;
 // Where the tab sits, from the grip's bottom
-tab_y = 26;
+tab_y = 22;
 // Back cover thickness
 cover_thickness = 2;
-// 45° chamfer round the front face's outer edge
-front_chamfer = 1;
+// Rounding on the grip's outside edges; the bottom edges' rounds turn into
+// 45° at the bed. The lip's end and the floor's front edge get a smaller one.
+edge_round = 3;
+lip_round = 1.5;
+// Finger indents up the right side: pitch, flat between indents, depth
+indent_pitch = 15;
+indent_land = 2;
+indent_depth = 1.5;
+// Zip-tie bars: the tie's slot (width, thickness), the bar over it, and its
+// length along the tie
+tie_w = 4;
+tie_t = 2;
+tie_roof = 1.5;
+tie_bar = 4;
+// Room above the top tie bar for the tie to turn
+tie_turn = 2.5;
 // M3 cap screws: pilot for self-tapping, clearance, counterbore
 pilot_d = 2.5;
 clear_d = 3.4;
@@ -158,7 +172,7 @@ tube_d = cell_bore + 2 * tube_wall;
 ledge_x = pocket_x1 + right_ledge;          // the cell's bore starts here
 tube_x = ledge_x + cell_bore / 2;
 tube_z = tube_d / 2;
-case_l = tube_x + tube_d / 2;
+case_l = tube_x + tube_d / 2 + indent_depth;   // the right side stands off for the indents
 split_z = tube_d;                           // the grip's back, the cover's inner face
 back_z = split_z + cover_thickness;
 
@@ -188,13 +202,26 @@ charger_y0 = cell_y1 + 1.5;
 charger_port_z = floor_back_z + charger_pcb + 1.6;
 // A rib on the floor behind it takes the plug's push
 charger_stop = 1.2;
+// A tie across it, where it lies on the floor
+charger_tie_x = (charger_x0 + ledge_x) / 2;
 
 // XIAOs stand on end on the floor behind the chin, left of the charger,
 // stacked down from under the second SMA's mount
 xiao_x1 = charger_x0 - charger_stop - xiao_margin;
 xiao_x0 = xiao_x1 - xiao_width;
-xiao_top = hex_y0 - max(0, sma2_block_x1 - xiao_x0) - xiao_margin;
+xiao_xc = (xiao_x0 + xiao_x1) / 2;
+// Tie bars above and below the stack
+tie_h = tie_t + tie_roof;
+tie_top_y = hex_y1 - tie_turn - tie_bar;
+xiao_top = min(hex_y0 - max(0, sma2_block_x1 - xiao_x0) - xiao_margin, tie_top_y - 0.5);
 xiao_y0s = [for (i = [1 : xiao_count]) xiao_top - i * xiao_length - (i - 1) * xiao_margin];
+
+// Zip-tie bars: [x of the slot's centre, y of the bar's bottom]. A tie runs
+// under a pair of bars and over what lies between them.
+tie_bars = [[xiao_xc, xiao_y0s[xiao_count - 1] - 0.5 - tie_bar],
+            [xiao_xc, tie_top_y],
+            [charger_tie_x, charger_y0 - 0.5 - tie_bar],
+            [charger_tie_x, charger_y0 + charger_width + 0.5]];
 
 usb_case_y = pocket_y0 + tolerance + usb_y;
 usb_z = front_thickness + kobo_thickness / 2;
@@ -215,7 +242,10 @@ screws = [[ledge_x + cell_bore - 1.6, case_w - 6.1],
 screw_depth = 8;
 
 assert(sma2_z + hex_r <= split_z, "the second SMA's hex stands out of the grip's back");
-assert(xiao_y0s[xiao_count - 1] >= tab_y + tab_width + tab_slot + 1, "the XIAO stack runs into the retention tab");
+assert(tie_bars[0][1] >= tab_y + tab_width + tab_slot + 0.5, "the XIAOs' bottom tie bar runs into the retention tab");
+assert(charger_tie_x - tie_w / 2 - 2 >= xiao_x1 + charger_stop, "the charger's tie bars run into the XIAOs");
+assert(charger_tie_x + tie_w / 2 + 2 <= ledge_x, "the charger's tie bars run into the cell's bore");
+assert(tie_bar >= tie_h, "a tie bar's underside is steeper than 45°");
 assert(charger_y0 + charger_width <= hex_y0 - cell_bore - 0.5, "the charger runs into the first SMA's mount");
 assert(charger_port_z + charger_port_h / 2 <= split_z, "the charger's port breaks into the cover");
 assert(ledge_x - (pocket_x1 + usb_end_wall + usb_body_t) >= 1.5, "the micro USB pocket breaks into the cell's bore");
@@ -239,13 +269,6 @@ module case_plan() {
   }
 }
 
-// Clips a solid to the grip's plan with the front chamfer round its edge
-module chamfered_plan(h) {
-  hull() {
-    linear_extrude(eps) offset(delta = -front_chamfer) case_plan();
-    translate([0, 0, front_chamfer]) linear_extrude(h - front_chamfer) case_plan();
-  }
-}
 
 // Extrude a (x, depth) profile along Y from y0 to y1
 module along_y(y0, y1) {
@@ -264,17 +287,64 @@ module thick_outline_2d() {
     }
     translate([thick_x0, 0]) square([eps, floor_back_z]);
     translate([tube_x, tube_z]) circle(d = tube_d);
-    translate([tube_x + tube_d / 2 * (sqrt(2) - 1), 0]) square(eps);
+    translate([tube_x + indent_depth, tube_z]) circle(d = tube_d);
+    translate([tube_x + indent_depth + tube_d / 2 * (sqrt(2) - 1), 0]) square(eps);
     translate([case_l - eps, split_z - eps]) square(eps);
   }
 }
 
-// The Kobo in front of the floor, left of the lip, isn't the grip's
-module grip_outline_2d() {
-  difference() {
-    thick_outline_2d();
-    translate([thick_x0 - 1, -1]) square([lip_x0 - thick_x0 + 1, kobo_back_z + 1]);
+// The grip's outside before the Kobo's notch: the outline and plan shrunk
+// by edge_round (except at the back), then grown again by a round tool. The
+// tool is a half ball with no reach behind, so the back meets the cover
+// square, and with a 45° cone below, so the bottom edges print.
+module rounding_tool() {
+  hull() {
+    intersection() {
+      sphere(r = edge_round, $fn = 24);
+      translate([-edge_round, -edge_round, -edge_round]) cube([2 * edge_round, 2 * edge_round, edge_round]);
+    }
+    translate([0, -edge_round * sqrt(2), -eps]) cube(eps, center = true);
   }
+}
+
+module grip_core() {
+  intersection() {
+    along_y(edge_round * sqrt(2), case_w - edge_round) intersection() {
+      offset(delta = -edge_round) hull() {
+        thick_outline_2d();
+        translate([0, edge_round]) thick_outline_2d();
+      }
+      translate([-1, -1]) square([case_l + 2, split_z + 1]);
+    }
+    translate([0, 0, -1]) linear_extrude(split_z + 2) offset(delta = -edge_round) case_plan();
+  }
+}
+
+module grip_body() { minkowski() { grip_core(); rounding_tool(); } }
+
+// The Kobo in front of the floor, left of the lip, isn't the grip's. The
+// lip's end and the floor's front edge are rounded.
+module notch_2d() {
+  translate([thick_x0 - 1, -1]) square([lip_x0 - thick_x0 + 1, kobo_back_z + 1]);
+  translate([lip_x0 - eps, -1]) difference() {
+    square([lip_round + eps, lip_round + 1]);
+    translate([lip_round + eps, lip_round + 1]) circle(r = lip_round);
+  }
+  translate([thick_x0 - 1, kobo_back_z - eps]) difference() {
+    square([lip_round + 1, lip_round + eps]);
+    translate([lip_round + 1, lip_round + eps]) circle(r = lip_round);
+  }
+}
+
+// Finger indents up the right side: shallow scallops across its depth
+module indent_cuts() {
+  n = floor((case_w - 2 * edge_round) / indent_pitch);
+  y0 = (case_w - n * indent_pitch) / 2;
+  c = indent_pitch - indent_land;
+  r = (c * c / 4 + indent_depth * indent_depth) / (2 * indent_depth);
+  for (i = [0 : n - 1])
+    translate([case_l + r - indent_depth, y0 + (i + 0.5) * indent_pitch, -1])
+      cylinder(r = r, h = back_z + 2, $fn = 180);
 }
 
 // The tub's inside: behind the floor, a wall in from the inner end's round,
@@ -379,6 +449,27 @@ module charger_stop_rib() {
     cube([charger_stop, charger_width, 2.5]);
 }
 
+// Under the charger's free end, across the bore: a bridge between the ledge
+// and the right wall, its top level with the floor
+module charger_platform() {
+  translate([ledge_x - eps, charger_y0, tube_z - 1])
+    cube([cell_bore + 2 * eps, charger_width, floor_back_z - tube_z + 1]);
+}
+
+// A bar on the floor with a slot under it for a zip tie. Its underside
+// rises at 45°, so it prints standing up; the slot runs straight up.
+module tie_bars() {
+  for (b = tie_bars)
+    translate([b[0] - tie_w / 2 - 2, 0, 0]) rotate([90, 0, 90]) linear_extrude(tie_w + 4)
+      polygon([[b[1], floor_back_z - eps], [b[1] + tie_bar, floor_back_z - eps],
+               [b[1] + tie_bar, floor_back_z + tie_h], [b[1] + tie_h, floor_back_z + tie_h]]);
+}
+
+module tie_slots() {
+  for (b = tie_bars)
+    translate([b[0] - tie_w / 2, b[1] - 1, floor_back_z - eps]) cube([tie_w, tie_bar + 2, tie_t]);
+}
+
 // A tongue cut free of the floor on three sides, its free end toward the
 // slot's mouth, with a ridge across it that presses the Kobo into the lip
 module tab_cuts() {
@@ -419,15 +510,18 @@ module grip_shape() {
     intersection() {
       union() {
         difference() {
-          along_y(0, case_w) grip_outline_2d();
+          grip_body();
+          along_y(-1, case_w + 1) notch_2d();
           along_y(wall, case_w - wall) tub_2d();
         }
         sma1_block();
         sma2_block();
         screw_bosses();
         charger_stop_rib();
+        charger_platform();
+        tie_bars();
       }
-      chamfered_plan(split_z);
+      grip_body();
     }
     // the slot the Kobo's chin slides into
     translate([-1, pocket_y0, front_thickness]) cube([pocket_x1 + 1, pocket_w, pocket_t]);
@@ -438,18 +532,16 @@ module grip_shape() {
     charger_port_cut();
     tab_cuts();
     screw_cuts();
+    tie_slots();
+    indent_cuts();
   }
   cell_stop();
   tab_bump();
 }
 
-// The cover's plan: the grip's back, from where the inner end's round
-// meets it
+// The cover's plan: the grip's back face
 module cover_plan() {
-  intersection() {
-    case_plan();
-    translate([thick_x0 + end_r, -1]) square([case_l, case_w + 2]);
-  }
+  projection(cut = true) translate([0, 0, -split_z + 0.05]) grip_body();
 }
 
 // The cover in the depth frame: a plate on the grip's back, its outer edges
@@ -463,10 +555,10 @@ module cover_shape() {
       }
       intersection() {
         for (p = screws) translate([p[0], p[1], seat_z]) linear_extrude(pad_drop + eps) octagon(pad_d / 2);
-        along_y(0, case_w) thick_outline_2d();
-        linear_extrude(back_z) case_plan();
+        grip_body();
       }
     }
+    indent_cuts();
     for (p = screws) translate([p[0], p[1], 0]) {
       cylinder(d = clear_d, h = back_z + 1);
       translate([0, 0, back_z - head_depth]) cylinder(d = head_d, h = head_depth + 1);

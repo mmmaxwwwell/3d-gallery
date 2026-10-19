@@ -1,6 +1,6 @@
 # Kobo Clara HD MeshCore Grip
 
-A handheld grip that turns a Kobo Clara HD into a MeshCore device without modifying it. 71 × 117 × 24.4 mm, two PETG pieces, three M3x8 cap screws.
+A handheld grip that turns a Kobo Clara HD into a MeshCore device without modifying it. 72 × 117 × 24.4 mm, two PETG pieces, three M3x8 cap screws, two zip ties.
 
 - **The Kobo stays whole.** Hold it in landscape and slide its chin (the wide bezel at its bottom edge) sideways into the grip's slot. It slides out the same way.
   - A 90° micro USB plug in the slot's end goes into the Kobo's port, so the Kobo charges while it's in.
@@ -8,9 +8,11 @@ A handheld grip that turns a Kobo Clara HD into a MeshCore device without modify
 - **The slot.** A 2 mm lip covers the chin in front, stopping 2 mm short of the screen. The grip's floor reaches about 40 mm in behind. The grip's top and bottom walls close its ends.
 - **The power button is covered.** The slot's end wall is relieved over it so it isn't held down.
 - **Cylinder.** An 18650 (with wire leads) lies in a cylinder up the right side, flush with the front and standing out at the back. A half-ring above the bay stops the cell sliding up, and the leads pass inside it.
+- **Shape.** Every outside edge of the grip is rounded 3 mm; at the bottom the rounds turn into 45° so it prints. Shallow finger indents run up the right side, one every 15 mm.
 - **Inside.** The grip's depth carries on inward behind the Kobo to a rounded inner end, closed by a back cover.
-  - A **TP4056 USB-C charger** lies on the floor just above the cell, its USB-C through the right side under the first antenna. A rib behind it takes the plug's push.
+  - A **TP4056 USB-C charger** lies on the floor just above the cell, its USB-C through the right side under the first antenna. A platform carries it over the open cylinder, and a rib behind it takes the plug's push.
   - Three **Seeed XIAO boards** (an nRF and two SX1262 radios) stand on end on the floor behind the chin, one under the other, left of the charger.
+  - **Zip-tie bars** on the floor hold the boards: one tie runs under the bars above and below the XIAO stack, over all three; one runs under the bars either side of the charger, across it. Ties up to 3.6 mm wide.
 - **Two SMA bulkheads** stand in the top wall, the jack's hex under the wall and the nut on top:
   - over the cylinder: the jack goes up the cylinder from below, its hex in a hex hole;
   - in the top of the rounded inner end: the jack slides in from behind before the cover goes on.
@@ -33,4 +35,5 @@ Measure them before printing. The micro USB plug has to line up with the port wi
 No supports:
 - Every wall of the grip runs straight up.
 - The slot's top end bridges 8.65 mm between the lip and the floor.
+- The zip-tie slots run straight up; the bars' undersides rise at 45°.
 - Both SMA mounts rise at 45°, the cell stop's underside is a 45° cone, and the bottom corners and screw seats are octagonal.
