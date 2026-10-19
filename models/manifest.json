@@ -3765,6 +3765,259 @@
           "label": "Hose clamp sized for 35 mm \u2014 holds the node's bracket to the solid top band"
         }
       ]
+    },
+    {
+      "slug": "apache-case-modules",
+      "devOnly": true,
+      "title": "Apache Case Modules: MeshCore Repeater",
+      "description": "A modular insert for a Harbor Freight Apache case, first built as a portable MeshCore repeater in an Apache 1800 (small) emptied of its foam. A baseplate fills the case floor with a 20 mm grid of M3 pilots, and every module screws onto the grid with M3 cap screws in counterbores, so nothing rattles when the case is carried and any module can move without reprinting the plate. The repeater's modules: two saddles that hold a 32140 LiFePO4 cell lying along the back wall, each with a screwed strap over the cell; a tray for the cell's charge board; and a tray for the XIAO nRF52840 + Wio-SX1262 stack. Each tray is a pocket with a rim on three sides (the open side for the connectors) and two zip-tie slots that run under the tray, so a tie goes over the board and back underneath. The antenna's N female bulkhead goes through a hole drilled in the case's right end wall, 45 mm above the floor, and the modules keep clear of the inside of it. The case's size is from published figures (206 \u00d7 143 at the floor, 76 deep), the corner radius and the board sizes are guesses. All PETG, printed flat; the strap prints on its side. Not yet printed.",
+      "filament": [
+        {
+          "material": "PETG",
+          "color": "any"
+        }
+      ],
+      "previews": [
+        {
+          "file": "assembled.3mf",
+          "format": "3mf",
+          "label": "In the case: the plate, the cell in its saddles, both boards, the N bulkhead and antenna",
+          "default": true,
+          "legend": [
+            {
+              "color": "#3b6fb6",
+              "label": "Baseplate",
+              "part": "baseplate.stl"
+            },
+            {
+              "color": "#e8a33d",
+              "label": "Cell saddles",
+              "part": "saddle.stl"
+            },
+            {
+              "color": "#f0c674",
+              "label": "Cell straps",
+              "part": "strap.stl"
+            },
+            {
+              "color": "#5aa469",
+              "label": "Charge board tray",
+              "part": "charge-tray.stl"
+            },
+            {
+              "color": "#2e8b57",
+              "label": "Radio tray",
+              "part": "kit-tray.stl"
+            },
+            {
+              "color": "#d9d9d9",
+              "label": "Apache 1800 case, front and left walls cut away (reference)"
+            },
+            {
+              "color": "#c0392b",
+              "label": "32140 LiFePO4 cell (reference)"
+            },
+            {
+              "color": "#7a3fb0",
+              "label": "Charge board and XIAO + Wio-SX1262 stack (reference)"
+            },
+            {
+              "color": "#c9a227",
+              "label": "N female bulkhead (reference)"
+            },
+            {
+              "color": "#2b2b2b",
+              "label": "ALFA 915 MHz antenna (reference)"
+            }
+          ],
+          "components": [
+            {
+              "part": "baseplate.stl",
+              "qty": 1
+            },
+            {
+              "part": "saddle.stl",
+              "qty": 2
+            },
+            {
+              "part": "strap.stl",
+              "qty": 2
+            },
+            {
+              "part": "charge-tray.stl",
+              "qty": 1
+            },
+            {
+              "part": "kit-tray.stl",
+              "qty": 1
+            }
+          ]
+        },
+        {
+          "file": "plate-1-baseplate.3mf",
+          "format": "3mf",
+          "label": "Print plate 1: baseplate",
+          "plate": true,
+          "legend": [
+            {
+              "color": "#3b6fb6",
+              "label": "Baseplate",
+              "part": "baseplate.stl"
+            }
+          ],
+          "components": [
+            {
+              "part": "baseplate.stl",
+              "qty": 1
+            }
+          ]
+        },
+        {
+          "file": "plate-2-modules.3mf",
+          "format": "3mf",
+          "label": "Print plate 2: saddles, straps (on their sides) and trays",
+          "plate": true,
+          "legend": [
+            {
+              "color": "#e8a33d",
+              "label": "Cell saddles",
+              "part": "saddle.stl"
+            },
+            {
+              "color": "#f0c674",
+              "label": "Cell straps",
+              "part": "strap.stl"
+            },
+            {
+              "color": "#5aa469",
+              "label": "Charge board tray",
+              "part": "charge-tray.stl"
+            },
+            {
+              "color": "#2e8b57",
+              "label": "Radio tray",
+              "part": "kit-tray.stl"
+            }
+          ],
+          "components": [
+            {
+              "part": "saddle.stl",
+              "qty": 2
+            },
+            {
+              "part": "strap.stl",
+              "qty": 2
+            },
+            {
+              "part": "charge-tray.stl",
+              "qty": 1
+            },
+            {
+              "part": "kit-tray.stl",
+              "qty": 1
+            }
+          ]
+        }
+      ],
+      "parts": [
+        {
+          "file": "baseplate.stl",
+          "format": "stl",
+          "label": "Baseplate \u2014 the grid every module screws to"
+        },
+        {
+          "file": "saddle.stl",
+          "format": "stl",
+          "label": "Cell saddle (\u00d72)"
+        },
+        {
+          "file": "strap.stl",
+          "format": "stl",
+          "label": "Cell strap (\u00d72) \u2014 print on its side"
+        },
+        {
+          "file": "charge-tray.stl",
+          "format": "stl",
+          "label": "Charge board tray"
+        },
+        {
+          "file": "kit-tray.stl",
+          "format": "stl",
+          "label": "Radio tray (XIAO nRF52840 + Wio-SX1262)"
+        }
+      ],
+      "hardware": [
+        {
+          "qty": 12,
+          "label": "M3x8 socket head cap screw \u2014 saddles and trays down into the baseplate's pilots",
+          "usedBy": [
+            {
+              "part": "saddle.stl",
+              "each": 2
+            },
+            {
+              "part": "charge-tray.stl",
+              "each": 4
+            },
+            {
+              "part": "kit-tray.stl",
+              "each": 4
+            }
+          ]
+        },
+        {
+          "qty": 4,
+          "label": "M3x12 socket head cap screw \u2014 straps down into the saddles",
+          "usedBy": [
+            {
+              "part": "strap.stl",
+              "each": 2
+            }
+          ]
+        },
+        {
+          "qty": 4,
+          "label": "Zip tie, up to 3.6 mm wide \u2014 two across each board",
+          "usedBy": [
+            {
+              "part": "charge-tray.stl",
+              "each": 2
+            },
+            {
+              "part": "kit-tray.stl",
+              "each": 2
+            }
+          ]
+        },
+        {
+          "qty": 1,
+          "label": "N female bulkhead to U.FL pigtail \u2014 through a 16.5 mm hole drilled in the case's right end wall"
+        },
+        {
+          "qty": 1,
+          "label": "32140 LiFePO4 cell (tabbed, wire leads) \u2014 in the saddles"
+        },
+        {
+          "qty": 1,
+          "label": "LiFePO4 charge board (from the Kingboss 15000 mAh bank) \u2014 in its tray"
+        },
+        {
+          "qty": 1,
+          "label": "Seeed XIAO nRF52840 + Wio-SX1262 kit \u2014 in the radio tray"
+        }
+      ],
+      "worksWith": [
+        {
+          "label": "Harbor Freight Apache 1800 weatherproof case, small",
+          "source": {
+            "url": "https://www.harborfreight.com/1800-weatherproof-protective-case-small-black-64550.html",
+            "vendor": "Harbor Freight"
+          }
+        },
+        {
+          "label": "915 MHz antenna, N male (ALFA AOA-915-5ACM)"
+        }
+      ]
     }
   ]
 }
