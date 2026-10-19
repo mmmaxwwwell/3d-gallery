@@ -11,6 +11,11 @@ A modular insert for Harbor Freight Apache cases. The first build is a portable 
   - antenna: bulkhead drilled through the case wall
   - modular style: a screw-grid baseplate, not Gridfinity, not stacked trays
 
+## Case size
+
+- The user measured it on 2026-10-19: inside 214 x 150, 76 tall in the base, the lid the same size inside and 18 tall, every corner about r 5.
+- They gave one size, so the walls are modelled straight (`case_floor` = `case_rim`). Harbor Freight lists 206 x 143. If the plate won't drop in, the walls taper: ask for the size at the floor.
+
 ## Frame and placement
 
 - X runs along the case, with the bulkhead end at +X. Y runs across it (+Y toward the hinge). z = 0 is the case's inside floor, and the plate is centred on the origin.
@@ -29,6 +34,6 @@ A modular insert for Harbor Freight Apache cases. The first build is a portable 
 
 ## Open, unmeasured
 
-- The case: the floor and rim size, the corner radius, any ribs or bosses on the floor, and how flat the end wall is where the bulkhead goes.
+- The case: any ribs or bosses on the floor, and how flat the end wall is where the bulkhead goes.
 - `charge_dims` and `kit_dims` are the drybag node's guesses. Which side each board's connectors face decides the trays' `open_side`.
 - Nothing yet charges the cell with the case closed. A solar or USB gland through the wall is the obvious next module.

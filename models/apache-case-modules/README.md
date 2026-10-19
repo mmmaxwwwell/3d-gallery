@@ -5,7 +5,7 @@ portable MeshCore repeater in an **Apache 1800 (small)** with its foam removed.
 
 ## How it works
 
-- **Baseplate**: fills the case floor (204 × 141 × 6 mm). It has a 20 mm grid
+- **Baseplate**: fills the case floor (212 × 148 × 6 mm). It has a 20 mm grid
   of M3 pilot holes, 10 × 7.
 - **Modules** screw down onto the grid with M3 cap screws in counterbores.
   Every module's holes are a multiple of 20 mm apart, so any module can move
@@ -43,6 +43,5 @@ saddles, the straps (printed on their sides) and the trays.
 
 ## Not measured yet
 
-The case size is from published figures (206 × 143 at the floor, 213 × 149 at
-the rim, 76 deep). The inside corner radius (10 mm) and the board sizes are
-guesses. Measure them before printing the baseplate.
+The case is measured: inside 214 × 150, 76 deep in the base, the lid 18 deep,
+corners about r 5. The board sizes are still guesses.

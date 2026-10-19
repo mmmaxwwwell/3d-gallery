@@ -17,13 +17,13 @@
 // the origin. Each module is modelled with its first screw hole at its
 // origin and placed by grid index with `at()`.
 
-// Case inside at the floor (Harbor Freight's 8-1/8 x 5-5/8 in) and at the
-// rim (213 x 149, a case seller's figure), the base's inside depth, and the
-// inside corner radius (a guess: measure it)
-case_floor = [206, 143];
-case_rim = [213, 149];
+// Case inside (the user's measurements: straight-sided, every corner about
+// r 5), at the floor and at the rim, and the base's inside depth. The lid
+// is the same size inside and 18 deep.
+case_floor = [214, 150];
+case_rim = [214, 150];
 case_depth = 76;
-case_corner_r = 10;
+case_corner_r = 5;
 // Case wall thickness, for the reference render only
 case_wall = 3;
 
@@ -94,7 +94,7 @@ antenna_len = 180;
 
 plate_l = case_floor[0] - 2 * plate_clear;
 plate_w = case_floor[1] - 2 * plate_clear;
-plate_r = case_corner_r - plate_clear;
+plate_r = max(case_corner_r - plate_clear, plate_chamfer + 1);
 grid_nx = floor((plate_l - 2 * grid_margin) / pitch) + 1;
 grid_ny = floor((plate_w - 2 * grid_margin) / pitch) + 1;
 
