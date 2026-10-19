@@ -219,8 +219,8 @@ module cutout_edge_rod() {
   for (sx = [-1, 1]) {
     // Up to the rim's round, where a ball turns it into the rim's.
     translate([sx * (cutout_half + e), front_wall_mid, cz]) {
-      cylinder(r = e, h = lip_rim_z(cutout_half + e) - e - cz);
-      translate([0, 0, lip_rim_z(cutout_half + e) - e - cz]) sphere(r = e);
+      cylinder(r = e, h = lip_top_z(sx, cutout_half + e) - e - cz);
+      translate([0, 0, lip_top_z(sx, cutout_half + e) - e - cz]) sphere(r = e);
     }
     translate([sx * (cutout_half - r), front_wall_mid, cz])
       rotate([90, 0, 0]) rotate([0, 0, sx < 0 ? 180 : 270])
@@ -274,16 +274,22 @@ module under_rim() {
 usb_notch_y = -radio_thickness / 2 + usb_y;
 usb_notch_bottom = radio_bottom_z + usb_z - usb_height / 2;
 assert(usb_notch_bottom - cutout_edge_radius > lip_rim_z(cutout_half) - cutout_edge_radius - 2, "USB notch reaches below the rolled walls");
-// Its front side is a straight ramp down from the side rim's front corner,
-// so the rim only falls from the front into the notch instead of rising
-// first (the user's ask).
+// In front of it the rim keeps falling toward the front at the side rim's
+// angle, from the notch's bottom, rather than climbing back up to the front
+// corner (the user's ask), so on this side the front corner and lips sit
+// lower than on the other.
+usb_front_rim_z = usb_notch_bottom - (usb_notch_y - usb_width / 2 + wall_mid_y) * tan(rim_angle);
+// The front lips' top at x on side sx: on the USB-C side no higher than
+// where the rim falls to at the front.
+function lip_top_z(sx, x) = sx < 0 ? min(lip_rim_z(x), usb_front_rim_z) : lip_rim_z(x);
+assert(cutout_bottom + cutout_corner_radius < usb_front_rim_z - cutout_edge_radius, "cutout corner taller than the front lip on the USB-C side");
 module usb_notch(g) {
   r = usb_width / 2;
   mirror([1, 0, 0]) rotate([90, 0, 90]) linear_extrude(2 * radio_width)
     hull() {
       translate([usb_notch_y, usb_notch_bottom + r]) circle(r = r + g);
       translate([usb_notch_y - r - g, usb_notch_bottom + r]) square([2 * (r + g), 2 * radio_height]);
-      translate([-wall_mid_y, rim_front_z - cutout_edge_radius]) square(0.01);
+      translate([-wall_mid_y - wall, usb_front_rim_z - cutout_edge_radius]) square([wall, 2 * radio_height]);
     }
 }
 
@@ -440,7 +446,7 @@ module outside() {
 // them wherever it runs. Below the rim's low point they're a plain shell.
 module walls() {
   e = cutout_edge_radius;
-  z_lo = lip_rim_z(cutout_half) - e - 2;
+  z_lo = min(lip_rim_z(cutout_half), usb_front_rim_z) - e - 2;
   intersection() {
     outside();
     translate([-radio_width, -radio_width, 0]) cube([2 * radio_width, 2 * radio_width, z_lo]);
@@ -457,14 +463,7 @@ module walls() {
           under_rim();
           under_back_rise();
         }
-        // Outside the row's last slit the wall comes down to the slit's
-        // bottom, so the slit opens onto the corner with no nub beside it
-        // (the user's ask). Back half only; the ball rolls the rest. The cut
-        // reaches a ball's width past the slit into the last tab's side, or
-        // the ball rolling that side's full-height wall spills over the slit
-        // and leaves a lip; the ball rolls that side back out to the slit.
-        big = 4 * radio_width;
-        translate([-big + slit_x(tabs) + slit_width / 2 + e - 0.1, 0, slit_bottom_z - e + 0.1]) cube(big);
+
       }
     }
     sphere(r = e - 0.1);
