@@ -49,8 +49,9 @@ tab_lift = 3;
 back_edge_extra = 7;
 // The +x guard's outer top corner is cut off at 45°, this far along each leg
 guard_chamfer = 10;
-// A loop for a cord in the -x back corner, joining the last tab's wrapped end
-// to the case below it, hole upright: hole diameter, and the wall round it
+// Cord loops in the -x back corner, holes upright: two side by side at the
+// top, joining the last tab's wrapped end to the case, and one low down:
+// hole diameter, and the wall round it
 cord_loop_hole = 4;
 cord_loop_wall = 2;
 // The slits either side of the tab: how far down from the back wall's top
@@ -535,19 +536,11 @@ module slit_profile(g) {
   }
 }
 
-// low_top: where the -x rod stops, in a ball, for a slit whose outer side
-// is wall lower than the slit's top. Without the ball, the rod's round and
-// the wall's rolled top cross at a point.
-module slit_edge_rod(low_top = undef) {
+module slit_edge_rod() {
   e = cutout_edge_radius;
   rr = slit_width / 2 + e;
   for (sx = [-1, 1])
-    translate([sx * rr, 0, 0])
-      if (sx < 0 && low_top != undef) {
-        if (low_top > 0) cylinder(r = e, h = low_top);
-        translate([0, 0, low_top]) sphere(r = e);
-      } else
-        cylinder(r = e, h = slit_top_z - slit_bottom_z);
+    translate([sx * rr, 0, 0]) cylinder(r = e, h = slit_top_z - slit_bottom_z);
   rotate([90, 0, 0]) rotate([0, 0, 180]) rotate_extrude(angle = 180) translate([rr, 0]) circle(r = e);
 }
 
@@ -555,14 +548,14 @@ module slits() {
   e = cutout_edge_radius;
   yi = radio_thickness / 2 + tolerance;
   mid = yi + wall / 2;
-  for (k = [0 : tabs])
+  // Not the row's last: the cord loop fixes the last tab's outer end to the
+  // case there, so that slit was only a gap beside the loop.
+  for (k = [0 : tabs - 1])
     translate([slit_x(k), mid, slit_bottom_z]) {
       rotate([90, 0, 0]) linear_extrude(wall + 2, center = true) slit_profile(0);
       difference() {
         rotate([90, 0, 0]) linear_extrude(wall + 0.02, center = true) slit_profile(e);
-        // Outside the last slit the wall comes down to the slit's bottom
-        // (walls()), so that side's rod ends there.
-        slit_edge_rod(k == tabs ? 0 : undef);
+        slit_edge_rod();
       }
     }
 }
@@ -582,73 +575,97 @@ module drain_holes() {
     }
 }
 
-// The tabs go on after the pocket is cut, since their bends reach into it.
-// The cord loop sits in the corner outside the last slit, under the last
-// tab's wrapped end: a ring round an upright hole just behind the back wall,
-// hulled into the case's corner below it so it flows into the body, smooth
-// and tight (the user's words), and joined to both the tab and the case (so
-// that tab's outer end no longer springs). Under it the corner is solid,
-// from the slit to the side, up to the tab's end, and the side wall's back
-// half rises to meet it. The hole drops clear past
-// the corner, out of the hull's sloping back.
+// Cord loops in the -x back corner: rings round upright holes, each lug a
+// hull of its rings and the case's corner below them, rounded 1 mm, so it
+// flows into the body (the user's "smooth and tight"). The top lug has two
+// rings, one just behind the back wall and one just outside the side wall
+// beside it, and joins the last tab's wrapped end, so that tab's outer end
+// doesn't spring. Its top declines toward the front at the rim's angle
+// through both rings, so it runs down into the side rim with no level
+// shelf. The low lug is a single ring like the top's back one. The holes
+// drop clear out of each lug's sloping underside.
 cord_loop_x0 = slit_x(tabs) - slit_width / 2;
 cord_loop_x1 = -(radio_width / 2 + tolerance + wall);
 cord_loop_yi = radio_thickness / 2 + tolerance;
 cord_loop_yo = cord_loop_yi + wall;
+cord_loop_od = cord_loop_hole + 2 * cord_loop_wall;
 cord_loop_hole_x = (cord_loop_x0 + cord_loop_x1) / 2;
 cord_loop_hole_y = cord_loop_yo + 0.5 + cord_loop_hole / 2;
-cord_loop_bottom = slit_bottom_z;
 cord_loop_top = back_corner_z(-1) + 1;
-// How tall the ring round the hole is, at the top, and how far below the
-// cut-down wall the hull reaches into the case's corner
+// The side ring: off the side wall as the back one is off the back wall,
+// a millimetre in front of it.
+cord_loop_side_x = cord_loop_x1 - 0.5 - cord_loop_hole / 2;
+cord_loop_side_y = cord_loop_hole_y - cord_loop_od - 1;
+cord_loop_side_top = cord_loop_top - (cord_loop_hole_y - cord_loop_side_y) * tan(rim_angle);
+// The low lug's ring tops out three quarters of the way down the radio.
+cord_loop_low_top = radio_bottom_z + radio_height / 4;
+// How tall each ring is, and how far below its lowest ring a lug reaches
+// into the case: more than a ring sticks out, so its underside rises
+// steeper than 45°.
 cord_loop_ring = 6;
-cord_loop_flow = 6;
+cord_loop_flow = 10;
+assert(cord_loop_flow > cord_loop_od - cord_loop_hole / 2 + 0.5, "cord loop's underside overhangs past 45°");
 assert(tab_wrap == 90, "the cord loop needs the last tab to wrap round to upright");
 assert(cord_loop_x0 < -(kanix_face_w / 2 + kanix_pad_round + 0.5), "cord loop runs into the Kanix pad");
+assert(cord_loop_side_y - cord_loop_od / 2 > usb_notch_y + usb_width / 2 + cutout_edge_radius, "cord loop's side ring runs into the USB-C notch");
 
-module cord_loop_corner(d = 0) {
+// rings: [[x, y, top], ...]; the lug takes the case behind y_front and
+// outside the back face's straight edge, from bottom up, under a plane
+// through the first ring's top that falls toward the front at fall degrees.
+module cord_lug(rings, y_front, bottom, fall) {
+  r = 1;
   big = 4 * radio_width;
-  intersection() {
-    outside();
-    translate([cord_loop_x1 - big, cord_loop_yi + d, cord_loop_bottom - cord_loop_flow])
-      cube([cord_loop_x0 - d - cord_loop_x1 + big, big, cord_loop_top - cord_loop_bottom + cord_loop_flow - d]);
+  top = rings[0][2];
+  difference() {
+    minkowski() {
+      hull() {
+        for (g = rings)
+          translate([g[0], g[1], g[2] - cord_loop_ring + r])
+            cylinder(d = cord_loop_od - 2 * r, h = cord_loop_ring - 2 * r, $fn = 48);
+        intersection() {
+          // The outside, a rounding in, so the minkowski brings it back flush.
+          translate([0, 0, radio_bottom_z]) radio_body(tolerance + wall - r);
+          translate([cord_loop_x1 - big, y_front + r, bottom + r])
+            cube([cord_loop_x0 - r - cord_loop_x1 + big, big, top - bottom - 2 * r]);
+          translate([0, rings[0][1], top - r]) rotate([fall, 0, 0])
+            translate([-big / 2, -big / 2, -big]) cube(big);
+        }
+      }
+      sphere(r = r, $fn = 16);
+    }
+    pocket();
+    for (g = rings)
+      translate([g[0], g[1], bottom - 10])
+        cylinder(d = cord_loop_hole, h = g[2] - bottom + 20, $fn = 48);
   }
 }
 
-// The side wall's back half in the same corner, carried back up to the
-// loop's top so the case doesn't stop short under it (the user's ask): the
-// outside there, less the radio's pocket.
-module cord_loop_side() {
+// The back wall between the top lug and the old last slit's place, up into
+// the last tab's wrapped end: the wall there stops at the side rim's height
+// and the tab's end is rounded, which left a groove between them.
+module cord_loop_fill() {
   big = 4 * radio_width;
+  x_in = slit_x(tabs) + slit_width / 2 + cutout_edge_radius;
   difference() {
     intersection() {
       outside();
-      translate([cord_loop_x1 - big, 0, cord_loop_bottom - cord_loop_flow])
-        cube([cord_loop_x0 - cord_loop_x1 + big, cord_loop_yi + 0.01, cord_loop_top - cord_loop_bottom + cord_loop_flow]);
+      translate([cord_loop_x0 - 1, cord_loop_yi, slit_bottom_z])
+        cube([x_in - cord_loop_x0 + 1, big, back_corner_z(-1) + tab_edge_radius - slit_bottom_z]);
     }
     pocket();
   }
 }
 
 module cord_loop() {
-  r = 1;
-  od = cord_loop_hole + 2 * cord_loop_wall;
-  difference() {
-    union() {
-      cord_loop_corner();
-      cord_loop_side();
-      minkowski() {
-        hull() {
-          translate([cord_loop_hole_x, cord_loop_hole_y, cord_loop_top - cord_loop_ring + r])
-            cylinder(d = od - 2 * r, h = cord_loop_ring - 2 * r, $fn = 48);
-          cord_loop_corner(r);
-        }
-        sphere(r = r, $fn = 16);
-      }
-    }
-    translate([cord_loop_hole_x, cord_loop_hole_y, cord_loop_bottom - cord_loop_flow - 10])
-      cylinder(d = cord_loop_hole, h = cord_loop_top - cord_loop_bottom + cord_loop_flow + 20, $fn = 48);
-  }
+  cord_loop_fill();
+  cord_lug([[cord_loop_hole_x, cord_loop_hole_y, cord_loop_top],
+            [cord_loop_side_x, cord_loop_side_y, cord_loop_side_top]],
+    cord_loop_side_y - cord_loop_od / 2, cord_loop_side_top - cord_loop_ring - cord_loop_flow, rim_angle);
+  // Taking in the whole back bevel, as the top lug does, so it fills the
+  // corner rather than hanging off a sliver of it. With no rim to run into,
+  // its top falls steeply, or it thins out along the side wall to an edge.
+  cord_lug([[cord_loop_hole_x, cord_loop_hole_y, cord_loop_low_top]],
+    radio_thickness / 2 - radio_chamfer_depth, cord_loop_low_top - cord_loop_ring - cord_loop_flow, 60);
 }
 
 module holster() {
