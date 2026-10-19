@@ -777,7 +777,7 @@
       "slug": "kobo-meshcore-case",
       "devOnly": true,
       "title": "Kobo Clara HD MeshCore Case",
-      "description": "A slim prototype case that turns a Kobo Clara HD into a MeshCore handheld. The Kobo sits in landscape in a frame that lips over its bezel, and a 15 mm tube runs up its right side, flush with the front and standing out at the back. An SMA bulkhead sits on a panel 25 mm down a bore in the tube's top, so the antenna's base is recessed, centred on the tube; the pigtail is pushed up a bore from the tube's bottom end. The Kobo's bottom edge faces the tube: its micro USB comes out through a window across the tube, and its power button sits at the bottom of a 45° trough in the front. Two PETG pieces and four M3 cap screws: the frame prints face down, the back plate flat. 184 × 117 × 15 mm. Kobo dimensions are Kobo's spec; the screen, button and port positions are estimated from Kobo's drawing and need checking against the device. Not yet printed.",
+      "description": "A slim prototype case that turns a Kobo Clara HD into a MeshCore handheld. The Kobo sits in landscape in a frame that lips over its bezel, and a 15 mm tube runs up its right side, flush with the front and standing out at the back. The tube stops 25 mm short of the case's top, and its end face is a hex mount: a pocket holds the SMA bulkhead's nut, so the antenna stands in the open on the tube's axis, a little below the top corner. The pigtail is pushed up a bore from the tube's bottom end and threaded into the captured nut. The Kobo's bottom edge faces the tube: its micro USB comes out through a window across the tube, and its power button sits at the bottom of a 45° trough in the front. Two PETG pieces and four M3 cap screws: the frame prints face down, the back plate flat. 184 × 117 × 15 mm. Kobo dimensions are Kobo's spec; the screen, button and port positions are estimated from Kobo's drawing and need checking against the device. Not yet printed.",
       "filament": [
         { "material": "PETG", "color": "any" }
       ],
@@ -808,7 +808,7 @@
       "hardware": [
         { "qty": 4, "label": "M3x8 socket head cap screw — back plate to the frame",
           "usedBy": [ { "part": "back-plate.stl", "each": 4 } ] },
-        { "qty": 1, "label": "SMA female bulkhead pigtail (1/4\"-36 thread) — antenna out of the tube's top" }
+        { "qty": 1, "label": "SMA female bulkhead pigtail (1/4\"-36 thread, 8 mm nut) — antenna out of the hex mount on the tube's end" }
       ]
     },
     {

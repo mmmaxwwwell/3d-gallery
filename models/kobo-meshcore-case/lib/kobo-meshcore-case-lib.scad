@@ -1,7 +1,7 @@
 // Kobo Clara HD MeshCore case: a slim frame round the Kobo, used in
-// landscape, with a 15 mm tube standing up its right side. An SMA bulkhead
-// sits on a panel down a bore in the tube's top, so the antenna's base is
-// recessed, on the tube's axis.
+// landscape, with a 15 mm tube standing up its right side. The tube stops
+// short of the case's top, and its end face is a hex mount for an SMA
+// bulkhead, so the antenna stands in the open on the tube's axis.
 //
 // Assembly frame: X along the device (tube at +X), Y up the device as it's
 // held (SMA at +Y), Z out of the screen. z = 0 is the front face, so the case
@@ -55,15 +55,17 @@ right_ledge = 5;
 tube_d = 15;
 // Tube axis, this far right of the Kobo pocket's edge
 tube_offset = 10;
-// Bore down the tube's top for the antenna's base, and how far down the
-// SMA's panel sits from the top of the case
-recess_d = 11;
-recess_depth = 25;
-// SMA panel thickness and hole (1/4"-36 thread)
+// The tube ends this far below the top of the case
+tube_short = 25;
+// Hex pocket in the tube's end face that holds the SMA bulkhead's nut:
+// across flats (8 mm nut plus clearance) and depth
+sma_hex = 8.3;
+sma_hex_depth = 3;
+// Material under the hex pocket, and the hole through it (1/4"-36 thread)
 sma_panel = 2;
 sma_hole = 6.6;
 // Bore under the panel, up which the pigtail's jack is pushed from the
-// tube's bottom end
+// tube's bottom end, to thread into the captured nut
 pigtail_bore = 10;
 // Material kept over a bore's flat top, at the tube's back
 bore_skin = 1.5;
@@ -117,13 +119,13 @@ bore_top_z = tube_d - bore_skin;
 pad_h = head_floor + head_depth;          // plate + pad under a screw head
 pad_d = head_d + 4;
 
-// The right-hand screws keep clear of the antenna recess at the top
 back_screws = [[left_wall / 2, 15], [left_wall / 2, case_w - 15],
                [pocket_x1 + right_ledge / 2, 18],
-               [pocket_x1 + right_ledge / 2, case_w - recess_depth - sma_panel - 6]];
+               [pocket_x1 + right_ledge / 2, case_w - 15]];
 
-recess_y0 = case_w - recess_depth;
-panel_y0 = recess_y0 - sma_panel;
+tube_y1 = case_w - tube_short;              // the tube's end face
+hex_y0 = tube_y1 - sma_hex_depth;
+panel_y0 = hex_y0 - sma_panel;
 
 button_apex_z = front_thickness + button_depth_fraction * pocket_t;
 button_case_y = pocket_y0 + tolerance + power_button_y;
@@ -136,6 +138,8 @@ assert(trough_to_bore >= 1.2,
        str("the button trough comes within ", trough_to_bore, " mm of the pigtail bore"));
 assert(tube_x - pigtail_bore / 2 - (pocket_x1 + right_ledge / 2 + pilot_d / 2) >= 1,
        "the right-hand screws' pilots break into the tube's bore");
+assert(sma_hex / cos(30) < 2 * (bore_top_z - tube_z),
+       "the SMA hex pocket breaks through the tube's back");
 assert(tube_d > plate_back_z, "the tube should stand proud of the back plate");
 assert(abs(power_button_y - usb_y) > (button_trough + usb_window) / 2 + 2,
        "the button trough and the USB window overlap");
@@ -155,11 +159,11 @@ module frame_outline(x1) {
   }
 }
 
-// Clips a solid to 0..case_w in Y with the front chamfer on both ends
-module front_chamfer_ends(x0, x1, h) {
+// Clips a solid to y0..y1 with the front chamfer on both ends
+module front_chamfer_ends(x0, x1, y0, y1, h) {
   hull() {
-    translate([x0, front_chamfer, 0]) cube([x1 - x0, case_w - 2 * front_chamfer, eps]);
-    translate([x0, 0, front_chamfer]) cube([x1 - x0, case_w, h]);
+    translate([x0, y0 + front_chamfer, 0]) cube([x1 - x0, y1 - y0 - 2 * front_chamfer, eps]);
+    translate([x0, y0, front_chamfer]) cube([x1 - x0, y1 - y0, h]);
   }
 }
 
@@ -186,7 +190,7 @@ module tube_profile() {
 module tube_body() {
   intersection() {
     rotate([90, 0, 0]) translate([0, 0, -case_w]) linear_extrude(case_w) tube_profile();
-    front_chamfer_ends(ledge_x - 1, case_l + 1, tube_d);
+    front_chamfer_ends(ledge_x - 1, case_l + 1, 0, tube_y1, tube_d);
   }
 }
 
@@ -218,7 +222,10 @@ module shell() {
                pocket_y0 + tolerance + screen_bottom - window_margin, -1])
       cube([screen_width + 2 * window_margin, screen_height + 2 * window_margin,
             front_thickness + 2]);
-    bore(recess_d, recess_y0, case_w + 1);
+    // Hex flats top and bottom as it prints: a short flat bridge, not a
+    // 30° roof
+    translate([tube_x, hex_y0, tube_z]) rotate([-90, 0, 0])
+      cylinder(d = sma_hex / cos(30), h = sma_hex_depth + 1, $fn = 6);
     translate([tube_x, panel_y0 - 1, tube_z]) rotate([-90, 0, 0])
       cylinder(d = sma_hole, h = sma_panel + 2);
     bore(pigtail_bore, -1, panel_y0);
@@ -295,8 +302,8 @@ module kobo_screen() {
 
 module sma_antenna() {
   translate([tube_x, panel_y0 - 8, -tube_z]) rotate([-90, 0, 0]) {
-    cylinder(d = 6.35, h = 8 + sma_panel + 8);
-    translate([0, 0, 8 + sma_panel]) cylinder(d = 9.2, h = 2.5, $fn = 6);
-    translate([0, 0, 8 + sma_panel + 4]) cylinder(d = 9.5, h = 60);
+    cylinder(d = 6.35, h = 8 + sma_panel + sma_hex_depth + 5);
+    translate([0, 0, 8 + sma_panel]) cylinder(d = 8 / cos(30), h = 2.5, $fn = 6);
+    translate([0, 0, 8 + sma_panel + sma_hex_depth + 2]) cylinder(d = 9.5, h = 60);
   }
 }
