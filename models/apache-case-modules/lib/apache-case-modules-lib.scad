@@ -7,14 +7,14 @@
 // - Every module's holes are whole multiples of `pitch` apart, so a module
 //   lands on any grid point and can move without reprinting the plate.
 // - Repeater modules: two saddles with screwed straps for a 32140 LiFePO4
-//   cell lying along the case, and two board trays with zip-tie slots: the
+//   cell lying front to back along the case's right end, and two board trays with zip-tie slots: the
 //   cell's charge board, and a perfboard carrier with the radio (Ebyte
 //   E22P-915M30S, 1 W), the MCU (Seeed XIAO nRF54LM20A) and the radio's 5 V
 //   boost (Pololu U3V40F5).
-// - The antenna's N bulkhead goes through a hole drilled in the case's right
+// - The antenna's N bulkhead goes through a hole drilled in the case's left
 //   end wall; the modules keep clear of it.
 //
-// Frame: X along the case (the bulkhead end at +X), Y across it (+Y toward
+// Frame: X along the case (the cell's end at +X, the bulkhead's at -X), Y across it (+Y toward
 // the hinge), Z up from the case's inside floor. The plate is centred on
 // the origin. Each module is modelled with its first screw hole at its
 // origin and placed by grid index with `at()`.
@@ -87,7 +87,7 @@ relief_depth = 2.5;
 tie_slot = [4.2, 2.2];
 tie_groove_depth = 2;
 
-// N female bulkhead through the case's right end wall (5/8-24 thread, 3/4"
+// N female bulkhead through the case's left end wall (5/8-24 thread, 3/4"
 // hex nut outside, its body and O-ring inside): centre height above the
 // case floor, offset across the case
 n_thread_d = 15.9;
@@ -204,7 +204,7 @@ module board_tray(dims, open_side = [0, -1]) {
   outer = [pocket[0] + 2 * rim_w, pocket[1] + 2 * rim_w];
   tie_xs = [-pocket[0] / 4, pocket[0] / 4];
   tie_y = outer[1] / 2 + tie_slot[1] / 2 + 0.5;
-  base = [span + 2 * ear, max(2 * tie_y + tie_slot[1] + 4, pitch + 2 * ear)];
+  base = [span + 2 * ear, max(2 * tie_y + tie_slot[1] + 2, pitch + 2 * ear)];
   translate([span / 2, pitch / 2, 0]) difference() {
     union() {
       linear_extrude(base_t) rounded_rect(base, ear);
@@ -227,24 +227,26 @@ module board_tray(dims, open_side = [0, -1]) {
   }
 }
 
-module charge_tray() board_tray(charge_dims, [0, -1]);
+module charge_tray() board_tray(charge_dims, [1, 0]);
 module carrier_tray() board_tray(carrier_dims, [0, -1]);
 
 // ---- the repeater's layout, by grid index
 
-saddle_at = [[1, 5], [4, 5]];
-charge_at = [0, 1];
-carrier_at = [4, 1];
+// The cell runs along Y at the right end: each saddle is turned so its
+// holes run along Y, and the cell's axis lies over them
+saddle_at = [[8, 0], [8, 4]];
+charge_at = [0, 4];
+carrier_at = [0, 1];
 
 cell_axis = [
-  (grid_pt(saddle_at[0][0], 0)[0] + grid_pt(saddle_at[1][0], 0)[0] + saddle_hole_dx) / 2,
-  grid_pt(0, saddle_at[0][1])[1],
+  grid_pt(saddle_at[0][0], 0)[0],
+  (grid_pt(0, saddle_at[0][1])[1] + grid_pt(0, saddle_at[1][1])[1] + saddle_hole_dx) / 2,
   cell_axis_z
 ];
 
-module saddles_placed() for (p = saddle_at) at(p[0], p[1]) saddle();
+module saddles_placed() for (p = saddle_at) at(p[0], p[1]) rotate([0, 0, 90]) saddle();
 module straps_placed()
-  for (p = saddle_at) at(p[0], p[1]) translate([saddle_hole_dx / 2, 0, seat_floor + seat_r]) strap();
+  for (p = saddle_at) at(p[0], p[1]) rotate([0, 0, 90]) translate([saddle_hole_dx / 2, 0, seat_floor + seat_r]) strap();
 module charge_tray_placed() at(charge_at[0], charge_at[1]) charge_tray();
 module carrier_tray_placed() at(carrier_at[0], carrier_at[1]) carrier_tray();
 
@@ -252,7 +254,7 @@ module carrier_tray_placed() at(carrier_at[0], carrier_at[1]) carrier_tray();
 
 module case_shell_2d(size, grow) rounded_rect(size + [2 * grow, 2 * grow], case_corner_r + grow);
 
-// The floor, the back wall and the right end wall: the front and left are
+// The floor, the back wall and the left end wall: the front and right are
 // left off so the inside shows
 module case_ref() {
   intersection() {
@@ -265,12 +267,12 @@ module case_ref() {
         linear_extrude(eps) case_shell_2d(case_floor, 0);
         translate([0, 0, case_depth]) linear_extrude(2 * eps) case_shell_2d(case_rim, 0);
       }
-      translate([0, bulkhead_y, bulkhead_z]) rotate([0, 90, 0]) cylinder(d = n_thread_d + 0.5, h = 200);
+      translate([0, bulkhead_y, bulkhead_z]) rotate([0, -90, 0]) cylinder(d = n_thread_d + 0.5, h = 200);
     }
     union() {
       translate([-200, -200, -50]) cube([400, 400, 50 + eps]);
       translate([-200, 30, -50]) cube([400, 200, 200]);
-      translate([70, -200, -50]) cube([200, 400, 200]);
+      translate([-270, -200, -50]) cube([200, 400, 200]);
     }
   }
 }
@@ -279,7 +281,7 @@ module case_ref() {
 bulkhead_wall_x = (case_floor[0] + (case_rim[0] - case_floor[0]) * bulkhead_z / case_depth) / 2;
 
 module bulkhead_ref() {
-  translate([bulkhead_wall_x, bulkhead_y, bulkhead_z]) rotate([0, 90, 0]) {
+  mirror([1, 0, 0]) translate([bulkhead_wall_x, -bulkhead_y, bulkhead_z]) rotate([0, 90, 0]) {
     translate([0, 0, -n_body_len]) cylinder(d = n_body_d, h = n_body_len);
     cylinder(d = n_thread_d, h = case_wall + 10);
     translate([0, 0, case_wall]) cylinder(d = n_nut_af / cos(30), h = 5, $fn = 6);
@@ -287,12 +289,12 @@ module bulkhead_ref() {
 }
 
 module antenna_ref() {
-  translate([bulkhead_wall_x + case_wall + 10, bulkhead_y, bulkhead_z]) rotate([0, 90, 0])
+  mirror([1, 0, 0]) translate([bulkhead_wall_x + case_wall + 10, -bulkhead_y, bulkhead_z]) rotate([0, 90, 0])
     cylinder(d = antenna_d, h = antenna_len);
 }
 
 module cell_ref() {
-  translate(cell_axis + [0, 0, -cell_clear]) rotate([0, 90, 0]) cylinder(d = cell_d, h = cell_len, center = true);
+  translate(cell_axis + [0, 0, -cell_clear]) rotate([90, 0, 0]) cylinder(d = cell_d, h = cell_len, center = true);
 }
 
 // A board's centre on its tray's floor
@@ -300,14 +302,14 @@ function tray_centre(at_ij, dims) = grid_pt(at_ij[0], at_ij[1]) + [tray_span(dim
 
 module charge_ref() translate(tray_centre(charge_at, charge_dims) + [0, 0, charge_dims[2] / 2]) cube(charge_dims, center = true);
 
-// Perfboard, the E22P at the end nearest the bulkhead, the XIAO's USB-C
-// at the open (front) edge, the boost behind it
+// Perfboard, the E22P at the end nearest the bulkhead (-X), the XIAO's
+// USB-C at the open (front) edge, the boost behind it
 module carrier_board_ref() translate(tray_centre(carrier_at, carrier_dims)) translate([0, 0, carrier_dims[2] / 2]) cube(carrier_dims, center = true);
 module carrier_parts_ref() {
   c = tray_centre(carrier_at, carrier_dims) + [0, 0, carrier_dims[2]];
-  translate(c + [carrier_dims[0] / 2 - 3 - e22_dims[0] / 2, 0, e22_dims[2] / 2]) cube(e22_dims, center = true);
-  translate(c + [-carrier_dims[0] / 2 + 3 + xiao_dims[1] / 2, -carrier_dims[1] / 2 + xiao_dims[0] / 2, xiao_dims[2] / 2]) cube([xiao_dims[1], xiao_dims[0], xiao_dims[2]], center = true);
-  translate(c + [-carrier_dims[0] / 2 + 3 + boost_dims[0] / 2, carrier_dims[1] / 2 - 3 - boost_dims[1] / 2, boost_dims[2] / 2]) cube(boost_dims, center = true);
+  translate(c + [-carrier_dims[0] / 2 + 3 + e22_dims[0] / 2, 0, e22_dims[2] / 2]) cube(e22_dims, center = true);
+  translate(c + [carrier_dims[0] / 2 - 3 - xiao_dims[1] / 2, -carrier_dims[1] / 2 + xiao_dims[0] / 2, xiao_dims[2] / 2]) cube([xiao_dims[1], xiao_dims[0], xiao_dims[2]], center = true);
+  translate(c + [carrier_dims[0] / 2 - 3 - boost_dims[0] / 2, carrier_dims[1] / 2 - 3 - boost_dims[1] / 2, boost_dims[2] / 2]) cube(boost_dims, center = true);
 }
 
 // ---- print layouts

@@ -3803,7 +3803,7 @@
       "slug": "apache-case-modules",
       "devOnly": true,
       "title": "Apache Case Modules: MeshCore Repeater",
-      "description": "A modular insert for a Harbor Freight Apache case, first built as a portable MeshCore repeater in an Apache 1800 (small) emptied of its foam. A baseplate fills the case floor with a 20 mm grid of M3 pilots, and every module screws onto the grid with M3 cap screws in counterbores, so nothing rattles when the case is carried and any module can move without reprinting the plate. The repeater's modules: two saddles that hold a 32140 LiFePO4 cell lying along the back wall, each with a screwed strap over the cell; a tray for the cell's charge board; and a tray for the radio's carrier, a 50 \u00d7 70 mm perfboard holding an Ebyte E22P-915M30S (1 W SX1262 radio), a Seeed XIAO nRF54LM20A running MeshCore, and a Pololu 5 V boost for the radio. Each tray is a pocket with a rim on three sides (the open side for the connectors) and two zip-tie slots that run under the tray, so a tie goes over the board and back underneath; the board rests on a ledge over a relief for its solder tails. Each tray's four screws sit at its two ends. The antenna's N female bulkhead goes through a hole drilled in the case's right end wall, 45 mm above the floor, and the modules keep clear of the inside of it. The case is measured: 214 \u00d7 150 inside, 76 deep in the base, an 18 mm lid, r 5 corners; the plate is 212 \u00d7 148. The board sizes are guesses. All PETG, printed flat; the strap prints on its side. Not yet printed.",
+      "description": "A modular insert for a Harbor Freight Apache case, first built as a portable MeshCore repeater in an Apache 1800 (small) emptied of its foam. A baseplate fills the case floor with a 20 mm grid of M3 pilots, and every module screws onto the grid with M3 cap screws in counterbores, so nothing rattles when the case is carried and any module can move without reprinting the plate. The repeater's modules: two saddles that hold a 32140 LiFePO4 cell lying front to back along the right end, each with a screwed strap over the cell; a tray for the cell's charge board; and a tray for the radio's carrier, a 50 \u00d7 70 mm perfboard holding an Ebyte E22P-915M30S (1 W SX1262 radio), a Seeed XIAO nRF54LM20A running MeshCore, and a Pololu 5 V boost for the radio. Each tray is a pocket with a rim on three sides (the open side for the connectors) and two zip-tie slots that run under the tray, so a tie goes over the board and back underneath; the board rests on a ledge over a relief for its solder tails. Each tray's four screws sit at its two ends. The antenna's N female bulkhead goes through a hole drilled in the case's left end wall, 45 mm above the floor, beside the radio's tray, and the modules keep clear of the inside of it. The case is measured: 214 \u00d7 150 inside, 76 deep in the base, an 18 mm lid, r 5 corners; the plate is 212 \u00d7 148. The board sizes are guesses. All PETG, printed flat; the strap prints on its side. Not yet printed.",
       "filament": [
         {
           "material": "PETG",
@@ -3844,7 +3844,7 @@
             },
             {
               "color": "#d9d9d9",
-              "label": "Apache 1800 case, front and left walls cut away (reference)"
+              "label": "Apache 1800 case, front and right walls cut away (reference)"
             },
             {
               "color": "#c0392b",
@@ -4024,7 +4024,7 @@
         },
         {
           "qty": 1,
-          "label": "N female bulkhead to U.FL pigtail \u2014 through a 16.5 mm hole drilled in the case's right end wall"
+          "label": "N female bulkhead to U.FL pigtail \u2014 through a 16.5 mm hole drilled in the case's left end wall"
         },
         {
           "qty": 1,

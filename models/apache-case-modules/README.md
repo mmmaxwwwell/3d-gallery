@@ -15,7 +15,7 @@ portable MeshCore repeater in an **Apache 1800 (small)** with its foam removed.
 
 | Part | Qty | Holds |
 |------|-----|-------|
-| Cell saddle | 2 | the 32140 LiFePO4 cell, lying along the back wall |
+| Cell saddle | 2 | the 32140 LiFePO4 cell, lying front to back along the right end |
 | Cell strap | 2 | screws over the cell into the saddle, squeezing it 0.3 mm |
 | Charge board tray | 1 | the LiFePO4 charge board, 2 zip ties |
 | Radio carrier tray | 1 | a 50 × 70 perfboard carrier, 2 zip ties |
@@ -34,7 +34,7 @@ relief for its solder tails.
 
 ## Antenna
 
-Drill a 16.5 mm hole in the case's **right end wall**, centred across it,
+Drill a 16.5 mm hole in the case's **left end wall**, centred across it,
 45 mm above the inside floor, for an N female bulkhead (body and O-ring
 inside, nut outside). Check that the wall is flat there for the O-ring.
 
