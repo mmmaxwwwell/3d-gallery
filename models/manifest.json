@@ -777,34 +777,46 @@
       "slug": "kobo-meshcore-case",
       "devOnly": true,
       "title": "Kobo Clara HD MeshCore Grip",
-      "description": "A handheld grip that turns a Kobo Clara HD into a MeshCore device without touching it. The Kobo, held in landscape, slides its chin (the wide bezel at its bottom edge) sideways into a slot in the grip and just sits there; it comes out again the same way, unmodified. The slot has a lip over the chin in front, stopping short of the screen, and the grip's floor behind, which reaches further in. The grip is an 18650 cylinder, flush with the front and standing out at the back, whose depth carries on inward behind the Kobo to a rounded inner end. Its back is open: the cell (with its leads) lies in the cylinder, and three Seeed XIAO boards (an nRF and two SX1262 radios) lie flat on the floor behind the chin, stacked down from the top. Two SMA bulkheads stand in the top wall: one over the cylinder, its jack pushed up the cylinder from below, and one in the top of the rounded inner end, its jack slid in from behind. One radio can use an internal strip antenna stuck inside the inner end instead. The Kobo's power button sits at the bottom of a 45\u00b0 trough in the front. One PETG piece, printed standing on its end, no screws. 71 \u00d7 117 \u00d7 22.4 mm. Kobo dimensions are Kobo's spec; the screen and button positions are estimated from Kobo's drawing. Not yet printed.",
+      "description": "A handheld grip that turns a Kobo Clara HD into a MeshCore device without modifying it. The Kobo, held in landscape, slides its chin (the wide bezel at its bottom edge) sideways into a slot in the grip, onto a 90\u00b0 micro USB plug in the slot's end that charges it, and a tab cut in the slot's floor presses it into the lip so it clicks home; it slides out the same way. The slot has a lip over the chin in front, stopping short of the screen, and the grip's floor behind. The end wall clears the power button, which the grip covers. The grip is an 18650 cylinder, flush with the front and standing out at the back, whose depth carries on inward behind the Kobo to a rounded inner end. A back cover on three M3 cap screws closes it. Inside: the cell (with its leads) in the cylinder; a TP4056 USB-C charger board on the floor just above the cell, its USB-C through the right side under the first antenna; and three Seeed XIAO boards (an nRF and two SX1262 radios) standing on end on the floor behind the chin. Two SMA bulkheads stand in the top wall: one over the cylinder, its jack pushed up the cylinder from below, and one in the top of the rounded inner end, its jack slid in from behind. One radio can use an internal strip antenna stuck inside the inner end instead. Two PETG pieces: the grip prints standing on its end, the cover face down. 71 \u00d7 117 \u00d7 24.4 mm. Kobo dimensions are Kobo's spec; the screen, button and USB positions are estimated from Kobo's drawing. Not yet printed.",
       "filament": [
         { "material": "PETG", "color": "any" }
       ],
       "previews": [
-        { "file": "assembled.3mf", "format": "3mf", "label": "Assembled, with the Kobo, the 18650, the XIAOs and both SMAs", "default": true,
+        { "file": "assembled.3mf", "format": "3mf", "label": "Assembled, cover off: the Kobo, the 18650, the boards, the plug and both SMAs", "default": true,
           "legend": [
             { "color": "#3b6fb6", "label": "Grip", "part": "grip.stl" },
+            { "color": "#e8a33d", "label": "Back cover", "part": "cover.stl" },
             { "color": "#9aa0a6", "label": "Kobo Clara HD (reference)" },
             { "color": "#2b2b2b", "label": "Kobo screen (reference)" },
             { "color": "#5aa469", "label": "18650 cell (reference)" },
             { "color": "#7a3fb0", "label": "Seeed XIAO boards (reference)" },
+            { "color": "#1e90ff", "label": "TP4056 USB-C charger (reference)" },
+            { "color": "#444444", "label": "90\u00b0 micro USB plug (reference)" },
             { "color": "#c9a227", "label": "SMA bulkheads and antennas (reference)" }
           ],
           "components": [
-            { "part": "grip.stl", "qty": 1 }
+            { "part": "grip.stl", "qty": 1 },
+            { "part": "cover.stl", "qty": 1 }
           ] },
         { "file": "plate-1-grip.3mf", "format": "3mf", "label": "Print plate 1: grip, standing on its bottom end", "plate": true,
           "legend": [ { "color": "#3b6fb6", "label": "Grip", "part": "grip.stl" } ],
-          "components": [ { "part": "grip.stl", "qty": 1 } ] }
+          "components": [ { "part": "grip.stl", "qty": 1 } ] },
+        { "file": "plate-2-cover.3mf", "format": "3mf", "label": "Print plate 2: back cover, outer face down", "plate": true,
+          "legend": [ { "color": "#e8a33d", "label": "Back cover", "part": "cover.stl" } ],
+          "components": [ { "part": "cover.stl", "qty": 1 } ] }
       ],
       "parts": [
-        { "file": "grip.stl", "format": "stl", "label": "Grip — print standing on its bottom end" }
+        { "file": "grip.stl", "format": "stl", "label": "Grip — print standing on its bottom end" },
+        { "file": "cover.stl", "format": "stl", "label": "Back cover — print outer face down" }
       ],
       "hardware": [
+        { "qty": 3, "label": "M3x8 socket head cap screw — back cover to the grip",
+          "usedBy": [ { "part": "cover.stl", "each": 3 } ] },
         { "qty": 2, "label": "SMA female bulkhead pigtail (1/4\"-36 thread, 8 mm hex) — one over the cylinder, one in the inner end" },
         { "qty": 1, "label": "18650 cell with wire leads — in the cylinder" },
-        { "qty": 3, "label": "Seeed XIAO board, no headers (nRF + two SX1262) — on the floor behind the chin" }
+        { "qty": 3, "label": "Seeed XIAO board, no headers (nRF + two SX1262) — on the floor behind the chin" },
+        { "qty": 1, "label": "TP4056 USB-C 18650 charger board (about 28 \u00d7 17.5 mm) — its USB-C through the right side" },
+        { "qty": 1, "label": "90\u00b0 (up/down angle) micro USB plug with a short lead — in the slot's end, into the Kobo" }
       ]
     },
     {
