@@ -2,7 +2,7 @@ include <../lib/meshtastic-drybag-node-lib.scad>;
 $fn = 40;
 // Each piece moved off along the way it goes on: the front door forward,
 // the gear covers and gears back, each reel's holder out sideways
-// and its bearings out along its axis,
+// and its bearings out of their plates along its axis,
 // its rollers and cheeks up, the panel mount down.
 ex_door = 90;
 ex_tray = 150;
@@ -11,6 +11,7 @@ ex_side = 60;
 ex_front = 75;
 ex_rear = 75;
 ex_bars = 35;
+ex_brg = 35;
 ex_up = 50;
 ex_panel = 70;
 color("#2f3542") frame();
@@ -23,13 +24,13 @@ color("#ffa502") for (s = [-1, 1]) translate([s * ex_side, 0, 0]) mirror([s < 0 
   spool();
   translate([0, ex_front / 2, 0]) reel_flange();
   translate([0, -ex_rear / 2, 0]) reel_hub();
-  translate([0, ex_front, 0]) y_place(front_y0) reel_bearing(front_brg);
-  translate([0, -ex_rear, 0]) y_place(rear_y0) reel_bearing(rear_brg);
+  translate([ex_bars, ex_front + ex_brg, 0]) y_place(front_y0) reel_bearing(front_brg);
+  translate([ex_bars, -ex_rear - ex_brg, 0]) y_place(rear_y0) reel_bearing(rear_brg);
 }
 color("#a4b0be") for (s = [-1, 1]) {
   translate([s * (ex_side + ex_bars), ex_front, 0]) front_plate(s);
   translate([s * (ex_side + ex_bars), -ex_rear, 0]) rear_plate(s);
-  translate([s * ex_side, 0, 0]) for (b = xbars()) if (b[0] * s > 0) translate([s * ex_bars * cos(b[2] * s), 0, ex_bars * sin(b[2] * s)]) xbar(b);
+  translate([s * ex_side, 0, 0]) for (b = xbars()) if (b[0] * s > 0) translate(ex_bars * [cos(b[2]), 0, sin(b[2])]) xbar(b);
 }
 color("#ced6e0") {
   for (s = [-1, 1]) translate([s * (ex_side + ex_bars), 0, ex_up]) cheeks(s);
