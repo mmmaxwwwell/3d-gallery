@@ -17,8 +17,8 @@
 // side, never face-clamped by screws, and every screw sits outside its seal.
 // - Back cover: a U-section TPU 85A gasket lies in a groove round the grip's
 //   back rim; the cover's tongue, wider than the gasket's slot, presses into
-//   it from the side. The groove turns in round each of the seven screws,
-//   so they sit outside it. Where the second SMA's hole comes close under
+//   it from the side. Outside the groove, a lane of screws runs round the
+//   whole edge, about every screw_pitch. Where the second SMA's hole comes close under
 //   the groove, a smooth boss lifts the groove over it, into a pocket in
 //   the cover.
 // - Bezel: a TPU 70A frame between the bezel and the panel's border.
@@ -211,9 +211,11 @@ head_depth = 3.2;
 // Material left under a counterbore
 head_floor = 1.3;
 // The cover's screws are M3x8: how deep their pilots go below its inner
-// face, and how far in from the edges they sit
+// face, how far in from the edges they sit, and their spacing round the
+// edge
 screw_depth = 7.2;
 screw_inset = 4.1;
+screw_pitch = 20;
 // END_PARAMS
 
 eps = 0.01;
@@ -261,7 +263,10 @@ tube_z = tube_d / 2;
 // The back cover's seal band, in from the grip's back edge: the groove, its
 // walls, the gasket's slot, and the tongue
 groove_w = 2 * gasket_wall + gasket_slot;
-rim_w = 2 * seal_wall + groove_w;
+// The screws' lane, then the groove: the rim round the back is the lane,
+// the groove and a wall either side of it
+seal_lane = screw_inset + pilot_d / 2;
+rim_w = seal_lane + 2 * seal_wall + groove_w;
 tongue_in = seal_wall + gasket_wall - seal_squeeze;
 tongue_w = gasket_slot + 2 * seal_squeeze;
 cover_thickness = head_floor + head_depth;
@@ -316,19 +321,24 @@ charger_stop = charger_x0 - pocket_x1;
 // A tie across it, where it lies on the floor
 charger_tie_x = (charger_x0 + ledge_x) / 2;
 
-// The cover's seven screws, outside the seal: [x, y, outward x, outward y].
-// The corners, the middle of the top and bottom, and the middle of the
-// left; the right side is the cylinder. Each head sinks into the cover.
-// The groove turns in round each, keeping seal_wall to its pilot.
+// The cover's screws: a lane round the whole edge, outside the seal, about
+// screw_pitch apart, corners included. They keep clear of the second SMA's
+// boss (the cover is thin over it) and of the USB-C's opening. Each head
+// sinks into the cover.
+function spaced(a, b) = let (n = max(1, ceil((b - a) / screw_pitch))) [for (i = [0 : n]) a + (b - a) * i / n];
 s_i = screw_inset;
-seal_bite = pilot_d / 2;
-boss_half = seal_bite + rim_w + 0.5;
-top_mid_x = (sma2_x + hex_r + 1 + sma2_bump_h + head_d / 2 + 0.5 + ledge_x) / 2;
-screws = [[back_x0 + s_i, case_w - s_i, -1, 1], [top_mid_x, case_w - s_i, 0, 1],
-          [case_l - s_i, case_w - s_i, 1, 1], [back_x0 + s_i, case_w / 2, -1, 0],
-          [back_x0 + s_i, s_i, -1, -1], [(back_x0 + case_l) / 2, s_i, 0, -1],
-          [case_l - s_i, s_i, 1, -1]];
-tie_top_y = case_w - s_i - boss_half - (split_z - floor_back_z) - tie_turn - tie_bar;
+screw_xl = back_x0 + s_i;
+screw_xr = case_l - s_i;
+sma2_clear = hex_r + 1 + sma2_bump_h + head_d / 2 + 0.5;
+port_clear = charger_port_w / 2 + usbc_plug_flange + pilot_d / 2 + 1;
+port_y = charger_y0 + charger_width / 2;
+screws = concat(
+  [for (y = spaced(s_i, case_w - s_i)) [screw_xl, y]],
+  [for (y = concat(spaced(s_i, port_y - port_clear), spaced(port_y + port_clear, case_w - s_i))) [screw_xr, y]],
+  [for (x = spaced(screw_xl, screw_xr)) if (x > screw_xl + 1 && x < screw_xr - 1) [x, s_i]],
+  [for (x = concat(spaced(screw_xl, sma2_x - sma2_clear), spaced(sma2_x + sma2_clear, screw_xr)))
+    if (x > screw_xl + 1 && x < screw_xr - 1) [x, case_w - s_i]]);
+tie_top_y = case_w - rim_w - (split_z - floor_back_z) - tie_turn - tie_bar;
 
 // XIAOs stand on end on the floor behind the chin, left of the charger,
 // stacked down from under the second SMA's mount
@@ -360,7 +370,7 @@ assert(sma2_bump_h <= cover_thickness - seal_wall + 0.01, "the second SMA's boss
 assert(charger_z >= tube_z + 1, "the charger sits too low for its platform");
 assert(floor_thickness - kobo_pad_recess >= 0.8, "the Kobo pad's recess leaves too thin a floor");
 assert(screw_depth <= split_z - kobo_back_z - 0.5, "the cover's screws break into the slot");
-assert(cell_y1 - cell_bay_length >= s_i + seal_bite + rim_w, "the bottom corner screws' seal runs into the cell");
+assert(bottom_wall >= rim_w, "the bottom wall is thinner than the seal's rim");
 assert(tie_bars[0][1] >= bottom_wall + 1, "the XIAO stack runs into the bottom wall");
 assert(display_x1 + 1 <= ledge_x, "the display runs into the cylinder");
 assert(bezel_y0 >= edge_round && bezel_y1 <= case_w - edge_round, "the bezel runs onto the grip's rounded ends");
@@ -545,17 +555,8 @@ module back_region(d = 0) {
   if (sma2_bump_h > 0) sma2_bump(d);
 }
 
-// The seal's plan: the grip's back face with a bite out of it at each screw,
-// from the screw to the edge, so the seal turns in round it
-module seal_plan() {
-  difference() {
-    cover_plan();
-    for (p = screws) hull() {
-      translate([p[0], p[1]]) circle(r = seal_bite);
-      translate([p[0] + 10 * p[2], p[1] + 10 * p[3]]) circle(r = seal_bite);
-    }
-  }
-}
+// The seal's plan: the grip's back face in from the screws' lane
+module seal_plan() { offset(delta = -seal_lane) cover_plan(); }
 
 // A band of the seal's plan from in0 to in1 in from its edge
 module seal_band(in0, in1) {
@@ -565,12 +566,11 @@ module seal_band(in0, in1) {
   }
 }
 
-// The PCTG rim the groove is cut into: the back face round the edge, out to
-// rim_w past the bites
+// The PCTG rim round the back: the screws' lane and the groove with its walls
 module rim_2d() {
   difference() {
     cover_plan();
-    offset(delta = -rim_w) seal_plan();
+    offset(delta = -rim_w) cover_plan();
   }
 }
 
@@ -682,20 +682,6 @@ module kobo_pad_cut() {
     cube([kobo_pad_length + 0.4, kobo_pad_width + 0.4, kobo_pad_recess + eps]);
 }
 
-// Bosses for the screws, standing off the floor, their undersides rising at
-// 45° so they print standing up; each holds its screw and the seal's turn
-// round it
-module screw_bosses() {
-  h = split_z - floor_back_z;
-  for (p = screws)
-    intersection() {
-      translate([p[0] - boss_half, 0, 0]) rotate([90, 0, 90]) linear_extrude(2 * boss_half)
-        polygon([[p[1] - boss_half - h, floor_back_z - eps], [p[1] + boss_half, floor_back_z - eps],
-                 [p[1] + boss_half, split_z], [p[1] - boss_half, split_z]]);
-      along_y(0, case_w) thick_outline_2d();
-    }
-}
-
 module screw_cuts() {
   for (p = screws) translate([p[0], p[1], split_z - screw_depth]) cylinder(d = pilot_d, h = screw_depth + 1);
 }
@@ -737,7 +723,6 @@ module grip_shape() {
           }
           sma1_block();
           sma2_block();
-          screw_bosses();
           seal_rim();
           charger_platform();
           tie_bars();

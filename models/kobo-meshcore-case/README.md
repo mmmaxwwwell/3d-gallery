@@ -1,9 +1,9 @@
 # Kobo Clara HD MeshCore Grip
 
-A sealed handheld grip that turns a Kobo Clara HD into a MeshCore device without modifying it. 75 × 125 × 30.3 mm.
+A sealed handheld grip that turns a Kobo Clara HD into a MeshCore device without modifying it. 80 × 125 × 30.3 mm.
 
 - **Printed parts:** grip, back cover and bezel in PCTG; seals in soft TPU (85A and 70A).
-- **Hardware:** seven M3x8 and four M2x5 cap screws, two zip ties.
+- **Hardware:** twenty M3x8 and four M2x5 cap screws, two zip ties.
 
 ## What it does
 
@@ -34,7 +34,7 @@ These follow the rules learned on the dry-bag node:
 
 | Joint | Seal |
 |---|---|
-| Back cover | A U-section **TPU 85A gasket** lies in a groove round the grip's back rim. The cover's tongue is 0.4 mm wider than the gasket's slot and presses into it from the side, so the seal doesn't depend on how tight the screws are. The groove turns in round each of the cover's **seven M3 screws** (four corners, plus the middle of the top, bottom and left), keeping them outside it. |
+| Back cover | A U-section **TPU 85A gasket** lies in a groove round the grip's back rim. The cover's tongue is 0.4 mm wider than the gasket's slot and presses into it from the side, so the seal doesn't depend on how tight the screws are. Outside the groove, **twenty M3 screws** run in a lane round the whole edge: every corner and about every 20 mm down each side, along the bottom and either side of the second SMA along the top. They clear the USB-C's opening. The cover's middle has none: a hole there would open into the sealed bay, and the side-squeeze seal doesn't need clamping. |
 | Second SMA | Its hole would cut the groove, so a smooth 45° boss lifts the seal over it. The boss sits in a pocket inside the cover, so the outside stays flat. |
 | SMAs | A **TPU 85A washer** under each outer nut. |
 | USB-C | A **TPU 85A plug**, 0.3 mm oversize, with a pull tab. |

@@ -26,6 +26,7 @@ A sealed grip a Kobo Clara HD slots into to become a MeshCore handheld (three Se
   - The user's layout: move the XIAOs back toward the back cover, the Kobo back (deeper), and the display in front of the chin.
   - "is there a tray that gets sandwiched over it?": the bezel.
   - "i need a hole for the wires to go out the back into the body": the wire channel.
+- Then: "you've got to put way more screws down the side and the centers and stuff": a screw lane round the whole edge (read "centers" as the middles of the sides; none through the cover's middle, which would open into the sealed bay).
 - **Durability and sealing**: "screws in all the corners this needs to be durable and waterproof as much as possible". Use the waterproof guidance from the dry-bag node session.
   - Body PCTG, seals in a softer TPU (the user has down to 70A; "you pick").
   - For the second SMA's clash with the seal: "just add a little cylinder bumpout there where you need it, smooth".
@@ -64,8 +65,8 @@ These come from memory `seal-screws-through-tpu-failed` and the meshtastic-dryba
 
 **Back seal.**
 - **Plan geometry:**
-  - `seal_plan()` is the grip's back face (`cover_plan()`, the projection of `grip_body`) with a keyhole bite from each screw out to the edge.
-  - So `seal_band(in0, in1)` bands turn in round every screw.
+  - `seal_plan()` is the grip's back face (`cover_plan()`, the projection of `grip_body`) in from the screws' lane (`seal_lane`).
+  - `seal_band(in0, in1)` bands are measured in from that.
   - The groove is `seal_wall`…`seal_wall + groove_w`.
   - The gasket is a U-section: walls `gasket_wall`, slot `gasket_slot`.
   - The cover's tongue is `tongue_w = slot + 2·seal_squeeze` wide, `tongue_len` long, with a 0.5 mm lead-in.
@@ -73,17 +74,17 @@ These come from memory `seal-screws-through-tpu-failed` and the meshtastic-dryba
 - **Measured fit:**
   - grip ∩ cover = 0.
   - gasket ∩ grip = 0.
-  - gasket ∩ tongue ≈ 200 mm³ away from the boss: the side squeeze.
+  - gasket ∩ tongue ≈ 170 mm³ away from the boss: the side squeeze.
   - Re-check these if the seal changes.
-- **Rim.** `rim_2d()` is solid from the floor to the back.
+- **Rim.** `rim_2d()` is `rim_w` wide (the screw lane, the groove and its walls) and solid from the floor to the back.
   - Its top band hangs off the floor at 45° (`seal_rim`).
-  - The screws' bosses (`screw_bosses`, `boss_half`) cover the bites.
   - The inner end is filled to `tub_x0`.
-  - The right side stands off the bore by `rim_w` (`case_l`).
-  - The bottom wall (`bottom_wall`) is thick enough for the bottom corner screws' bites to clear the cell.
-- **Screws.** Seven M3x8 (`screws`, each with its outward direction for the bite): the four corners, top middle, bottom middle, middle left.
-  - The right side is the cylinder, so there's no middle-right screw.
-  - Heads counterbore into the 4.5 mm cover. No pads.
+  - The right side stands off the bore by `rim_w` (`case_l`), which is what made the grip 80 wide.
+  - The bottom wall (`bottom_wall` ≥ `rim_w`) holds the bottom lane under the cell.
+- **Screws.** M3x8 in a lane `screw_inset` in from the edge, spaced about `screw_pitch` (`spaced()`), corners included: 20 at present.
+  - The right run splits round the USB-C opening (`port_clear`).
+  - The top run splits round the second SMA's boss (`sma2_clear`), where the cover is only `seal_wall` thick.
+  - Heads counterbore into the 4.5 mm cover. No pads, no bosses.
 - **Second SMA boss** (`sma2_bump`): its hole and hex come within the groove's depth under the top band, so a 45°-flanked boss lifts the back face there by `sma2_bump_h`.
   - The cover keeps `seal_wall` over it, so its outside is flat and it prints face down.
   - The user asked for a smooth cylinder. Flanks are 45° rather than round so the cover's pocket and the grip both print.
