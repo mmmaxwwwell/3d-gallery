@@ -6,8 +6,8 @@
 //   so nothing rattles when the case is carried.
 // - Every module's holes are whole multiples of `pitch` apart, so a module
 //   lands on any grid point and can move without reprinting the plate.
-// - Repeater modules: two saddles with screwed straps for a 32140 LiFePO4
-//   cell lying front to back along the case's right end, and two board trays with zip-tie slots: the
+// - Repeater modules: two clips with screwed hooks for a 32140 LiFePO4
+//   cell lying front to back against the case's right end wall, and two board trays with zip-tie slots: the
 //   cell's charge board, and a perfboard carrier with the radio (Ebyte
 //   E22P-915M30S, 1 W), the MCU (Seeed XIAO nRF54LM20A) and the radio's 5 V
 //   boost (Pololu U3V40F5).
@@ -52,20 +52,28 @@ ear = 5;
 cell_d = 32;
 cell_len = 140;
 cell_clear = 0.4;
-// Saddles: length along the cell, half-width across it, seat floor height
-// (the flange's screw heads sit under the cell), hole spacing along X
-saddle_len = 16;
-saddle_half_w = 26;
-seat_floor = 8;
-saddle_hole_dx = 40;
-// Strap over the cell: wall, its ears' thickness, how far its screws stand
-// off the cell's axis, how deep their pilots go into the saddle, and how
-// hard it squeezes the cell
-strap_t = 3;
-strap_ear_t = 5;
-strap_screw_y = 22;
-strap_pilot_depth = 12;
-strap_squeeze = 0.3;
+// Cell clips: the cell's axis lies one grid column outboard of the clips'
+// screws, on the last column, about 1 mm off the end wall. Each clip is a
+// cradle under the cell, open on the wall side: its length along the cell,
+// the seat's floor, its inner post's face (from the screw column), how far
+// past the axis it reaches toward the wall, and its two screws' spacing
+// (in tabs past its ends, so they're reached from above)
+clip_len = 24;
+clip_floor = 3;
+clip_post_x = -8;
+clip_reach = 13;
+clip_hole_dy = 40;
+// Hook: screwed onto the clip's post, it curls over the cell to
+// `hook_end_angle` above the axis on the wall side and presses it into the
+// cradle. Its wall, ear thickness, screws (inboard of the screw column, clear
+// of the arch) and their spacing, their pilots' depth, and its squeeze
+hook_t = 3;
+hook_ear_t = 5;
+hook_screw_x = -3;
+hook_screw_dy = 12;
+hook_pilot_depth = 12;
+hook_end_angle = 45;
+hook_squeeze = 0.3;
 
 // Boards, [along X, along Y, thickness]: the LiFePO4 charge board (from the
 // Kingboss bank, not measured) and the radio's carrier, a 50 x 70 perfboard
@@ -109,10 +117,10 @@ grid_nx = floor((plate_l - 2 * grid_margin) / pitch) + 1;
 grid_ny = floor((plate_w - 2 * grid_margin) / pitch) + 1;
 
 seat_r = cell_d / 2 + cell_clear;
-cell_axis_z = plate_t + seat_floor + seat_r;
-// The strap's bore drops below the seat's axis so its top bears on the cell
+cell_axis_z = plate_t + clip_floor + seat_r;
+// The hook's bore drops below the seat's axis so it bears on the cell
 // (which rests on the seat's floor) without pinching its sides
-strap_drop = cell_clear + (seat_r - cell_d / 2) + strap_squeeze;
+hook_drop = cell_clear + (seat_r - cell_d / 2) + hook_squeeze;
 
 eps = 0.01;
 
@@ -151,44 +159,44 @@ module baseplate() {
   }
 }
 
-// ---- cell saddle and strap (origin at the first hole; the cell's axis runs
-// along X through y = 0, the saddle's centre at x = saddle_hole_dx / 2)
+// ---- cell clip and hook (origin at the first screw hole; the cell's axis
+// runs along Y one `pitch` outboard, at +X)
 
-module saddle() {
-  cz = seat_floor + seat_r;
-  translate([saddle_hole_dx / 2, 0, 0]) difference() {
+module clip() {
+  za = clip_floor + seat_r;
+  translate([0, clip_hole_dy / 2, 0]) difference() {
     union() {
-      translate([-saddle_len / 2, -saddle_half_w, 0]) cube([saddle_len, 2 * saddle_half_w, cz]);
-      translate([0, 0, base_t / 2]) linear_extrude(base_t, center = true)
-        rounded_rect([saddle_hole_dx + 2 * ear, 2 * ear + 6], ear);
+      translate([clip_post_x, -clip_len / 2, 0]) cube([pitch + clip_reach - clip_post_x, clip_len, za]);
+      translate([0, 0, base_t / 2]) linear_extrude(base_t, center = true) rounded_rect([2 * ear, clip_hole_dy + 2 * ear], ear - 0.5);
     }
-    translate([-saddle_len, 0, cz]) rotate([0, 90, 0]) cylinder(r = seat_r, h = 2 * saddle_len, $fn = 96);
+    translate([pitch, -clip_len, za]) rotate([-90, 0, 0]) cylinder(r = seat_r, h = 2 * clip_len, $fn = 96);
     for (s = [-1, 1]) {
-      translate([s * saddle_hole_dx / 2, 0, 0]) m3_counterbored(base_t);
-      translate([0, s * strap_screw_y, cz - strap_pilot_depth]) cylinder(d = m3_pilot_d, h = strap_pilot_depth + eps);
+      translate([0, s * clip_hole_dy / 2, 0]) m3_counterbored(base_t);
+      translate([hook_screw_x, s * hook_screw_dy / 2, za - hook_pilot_depth]) cylinder(d = m3_pilot_d, h = hook_pilot_depth + eps);
     }
   }
 }
 
-// The strap's profile across the cell, in (y, z) with z = 0 at the axis
-module strap_2d() {
+// The hook's profile in (x, z), z from the plate's top
+module hook_2d() {
+  za = clip_floor + seat_r;
+  a = hook_end_angle;
   difference() {
     union() {
       intersection() {
-        circle(r = seat_r + strap_t, $fn = 96);
-        translate([-50, 0]) square([100, 50]);
+        translate([pitch, za]) circle(r = seat_r + hook_t, $fn = 96);
+        translate([pitch, za]) polygon([[0, 0], [50 * cos(a), 50 * sin(a)], [-50, 50], [-50, 0]]);
       }
-      translate([-saddle_half_w, 0]) square([2 * saddle_half_w, strap_ear_t]);
+      translate([clip_post_x, za]) square([pitch - clip_post_x, hook_ear_t]);
     }
-    translate([0, -strap_drop]) circle(r = seat_r, $fn = 96);
-    translate([-50, -50]) square([100, 50]);
+    translate([pitch, za - hook_drop]) circle(r = seat_r, $fn = 96);
   }
 }
 
-module strap() {
-  difference() {
-    rotate([90, 0, 90]) linear_extrude(saddle_len, center = true) strap_2d();
-    for (s = [-1, 1]) translate([0, s * strap_screw_y, -eps]) cylinder(d = m3_clear_d, h = strap_ear_t + 2 * eps);
+module hook() {
+  translate([0, clip_hole_dy / 2, 0]) difference() {
+    rotate([90, 0, 0]) linear_extrude(clip_len, center = true) hook_2d();
+    for (s = [-1, 1]) translate([hook_screw_x, s * hook_screw_dy / 2, clip_floor + seat_r - eps]) cylinder(d = m3_clear_d, h = hook_ear_t + 2 * eps);
   }
 }
 
@@ -232,21 +240,19 @@ module carrier_tray() board_tray(carrier_dims, [0, -1]);
 
 // ---- the repeater's layout, by grid index
 
-// The cell runs along Y at the right end: each saddle is turned so its
-// holes run along Y, and the cell's axis lies over them
-saddle_at = [[8, 0], [8, 4]];
+// The cell runs along Y against the right end wall
+clip_at = [[8, 0], [8, 4]];
 charge_at = [0, 4];
 carrier_at = [0, 1];
 
 cell_axis = [
-  grid_pt(saddle_at[0][0], 0)[0],
-  (grid_pt(0, saddle_at[0][1])[1] + grid_pt(0, saddle_at[1][1])[1] + saddle_hole_dx) / 2,
+  grid_pt(clip_at[0][0], 0)[0] + pitch,
+  (grid_pt(0, clip_at[0][1])[1] + grid_pt(0, clip_at[1][1])[1] + clip_hole_dy) / 2,
   cell_axis_z
 ];
 
-module saddles_placed() for (p = saddle_at) at(p[0], p[1]) rotate([0, 0, 90]) saddle();
-module straps_placed()
-  for (p = saddle_at) at(p[0], p[1]) rotate([0, 0, 90]) translate([saddle_hole_dx / 2, 0, seat_floor + seat_r]) strap();
+module clips_placed() for (p = clip_at) at(p[0], p[1]) clip();
+module hooks_placed() for (p = clip_at) at(p[0], p[1]) hook();
 module charge_tray_placed() at(charge_at[0], charge_at[1]) charge_tray();
 module carrier_tray_placed() at(carrier_at[0], carrier_at[1]) carrier_tray();
 
@@ -314,8 +320,8 @@ module carrier_parts_ref() {
 
 // ---- print layouts
 
-module saddle_print() saddle();
-// On its side: the strap's arch would otherwise print in mid-air
-module strap_print() rotate([0, 90, 0]) translate([-saddle_len / 2, 0, 0]) strap();
+module clip_print() clip();
+// On its side: the arch would otherwise print in mid-air
+module hook_print() translate([0, 0, clip_len / 2]) rotate([90, 0, 0]) translate([0, -clip_hole_dy / 2, 0]) hook();
 module charge_tray_print() charge_tray();
 module carrier_tray_print() carrier_tray();

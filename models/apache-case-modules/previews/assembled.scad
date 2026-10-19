@@ -1,8 +1,8 @@
 include <../lib/apache-case-modules-lib.scad>;
 $fn = 40;
 color("#3b6fb6") baseplate();
-color("#e8a33d") saddles_placed();
-color("#f0c674") straps_placed();
+color("#e8a33d") clips_placed();
+color("#f0c674") hooks_placed();
 color("#5aa469") charge_tray_placed();
 color("#2e8b57") carrier_tray_placed();
 color("#d9d9d9") case_ref();

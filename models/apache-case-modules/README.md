@@ -15,8 +15,8 @@ portable MeshCore repeater in an **Apache 1800 (small)** with its foam removed.
 
 | Part | Qty | Holds |
 |------|-----|-------|
-| Cell saddle | 2 | the 32140 LiFePO4 cell, lying front to back along the right end |
-| Cell strap | 2 | screws over the cell into the saddle, squeezing it 0.3 mm |
+| Cell clip | 2 | the 32140 LiFePO4 cell, front to back against the right end wall (about 1 mm off it) |
+| Clip hook | 2 | screws onto the clip and curls over the cell, pressing it down 0.3 mm |
 | Charge board tray | 1 | the LiFePO4 charge board, 2 zip ties |
 | Radio carrier tray | 1 | a 50 × 70 perfboard carrier, 2 zip ties |
 
@@ -26,6 +26,11 @@ The carrier holds the radio stack:
 - a Seeed XIAO nRF54LM20A, which runs MeshCore and drives the E22P over SPI
 - a Pololu U3V40F5 5 V boost: the E22P needs 5 V for the full watt, and the
   XIAO runs off the same rail
+
+Each clip is a cradle under the cell, open on the wall side; the wall stops
+the cell rolling out. It screws down through tabs past its ends, on the grid
+column next to the cell, so the screws are reached from above. Fit the clips
+and the cell before the plate goes into the case.
 
 Trays have a rim on three sides; the front side (toward the latches) is open
 for the connectors. Each zip tie goes up one slot, over the board, down the
@@ -41,12 +46,12 @@ inside, nut outside). Check that the wall is flat there for the O-ring.
 ## Printing
 
 PETG, 4 walls, no supports. Plate 1 is the baseplate. Plate 2 has the
-saddles, the straps (printed on their sides) and the trays.
+clips, the hooks (printed on their sides) and the trays.
 
 ## Hardware
 
-- 12 × M3x8 cap screws: saddles and trays into the baseplate
-- 4 × M3x12 cap screws: straps into the saddles
+- 12 × M3x8 cap screws: clips and trays into the baseplate
+- 4 × M3x12 cap screws: hooks into the clips
 - 4 zip ties, up to 3.6 mm wide
 - a 50 × 70 mm perfboard
 

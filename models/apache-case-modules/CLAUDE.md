@@ -20,14 +20,20 @@ A modular insert for Harbor Freight Apache cases. The first build is a portable 
 
 - X runs along the case, with the cell's end at +X and the bulkhead's at -X. Y runs across it (+Y toward the hinge). z = 0 is the case's inside floor, and the plate is centred on the origin.
 - Each module is modelled with its first screw hole at its origin. `at(i, j)` places it on grid point (i, j), counted from the -X, -Y corner.
-- The layout is `saddle_at`, `charge_at` and `kit_at`.
+- The layout is `clip_at`, `charge_at` and `carrier_at`.
 - A new module only needs its holes on multiples of `pitch`. `hole_span()` rounds a pocket up to the next pitch with the counterbores clear of the rim.
 
 ## Load-bearing choices (mine)
 
 - **Fixings**: screws thread into bare 2.5 mm pilots in the 6 mm plate. No nuts or inserts. Module bases are 6 mm with 3.2 mm counterbores, so M3x8 leaves 0.8 mm short of the plate's bottom.
-- **Saddle**: its flange holes lie under the cell's axis, so the saddle footprint stays narrow and the cell can sit close to the right end wall. The saddles are turned 90° (`saddles_placed`), so their holes run along Y. The saddles go in before the cell.
-- **Strap**: its bore drops `strap_drop` below the seat's axis. The top bears on the cell with a `strap_squeeze` of 0.3 without pinching the sides. It prints on its side, so its screw holes print horizontal. It has no counterbore, because the 5 mm ear is too thin for one.
+- **Clip** (user: "a clip that puts it basically on the wall and uses 1 hole less space"): the cell's axis sits one `pitch` outboard of the clip's screw column, on the last column (x = 90), about 1 mm off the wall. It covers two grid columns where the old saddles covered three.
+  - The cradle is open on the wall side and reaches `clip_reach` past the axis. The wall stops the cell rolling out.
+  - Its screws are in tabs past its ends along Y (`clip_hole_dy`), because the hook's arch blocks straight-down access at the screw column inside the clip's length.
+  - The tabs' corner radius is `ear - 0.5`: at exactly `ear`, `offset(-r)` collapses the 10 mm strip and the tabs vanish.
+- **Hook**: it's screwed onto the clip's inner post at `hook_screw_x`, inboard far enough that the heads clear the arch. It curls over the cell to `hook_end_angle` (45°) past the top on the wall side.
+  - Its bore drops `hook_drop` below the seat's axis so it bears down with a `hook_squeeze` of 0.3 without pinching the sides.
+  - It prints on its side, so its screw holes print horizontal. It has no counterbore, because the 5 mm ear is too thin for one.
+  - It's a cantilever held from one side only. If it springs open, the fix is a thicker `hook_t`.
 - **Trays**: the -Y side has no rim (connectors, assumed). Zip-tie slots sit just outside the rim, joined by an underside groove. The four screws sit at the X ends, `pitch` apart, so a tray is only as deep as its board plus the ties. The board rests on a `ledge_w` ledge over a `relief_depth` relief for solder tails.
 - **Carrier**: a 50 x 70 perfboard (my pick of size) holds the E22P, the XIAO and the boost. The E22P sits at the bulkhead end, the XIAO's USB-C at the open front edge.
 - **Cell** (user, 2026-10-19: "put the battery vertical along the right side"): it runs front to back (along Y) at the right end, axis x = 70. Standing on end can't fit, since 140 is more than the 94 the closed case gives (76 + 18). Read "vertical" as seen from above. It leaves about 5 mm past each end for the tabs.
