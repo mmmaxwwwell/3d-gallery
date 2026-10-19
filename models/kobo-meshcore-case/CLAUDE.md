@@ -116,6 +116,17 @@ These come from memory `seal-screws-through-tpu-failed` and the meshtastic-dryba
   - Power for the Kobo is the user's wiring. TP4056 OUT is cell voltage, not 5 V.
 - **Strip antenna**: no geometry. Its home is inside the filled inner end, on the tub side.
 
+## Printing on the U1 (2026-10-19)
+
+- **The layout:** `previews/plate-u1-all.scad` is the grip plus every TPU piece on one U1 bed. It pins colours to heads with `gallery_extruders` (PCTG → 3, TPU → 4). The user loaded black PCTG in head 3 (labelled PETG on the printer) and a soft TPU in head 4.
+- **The app can't print this plate.** It only slices multi-filament plates for Bambu AMS printers (`multiMaterial` is Bambu-only in `plate-fit.ts`), so it would print it in one filament. It was sliced in Node with `print-toolkit`'s slicer instead:
+  - `bambuSliceConfig` with the U1 machine preset, one filament per head (PCTG ×3, "Snapmaker TPE @U1 - Copy" for head 4), and the "0.20 Standard @Snapmaker U1" process.
+  - Profile overrides: 0.2 mm layers, 4 walls, 15% gyroid, prime tower at (20, 50), and `hot_plate_temp` 80 for all four heads.
+  - The model goes in through `add3MFObject(data, 0, 0, …)`, which *adds* posX/posY to the file's bed coordinates. Each volume is then set with `setVolumeExtruder` from `threeMfVolumes`. Without that, the engine numbers extruders by object order and the grip lands on head 1.
+  - The G-code was uploaded and started over Moonraker directly.
+  - Check the result: T2/T3 only, `filament used [g]` 0,0,x,y, extents inside 270 mm.
+- **The cover and bezel** (plate 2) printed on the X1C from the app.
+
 ## Unmeasured
 
 - **From Kobo's drawing, ±2 mm:** `screen_*`, `power_button_y`, `usb_y`, `kobo_corner_radius`.

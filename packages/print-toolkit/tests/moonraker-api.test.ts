@@ -757,6 +757,13 @@ describe('fileExists', () => {
     expect(await fileExists('printer.local', '01-a.gcode')).toBe(true);
   });
 
+  it('is false for the 0-byte stub bambu-klipper-proxy answers a missing file with', async () => {
+    globalThis.fetch = mockFetch({ json: { result: { filename: '01-a.gcode.3mf', size: 0 } } }) as any;
+    expect(await fileExists('printer.local', '01-a.gcode.3mf')).toBe(false);
+    globalThis.fetch = mockFetch({ json: { result: { filename: '01-a.gcode.3mf', size: 2162231 } } }) as any;
+    expect(await fileExists('printer.local', '01-a.gcode.3mf')).toBe(true);
+  });
+
   it('throws on other failures', async () => {
     globalThis.fetch = mockFetch({ ok: false, status: 500, text: 'oops' }) as any;
     await expect(fileExists('printer.local', '01-a.gcode')).rejects.toThrow('500');

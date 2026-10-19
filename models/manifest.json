@@ -811,6 +811,11 @@
             { "part": "sma-washer.stl", "qty": 2 },
             { "part": "kobo-pad.stl", "qty": 1 }
           ] },
+        { "file": "plate-u1-all.3mf", "format": "3mf", "label": "Snapmaker U1, one bed: the grip in PCTG from head 3, every TPU piece from head 4 (cover and bezel on plate 2)",
+          "legend": [ { "color": "#1a1a1a", "label": "Grip (PCTG, head 3)", "part": "grip.stl" },
+                      { "color": "#d8d8d8", "label": "Gaskets, USB-C plug, SMA washers and Kobo pad (soft TPU, head 4)", "part": "back-gasket.stl", "parts": ["back-gasket.stl", "bezel-gasket.stl", "usbc-plug.stl", "sma-washer.stl", "kobo-pad.stl"] } ],
+          "components": [ { "part": "grip.stl", "qty": 1 }, { "part": "back-gasket.stl", "qty": 1 }, { "part": "bezel-gasket.stl", "qty": 1 },
+                          { "part": "usbc-plug.stl", "qty": 1 }, { "part": "sma-washer.stl", "qty": 2 }, { "part": "kobo-pad.stl", "qty": 1 } ] },
         { "file": "plate-1-grip.3mf", "format": "3mf", "label": "Print plate 1 (PCTG): grip, standing on its bottom end", "plate": true,
           "legend": [ { "color": "#3b6fb6", "label": "Grip", "part": "grip.stl" } ],
           "components": [ { "part": "grip.stl", "qty": 1 } ] },

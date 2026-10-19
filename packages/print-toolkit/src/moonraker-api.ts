@@ -255,7 +255,10 @@ export async function fileExists(address: string, fileName: string): Promise<boo
     const text = await res.text().catch(() => '');
     throw new Error(`Moonraker file lookup failed (${res.status}): ${text || res.statusText}`);
   }
-  return true;
+  // bambu-klipper-proxy answers a file it can't fetch with a 0-byte stub
+  // rather than a 404; a real upload is never empty.
+  const meta = await res.json().catch(() => null) as { result?: { size?: number } } | null;
+  return meta?.result?.size !== 0;
 }
 
 /** One print from Moonraker's job history. */

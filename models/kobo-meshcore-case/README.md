@@ -70,6 +70,13 @@ The Kobo itself and the display's front sit outside the seal; the bay behind the
 | 3 | TPU 85A | back gasket, USB-C plug, 2 SMA washers |
 | 4 | TPU 70A | bezel gasket, Kobo pad |
 
+**On a Snapmaker U1** (tool changer), `plate-u1-all.3mf` puts the grip and every TPU piece on one bed:
+- PCTG prints from head 3 and soft TPU from head 4, with a prime tower for the swaps.
+- The cover and bezel go separately (plate 2).
+- Slice it at 0.2 mm layers, so the 2 mm tongue and 2.1 mm gasket slot don't round to whole 0.32 mm layers.
+- Hold the bed at 80 °C throughout. The TPU's own 45 °C would let the grip come loose.
+- One soft TPU (your 70A–85A) serves for every gasket piece.
+
 No supports:
 - Every wall of the grip runs straight up. Anything hung under a wall rises at 45°.
 - The slot's top end and the display pocket's top end are short bridges.
