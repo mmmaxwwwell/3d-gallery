@@ -16,4 +16,4 @@ Prototype case for a Kobo Clara HD turned MeshCore device (nRF MCU + LoRa radio 
 
 ## Unmeasured (from Kobo's drawing in the user guide, ±2 mm)
 
-`screen_*`, `kobo_corner_radius`, `power_button_y`, `usb_y`. The guide's bottom-edge view might be mirrored: if the button is above the USB on the real device, swap the two. Also unknown: the user's MCU/radio boards, battery, and the SMA's thread length (wall at the hole is 3 mm).
+`screen_*`, `kobo_corner_radius`, `power_button_y`, `usb_y`. The guide's bottom-edge view is mirrored: the user said the USB cutout was on the wrong side (2026-10-19), so the USB now sits below the mid-edge button as held. Also unknown: the user's MCU/radio boards, battery, and the SMA's thread length (wall at the hole is 3 mm).

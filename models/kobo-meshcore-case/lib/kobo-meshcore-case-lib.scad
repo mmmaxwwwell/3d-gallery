@@ -30,10 +30,11 @@ screen_bottom = 9.5;
 // How far the front window reaches past the screen on every side
 window_margin = 2;
 // Where the power button and micro USB sit along the Kobo's bottom edge,
-// measured up from the case's lower edge (= from the Kobo's left edge seen in
-// portrait), estimated from Kobo's drawing
+// measured from the Kobo's lower edge as it's held (its left edge seen from
+// the front in portrait). The button is mid-edge per Kobo's drawing; the USB
+// is below it, which the user corrected (the drawing is mirrored)
 power_button_y = 55;
-usb_y = 76;
+usb_y = 34;
 // Gap round the Kobo, per side and over its thickness
 tolerance = 0.3;
 // Front lip over the Kobo's bezel
@@ -113,6 +114,8 @@ sma_x = bay_x1 - sma_from_end;
 sma_z = (front_thickness + bay_back_z) / 2;
 
 button_apex_z = front_thickness + button_depth_fraction * pocket_t;
+button_case_y = pocket_y0 + tolerance + power_button_y;
+usb_case_y = pocket_y0 + tolerance + usb_y;
 
 assert(button_apex_z - front_thickness < divider_ledge + divider_wall - 1.5,
        "the button trough's 45° side would break into the bay");
@@ -188,7 +191,7 @@ module bay_cavity() {
 // Micro USB window through the divider, roof peaked at 45° for the print
 module usb_window_cut() {
   w = usb_window;
-  translate([pocket_x1 - 1, usb_y, 0]) rotate([90, 0, 90])
+  translate([pocket_x1 - 1, usb_case_y, 0]) rotate([90, 0, 90])
     linear_extrude(divider_ledge + divider_wall + 2)
       hull() {
         translate([-w / 2, front_thickness]) square([w, pocket_t]);
@@ -200,7 +203,7 @@ module usb_window_cut() {
 // the divider away at 45° from the button down to the front face
 module button_trough_cut() {
   a = button_apex_z;
-  translate([0, power_button_y + button_trough / 2, 0]) rotate([90, 0, 0])
+  translate([0, button_case_y + button_trough / 2, 0]) rotate([90, 0, 0])
     linear_extrude(button_trough)
       polygon([[pocket_x1 - 3, -1], [pocket_x1 - 3, front_thickness + eps],
                [pocket_x1, front_thickness + eps], [pocket_x1, a],
