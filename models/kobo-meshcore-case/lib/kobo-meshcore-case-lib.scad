@@ -1,6 +1,8 @@
 // Kobo Clara HD MeshCore case: a slim frame round the Kobo, used in
-// landscape, with a cylinder up its right side sized for an 18650 and a pod
-// for the radio and MCU behind the Kobo's top right corner.
+// landscape, with a cylinder up its right side sized for an 18650. The
+// cylinder's depth carries on inward behind the Kobo as a hollow cover for the
+// radio and MCU, the case's whole height, its inner end rounded down to the
+// back plate.
 //
 // - The cell slides up into the cylinder from the bottom, behind a screwed
 //   end cap.
@@ -8,7 +10,7 @@
 //   for an SMA bulkhead: the jack's hex sits in a pocket under the end panel,
 //   the nut tightens on top, and the antenna stands in the open on the
 //   cylinder's axis.
-// - Between the cell and the SMA, a hole leads into the pod: the pigtail's
+// - Between the cell and the SMA, a hole leads into the cover: the pigtail's
 //   cable and the cell's leads go through it.
 //
 // Assembly frame: X along the device (cylinder at +X), Y up the device as
@@ -76,7 +78,8 @@ sma_hex_depth = 3;
 // Bore from the cell's bay up to the hex pocket: the pigtail's jack is pushed
 // up it (cell out) until its hex seats in the pocket
 pigtail_bore = 10;
-// Hole from that bore into the pod, for the pigtail's cable and cell leads
+// Hole from that bore into the electronics cover, for the pigtail's cable
+// and the cell's leads
 pod_hole = 5;
 // Groove beside the cell for its bottom lead, from the end cap up
 lead_groove = 2;
@@ -86,16 +89,23 @@ bore_skin = 1.5;
 cap_thickness = 4.5;
 // Back plate thickness
 plate_thickness = 2;
-// Pod for the radio and MCU, on the back plate behind the Kobo's top right
-// corner: inside width (X) and height (Y), inside depth off the back plate
-pod_width = 45;
-pod_height = 40;
-pod_depth = 9;
-// Pod cover's walls and roof
-pod_wall = 1.6;
-pod_roof = 2;
-// Bosses on the back plate the pod cover screws to
-pod_boss_d = 7;
+// Electronics cover: how far it reaches in from the back plate's right edge
+// behind the Kobo. It is as deep as the cylinder, and its inner end is
+// rounded down to the back plate
+cover_width = 48.2;
+cover_wall = 1.6;
+// Its end walls, top and bottom
+cover_end = 2;
+// The cylinder's back leans this far toward the cover over its height
+// above the back plate, so the two meet on one straight seam
+seam_lean = 4;
+// Gap between cover and cylinder
+cover_gap = 0.2;
+// Bosses on the back plate for the cover's inner screws
+cover_boss_d = 7;
+cover_boss_h = 5;
+// Ribs inside the cover the screws run through
+rib_width = 7;
 // Outside corner radius at the left end, seen from the front
 corner_radius = 6;
 // 45° chamfer round the front face's outer edge
@@ -127,7 +137,6 @@ pocket_y0 = wall;
 // Depths from the front face
 kobo_back_z = front_thickness + pocket_t;   // frame's back face behind the Kobo
 plate_back_z = kobo_back_z + plate_thickness;
-pod_back_z = plate_back_z + pod_depth + pod_roof;
 
 case_w = pocket_w + 2 * wall;
 
@@ -153,20 +162,20 @@ cell_y1 = cap_thickness + cell_bay_length;
 pod_hole_y = (cell_y1 + hex_y0) / 2;
 pod_hole_z = plate_back_z + pod_hole / 2 + 1;
 
-// Pod cover's outside, in X and Y
-pod_x1 = plate_x1;
-pod_x0 = pod_x1 - pod_width - 2 * pod_wall;
-pod_y0 = case_w - pod_height - 2 * pod_wall;
-
-pod_bosses = [[pod_x0 + pod_wall + pod_boss_d / 2, pod_y0 + pod_wall + pod_boss_d / 2],
-              [pod_x1 - pod_wall - pod_boss_d / 2, case_w - pod_wall - pod_boss_d / 2]];
-// Bosses stop this far under the roof; the cover's columns reach down to them
-pod_boss_h = pod_depth - 3;
-
-// The upper right one sits inside the pod, clear of the button trough
+// Electronics cover
+cover_x0 = plate_x1 - cover_width;
+cover_r = tube_d - plate_back_z;            // its inner end's radius
+seam_x = plate_x1 + seam_lean;
+left_rib_x = cover_x0 + cover_r;
 right_screw_x = pocket_x1 + 2.75;
-back_screws = [[left_wall / 2, 15], [left_wall / 2, case_w - 15],
-               [right_screw_x, 18], [right_screw_x, case_w - 15]];
+screw_ys = [18, case_w - 15];
+
+// Left pair: through padded counterbores into the left wall. Right pair:
+// through the cover's right rib and the plate into the ledge. Inner pair:
+// through the cover's left rib into the plate's bosses.
+left_screws = [for (y = [15, case_w - 15]) [left_wall / 2, y]];
+right_screws = [for (y = screw_ys) [right_screw_x, y]];
+boss_screws = [for (y = screw_ys) [left_rib_x, y]];
 
 // End cap screw: along Y into the ledge, at mid-depth
 cap_screw = [pocket_x1 + right_ledge / 2, kobo_back_z / 2];
@@ -187,15 +196,18 @@ assert(to_trough([tube_x, tube_z]) - cell_bore / 2 >= 1.2,
 assert(to_trough(groove_c) - lead_groove / 2 >= 1.2,
        "the button trough comes too close to the lead groove");
 assert(groove_c[1] - lead_groove / 2 >= 1.5, "the lead groove breaks out the front");
-assert(right_screw_x + head_d / 2 <= plate_x1 - 0.3,
-       "the back plate's right-hand screw heads run into the cylinder");
+assert(right_screw_x + rib_width / 2 <= seam_x,
+       "the cover's right rib runs past the seam");
 assert(ledge_x - (right_screw_x + pilot_d / 2) >= 1,
        "the right-hand pilots break into the cell's bore");
 assert(cell_y1 + 8 < hex_y0, "no room between the cell's bay and the SMA for the pigtail's jack");
 assert(pod_hole < hex_y0 - cell_y1, "the pod hole doesn't fit between the cell's bay and the SMA");
-assert(abs(right_screw_x - pod_bosses[1][0]) + abs(case_w - 15 - pod_bosses[1][1]) > (pad_d + pod_boss_d) / 2,
-       "the upper right screw's pad runs into the pod's boss");
-assert(pod_y0 <= pod_hole_y - pod_hole, "the pod doesn't reach down to the hole from the cylinder");
+// The seam's distance from the cell's axis, less the bore: the wall left
+seam_wall = abs((tube_x - plate_x1) * cover_r - (tube_z - plate_back_z) * seam_lean)
+            / norm([seam_lean, cover_r]) - cell_bore / 2;
+assert(seam_wall >= 1.5, str("the seam leaves ", seam_wall, " mm over the cell"));
+assert(tube_d - plate_back_z - cover_boss_h - head_depth >= 1.5,
+       "no floor under the inner screws' counterbores");
 assert(cap_thickness + 10 < 18 - pilot_d / 2,
        "the end cap's pilot runs into the back plate's lower right pilot");
 assert(sma_hex / cos(30) < 2 * (bore_top_z - tube_z), "the SMA hex pocket breaks out the back");
@@ -232,14 +244,17 @@ module frame_body() {
 }
 
 // Cylinder cross-section in (x, depth): the circle, a 45° flat where its
-// front-right quarter would overhang the bed, and a fairing back to the
-// back plate's edge at the plate's outer face, so the plate butts into it
+// front-right quarter would overhang the bed, a fairing back to the back
+// plate's edge at the plate's outer face, so the plate butts into it, and
+// from there the seam with the cover, leaning out to the cylinder's back.
+// The seam recedes as the frame prints, so it doesn't overhang
 module tube_profile() {
   hull() {
     translate([tube_x, tube_z]) circle(d = tube_d);
     // 45° tangent from the circle's lower right to the bed
     translate([tube_x + tube_d / 2 * (sqrt(2) - 1), 0]) square(eps);
     translate([plate_x1 - eps, 0]) square([eps, plate_back_z]);
+    translate([seam_x, tube_d - eps]) square(eps);
   }
 }
 
@@ -292,15 +307,14 @@ module sma_mount_cut() {
     cylinder(d = sma_hole, h = sma_panel + 2);
 }
 
-// From the pigtail bore out through the cylinder's Kobo side, behind the back
-// plate: a teardrop peaked toward the back (peak = 1), or toward the front
-// for the pod cover, which prints roof down (peak = -1)
-module pod_hole_cut(peak = 1) {
+// From the pigtail bore out through the cylinder's seam into the cover: a
+// teardrop peaked toward the back (up as the frame prints)
+module pod_hole_cut() {
   translate([tube_x, pod_hole_y, pod_hole_z]) rotate([0, -90, 0])
-    linear_extrude(tube_x - (pod_x1 - pod_wall) + 1)
+    linear_extrude(tube_x - plate_x1 + 1)
       hull() {
         circle(d = pod_hole);
-        translate([peak * pod_hole / 2 * sqrt(2), 0]) square(eps, center = true);
+        translate([pod_hole / 2 * sqrt(2), 0]) square(eps, center = true);
       }
 }
 
@@ -325,7 +339,7 @@ module shell() {
     sma_mount_cut();
     pod_hole_cut();
     button_trough_cut();
-    for (p = back_screws) translate([p[0], p[1], kobo_back_z - 9])
+    for (p = concat(left_screws, right_screws)) translate([p[0], p[1], kobo_back_z - 9])
       cylinder(d = pilot_d, h = 10);
     translate([cap_screw[0], cap_thickness - 1, cap_screw[1]]) rotate([-90, 0, 0])
       cylinder(d = pilot_d, h = 11);
@@ -365,51 +379,83 @@ module counterbored_holes(points, h) {
   }
 }
 
-// Print frame: inner face on the bed; screw pads and the pod's bosses up
+// Print frame: inner face on the bed; the left screws' pads and the
+// cover's bosses up
 module back_plate() {
   difference() {
     union() {
       linear_extrude(plate_thickness) frame_outline(plate_x1);
       linear_extrude(pad_h) intersection() {
         frame_outline(plate_x1);
-        for (p = back_screws) translate(p) circle(d = pad_d);
+        for (p = left_screws) translate(p) circle(d = pad_d);
       }
-      for (p = pod_bosses) translate(p)
-        cylinder(d = pod_boss_d, h = plate_thickness + pod_boss_h);
+      for (p = boss_screws) translate(p)
+        cylinder(d = cover_boss_d, h = plate_thickness + cover_boss_h);
     }
-    counterbored_holes(back_screws, pad_h);
-    for (p = pod_bosses) translate([p[0], p[1], 1])
-      cylinder(d = pilot_d, h = plate_thickness + pod_boss_h);
+    counterbored_holes(left_screws, pad_h);
+    for (p = right_screws) translate([p[0], p[1], -1]) cylinder(d = clear_d, h = plate_thickness + 2);
+    for (p = boss_screws) translate([p[0], p[1], 0.6])
+      cylinder(d = pilot_d, h = plate_thickness + cover_boss_h);
   }
 }
 
-// Pod cover, in the depth frame: four walls standing on the back plate and a
-// roof, columns down from the roof to the plate's bosses, a hole in its
-// right wall facing the cylinder's
-module pod_cover() {
-  col_z0 = plate_back_z + pod_boss_h;
+// The cover's outside in (x, depth): a round end on the plate hulled to a
+// flat back level with the cylinder's, clear of the cylinder by cover_gap.
+// below > 0 carries it on under the plate, for cutting the open floor
+module cover_outline_2d(below = 0) {
   difference() {
-    union() {
-      difference() {
-        translate([pod_x0, pod_y0, plate_back_z])
-          cube([pod_x1 - pod_x0, case_w - pod_y0, pod_back_z - plate_back_z]);
-        translate([pod_x0 + pod_wall, pod_y0 + pod_wall, plate_back_z - 1])
-          cube([pod_width, pod_height, pod_depth + 1]);
+    intersection() {
+      hull() {
+        translate([cover_x0 + cover_r, plate_back_z]) circle(r = cover_r);
+        translate([seam_x, plate_back_z - cover_r]) square([eps, 2 * cover_r]);
       }
-      for (p = pod_bosses) translate([p[0], p[1], col_z0])
-        cylinder(d = pod_boss_d, h = pod_back_z - col_z0);
+      translate([cover_x0 - 1, plate_back_z - below]) square([case_l, cover_r + below]);
     }
-    for (p = pod_bosses) translate([p[0], p[1], col_z0 - 1]) {
-      cylinder(d = clear_d, h = pod_back_z);
-      translate([0, 0, 1 + pod_back_z - col_z0 - head_depth]) cylinder(d = head_d, h = head_depth + 1);
-    }
-    pod_hole_cut(peak = -1);
+    offset(delta = cover_gap) tube_profile();
+  }
+}
+
+module cover_cavity_2d() {
+  difference() {
+    offset(delta = -cover_wall) cover_outline_2d(below = cover_r);
+    translate([right_screw_x - rib_width / 2, 0]) square([rib_width, tube_d + 1]);
+    translate([left_rib_x - rib_width / 2, plate_back_z + cover_boss_h])
+      square([rib_width, tube_d]);
+  }
+}
+
+// Screw hole along depth through the cover, counterbored from its back: a
+// teardrop peaked +Y, which is up as the cover prints
+module cover_screw_hole(p, z0) {
+  module tear(d) hull() { circle(d = d); translate([0, d / 2 * sqrt(2)]) square(eps, center = true); }
+  translate([p[0], p[1], z0 - 1]) {
+    linear_extrude(tube_d) tear(clear_d);
+    translate([0, 0, 1 + tube_d - z0 - head_depth]) linear_extrude(head_depth + 1) tear(head_d);
+  }
+}
+
+// Electronics cover, in the depth frame: open floor on the back plate,
+// closed ends, ribs for its screws, and the hole from the cylinder
+module electronics_cover() {
+  difference() {
+    along_y(0, case_w) cover_outline_2d();
+    along_y(cover_end, case_w - cover_end) cover_cavity_2d();
+    for (p = right_screws) cover_screw_hole(p, plate_back_z);
+    for (p = boss_screws) cover_screw_hole(p, plate_back_z + cover_boss_h);
+    // the cylinder's hole carries on through the cover's seam wall, peaked +Y
+    translate([seam_x + 1, pod_hole_y, pod_hole_z]) rotate([0, -90, 0])
+      linear_extrude(seam_x - plate_x1 + cover_wall + 3)
+        hull() {
+          circle(d = pod_hole);
+          translate([0, pod_hole / 2 * sqrt(2)]) square(eps, center = true);
+        }
   }
 }
 
 // Print orientations
 module back_plate_print() { back_plate(); }
-module pod_cover_print() { translate([0, 0, pod_back_z]) mirror([0, 0, 1]) pod_cover(); }
+// standing on its bottom end, so its round end and ribs print as walls
+module electronics_cover_print() { translate([0, tube_d, 0]) rotate([90, 0, 0]) electronics_cover(); }
 module end_cap_print() {
   // inner face (y = cap_thickness) down, counterbore up
   multmatrix([[1, 0, 0, 0], [0, 0, 1, 0], [0, -1, 0, cap_thickness]]) end_cap();
@@ -419,14 +465,14 @@ module end_cap_print() {
 // facing +Z
 module shell_assembled() { mirror([0, 0, 1]) shell(); }
 module back_plate_assembled() { translate([0, 0, -kobo_back_z]) mirror([0, 0, 1]) back_plate(); }
-module pod_cover_assembled() { mirror([0, 0, 1]) pod_cover(); }
+module electronics_cover_assembled() { mirror([0, 0, 1]) electronics_cover(); }
 module end_cap_assembled() { mirror([0, 0, 1]) end_cap(); }
 
 // Every printed piece but the frame, on one bed
 module covers_layout() {
   back_plate_print();
-  translate([-pod_x0, case_w + 5 - pod_y0, 0]) pod_cover_print();
-  translate([pod_x1 - pod_x0 + 10 - pocket_x1, case_w + 5, 0]) end_cap_print();
+  translate([-cover_x0, case_w + 5, 0]) electronics_cover_print();
+  translate([seam_x - cover_x0 + 10 - pocket_x1, case_w + 5, 0]) end_cap_print();
 }
 
 // Reference: the Kobo, an 18650, and an SMA bulkhead with a stub of antenna

@@ -10,9 +10,12 @@ A slim prototype case that turns a Kobo Clara HD into a MeshCore handheld. 195 �
   - the antenna stands in the open on the cylinder's axis
 
   To fit it, take the cell out and push the jack up from the bottom until its hex seats.
-- **Electronics pod.** The nRF board and LoRa radio go behind the Kobo's top right corner, under a cover on the back plate. Inside it's 45 × 40 mm and 9 mm deep. The cover screws to two bosses on the plate. A 5 mm hole from the cylinder, between the cell and the SMA, carries the pigtail's cable and the cell's leads into the pod.
+- **Electronics cover.** The cylinder's 22.4 mm depth carries on 48 mm inward behind the Kobo, the case's whole height. That forms a hollow cover on the back plate for the nRF board and LoRa radio. One flat back runs across the cover and the cylinder, meeting on a straight seam, and the cover's inner end rounds down to the plate (9.75 mm radius). Inside it's about 45 mm wide and 8 mm deep over the full height, less two screw ribs. A 5 mm hole from the cylinder, between the cell and the SMA, carries the pigtail's cable and the cell's leads into it.
 - **Power button.** It sits at the bottom of a 45° trough cut down through the front. You press it sideways with a fingertip. The Kobo's micro USB isn't used.
-- **Back plate.** Four M3x8 screws hold it to the frame, with counterbores in pads on its outside. The upper right one is inside the pod.
+- **Screws.**
+  - Left end of the back plate: 2 × M3x8 into the frame's left wall, with counterbores in pads.
+  - Right side: 2 × M3x16 down through the cover's right rib and the plate into the frame beside the cylinder.
+  - Cover's inner end: 2 × M3x6 into bosses on the plate.
 
 The Kobo's outline and thickness (159.6 × 110 × 8.35 mm) are Kobo's spec. The screen window, the corner radius and the power button's position are **estimates from Kobo's drawing**. Measure them before printing.
 
@@ -22,13 +25,14 @@ The Kobo's outline and thickness (159.6 × 110 × 8.35 mm) are Kobo's spec. The 
 |---|---|---|
 | Frame | front face down; the cylinder lies along the bed | 1 |
 | Back plate | inner face down, pads and bosses up | 2 |
-| Pod cover | roof down | 2 |
+| Electronics cover | standing on its bottom end | 2 |
 | End cap | inner face down, counterbore up | 2 |
 
 No supports:
 - The cylinder's front-right quarter is a 45° flat, so it doesn't overhang the bed.
-- The bores and the pod hole are 45° teardrops, flat-topped 1.5 mm under the cylinder's back.
+- The bores and the hole into the cover are 45° teardrops, flat-topped 1.5 mm under the cylinder's back.
 - The hex pocket's flats face top and bottom.
-- The pod cover's counterbores open at the bed.
+- The electronics cover stands on its end, so its round end and ribs are plain walls. Its screw holes are teardrops; its top end wall is an 8 mm bridge.
+- The cylinder's seam with the cover leans back as the frame prints, so it recedes rather than overhangs.
 
 The flat tops above are short bridges.
