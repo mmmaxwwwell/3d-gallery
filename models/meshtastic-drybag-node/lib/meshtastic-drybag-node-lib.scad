@@ -381,12 +381,13 @@ door_screws = concat(
   [for (sx = [-1, 1], z = door_side_zs) [sx * door_x, z]],
   [for (x = door_top_xs, z = [-ear_out, box_h + ear_out]) [x, z]]);
 // Each gear cover's screws (right side), [x, z], into the back slab: along
-// the lobe's edges, far enough out for a solid boss clear of the teeth, and
-// one under the pinion into the box's floor. Any that would crowd a holder
-// plate's 45° bolt are left out.
+// the lobe's edges, and one under the pinion into the box's floor. Any that
+// would crowd a holder plate's 45° bolt are left out. Each sits in a solid
+// boss filling the cover's rim (the user: "more meaty"), on a pad of the slab
+// as wide.
 function lobe_z_at(x) = shaft_z + (x - spool_x) * tan(gear_th);
-cover_boss_d = 18;
-cover_screw_out = cover_boss_d / 2 + 2 - tray_wall;
+cover_boss_d = 22;
+cover_screw_out = 7;
 cover_screws_all = concat(
   [for (i = [1, 2], side = [-1, 1]) lobe_cs[i] + side * (lobe_rs[i] + cover_screw_out) * gear_n],
   [for (side = [-1, 1]) lobe_cs[1] - 30 * gear_u + side * (lobe_rs[1] + cover_screw_out) * gear_n],
@@ -586,7 +587,10 @@ module tray_outline_2d() {
 }
 module slab_2d() {
   intersection() {
-    offset(flange_h) tray_outline_2d();
+    union() {
+      offset(flange_h) tray_outline_2d();
+      for (sx = [-1, 1], p = cover_screws) translate([sx * p[0], p[1]]) circle(d = cover_boss_d, $fn = 48);
+    }
     translate([-lobe_x1, -500]) square([2 * lobe_x1, 1000]);
   }
 }
@@ -755,16 +759,19 @@ module gear_cover(s = 1) {
     difference() {
       union() {
         xz_extrude(cover_y0, cover_y0 + cover_floor) intersection() { cover_hull_2d(); translate([0.25, -500]) square([1000, 1000]); }
+        // The rim, and each screw's boss blended into it; the gears' pocket
+        // is cut after, so a boss never reaches the teeth.
         xz_extrude(cover_y0, -0.5) difference() {
-          intersection() { cover_hull_2d(); translate([0.25, -500]) square([1000, 1000]); }
+          union() {
+            intersection() { cover_hull_2d(); translate([0.25, -500]) square([1000, 1000]); }
+            for (p = cover_screws) let(d = cover_boss_d, inward = p[1] < pinion_c[1] - tip_r(pinion_z) ? [0, 1] : (lobe_z_at(p[0]) > p[1] ? gear_n : -gear_n))
+              hull() {
+                translate(p) circle(d = d, $fn = 48);
+                for (t = [-1, 1]) translate(p + (d / 2) * inward + t * (d / 2) * [inward[1], -inward[0]]) circle(d = 2, $fn = 12);
+              }
+          }
           intersection() { offset(-cover_wall) cover_hull_2d(); translate([-1, -500]) square([1000, 1000]); }
         }
-        // Each screw's boss, solid round the shank, blended into the rim.
-        for (p = cover_screws) let(d = cover_boss_d, inward = p[1] < pinion_c[1] - tip_r(pinion_z) ? [0, 1] : (lobe_z_at(p[0]) > p[1] ? gear_n : -gear_n))
-          hull() {
-            y_cyl(p, cover_y0, -0.5, p[1] < pinion_c[1] - tip_r(pinion_z) ? 16 : d);
-            for (t = [-1, 1]) y_cyl(p + (d / 2 - 2) * inward + t * (d / 2 - 2) * [inward[1], -inward[0]], cover_y0, -0.5, 2);
-          }
         for (c = idlers_c) y_cyl(c, cover_y0 + 0.01, pin_socket - 0.3, gear_pin_d, 32);
         y_cyl(ring_c, cover_y0 + 0.01, gear_y1 - 0.3, out_pin_d, 32);
         y_cyl(pinion_c, cover_y0 + 0.01, gear_y0 + pinion_peg_len - 0.3, pinion_peg_d, 32);

@@ -15,7 +15,7 @@ Everything heavy is in the box, low between the two points the lines pull from, 
   - **Gear train:** behind the wall, each pinion drives two idlers onto an output gear on the reel's axis. The idlers turn on print-in-place roller bearings in their hubs.
   - **Output:** each output gear's hub goes out through a lip seal in the box's back slab into a hex in the reel's hub.
   - **Gear size:** module 2.25 and 16 mm wide 30° herringbones, sized up so the printed parts run at low stress.
-  - **Covers:** a small bolt-on cover each side (130 × 99 mm) protects the gears, on six M5 × 25s through solid 18 mm bosses. The box is sealed at its wall and slab, so the covers don't need to seal.
+  - **Covers:** a small bolt-on cover each side (130 × 104 mm) protects the gears, on six M5 × 25s through solid 22 mm bosses that fill the cover's rim, each on a pad of the slab as wide. The box is sealed at its wall and slab, so the covers don't need to seal.
   - **Support:** every gear is held both sides. The idlers' pins run from the cover into sockets in the slab, the output gear sits on its pin behind with its hub in the slab in front, and the pinion's back rides on a peg in the cover.
 - **Reels:** one either side of the box. Each holds 150–200 ft (about 56 m) of 1/8" Dacron. The line's end wedges into a V jam cleat at the core's front end, under the front flange.
   - **Bearings:** each reel turns in two big print-in-place roller bearings (PCTG), printed separately and pressed into its plates. The front one (43 mm across, 11 pins) takes a 19 mm journal on the reel's front, past the hex spigot. The rear one (54 mm across, 15 pins) takes the hub's 30 mm journal. Put a drop of silicone oil in each.
@@ -78,7 +78,7 @@ No supports. Every hole is round, with no teardrops.
 | Panel spine | PCTG | flat | 1 |
 | Panel bar | PCTG | flat | 2 |
 
-The holder plates are 161 × 201 mm and the gear covers 130 × 99. The box is the widest piece, 264 mm across its back slab, just inside the U1's 270.
+The holder plates are 161 × 201 mm and the gear covers 130 × 104. The box is the widest piece, 264 mm across its back slab, just inside the U1's 270.
 
 ## Wiring
 

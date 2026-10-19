@@ -68,7 +68,8 @@ The user wants independent control of the reels with an IMU to level the node ("
   - **Parts:** a herringbone turned over is the other hand, so the idlers and pinions are one part each. The output gears carry a hub on one side, so there's a right and a left.
   - **Check the mesh** by rendering `pinion()`, `idler(0)`, `idler(1)` and `output_gear()` separately: they must not intersect.
 - **Gear covers** (`gear_cover(s)`, the user's "two separate parts"): a floor and rim round each train, clipped at the middle where the two meet. They don't seal: the box is sealed at its wall and slab.
-  - **Screws:** six M5 × 25s in solid `cover_boss_d` bosses (the user: "more meaty"), heads in shallow counterbores at the back. The bosses sit `cover_screw_out` past the lobe's edge so they clear the teeth.
+  - **Screws:** six M5 × 25s in solid `cover_boss_d` bosses (the user asked twice for them "more meaty"), heads in shallow counterbores at the back. They sit `cover_screw_out` past the lobe's edge, and each boss is unioned into the rim before the gears' pocket is cut, so it fills the rim without reaching the teeth.
+  - **Slab pads:** `slab_2d()` grows a `cover_boss_d` pad under each screw, so its pilot has solid TPU all round (on the plain slab it was 0.9 mm from the edge).
   - **Support both sides** (the user's): the idlers' pins run on into `pin_socket`-deep sockets in the slab, the output gear rides its pin with its hub in the slab's seal, and the pinion's rear pocket rides the cover's `pinion_peg_d` peg.
 - **Reel:** `spool()` has an integral rear flange and a hex spigot at the front for `reel_flange()`. Its rear has a hex socket (45° cone roof) for `reel_hub()`. The output gear's hex tip goes into the hub.
   - **Bearings** (`reel_bearing(g)`, the user's "generously sized print in place bearings that are pressed into place"): the reel's front journal (`front_journal_d`, inside the spigot's flats, asserted) turns in `front_brg`, pressed into the front plate; the hub's journal in `rear_brg`, pressed into the rear plate. `reel_brg(bore)` derives each from `rbp_rn`/`rbp_b`/`rbp_c`/`rbp_wall`. They're a plate (`cage_t`) thick and press `rb_press` tight. The axle boss in `holder_2d()` is sized to the rear one. There's no front axle bolt any more.
@@ -109,7 +110,7 @@ Intersect each pair of assembly groups: `frame`, `front_door`, `covers`, `reels`
 - boards ~75 g
 - bolts 110 g
 
-Compare the centre of mass's y against `line_y`. v6 came out 0.7 mm forward, about 0.4° of tilt.
+Compare the centre of mass's y against `line_y`. v6 came out 0.7 mm forward, about 0.4° of tilt. The 22 mm cover bosses and slab pads add about 37 g behind the lines, about 0.8 mm back by their volume change alone, so it's now within about 0.1 mm (not re-run in full).
 
 ## Open, unmeasured
 
