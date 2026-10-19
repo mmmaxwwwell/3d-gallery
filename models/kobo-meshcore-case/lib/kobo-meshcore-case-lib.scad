@@ -1,15 +1,20 @@
-// Kobo Clara HD MeshCore case: a frame round the Kobo, used in landscape,
-// with a grip-sized bay on the right for the radio, MCU and battery, and an
-// SMA bulkhead standing up out of the bay's top wall.
+// Kobo Clara HD MeshCore case: a slim frame round the Kobo, used in
+// landscape, with a 15 mm tube standing up its right side. An SMA bulkhead
+// sits on a panel down a bore in the tube's top, so the antenna's base is
+// recessed, on the tube's axis.
 //
-// Assembly frame: X along the device (bay at +X), Y up the device as it's
+// Assembly frame: X along the device (tube at +X), Y up the device as it's
 // held (SMA at +Y), Z out of the screen. z = 0 is the front face, so the case
-// lies at negative Z. The shell prints front face down: its print frame is
-// the assembly frame mirrored in Z, so every wall rises off the bed.
+// lies at negative Z. The frame prints front face down: its print frame is
+// the assembly frame mirrored in Z, so every wall rises off the bed and the
+// tube lies along the bed.
 //
-// The Kobo goes in with its bottom edge (power button, micro USB) toward the
-// bay: the micro USB opens into the bay through a window in the divider, and
-// the power button sits in a 45° trough cut down through the front.
+// The front face is one plane across frame and tube; the tube is thicker than
+// the Kobo's frame, so it stands proud at the back.
+//
+// The Kobo goes in with its bottom edge (power button, micro USB) against the
+// tube: the micro USB comes out through a window across the tube, and the
+// power button sits in a 45° trough cut down through the front.
 
 // BEGIN_PARAMS
 // Kobo Clara HD, long side (Kobo spec)
@@ -39,35 +44,41 @@ usb_y = 34;
 tolerance = 0.3;
 // Front lip over the Kobo's bezel
 front_thickness = 2;
-// Walls along the long sides and the bay's outer end
+// Walls along the long sides
 wall = 3;
 // Wall at the Kobo's left end; it takes the back plate's screws
 left_wall = 6;
-// Wall between the Kobo and the bay: a ledge for the back plate's screws on
-// the Kobo side, then the bay's own wall
-divider_ledge = 6.5;
-divider_wall = 2.5;
-// Bay inside width along X
-bay_width = 38;
-// Total thickness at the bay, front face to the lid's back
-bay_thickness = 24;
-// Back plate and bay lid thickness
+// Solid strip between the Kobo and the tube's bore; it takes the back
+// plate's right-hand screws
+right_ledge = 5;
+// Tube outside diameter
+tube_d = 15;
+// Tube axis, this far right of the Kobo pocket's edge
+tube_offset = 10;
+// Bore down the tube's top for the antenna's base, and how far down the
+// SMA's panel sits from the top of the case
+recess_d = 11;
+recess_depth = 25;
+// SMA panel thickness and hole (1/4"-36 thread)
+sma_panel = 2;
+sma_hole = 6.6;
+// Bore under the panel, up which the pigtail's jack is pushed from the
+// tube's bottom end
+pigtail_bore = 10;
+// Material kept over a bore's flat top, at the tube's back
+bore_skin = 1.5;
+// Back plate thickness
 plate_thickness = 2;
-lid_thickness = 2.5;
-// Outside corner radius seen from the front
+// Outside corner radius at the left end, seen from the front
 corner_radius = 6;
 // 45° chamfer round the front face's outer edge
 front_chamfer = 1;
-// SMA bulkhead hole through the bay's top wall (1/4"-36 thread)
-sma_hole = 6.6;
-// SMA position along the bay, measured from the bay's outer end
-sma_from_end = 19;
-// Micro USB window through the divider: along Y
+// Micro USB window, along Y
 usb_window = 13;
 // Power button trough: along Y, and how deep its bottom edge sits into the
 // Kobo's thickness
 button_trough = 22;
-button_depth_fraction = 0.8;
+button_depth_fraction = 0.75;
 // M3 cap screws: pilot for self-tapping, clearance, counterbore
 pilot_d = 2.5;
 clear_d = 3.4;
@@ -75,8 +86,6 @@ head_d = 6.2;
 head_depth = 3.2;
 // Material left under a counterbore
 head_floor = 1.3;
-// Boss in each bay corner for the lid's screws
-boss_d = 7;
 // END_PARAMS
 
 eps = 0.01;
@@ -91,34 +100,43 @@ pocket_x1 = pocket_x0 + pocket_l;
 pocket_y0 = wall;
 
 // Depths from the front face
-kobo_back_z = front_thickness + pocket_t;   // shell's back face over the Kobo
-bay_back_z = bay_thickness - lid_thickness; // shell's back face over the bay
+kobo_back_z = front_thickness + pocket_t;   // frame's back face behind the Kobo
+plate_back_z = kobo_back_z + plate_thickness;
 
-case_l = left_wall + pocket_l + divider_ledge + divider_wall + bay_width + wall;
 case_w = pocket_w + 2 * wall;
 
-// Where the back plate stops and the bay's walls start
-bay_wall_x = pocket_x1 + divider_ledge;
-bay_x0 = bay_wall_x + divider_wall;
-bay_x1 = bay_x0 + bay_width;
+// The frame's back face runs to ledge_x; from there the tube's fairing starts
+ledge_x = pocket_x1 + right_ledge;
+tube_x = pocket_x1 + tube_offset;
+tube_z = tube_d / 2;
+case_l = tube_x + tube_d / 2;
+
+// Bores' flat tops, as the frame prints
+bore_top_z = tube_d - bore_skin;
 
 pad_h = head_floor + head_depth;          // plate + pad under a screw head
 pad_d = head_d + 4;
 
-back_screws = [for (x = [left_wall / 2, pocket_x1 + divider_ledge / 2])
-               for (y = [15, case_w - 15]) [x, y]];
-lid_screws = [for (x = [bay_x0 + boss_d / 2 - 0.5, bay_x1 - boss_d / 2 + 0.5])
-              for (y = [wall + boss_d / 2 - 0.5, case_w - wall - boss_d / 2 + 0.5]) [x, y]];
+// The right-hand screws keep clear of the antenna recess at the top
+back_screws = [[left_wall / 2, 15], [left_wall / 2, case_w - 15],
+               [pocket_x1 + right_ledge / 2, 18],
+               [pocket_x1 + right_ledge / 2, case_w - recess_depth - sma_panel - 6]];
 
-sma_x = bay_x1 - sma_from_end;
-sma_z = (front_thickness + bay_back_z) / 2;
+recess_y0 = case_w - recess_depth;
+panel_y0 = recess_y0 - sma_panel;
 
 button_apex_z = front_thickness + button_depth_fraction * pocket_t;
 button_case_y = pocket_y0 + tolerance + power_button_y;
 usb_case_y = pocket_y0 + tolerance + usb_y;
 
-assert(button_apex_z - front_thickness < divider_ledge + divider_wall - 1.5,
-       "the button trough's 45° side would break into the bay");
+// The trough's 45° side is the line x + z = pocket_x1 + button_apex_z
+trough_to_bore = (tube_x + tube_z - pocket_x1 - button_apex_z) / sqrt(2) - pigtail_bore / 2;
+
+assert(trough_to_bore >= 1.2,
+       str("the button trough comes within ", trough_to_bore, " mm of the pigtail bore"));
+assert(tube_x - pigtail_bore / 2 - (pocket_x1 + right_ledge / 2 + pilot_d / 2) >= 1,
+       "the right-hand screws' pilots break into the tube's bore");
+assert(tube_d > plate_back_z, "the tube should stand proud of the back plate");
 assert(abs(power_button_y - usb_y) > (button_trough + usb_window) / 2 + 2,
        "the button trough and the USB window overlap");
 assert(case_l <= 218, str("case is ", case_l, " mm long: too long for a 220 mm bed"));
@@ -128,33 +146,69 @@ module rounded_rect(l, w, r) {
   translate([r, r]) offset(r) square([l - 2 * r, w - 2 * r]);
 }
 
-module outline() { rounded_rect(case_l, case_w, corner_radius); }
-
-// Outline cut at x0..x1, keeping the outside corners that fall inside it
-module outline_span(x0, x1) {
+// Frame outline, seen from the front: rounded at the left, square where the
+// tube takes over
+module frame_outline(x1) {
   intersection() {
-    outline();
-    translate([x0, -1]) square([x1 - x0, case_w + 2]);
+    rounded_rect(x1 + corner_radius, case_w, corner_radius);
+    square([x1, case_w]);
   }
 }
 
-// The outline from x0 to x1 and z = 0 to z1, chamfered 45° round the front face
-module body(x0, x1, z1) {
-  intersection() {
-    hull() {
-      linear_extrude(eps) offset(delta = -front_chamfer) outline();
-      translate([0, 0, front_chamfer]) linear_extrude(z1 - front_chamfer) outline();
-    }
-    translate([x0, -1, -1]) cube([x1 - x0, case_w + 2, z1 + 2]);
+// Clips a solid to 0..case_w in Y with the front chamfer on both ends
+module front_chamfer_ends(x0, x1, h) {
+  hull() {
+    translate([x0, front_chamfer, 0]) cube([x1 - x0, case_w - 2 * front_chamfer, eps]);
+    translate([x0, 0, front_chamfer]) cube([x1 - x0, case_w, h]);
   }
+}
+
+module frame_body() {
+  hull() {
+    linear_extrude(eps) offset(delta = -front_chamfer) frame_outline(ledge_x + front_chamfer);
+    translate([0, 0, front_chamfer]) linear_extrude(kobo_back_z - front_chamfer)
+      frame_outline(ledge_x + front_chamfer);
+  }
+}
+
+// Tube cross-section in XZ (print frame): the circle, a 45° flat where its
+// front-right quarter would overhang the bed, and a fairing back to the
+// ledge, level with the back plate's outer face so the plate butts into it
+module tube_profile() {
+  hull() {
+    translate([tube_x, tube_z]) circle(d = tube_d);
+    // 45° tangent from the circle's lower right to the bed
+    translate([tube_x + tube_d / 2 * (sqrt(2) - 1), 0]) square(eps);
+    translate([ledge_x - eps, 0]) square([eps, plate_back_z]);
+  }
+}
+
+module tube_body() {
+  intersection() {
+    rotate([90, 0, 0]) translate([0, 0, -case_w]) linear_extrude(case_w) tube_profile();
+    front_chamfer_ends(ledge_x - 1, case_l + 1, tube_d);
+  }
+}
+
+// Bore along Y, a teardrop peaked toward the back (up as the frame prints),
+// flat-topped at bore_top_z so the tube's back keeps its skin
+module bore(d, y0, y1) {
+  translate([tube_x, y1, 0]) rotate([90, 0, 0]) linear_extrude(y1 - y0)
+    intersection() {
+      hull() {
+        translate([0, tube_z]) circle(d = d);
+        translate([0, tube_z + d / 2 * sqrt(2)]) square(eps, center = true);
+      }
+      translate([-d, 0]) square([2 * d, bore_top_z]);
+    }
 }
 
 // Print frame: front face on the bed, z up = into the device
 module shell() {
   difference() {
     union() {
-      body(0, bay_wall_x, kobo_back_z);
-      body(bay_wall_x, case_l, bay_back_z);
+      frame_body();
+      tube_body();
     }
     // Kobo pocket
     translate([pocket_x0, pocket_y0, front_thickness])
@@ -164,43 +218,34 @@ module shell() {
                pocket_y0 + tolerance + screen_bottom - window_margin, -1])
       cube([screen_width + 2 * window_margin, screen_height + 2 * window_margin,
             front_thickness + 2]);
-    bay_cavity();
+    bore(recess_d, recess_y0, case_w + 1);
+    translate([tube_x, panel_y0 - 1, tube_z]) rotate([-90, 0, 0])
+      cylinder(d = sma_hole, h = sma_panel + 2);
+    bore(pigtail_bore, -1, panel_y0);
     usb_window_cut();
     button_trough_cut();
-    sma_hole_cut();
     for (p = back_screws) translate([p[0], p[1], kobo_back_z - 9])
       cylinder(d = pilot_d, h = 10);
-    for (p = lid_screws) translate([p[0], p[1], bay_back_z - 10])
-      cylinder(d = pilot_d, h = 11);
   }
 }
 
-module bay_cavity() {
-  difference() {
-    translate([bay_x0, wall, front_thickness])
-      cube([bay_width, case_w - 2 * wall, bay_back_z]);
-    for (p = lid_screws) translate([p[0], p[1], 0]) {
-      cylinder(d = boss_d, h = bay_back_z + 1);
-      // fill the corner behind the boss
-      translate([p[0] < (bay_x0 + bay_x1) / 2 ? -boss_d : 0, p[1] < case_w / 2 ? -boss_d : 0, 0])
-        cube([boss_d, boss_d, bay_back_z + 1]);
-    }
-  }
-}
-
-// Micro USB window through the divider, roof peaked at 45° for the print
+// Micro USB window from the Kobo's edge out through the tube's right side.
+// Its roof peaks at 45° for the print, flat-topped under the tube's skin
 module usb_window_cut() {
   w = usb_window;
   translate([pocket_x1 - 1, usb_case_y, 0]) rotate([90, 0, 90])
-    linear_extrude(divider_ledge + divider_wall + 2)
-      hull() {
-        translate([-w / 2, front_thickness]) square([w, pocket_t]);
-        translate([0, kobo_back_z + w / 2]) square(eps, center = true);
+    linear_extrude(case_l - pocket_x1 + 2)
+      intersection() {
+        hull() {
+          translate([-w / 2, front_thickness]) square([w, pocket_t]);
+          translate([0, kobo_back_z + w / 2]) square(eps, center = true);
+        }
+        translate([-w, 0]) square([2 * w, bore_top_z]);
       }
 }
 
 // The power button: cut the lip back 3 mm over the Kobo's edge, and slope
-// the divider away at 45° from the button down to the front face
+// the frame away at 45° from the button down to the front face
 module button_trough_cut() {
   a = button_apex_z;
   translate([0, button_case_y + button_trough / 2, 0]) rotate([90, 0, 0])
@@ -208,22 +253,6 @@ module button_trough_cut() {
       polygon([[pocket_x1 - 3, -1], [pocket_x1 - 3, front_thickness + eps],
                [pocket_x1, front_thickness + eps], [pocket_x1, a],
                [pocket_x1 + a + 1, -1]]);
-}
-
-// Hole along Y through the top wall, a teardrop peaked toward the back
-// (up as the shell prints)
-module sma_hole_cut() {
-  translate([sma_x, case_w - wall - 1, sma_z]) rotate([-90, 0, 0])
-    linear_extrude(wall + 2) teardrop_2d(sma_hole / 2);
-}
-
-// 2D in the XY of the rotated frame above: rotate([-90,0,0]) sends +Y to -Z,
-// so the peak points along -Y here to end up along +Z
-module teardrop_2d(r) {
-  hull() {
-    circle(r);
-    translate([0, -r * sqrt(2)]) square(eps, center = true);
-  }
 }
 
 module counterbored_holes(points, h) {
@@ -237,9 +266,9 @@ module counterbored_holes(points, h) {
 module back_plate() {
   difference() {
     union() {
-      linear_extrude(plate_thickness) outline_span(0, bay_wall_x);
+      linear_extrude(plate_thickness) frame_outline(ledge_x);
       linear_extrude(pad_h) intersection() {
-        outline_span(0, bay_wall_x);
+        frame_outline(ledge_x);
         for (p = back_screws) translate(p) circle(d = pad_d);
       }
     }
@@ -247,23 +276,9 @@ module back_plate() {
   }
 }
 
-module bay_lid() {
-  difference() {
-    union() {
-      linear_extrude(lid_thickness) outline_span(bay_wall_x, case_l);
-      linear_extrude(pad_h) intersection() {
-        outline_span(bay_wall_x, case_l);
-        for (p = lid_screws) translate(p) circle(d = pad_d);
-      }
-    }
-    counterbored_holes(lid_screws, pad_h);
-  }
-}
-
 // Assembly: print frame mirrored in Z, so the front face is at z = 0, facing +Z
 module shell_assembled() { mirror([0, 0, 1]) shell(); }
 module back_plate_assembled() { translate([0, 0, -kobo_back_z]) mirror([0, 0, 1]) back_plate(); }
-module bay_lid_assembled() { translate([0, 0, -bay_back_z]) mirror([0, 0, 1]) bay_lid(); }
 
 // Reference: the Kobo and an SMA bulkhead with a stub of antenna
 module kobo() {
@@ -279,16 +294,9 @@ module kobo_screen() {
 }
 
 module sma_antenna() {
-  translate([sma_x, case_w - wall - 6, -sma_z]) rotate([-90, 0, 0]) {
-    cylinder(d = 6.35, h = 6 + wall + 8);
-    translate([0, 0, 6 + wall]) cylinder(d = 9.2, h = 6, $fn = 6);
-    translate([0, 0, 6 + wall + 7]) cylinder(d = 10, h = 40);
+  translate([tube_x, panel_y0 - 8, -tube_z]) rotate([-90, 0, 0]) {
+    cylinder(d = 6.35, h = 8 + sma_panel + 8);
+    translate([0, 0, 8 + sma_panel]) cylinder(d = 9.2, h = 2.5, $fn = 6);
+    translate([0, 0, 8 + sma_panel + 4]) cylinder(d = 9.5, h = 60);
   }
-}
-
-// The back plate and the bay lid in print orientation, side by side on one bed
-module covers_layout() {
-  back_plate();
-  translate([case_w, case_w + 5, 0]) rotate([0, 0, 90])
-    translate([-bay_wall_x, 0, 0]) bay_lid();
 }

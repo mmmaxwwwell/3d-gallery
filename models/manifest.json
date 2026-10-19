@@ -777,7 +777,7 @@
       "slug": "kobo-meshcore-case",
       "devOnly": true,
       "title": "Kobo Clara HD MeshCore Case",
-      "description": "A prototype case that turns a Kobo Clara HD into a MeshCore handheld. The Kobo sits in landscape in a frame that lips over its bezel; on the right a 24 mm-thick grip bay holds the nRF board, LoRa radio and battery, and an SMA bulkhead stands straight up out of the bay's top wall for the antenna. The Kobo's bottom edge faces the bay: its micro USB opens into the bay through a window, and its power button sits at the bottom of a 45° trough in the front. Three PETG pieces, held with eight M3 cap screws: the frame prints face down, the back plate and bay lid flat. Kobo dimensions are Kobo's spec; the screen, button and port positions are estimated from Kobo's drawing and need checking against the device. Not yet printed.",
+      "description": "A slim prototype case that turns a Kobo Clara HD into a MeshCore handheld. The Kobo sits in landscape in a frame that lips over its bezel, and a 15 mm tube runs up its right side, flush with the front and standing out at the back. An SMA bulkhead sits on a panel 25 mm down a bore in the tube's top, so the antenna's base is recessed, centred on the tube; the pigtail is pushed up a bore from the tube's bottom end. The Kobo's bottom edge faces the tube: its micro USB comes out through a window across the tube, and its power button sits at the bottom of a 45° trough in the front. Two PETG pieces and four M3 cap screws: the frame prints face down, the back plate flat. 184 × 117 × 15 mm. Kobo dimensions are Kobo's spec; the screen, button and port positions are estimated from Kobo's drawing and need checking against the device. Not yet printed.",
       "filament": [
         { "material": "PETG", "color": "any" }
       ],
@@ -785,34 +785,30 @@
         { "file": "assembled.3mf", "format": "3mf", "label": "Assembled, with the Kobo and SMA", "default": true,
           "legend": [
             { "color": "#3b6fb6", "label": "Frame", "part": "shell.stl" },
-            { "color": "#e8a33d", "label": "Back plate and bay lid", "parts": ["back-plate.stl", "bay-lid.stl"] },
+            { "color": "#e8a33d", "label": "Back plate", "part": "back-plate.stl" },
             { "color": "#9aa0a6", "label": "Kobo Clara HD (reference)" },
             { "color": "#2b2b2b", "label": "Kobo screen (reference)" },
             { "color": "#c9a227", "label": "SMA bulkhead and antenna (reference)" }
           ],
           "components": [
             { "part": "shell.stl", "qty": 1 },
-            { "part": "back-plate.stl", "qty": 1 },
-            { "part": "bay-lid.stl", "qty": 1 }
+            { "part": "back-plate.stl", "qty": 1 }
           ] },
         { "file": "plate-1-shell.3mf", "format": "3mf", "label": "Print plate 1: frame, face down", "plate": true,
           "legend": [ { "color": "#3b6fb6", "label": "Frame", "part": "shell.stl" } ],
           "components": [ { "part": "shell.stl", "qty": 1 } ] },
-        { "file": "plate-2-covers.3mf", "format": "3mf", "label": "Print plate 2: back plate and bay lid", "plate": true,
-          "legend": [ { "color": "#e8a33d", "label": "Back plate and bay lid", "parts": ["back-plate.stl", "bay-lid.stl"] } ],
-          "components": [ { "part": "back-plate.stl", "qty": 1 }, { "part": "bay-lid.stl", "qty": 1 } ] }
+        { "file": "plate-2-back.3mf", "format": "3mf", "label": "Print plate 2: back plate", "plate": true,
+          "legend": [ { "color": "#e8a33d", "label": "Back plate", "part": "back-plate.stl" } ],
+          "components": [ { "part": "back-plate.stl", "qty": 1 } ] }
       ],
       "parts": [
         { "file": "shell.stl", "format": "stl", "label": "Frame — print face down" },
-        { "file": "back-plate.stl", "format": "stl", "label": "Back plate — print inner face down" },
-        { "file": "bay-lid.stl", "format": "stl", "label": "Bay lid — print inner face down" }
+        { "file": "back-plate.stl", "format": "stl", "label": "Back plate — print inner face down" }
       ],
       "hardware": [
         { "qty": 4, "label": "M3x8 socket head cap screw — back plate to the frame",
           "usedBy": [ { "part": "back-plate.stl", "each": 4 } ] },
-        { "qty": 4, "label": "M3x10 socket head cap screw — bay lid to the frame",
-          "usedBy": [ { "part": "bay-lid.stl", "each": 4 } ] },
-        { "qty": 1, "label": "SMA female bulkhead pigtail (1/4\"-36 thread) — antenna out of the bay's top wall" }
+        { "qty": 1, "label": "SMA female bulkhead pigtail (1/4\"-36 thread) — antenna out of the tube's top" }
       ]
     },
     {

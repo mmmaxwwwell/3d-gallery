@@ -1,3 +1,3 @@
 include <../lib/kobo-meshcore-case-lib.scad>;
 $fn = 40;
-bay_lid();
+color("#e8a33d") back_plate();
