@@ -201,8 +201,10 @@ describe('pickFilament', () => {
 });
 
 describe('slotColor', () => {
-  it("asks for the 3MF's colour, else the plate's hex or named colour, else grey", () => {
+  it("asks for its hex colour, else the 3MF's colour, else a named colour, else grey", () => {
     expect(slotColor({ material: 'PLA', hexes: ['#ffffff'] })).toBe('#FFFFFF');
+    expect(slotColor({ material: 'PCTG', color: '#057748', hexes: ['#e8a33d'] })).toBe('#057748');
+    expect(slotColor({ material: 'PLA', color: 'black', hexes: ['#222222'] })).toBe('#222222');
     expect(slotColor({ material: 'PCTG', color: '#161616', hexes: [] })).toBe('#161616');
     expect(slotColor({ material: 'PLA', color: 'black', hexes: [] })).toBe('#000000');
     expect(slotColor({ material: 'PLA', hexes: [] })).toBe('#808080');
@@ -210,5 +212,11 @@ describe('slotColor', () => {
 
   it('keeps a plain plate\'s colour', () => {
     expect(plateSlots({ ...plate('h', 'PCTG'), color: '#161616' })).toEqual([{ material: 'PCTG', color: '#161616', hexes: [] }]);
+  });
+
+  it("lets a one-filament model plate's own material and colour win over its 3MF's", () => {
+    const lids = { ...plate('l', 'PCTG'), color: '#057748', filaments: [{ material: 'PETG', hexes: ['#e8a33d'] }] };
+    expect(plateSlots(lids)).toEqual([{ material: 'PCTG', color: '#057748', hexes: ['#e8a33d'] }]);
+    expect(slotColor(plateSlots(lids)[0])).toBe('#057748');
   });
 });

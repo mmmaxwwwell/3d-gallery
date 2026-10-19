@@ -66,6 +66,12 @@ export function gcodeName(number: number, plate: Plate, bambu = false): string {
 
 /** The filaments a plate prints with, one per AMS slot. */
 export function plateSlots(plate: Plate): PlateFilament[] {
+  // On a one-filament plate, a material or colour set on the plate is a pick
+  // of spool, made after the 3MF said what it was designed in.
+  if (plate.filaments?.length === 1) {
+    const [f] = plate.filaments;
+    return [{ ...f, ...(plate.material ? { material: plate.material } : {}), ...(plate.color ? { color: plate.color } : {}) }];
+  }
   if (plate.filaments?.length) return plate.filaments;
   return [{ material: plate.material ?? 'PETG', ...(plate.color ? { color: plate.color } : {}), hexes: [] }];
 }
@@ -76,13 +82,14 @@ const NAMED_COLORS: Record<string, string> = {
 };
 
 /**
- * The `#RRGGBB` a filament slot asks the AMS for: its 3MF colour, else the
- * plate's colour (a hex, or a common name), else grey.
+ * The `#RRGGBB` a filament slot asks the AMS for: its own hex colour, else its
+ * 3MF colour, else a common colour name, else grey.
  */
 export function slotColor(f: PlateFilament): string {
   const color = f.color?.trim();
-  const hex = color && /^#[0-9a-f]{6}$/i.test(color) ? color : color ? NAMED_COLORS[color.toLowerCase()] : undefined;
-  return (f.hexes[0] ?? hex ?? '#808080').toUpperCase();
+  const hex = color && /^#[0-9a-f]{6}$/i.test(color) ? color : undefined;
+  const named = color ? NAMED_COLORS[color.toLowerCase()] : undefined;
+  return (hex ?? f.hexes[0] ?? named ?? '#808080').toUpperCase();
 }
 
 /** Material families a plate prints in. More than one needs a printer with an AMS. */
