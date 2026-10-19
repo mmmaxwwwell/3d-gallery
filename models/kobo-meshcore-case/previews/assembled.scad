@@ -1,9 +1,9 @@
 include <../lib/kobo-meshcore-case-lib.scad>;
 $fn = 40;
-color("#3b6fb6") shell_assembled();
-color("#e8a33d") back_plate_assembled();
-color("#9aa0a6") kobo();
-color("#2b2b2b") kobo_screen();
-color("#5aa469") cell();
-color("#7a3fb0") xiaos();
-color("#c9a227") sma_antenna();
+color("#3b6fb6") upright() shell_assembled();
+color("#e8a33d") upright() back_plate_assembled();
+color("#9aa0a6") upright() kobo();
+color("#2b2b2b") upright() kobo_screen();
+color("#5aa469") upright() cell();
+color("#7a3fb0") upright() xiaos();
+color("#c9a227") upright() sma_antenna();

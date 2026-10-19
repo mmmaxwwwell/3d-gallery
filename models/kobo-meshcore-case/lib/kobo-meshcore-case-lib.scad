@@ -339,6 +339,9 @@ module back_plate() {
 module shell_assembled() { mirror([0, 0, 1]) shell(); }
 module back_plate_assembled() { translate([0, 0, -kobo_back_z]) mirror([0, 0, 1]) back_plate(); }
 
+// The assembly stood up for the preview: antenna up (+Z), screen facing -Y
+module upright() { rotate([90, 0, 0]) children(); }
+
 // Reference: the Kobo, an 18650, two XIAOs, and an SMA bulkhead with a stub
 // of antenna
 module kobo() {
