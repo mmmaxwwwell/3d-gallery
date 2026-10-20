@@ -1,4 +1,4 @@
-include <../lib/kanix-antenna-mounts-lib.scad>;
+include <../lib/antenna-mounts-lib.scad>;
 $fn = 40;
 color("#3b6fb6") in_use() mount();
 color("#c9a227") in_use() jack();

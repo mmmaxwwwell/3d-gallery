@@ -70,6 +70,10 @@ import servoDuctManifoldIris from "../../../models/servo-duct-manifold/previews/
 import latticeMastLib from "../../../models/lattice-mast/lib/lattice-mast-lib.scad?raw";
 import latticeMastAssembled from "../../../models/lattice-mast/previews/assembled.scad?raw";
 import latticeMastJointCutaway from "../../../models/lattice-mast/previews/joint-cutaway.scad?raw";
+import antennaMountsLib from "../../../models/antenna-mounts/lib/antenna-mounts-lib.scad?raw";
+import antennaMountsAssembled from "../../../models/antenna-mounts/previews/assembled.scad?raw";
+import antennaMountsOnMolle from "../../../models/antenna-mounts/previews/on-molle.scad?raw";
+import antennaMountsPlate from "../../../models/antenna-mounts/previews/plate.scad?raw";
 
 // Strip include lines from a .scad source (for WASM concatenation with lib)
 function stripIncludes(source: string): string {
@@ -230,6 +234,14 @@ export const CUSTOMIZABLE_SOURCES: Record<string, { lib: string; previews: Recor
     previews: {
       assembled: stripIncludes(latticeMastAssembled),
       "joint-cutaway": stripIncludes(latticeMastJointCutaway),
+    },
+  },
+  "antenna-mounts": {
+    lib: antennaMountsLib,
+    previews: {
+      assembled: stripIncludes(antennaMountsAssembled),
+      "on-molle": stripIncludes(antennaMountsOnMolle),
+      plate: stripIncludes(antennaMountsPlate),
     },
   },
 };

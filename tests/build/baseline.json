@@ -34,6 +34,196 @@
       ]
     ]
   },
+  "antenna-mounts/n-3x2/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2B2B2BFF",
+      "#3B6FB6FF",
+      "#C9A227FF"
+    ],
+    "triangleCount": 9168,
+    "bbox": [
+      [
+        -32.237,
+        -41.086,
+        -68
+      ],
+      [
+        32.237,
+        0,
+        225
+      ]
+    ]
+  },
+  "antenna-mounts/n-3x2/mount.stl": {
+    "format": "stl",
+    "triangleCount": 8076,
+    "bbox": [
+      [
+        -32.237,
+        -18.987,
+        0
+      ],
+      [
+        32.237,
+        18.987,
+        41.086
+      ]
+    ]
+  },
+  "antenna-mounts/n-3x2/on-molle.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2B2B2BFF",
+      "#3B6FB6FF",
+      "#6B7A3AFF",
+      "#C9A227FF"
+    ],
+    "triangleCount": 10182,
+    "bbox": [
+      [
+        -32.25,
+        -41.086,
+        -68
+      ],
+      [
+        32.25,
+        4,
+        225
+      ]
+    ]
+  },
+  "antenna-mounts/n-3x2/plate.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#3B6FB6FF"
+    ],
+    "triangleCount": 8132,
+    "bbox": [
+      [
+        -32.237,
+        -18.987,
+        0
+      ],
+      [
+        32.237,
+        18.987,
+        41.086
+      ]
+    ]
+  },
+  "antenna-mounts/sma-1x2/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2B2B2BFF",
+      "#3B6FB6FF",
+      "#C9A227FF"
+    ],
+    "triangleCount": 8090,
+    "bbox": [
+      [
+        -13.187,
+        -23.586,
+        -66.5
+      ],
+      [
+        13.187,
+        0,
+        130
+      ]
+    ]
+  },
+  "antenna-mounts/sma-1x2/mount.stl": {
+    "format": "stl",
+    "triangleCount": 7262,
+    "bbox": [
+      [
+        -13.187,
+        -18.987,
+        0
+      ],
+      [
+        13.187,
+        18.987,
+        23.586
+      ]
+    ]
+  },
+  "antenna-mounts/sma-1x2/plate.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#3B6FB6FF"
+    ],
+    "triangleCount": 7288,
+    "bbox": [
+      [
+        -13.187,
+        -18.987,
+        0
+      ],
+      [
+        13.187,
+        18.987,
+        23.586
+      ]
+    ]
+  },
+  "antenna-mounts/sma-1x3/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2B2B2BFF",
+      "#3B6FB6FF",
+      "#C9A227FF"
+    ],
+    "triangleCount": 8444,
+    "bbox": [
+      [
+        -13.187,
+        -23.586,
+        -73.55
+      ],
+      [
+        13.187,
+        0,
+        137.05
+      ]
+    ]
+  },
+  "antenna-mounts/sma-1x3/mount.stl": {
+    "format": "stl",
+    "triangleCount": 7578,
+    "bbox": [
+      [
+        -13.187,
+        -26.037,
+        0
+      ],
+      [
+        13.187,
+        26.037,
+        23.586
+      ]
+    ]
+  },
+  "antenna-mounts/sma-1x3/plate.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#3B6FB6FF"
+    ],
+    "triangleCount": 7600,
+    "bbox": [
+      [
+        -13.187,
+        -26.037,
+        0
+      ],
+      [
+        13.187,
+        26.037,
+        23.586
+      ]
+    ]
+  },
   "collar-slide-tag/multicolor.3mf": {
     "format": "3mf",
     "colors": [
@@ -1580,196 +1770,6 @@
         42.39,
         105.3,
         21.4
-      ]
-    ]
-  },
-  "kanix-antenna-mounts/n-3x2/assembled.3mf": {
-    "format": "3mf",
-    "colors": [
-      "#2B2B2BFF",
-      "#3B6FB6FF",
-      "#C9A227FF"
-    ],
-    "triangleCount": 7158,
-    "bbox": [
-      [
-        -26.037,
-        -36.684,
-        -30
-      ],
-      [
-        26.037,
-        0,
-        225
-      ]
-    ]
-  },
-  "kanix-antenna-mounts/n-3x2/mount.stl": {
-    "format": "stl",
-    "triangleCount": 5820,
-    "bbox": [
-      [
-        -26.037,
-        -18.987,
-        0
-      ],
-      [
-        26.037,
-        18.987,
-        36.684
-      ]
-    ]
-  },
-  "kanix-antenna-mounts/n-3x2/on-molle.3mf": {
-    "format": "3mf",
-    "colors": [
-      "#2B2B2BFF",
-      "#3B6FB6FF",
-      "#6B7A3AFF",
-      "#C9A227FF"
-    ],
-    "triangleCount": 8046,
-    "bbox": [
-      [
-        -32.25,
-        -36.684,
-        -54.625
-      ],
-      [
-        32.25,
-        4,
-        225
-      ]
-    ]
-  },
-  "kanix-antenna-mounts/n-3x2/plate.3mf": {
-    "format": "3mf",
-    "colors": [
-      "#3B6FB6FF"
-    ],
-    "triangleCount": 6012,
-    "bbox": [
-      [
-        -26.037,
-        -18.987,
-        0
-      ],
-      [
-        26.037,
-        18.987,
-        36.684
-      ]
-    ]
-  },
-  "kanix-antenna-mounts/sma-1x2/assembled.3mf": {
-    "format": "3mf",
-    "colors": [
-      "#2B2B2BFF",
-      "#3B6FB6FF",
-      "#C9A227FF"
-    ],
-    "triangleCount": 5296,
-    "bbox": [
-      [
-        -6.987,
-        -24.425,
-        -26.5
-      ],
-      [
-        6.987,
-        0,
-        130
-      ]
-    ]
-  },
-  "kanix-antenna-mounts/sma-1x2/mount.stl": {
-    "format": "stl",
-    "triangleCount": 4756,
-    "bbox": [
-      [
-        -6.987,
-        -18.987,
-        0
-      ],
-      [
-        6.987,
-        18.987,
-        24.425
-      ]
-    ]
-  },
-  "kanix-antenna-mounts/sma-1x2/plate.3mf": {
-    "format": "3mf",
-    "colors": [
-      "#3B6FB6FF"
-    ],
-    "triangleCount": 4646,
-    "bbox": [
-      [
-        -6.987,
-        -18.987,
-        0
-      ],
-      [
-        6.987,
-        18.987,
-        24.425
-      ]
-    ]
-  },
-  "kanix-antenna-mounts/sma-1x3/assembled.3mf": {
-    "format": "3mf",
-    "colors": [
-      "#2B2B2BFF",
-      "#3B6FB6FF",
-      "#C9A227FF"
-    ],
-    "triangleCount": 6020,
-    "bbox": [
-      [
-        -6.987,
-        -24.425,
-        -26.037
-      ],
-      [
-        6.987,
-        0,
-        137.05
-      ]
-    ]
-  },
-  "kanix-antenna-mounts/sma-1x3/mount.stl": {
-    "format": "stl",
-    "triangleCount": 5224,
-    "bbox": [
-      [
-        -6.987,
-        -26.037,
-        0
-      ],
-      [
-        6.987,
-        26.037,
-        24.425
-      ]
-    ]
-  },
-  "kanix-antenna-mounts/sma-1x3/plate.3mf": {
-    "format": "3mf",
-    "colors": [
-      "#3B6FB6FF"
-    ],
-    "triangleCount": 5320,
-    "bbox": [
-      [
-        -6.987,
-        -26.037,
-        0
-      ],
-      [
-        6.987,
-        26.037,
-        24.425
       ]
     ]
   },
