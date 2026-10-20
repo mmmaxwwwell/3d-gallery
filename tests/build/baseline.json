@@ -1583,6 +1583,196 @@
       ]
     ]
   },
+  "kanix-antenna-mounts/n-3x2/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2B2B2BFF",
+      "#3B6FB6FF",
+      "#C9A227FF"
+    ],
+    "triangleCount": 7158,
+    "bbox": [
+      [
+        -26.037,
+        -36.684,
+        -30
+      ],
+      [
+        26.037,
+        0,
+        225
+      ]
+    ]
+  },
+  "kanix-antenna-mounts/n-3x2/mount.stl": {
+    "format": "stl",
+    "triangleCount": 5820,
+    "bbox": [
+      [
+        -26.037,
+        -18.987,
+        0
+      ],
+      [
+        26.037,
+        18.987,
+        36.684
+      ]
+    ]
+  },
+  "kanix-antenna-mounts/n-3x2/on-molle.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2B2B2BFF",
+      "#3B6FB6FF",
+      "#6B7A3AFF",
+      "#C9A227FF"
+    ],
+    "triangleCount": 8046,
+    "bbox": [
+      [
+        -32.25,
+        -36.684,
+        -54.625
+      ],
+      [
+        32.25,
+        4,
+        225
+      ]
+    ]
+  },
+  "kanix-antenna-mounts/n-3x2/plate.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#3B6FB6FF"
+    ],
+    "triangleCount": 6012,
+    "bbox": [
+      [
+        -26.037,
+        -18.987,
+        0
+      ],
+      [
+        26.037,
+        18.987,
+        36.684
+      ]
+    ]
+  },
+  "kanix-antenna-mounts/sma-1x2/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2B2B2BFF",
+      "#3B6FB6FF",
+      "#C9A227FF"
+    ],
+    "triangleCount": 5296,
+    "bbox": [
+      [
+        -6.987,
+        -24.425,
+        -26.5
+      ],
+      [
+        6.987,
+        0,
+        130
+      ]
+    ]
+  },
+  "kanix-antenna-mounts/sma-1x2/mount.stl": {
+    "format": "stl",
+    "triangleCount": 4756,
+    "bbox": [
+      [
+        -6.987,
+        -18.987,
+        0
+      ],
+      [
+        6.987,
+        18.987,
+        24.425
+      ]
+    ]
+  },
+  "kanix-antenna-mounts/sma-1x2/plate.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#3B6FB6FF"
+    ],
+    "triangleCount": 4646,
+    "bbox": [
+      [
+        -6.987,
+        -18.987,
+        0
+      ],
+      [
+        6.987,
+        18.987,
+        24.425
+      ]
+    ]
+  },
+  "kanix-antenna-mounts/sma-1x3/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2B2B2BFF",
+      "#3B6FB6FF",
+      "#C9A227FF"
+    ],
+    "triangleCount": 6020,
+    "bbox": [
+      [
+        -6.987,
+        -24.425,
+        -26.037
+      ],
+      [
+        6.987,
+        0,
+        137.05
+      ]
+    ]
+  },
+  "kanix-antenna-mounts/sma-1x3/mount.stl": {
+    "format": "stl",
+    "triangleCount": 5224,
+    "bbox": [
+      [
+        -6.987,
+        -26.037,
+        0
+      ],
+      [
+        6.987,
+        26.037,
+        24.425
+      ]
+    ]
+  },
+  "kanix-antenna-mounts/sma-1x3/plate.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#3B6FB6FF"
+    ],
+    "triangleCount": 5320,
+    "bbox": [
+      [
+        -6.987,
+        -26.037,
+        0
+      ],
+      [
+        6.987,
+        26.037,
+        24.425
+      ]
+    ]
+  },
   "lattice-mast/assembled.3mf": {
     "format": "3mf",
     "colors": [

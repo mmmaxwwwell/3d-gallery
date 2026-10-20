@@ -4039,6 +4039,100 @@
           "label": "915 MHz antenna, N male (ALFA AOA-915-5ACM)"
         }
       ]
+    },
+    {
+      "slug": "kanix-antenna-mounts",
+      "title": "Kanix Antenna Mounts",
+      "description": "Holds the bulkhead jack at the end of an antenna extension cable facing up on a Kanix clip, so the antenna stands on top of it. The jack goes up through a shelf across the top of a bolt pad; its nut tightens on top, and its body and cable hang below between two gussets that tie the shelf to the pad. A zip tie through the pad holds the cable. The SMA mount is one bolt column, 1×2 (a 1×2 or 1×4 Kanix MOLLE clip) or 1×3 (a 1×3 or 1×4), and pockets the jack's hex so it can't turn. The N mount is a 3×2 Kanix pattern: two 1×4 MOLLE clips on its outer columns, one PALS channel (38.1 mm) apart, or a 3×2 Kanix belt clip. M5×10 screws, PCTG, every edge rounded, no supports. Connector sizes are from other gallery models, not measured on these cables. Not yet printed.",
+      "filament": [
+        { "material": "PCTG", "color": "any" }
+      ],
+      "printProfile": { "material": "PCTG", "walls": 6, "infillDensity": 40 },
+      "builds": [
+        { "id": "sma-1x2", "label": "SMA 1×2", "default": true, "params": { "connector": "sma", "kanix_cols": 1, "kanix_rows": 2 },
+          "previews": [
+            { "file": "assembled.3mf", "format": "3mf", "label": "SMA jack and a stub antenna on the mount", "default": true,
+              "legend": [
+                { "color": "#3b6fb6", "label": "Mount", "part": "mount.stl" },
+                { "color": "#c9a227", "label": "SMA bulkhead jack and nut (reference)" },
+                { "color": "#2b2b2b", "label": "Stub antenna (reference)" }
+              ],
+              "components": [ { "part": "mount.stl", "qty": 1 } ] },
+            { "file": "plate.3mf", "format": "3mf", "label": "Print plate (PCTG): the mount, pad down", "plate": true,
+              "legend": [ { "color": "#3b6fb6", "label": "Mount", "part": "mount.stl" } ],
+              "components": [ { "part": "mount.stl", "qty": 1 } ] }
+          ],
+          "parts": [
+            { "file": "mount.stl", "format": "stl", "label": "SMA mount, 1×2 — print pad down" }
+          ],
+          "hardware": [
+            { "qty": 2, "label": "M5x10 button head screw — Kanix clip to the mount's pad",
+              "usedBy": [ { "part": "mount.stl", "each": 2 } ] },
+            { "qty": 1, "label": "Kanix MOLLE clip, 1x2 wide (26.4 mm) — printed from the Kanix repo (scad/plates/molle_clip_1x2_60x2_wide.scad), or a 1x4 (molle_clip_1x4_60x2.scad) on two of its four holes",
+              "usedBy": [ { "part": "mount.stl", "each": 1 } ] },
+            { "qty": 1, "label": "SMA female bulkhead extension cable (1/4\"-36 thread, 8 mm hex, nut) — through the shelf, facing up",
+              "usedBy": [ { "part": "mount.stl", "each": 1 } ] },
+            { "qty": 1, "label": "Zip tie, up to 3.6 mm wide — the cable through the pad's tunnel" }
+          ] },
+        { "id": "sma-1x3", "label": "SMA 1×3", "params": { "connector": "sma", "kanix_cols": 1, "kanix_rows": 3 },
+          "previews": [
+            { "file": "assembled.3mf", "format": "3mf", "label": "SMA jack and a stub antenna on the mount", "default": true,
+              "legend": [
+                { "color": "#3b6fb6", "label": "Mount", "part": "mount.stl" },
+                { "color": "#c9a227", "label": "SMA bulkhead jack and nut (reference)" },
+                { "color": "#2b2b2b", "label": "Stub antenna (reference)" }
+              ],
+              "components": [ { "part": "mount.stl", "qty": 1 } ] },
+            { "file": "plate.3mf", "format": "3mf", "label": "Print plate (PCTG): the mount, pad down", "plate": true,
+              "legend": [ { "color": "#3b6fb6", "label": "Mount", "part": "mount.stl" } ],
+              "components": [ { "part": "mount.stl", "qty": 1 } ] }
+          ],
+          "parts": [
+            { "file": "mount.stl", "format": "stl", "label": "SMA mount, 1×3 — print pad down" }
+          ],
+          "hardware": [
+            { "qty": 3, "label": "M5x10 button head screw — Kanix clip to the mount's pad",
+              "usedBy": [ { "part": "mount.stl", "each": 3 } ] },
+            { "qty": 1, "label": "Kanix MOLLE clip, 1x3 wide (26.4 mm) — printed from the Kanix repo (scad/plates/molle_clip_1x3_60x2_wide.scad), or a 1x4 (molle_clip_1x4_60x2.scad) on three of its four holes",
+              "usedBy": [ { "part": "mount.stl", "each": 1 } ] },
+            { "qty": 1, "label": "SMA female bulkhead extension cable (1/4\"-36 thread, 8 mm hex, nut) — through the shelf, facing up",
+              "usedBy": [ { "part": "mount.stl", "each": 1 } ] },
+            { "qty": 1, "label": "Zip tie, up to 3.6 mm wide — the cable through the pad's tunnel" }
+          ] },
+        { "id": "n-3x2", "label": "N 3×2", "params": { "connector": "n", "kanix_cols": 3, "kanix_rows": 2 },
+          "previews": [
+            { "file": "assembled.3mf", "format": "3mf", "label": "N jack and an ALFA AOA-915-5ACM on the mount", "default": true,
+              "legend": [
+                { "color": "#3b6fb6", "label": "Mount", "part": "mount.stl" },
+                { "color": "#c9a227", "label": "N bulkhead jack and nut (reference)" },
+                { "color": "#2b2b2b", "label": "ALFA AOA-915-5ACM antenna (reference)" }
+              ],
+              "components": [ { "part": "mount.stl", "qty": 1 } ] },
+            { "file": "on-molle.3mf", "format": "3mf", "label": "On two 1×4 MOLLE clips, one PALS channel apart, on their top two holes",
+              "legend": [
+                { "color": "#3b6fb6", "label": "Mount", "part": "mount.stl" },
+                { "color": "#c9a227", "label": "N bulkhead jack and nut (reference)" },
+                { "color": "#2b2b2b", "label": "ALFA AOA-915-5ACM antenna (reference)" },
+                { "color": "#6b7a3a", "label": "Kanix 1x4 MOLLE clips, plates only (reference)" }
+              ],
+              "components": [ { "part": "mount.stl", "qty": 1 } ] },
+            { "file": "plate.3mf", "format": "3mf", "label": "Print plate (PCTG): the mount, pad down", "plate": true,
+              "legend": [ { "color": "#3b6fb6", "label": "Mount", "part": "mount.stl" } ],
+              "components": [ { "part": "mount.stl", "qty": 1 } ] }
+          ],
+          "parts": [
+            { "file": "mount.stl", "format": "stl", "label": "N mount, 3×2 — print pad down" }
+          ],
+          "hardware": [
+            { "qty": 4, "label": "M5x10 button head screw — two per MOLLE clip into the outer columns (6, one per hole, on a 3x2 Kanix belt clip)",
+              "usedBy": [ { "part": "mount.stl", "each": 4 } ] },
+            { "qty": 2, "label": "Kanix MOLLE clip, 1x4 wide (26.4 mm) — printed from the Kanix repo (scad/plates/molle_clip_1x4_60x2.scad), one per outer column on two of its four holes; or one 3x2 Kanix belt clip instead",
+              "usedBy": [ { "part": "mount.stl", "each": 2 } ] },
+            { "qty": 1, "label": "N female bulkhead extension cable (5/8\"-24 UNEF thread, 3/4\" nut, O-ring) — through the shelf, facing up",
+              "usedBy": [ { "part": "mount.stl", "each": 1 } ] },
+            { "qty": 1, "label": "Zip tie, up to 3.6 mm wide — the cable through the pad's tunnel" }
+          ] }
+      ]
     }
   ]
 }
