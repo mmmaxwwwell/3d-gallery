@@ -1,6 +1,6 @@
 # pouch-comms-module
 
-A box for a backpack side pouch: power bank, Franklin T9 (the "modem"), Pi Zero 2 W, Heltec HT-HC33, Heltec V4, two FR120N MOSFET modules. devOnly, unprinted.
+A box for a backpack side pouch: power bank, Franklin T9 (the "modem"), Pi Zero 2 W, Heltec HT-HC33, Heltec V4, two FR120N MOSFET modules. Published, unprinted.
 
 ## The user's brief (2026-10-20)
 
@@ -77,4 +77,4 @@ A box for a backpack side pouch: power bank, Franklin T9 (the "modem"), Pi Zero 
   - clamps with the T9 (they rest on its face), the boards, the FR120Ns and the lid;
   - FR120Ns with the T9, the boards and the lid;
   - boards with the bank and the T9.
-- Renders through the dev server's forge (devOnly, so `npm run build:model` skips it), and each part renders on its own with OpenSCAD (Manifold).
+- Each part renders on its own with OpenSCAD (Manifold).

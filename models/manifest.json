@@ -448,7 +448,6 @@
     },
     {
       "slug": "property-sign",
-      "devOnly": true,
       "title": "Private Property Sign",
       "description": "Three-color property warning sign — white plate with the text recessed and inlaid flush (no relief): \"Private Property\" and \"No Trespassing\" in red, the rest in black. The plate auto-sizes to fit the text. Prints as a single multi-material job.",
       "previews": [
@@ -490,7 +489,6 @@
     },
     {
       "slug": "hex-bit-holder",
-      "devOnly": true,
       "title": "1/4\" Hex Bit Holder",
       "description": "A rounded-edge block with blind hexagonal holes (closed bottom, 1mm base) that grip 1/4\" hex-shank driver bits by friction. 12mm tall with graduated internal grip bumps on all six flats. Sized for 0.25mm fit clearance in 64D TPU. Available in 3–10 hole sizes on 15mm spacing.",
       "filament": [
@@ -541,7 +539,6 @@
     },
     {
       "slug": "ff5m-filament-sensor",
-      "devOnly": true,
       "title": "Flashforge Adventurer 5M Filament Sensor",
       "description": "Ball-plunger filament runout sensor for the Flashforge Adventurer 5M. Two-piece 64D TPU: a body that slips over the 7 mm print-head boss (held by one M3 self-tapping screw), and a cap that mounts a D2F-01F pin-plunger microswitch with two M2 screws which also fasten the switch through its own mount holes. A ball bearing rides in a 40°-tilted pocket tangent to the 1.75 mm filament surface and drops 0.65 mm when filament runs out, releasing the switch. Top of the body accepts a 4 mm-OD PTFE tube (12 mm grip) with a 45° funnel down to the filament bore.",
       "customizable": true,
@@ -742,40 +739,390 @@
     },
     {
       "slug": "meshology-l1-holster",
-      "devOnly": true,
       "title": "Meshology L1 Holster",
-      "description": "A TPU holster for the Meshology L1 Meshtastic radio. The radio slides down into an eight-sided channel shaped like its body: solid back, sides and floor, open top, and a big cutout in the front so you can see and use the controls. The front walls reach 8 mm in from each side to hold it, and tabs over the top back edge lock it in. A pad on the back takes a 2x3 Kanix belt clip on six M5 screws. A desk stand cut from the same pocket holds the radio up, leaning back, with room to plug in a USB-C cable.",
+      "description": "A TPU holster for the Meshology L1 Meshtastic radio. The radio slides down into an eight-sided channel shaped like its body: solid back, sides and floor, open top, and a big cutout in the front so you can see and use the controls. The front walls reach 8 mm in from each side to hold it, and tabs over the top back edge lock it in. A pad on the back takes a Kanix bolt grid on M5 screws: 3×2 for the Kanix belt clip, or 2×2, 2×3 or 3×3 to carry one 18 mm Kanix MOLLE clip per column. A desk stand cut from the same pocket holds the radio up, leaning back, with room to plug in a USB-C cable.",
       "filament": [
-        { "material": "TPU 64D", "color": "any", "parts": ["holster.stl"] },
-        { "material": "PETG", "color": "any", "parts": ["desk-stand.stl"] }
-      ],
-      "previews": [
-        { "file": "assembled.3mf", "format": "3mf", "label": "Radio seated in the holster", "default": true,
-          "legend": [
-            { "color": "#2f7fd8", "label": "Holster", "part": "holster.stl" },
-            { "color": "#9aa0a6", "label": "Meshology L1 (reference)" }
-          ],
-          "components": [ { "part": "holster.stl", "qty": 1 } ]
+        {
+          "material": "TPU 64D",
+          "color": "any",
+          "parts": [
+            "holster.stl"
+          ]
         },
-        { "file": "desk-stand-assembled.3mf", "format": "3mf", "label": "Radio in the desk stand",
-          "legend": [
-            { "color": "#e8a33d", "label": "Desk stand", "part": "desk-stand.stl" },
-            { "color": "#9aa0a6", "label": "Meshology L1 (reference)" }
-          ],
-          "components": [ { "part": "desk-stand.stl", "qty": 1 } ]
+        {
+          "material": "PETG",
+          "color": "any",
+          "parts": [
+            "desk-stand.stl"
+          ]
         }
       ],
-      "parts": [
-        { "file": "holster.stl", "format": "stl", "label": "Holster — print standing on its floor, open top up" },
-        { "file": "desk-stand.stl", "format": "stl", "label": "Desk stand — print standing on its base" }
-      ],
-      "hardware": [
-        { "qty": 6, "label": "M5x10 button head screw \u2014 Kanix belt clip to the holster's back pad", "usedBy": [ { "part": "holster.stl", "each": 6 } ] }
+      "builds": [
+        {
+          "id": "3x2",
+          "label": "3×2 grid",
+          "default": true,
+          "params": {
+            "kanix_cols": 3,
+            "kanix_rows": 2,
+            "kanix_margin": 7
+          },
+          "previews": [
+            {
+              "file": "assembled.3mf",
+              "format": "3mf",
+              "label": "Radio seated in the holster",
+              "default": true,
+              "legend": [
+                {
+                  "color": "#2f7fd8",
+                  "label": "Holster",
+                  "part": "holster.stl"
+                },
+                {
+                  "color": "#9aa0a6",
+                  "label": "Meshology L1 (reference)"
+                }
+              ],
+              "components": [
+                {
+                  "part": "holster.stl",
+                  "qty": 1
+                }
+              ]
+            },
+            {
+              "file": "desk-stand-assembled.3mf",
+              "format": "3mf",
+              "label": "Radio in the desk stand",
+              "legend": [
+                {
+                  "color": "#e8a33d",
+                  "label": "Desk stand",
+                  "part": "desk-stand.stl"
+                },
+                {
+                  "color": "#9aa0a6",
+                  "label": "Meshology L1 (reference)"
+                }
+              ],
+              "components": [
+                {
+                  "part": "desk-stand.stl",
+                  "qty": 1
+                }
+              ]
+            }
+          ],
+          "parts": [
+            {
+              "file": "holster.stl",
+              "format": "stl",
+              "label": "Holster — print standing on its floor, open top up"
+            },
+            {
+              "file": "desk-stand.stl",
+              "format": "stl",
+              "label": "Desk stand — print standing on its base"
+            }
+          ],
+          "hardware": [
+            {
+              "qty": 6,
+              "label": "M5x10 button head screw — Kanix clip to the holster's back pad",
+              "usedBy": [
+                {
+                  "part": "holster.stl",
+                  "each": 6
+                }
+              ]
+            },
+            {
+              "qty": 3,
+              "label": "Kanix MOLLE clip, 1x2 (18 mm wide) — printed from the Kanix repo (scad/plates/molle_clip_1x2_60x2.scad), one per bolt column",
+              "usedBy": [
+                {
+                  "part": "holster.stl",
+                  "each": 3
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "2x2",
+          "label": "2×2 grid",
+          "params": {
+            "kanix_cols": 2,
+            "kanix_rows": 2,
+            "kanix_margin": 7
+          },
+          "previews": [
+            {
+              "file": "assembled.3mf",
+              "format": "3mf",
+              "label": "Radio seated in the holster",
+              "default": true,
+              "legend": [
+                {
+                  "color": "#2f7fd8",
+                  "label": "Holster",
+                  "part": "holster.stl"
+                },
+                {
+                  "color": "#9aa0a6",
+                  "label": "Meshology L1 (reference)"
+                }
+              ],
+              "components": [
+                {
+                  "part": "holster.stl",
+                  "qty": 1
+                }
+              ]
+            },
+            {
+              "file": "desk-stand-assembled.3mf",
+              "format": "3mf",
+              "label": "Radio in the desk stand",
+              "legend": [
+                {
+                  "color": "#e8a33d",
+                  "label": "Desk stand",
+                  "part": "desk-stand.stl"
+                },
+                {
+                  "color": "#9aa0a6",
+                  "label": "Meshology L1 (reference)"
+                }
+              ],
+              "components": [
+                {
+                  "part": "desk-stand.stl",
+                  "qty": 1
+                }
+              ]
+            }
+          ],
+          "parts": [
+            {
+              "file": "holster.stl",
+              "format": "stl",
+              "label": "Holster — print standing on its floor, open top up"
+            },
+            {
+              "file": "desk-stand.stl",
+              "format": "stl",
+              "label": "Desk stand — print standing on its base"
+            }
+          ],
+          "hardware": [
+            {
+              "qty": 4,
+              "label": "M5x10 button head screw — Kanix clip to the holster's back pad",
+              "usedBy": [
+                {
+                  "part": "holster.stl",
+                  "each": 4
+                }
+              ]
+            },
+            {
+              "qty": 2,
+              "label": "Kanix MOLLE clip, 1x2 (18 mm wide) — printed from the Kanix repo (scad/plates/molle_clip_1x2_60x2.scad), one per bolt column",
+              "usedBy": [
+                {
+                  "part": "holster.stl",
+                  "each": 2
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "2x3",
+          "label": "2×3 grid",
+          "params": {
+            "kanix_cols": 2,
+            "kanix_rows": 3,
+            "kanix_margin": 6
+          },
+          "previews": [
+            {
+              "file": "assembled.3mf",
+              "format": "3mf",
+              "label": "Radio seated in the holster",
+              "default": true,
+              "legend": [
+                {
+                  "color": "#2f7fd8",
+                  "label": "Holster",
+                  "part": "holster.stl"
+                },
+                {
+                  "color": "#9aa0a6",
+                  "label": "Meshology L1 (reference)"
+                }
+              ],
+              "components": [
+                {
+                  "part": "holster.stl",
+                  "qty": 1
+                }
+              ]
+            },
+            {
+              "file": "desk-stand-assembled.3mf",
+              "format": "3mf",
+              "label": "Radio in the desk stand",
+              "legend": [
+                {
+                  "color": "#e8a33d",
+                  "label": "Desk stand",
+                  "part": "desk-stand.stl"
+                },
+                {
+                  "color": "#9aa0a6",
+                  "label": "Meshology L1 (reference)"
+                }
+              ],
+              "components": [
+                {
+                  "part": "desk-stand.stl",
+                  "qty": 1
+                }
+              ]
+            }
+          ],
+          "parts": [
+            {
+              "file": "holster.stl",
+              "format": "stl",
+              "label": "Holster — print standing on its floor, open top up"
+            },
+            {
+              "file": "desk-stand.stl",
+              "format": "stl",
+              "label": "Desk stand — print standing on its base"
+            }
+          ],
+          "hardware": [
+            {
+              "qty": 6,
+              "label": "M5x10 button head screw — Kanix clip to the holster's back pad",
+              "usedBy": [
+                {
+                  "part": "holster.stl",
+                  "each": 6
+                }
+              ]
+            },
+            {
+              "qty": 2,
+              "label": "Kanix MOLLE clip, 1x3 (18 mm wide) — printed from the Kanix repo (scad/plates/molle_clip_1x3_60x2.scad), one per bolt column",
+              "usedBy": [
+                {
+                  "part": "holster.stl",
+                  "each": 2
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "3x3",
+          "label": "3×3 grid",
+          "params": {
+            "kanix_cols": 3,
+            "kanix_rows": 3,
+            "kanix_margin": 6
+          },
+          "previews": [
+            {
+              "file": "assembled.3mf",
+              "format": "3mf",
+              "label": "Radio seated in the holster",
+              "default": true,
+              "legend": [
+                {
+                  "color": "#2f7fd8",
+                  "label": "Holster",
+                  "part": "holster.stl"
+                },
+                {
+                  "color": "#9aa0a6",
+                  "label": "Meshology L1 (reference)"
+                }
+              ],
+              "components": [
+                {
+                  "part": "holster.stl",
+                  "qty": 1
+                }
+              ]
+            },
+            {
+              "file": "desk-stand-assembled.3mf",
+              "format": "3mf",
+              "label": "Radio in the desk stand",
+              "legend": [
+                {
+                  "color": "#e8a33d",
+                  "label": "Desk stand",
+                  "part": "desk-stand.stl"
+                },
+                {
+                  "color": "#9aa0a6",
+                  "label": "Meshology L1 (reference)"
+                }
+              ],
+              "components": [
+                {
+                  "part": "desk-stand.stl",
+                  "qty": 1
+                }
+              ]
+            }
+          ],
+          "parts": [
+            {
+              "file": "holster.stl",
+              "format": "stl",
+              "label": "Holster — print standing on its floor, open top up"
+            },
+            {
+              "file": "desk-stand.stl",
+              "format": "stl",
+              "label": "Desk stand — print standing on its base"
+            }
+          ],
+          "hardware": [
+            {
+              "qty": 9,
+              "label": "M5x10 button head screw — Kanix clip to the holster's back pad",
+              "usedBy": [
+                {
+                  "part": "holster.stl",
+                  "each": 9
+                }
+              ]
+            },
+            {
+              "qty": 3,
+              "label": "Kanix MOLLE clip, 1x3 (18 mm wide) — printed from the Kanix repo (scad/plates/molle_clip_1x3_60x2.scad), one per bolt column",
+              "usedBy": [
+                {
+                  "part": "holster.stl",
+                  "each": 3
+                }
+              ]
+            }
+          ]
+        }
       ]
     },
     {
       "slug": "kobo-meshcore-case",
-      "devOnly": true,
       "title": "Kobo Clara HD MeshCore Grip",
       "description": "A sealed handheld grip that turns a Kobo Clara HD into a MeshCore device without modifying it. The Kobo, held in landscape, slides its chin (the wide bezel at its bottom edge) sideways into a slot in the grip, onto a 90\u00b0 micro USB plug that charges it, and a soft TPU pad in the slot's floor holds it. In front of the chin a 2.13\" e-paper stands under a screwed-on bezel. The grip is an 18650 cylinder, flush with the front and standing out at the back, whose depth carries on inward behind the Kobo; its edges are rounded and finger indents run up both sides. Inside: the cell; a TP4056 USB-C charger above it, its port through the right side under the first antenna; three Seeed XIAO boards (an nRF and two SX1262 radios) held by zip ties; and two SMA bulkheads in the top. Sealed by the dry-bag node's rules: PCTG body and lids, soft TPU seals squeezed from the side, screws outside the seals. The back cover's tongue presses into a U-section TPU 85A gasket in a groove round the grip's back rim, with twenty M3 screws in a lane round the whole edge outside it, every corner and about every 20 mm; a smooth boss lifts the seal over the second SMA. A TPU 70A frame seals the bezel to the panel, the SMAs seal on TPU washers, the USB-C takes a TPU plug, and the micro USB plug and the display's wires are potted where they pass in. 80 \u00d7 125 \u00d7 30.3 mm. Kobo dimensions are Kobo's spec; the screen, button, USB and display positions are estimates. Not yet printed.",
       "filament": [
@@ -860,7 +1207,6 @@
     },
     {
       "slug": "meshtastic-drybag-node",
-      "devOnly": true,
       "title": "Meshtastic Dry-Bag Node",
       "description": "A Meshtastic/MeshCore node in a sealed box that winches itself up into a tree. You throw a line over a branch or two and tie both ends to the node's two reels; each reel winds its end in, and the node climbs the line with no tie line left hanging. The box sits in the middle, a reel either side, each reel holding 150\u2013200 ft of 1/8\" Dacron, the line's end wedged into a V jam cleat in the drum's core. Each reel turns between two big flat skeleton plates of PCTG, each inside 220 \u00d7 220 mm: a ring round the reel with spokes, members from the ring and the roller window back to the plate's inner edge, four dovetailed crossmembers round the reel, and a window of four rollers on top of its outer edge that holds the line both ways. Each reel turns in two big print-in-place roller bearings pressed into its plates, on a journal at the front and its hub at the back. Each roller is a printed sleeve with a print-in-place roller bearing pressed into each end. Each plate's inner edge sits in a little channel on the box's side, indexed by two square blocks, and bolted at 45\u00b0. The box is TPU 64D with a solid back wall, and opens at the front. The motors stand on the back wall inside, their pinions' hubs out through TPU lip seals; behind it, under a small bolt-on cover each side, each pinion drives two herringbone idlers, on print-in-place roller bearings in their hubs, onto an output gear on the reel's axis, whose hub runs out through a lip seal in the box's back slab into the reel's hub. The gears are module 2.25 and 16 mm wide, sized up so the printed parts run at low stress. The front door carries the protection board, the winch XIAO nRF52840 Sense, two DRV8871 drivers and the 12 V boost, and the saddles that hold the 32140 LiFePO4 cell standing up. The radio kit sits on the right wall under the N bulkhead in the top, within its 6\" pigtail, with room for a 1 W module instead; the antenna's stem is part of the box. The solar panel hangs under the front at 45\u00b0, facing forward and up, its edges in two grooved bars through a spine screwed up into the floor. The front door seals on a tongue wider than the groove round the TPU rim, with M5 \u00d7 10 screws outside the seal threading 8 mm into the TPU. All holes are round, no supports anywhere. Box 98 \u00d7 136 \u00d7 186 mm, 264 mm across its back slab. Not yet test-printed.",
       "filament": [
@@ -987,7 +1333,6 @@
     },
     {
       "slug": "test-cube-xyz",
-      "devOnly": true,
       "title": "XYZ Test Cube",
       "description": "30 mm calibration cube with X, Y, Z engraved on the +X, +Y, +Z faces. Quick end-to-end sanity check for slicer + printer coordinate system.",
       "parts": [
@@ -3230,7 +3575,6 @@
     },
     {
       "slug": "telescoping-mast",
-      "devOnly": true,
       "title": "Telescoping Antenna Mast",
       "description": "A print-in-place telescoping mast for a small 915 MHz antenna. Five thin round tubes print nested in one 250 mm-tall piece (sized for a Qidi Q2) and reach 1.1 m. To raise a section, pull it to its stop, twist it 60\u00b0 and let go: three lugs drop into dips in the teeth below and hold its weight. To lower it, lift, twist back and push down. The outer tube's foot and the inner tube's top are 45\u00b0 threads, so two prints and a coupler make a 2.2 m mast.",
       "filament": [ { "material": "PETG", "color": "any" } ],
@@ -3806,7 +4150,6 @@
     },
     {
       "slug": "apache-case-modules",
-      "devOnly": true,
       "title": "Apache Case Modules: MeshCore Repeater",
       "description": "A modular insert for a Harbor Freight Apache case, first built as a portable MeshCore repeater in an Apache 1800 (small) emptied of its foam. A baseplate fills the case floor with a 20 mm grid of M5 pilots, and every module screws onto the grid with M5 \u00d7 10 cap screws, so nothing rattles when the case is carried and any module can move without reprinting the plate. The repeater's modules: a cell bed, in which a 32140 LiFePO4 cell lies front to back against the right end wall, about 1 mm off it. The bed is open on the wall side, so the wall stops the cell rolling out, and two hooks screwed onto its inner post curl over the cell to just past its top and press it down. The cell's charge board sits in a slot across the bed's middle, under the cell, its USB-C and USB-A facing the middle of the case, held by a zip tie. The second module is a tray for the radio's carrier, a 50 \u00d7 70 mm perfboard holding an Ebyte E22P-915M30S (1 W SX1262 radio), a Seeed XIAO nRF54LM20A running MeshCore, and a Pololu 5 V boost for the radio. The tray is a pocket with a rim on three sides (the open side for the connectors) and two zip-tie slots that run under it; the board rests on a ledge over a relief for its solder tails. The antenna's N female bulkhead goes through a hole drilled in the case's left end wall, 45 mm above the floor, beside the radio's tray. The case is measured: 214 \u00d7 150 inside, 76 deep in the base, an 18 mm lid, r 5 corners; the plate is 212 \u00d7 148. The charge board is 33 wide (measured), its length and height estimated. All PETG, printed flat; the hooks print on their sides. Not yet printed.",
       "filament": [
@@ -4202,7 +4545,6 @@
     },
     {
       "slug": "eink-dual-lora-case",
-      "devOnly": true,
       "title": "E-ink Dual-LoRa Handheld",
       "description": "A handheld case in the Meshnology N37's shape: a rounded body with a wing at the top left and an antenna bump at the top right, the N37's angled band round its front and back faces, and every edge rounded. A 2.13\" e-paper HAT stands portrait down the left of the front. The body runs on down into a full-depth bay for two 18650 cells lying across it, one above the other, 75 × 133 × 26.3 mm (167 mm tall with the wing). Two sealed box switches sit behind the display and press through waterproof two-material buttons in the left side: a TPU boot squeezed against a seal bead on the wall's inside, with a PETG plunger fused into its roof. In the right column, a front-facing XIAO Sense (its microphone through a port, pin holes over its program and reset buttons) sits above a PMW3610 optical sensor board that reads finger swipes through a sealed clear window, where the N37 has its joystick. Two smaller sealed buttons sit right of the window on tact switches the sensor board holds forward, and a front-facing speaker fills the corner below behind a grille, with its I2C amp behind it. The wing holds the L76K's GPS patch facing the front and a strong vibration motor (Precision Microdrives 312-107) behind it; the L76K board sits behind the display. Two SX1262 radios each have their own SMA. The front cover closes onto a tub that holds everything, with six M3 screws from the back. The GPS antenna's size and the swipe sensor's lens footprint are estimates. Not yet printed.",
       "filament": [
@@ -4300,7 +4642,6 @@
     },
     {
       "slug": "solar-node",
-      "devOnly": true,
       "title": "Solar LoRa Node",
       "description": "A sealed box under a 240 × 168 mm solar panel salvaged from a solar LED lamp, that hangs on two stainless cables and winches itself up. It hangs with a long side down, as a wedge: its back hangs plumb against the winch and the panel slopes at 50° from horizontal. The panel drops into a pocket in the frame onto a bead of construction adhesive; a bezel screwed over its border squeezes the bead to 1 mm and leaves the panel flush. The frame and bezel come off the tray as one, on a ring of 28 M3 cap screws, into a flange round the tray's rim, outside a TPU gasket that the tray's tongue squeezes from the sides. Low on the back and centred, the 10 Ah LP1260110 LiPo pouch lies under a carrier plate holding a Heltec V3, a Heltec HT-HC33, a TP4056 charger and a 5 V buck-boost, each zip-tied down through slots in the plate. Their two N omnis are at the top of a 3 m telescoping carbon-fibre mast bolted into a sealed, buttressed socket on the top wall, midway between the cables and held to them by bars over its first metre; two LMR-400 runs come down it to N bulkheads either side of the socket, each under a printed hood. Sliding, rain-shedding doors in the winch deck give access to each spool for threading the cable onto its anchor. Behind the tray, a deck carries two 116 mm spools side by side in the upper half, each holding 200 ft of 1/32\" stainless cable with room to spare, each on a 608 skateboard bearing. A plain enclosure round both spools, their gears and the guide bearings, sealed to the back by a TPU strip, keeps out debris and splashes; each cable leaves through a hole in its top and it has drains. Each is driven at 6.2:1 by a pinion on the teeth round its edge, from a JGY-370 worm gearmotor inside the box whose shaft comes down through a TPU lip seal; the two trains mirror each other, so the spools turn opposite ways to reel in. The cable runs only on stainless 608 skateboard bearings: past each spool it turns on an upright guide bearing, rides over one lying past the top edge, and leaves its corner, 196 mm from the other, through a separate, solid 10 mm-cheeked horn bolted into the tray, standing up behind the sloping top: a throat between two more bearings at the depth of the node's centre of mass, so it hangs with its back plumb. 263 wide, 186 tall and 187 deep, so it needs a 270 mm bed. The panel's thickness, the buck-boost's size and the motor's dimensions are guesses. Not yet printed.",
       "filament": [
@@ -4420,7 +4761,6 @@
     },
     {
       "slug": "pouch-comms-module",
-      "devOnly": true,
       "title": "Pouch Comms Module",
       "description": "A box that rides in a backpack side pouch, carrying a power bank, a Franklin T9 hotspot and three boards: a Raspberry Pi Zero 2 W, a Heltec HT-HC33 (ESP32-S3 + Wi-Fi HaLow) and a Heltec WiFi LoRa 32 V4, plus two FR120N MOSFET modules for switching LED loads. The bank lies along the left side behind a full-height divider, held at both ends, its ports toward an open bay at the top end where the cables gather. The T9 lies face up at the bottom of the right side, held down by a clamp screwed over each end; an M3 set screw through the right wall, in a nut in a block beside the T9, holds the power button on its side in, so it always starts. Beside the bank, past the T9, the three boards stand on edge in slots sized from each maker's drawing, packed 4 mm apart against the divider: a groove in the floor between a full-height post at the top end, cut away where that end has parts (micro-SD, U.FL, camera connector), and a low one that stays under the buttons and sockets at the other. Past the boards, toward the right wall, the two FR120Ns lie on the floor in rails, screw terminals up. Two SMA bulkheads through the top wall take the HaLow and LoRa antennas. The lid closes on 22 M3 cap screws, and a tongue round the walls and along the divider drops into a groove under it. 140 × 190 × 47.5 mm with 5 mm walls; the bank's 36.5 mm sets the height. Not yet printed.",
       "filament": [
@@ -4477,7 +4817,6 @@
     },
     {
       "slug": "hc33-lipo-case",
-      "devOnly": true,
       "title": "HT-HC33 LiPo Case",
       "description": "A sealed case that stands on end with everything stacked face to face inside it like a stack of cards, each in a chamber of its own: a USB-C TP4056 charger board at the back, then a Heltec HT-HC33 (ESP32-S3 + Wi-Fi HaLow), a 103665 LiPo pouch, and a Heltec WiFi LoRa 32 V4 at the front. Two pieces. The carriage is an L of the top, which carries the two SMA bulkheads at the front-left and back-right corners, and the left face, the door face; every board and the cell hang on it, so the whole stack comes out in one go. Fins between the layers make the chambers; each board sits snug in slotted holders on all four edges (a rib on the door face, bars over its top edge and under its bottom edge either side of the USB-C, and, with the carriage in, a rail on the body's right wall; the side slots follow the V4's chamfered corners), the TP4056 sits between slotted bars top and bottom, and the cell sits between two fins on a floor plate under two roofs. Zip ties do the holding: one round each board through its cradle and two round the cell, through slots and grooves that fix them in place. The body is the bottom, back, front and right walls, open at the top and on the left. The carriage slides in from the left: its fins and the cell's floor plate run in channels in the floor and grooves up the right wall, a gusseted hook under the top's right edge catches in the right wall, and each board's right edge slides into its rail. Twenty-six M3x10 socket-head cap screws, counterbored, hold it in, all threading into the walls and floor outside the seals: seventeen through the door face (seven evenly up each side, corner to corner, and three across the bottom under its seal) and nine down through the top (three along each of the back, front and right edges). It is watertight: PCTG lips on the carriage press into grooves in black TPU Air channels printed in the body, round the door face's edge and round the top on a ridge over the walls; TPU Air washers sit under the SMAs' outer nuts; the bottom is flat, with no ports, since the HC33 and V4 are flashed over the air; and the TP4056's side USB-C has a PCTG door, printed in its dovetail track, that slides shut onto a TPU Air gasket, the track wedging it in over the last 3 mm. It is a black PCTG core in a 2 mm TPU skin printed in place: a 1.5 mm TPU Air base keyed into the walls, orange TPU 75A grip rings alternating with smooth black TPU Air ones and a TPU Air top, all 14 mm, with the side door's housing left PCTG; with a short TPU ring at the bottom on the base and another under the top, the orange rings carry a diamond knurl (90° V-grooves at ±45°, 0.8 mm deep) unbroken all round. Prints on a Snapmaker U1: TPU Air head 1, PCTG head 3, TPU 75A head 4. 52.3 × 63.3 × 95.7 mm, with flat sides and tight (2 mm) corners. The V4 is sized from Heltec's drawing and STEP model; the cell and TP4056 details are nominal, not measured. Not yet printed.",
       "filament": [
@@ -4549,7 +4888,6 @@
     },
     {
       "slug": "molle-18650-holder",
-      "devOnly": true,
       "customizable": true,
       "title": "MOLLE 18650 Holder",
       "description": "Four 18650 cells standing upright, each in a thin tube of its own, the tubes fused side by side onto a MOLLE stick weave so the whole thing goes straight onto PALS webbing with two of BigFootPL's 3\" Molle sticks (in the Library), like a MOLLE pouch: nothing to screw together. It covers one PALS band, two columns across. The back is a block in the PALS gap above the band and one below, a slot up through each for a stick, and only the tubes across the band, so each stick runs block, band, block. The slots run out through the bottom, so a longer stick fits too. The hook springs over the top block's back wall, and the bulge on the hook's outer leaf clicks into a shallow groove across the wall's back, so it stays put and tight with nothing standing above the holder. A web fills the grooves behind the tubes. Each tube is a plain cylinder on a flat floor. A slot runs down the middle of each tube's front and on through the floor past the cell's middle, to push the cell out with a finger; its edges are rounded all the way. Each cell is held by a 40 mm lever in the back of its tube, freed by two slits, with a bump that snaps over the cell's top edge; the lever swings into a pocket in the solid between the tubes and the MOLLE back, under a ring of whole wall, so nothing can slam or over-bend it. Each tube's mouth flares on a round to guide the cell in. Two crush ribs per tube stop it rattling. Every outside edge is rounded. 86 \u00d7 79.5 \u00d7 31.6 mm. Prints standing on its bottom, no supports. Cell count, cell size and stick length are customizable. Not yet printed.",
@@ -4586,7 +4924,6 @@
     },
     {
       "slug": "hanging-solar-node",
-      "devOnly": true,
       "title": "Hanging Solar Node",
       "description": "A Meshtastic node built onto the back of a 122 \u00d7 160 mm solar panel and hung from a tree through the panel's own hole. A thin shroud is a box over the panel's back that holds the panel captive: its left, right and top walls run forward past the panel into a channel, and the panel slides up into it from the open bottom, its back running on a ledge just inside the walls and a 45\u00b0 lip over its border in front. Adhesive in the channel seals it. A tube from the shroud's back ends on the panel's back round its hanging hole, so once the panel is home the cord hung through both stops it sliding back out. Inside, a card held 3 mm off the panel, so the solder blobs on the tabs slide under it, carries the XIAO nRF52840 + Wio-SX1262, an 18650 in its holder along the bottom and a TP4056 charger, each zip-tied through a slot pair; a window over the panel's solder tabs leaves room for the joints and the blocking diode. Three posts on the card meet cups on the shroud's back, and an M3 cap screw through each from outside holds the card. The antenna hangs down from an SMA bulkhead in the bottom wall, beside a 2 mm breather that lets condensation out. Watertight hanging upright, not upside down. 125.2 \u00d7 163.2 \u00d7 33 mm, about 75 g printed. The panel's hole and solder tabs are placed from a photo. Not yet printed.",
       "filament": [

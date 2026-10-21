@@ -2,7 +2,7 @@
 
 A holster for the Meshology L1 Meshtastic radio, printed in TPU 64D. The radio slides down into it from the top. The back, sides and floor are solid; the front is a big cutout so the controls stay visible and usable, with 8 mm of wall reaching in from each side (and 8 mm of sill above the floor) to hold the radio in. The edge of the front opening and the rim round the top are rounded over so they aren't sharp.
 
-It bolts to a 3x2 Kanix belt clip. A matching desk stand holds the radio up on a desk.
+It bolts to a 3x2 Kanix belt clip, or, in the 2x2, 2x3 and 3x3 builds, to one Kanix MOLLE clip per column of bolt holes. A matching desk stand holds the radio up on a desk.
 
 ## Printing
 
@@ -21,7 +21,7 @@ The back wall comes up over the back of the radio, following the rounded corners
 
 ## Mounting
 
-The back carries a pad for a 3x2 Kanix belt clip (three across, two up): six M5x10 button-head screws through the clip into 4.2 mm pilot holes. The pilot holes are 8 mm deep, running through the pad into the wall, and stop 0.8 mm short of the radio.
+The back carries a pad for a Kanix bolt grid. The default build is a 3x2 Kanix belt clip (three across, two up): six M5x10 button-head screws through the clip into 4.2 mm pilot holes. The 2x2, 2x3 and 3x3 builds take MOLLE clips instead, one 18 mm Kanix 1x2 or 1x3 MOLLE clip per column, side by side, with one M5x10 per hole. The pilot holes are 8 mm deep, running through the pad into the wall, and stop 0.8 mm short of the radio.
 
 ## Fit
 

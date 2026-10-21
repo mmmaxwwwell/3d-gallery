@@ -224,6 +224,138 @@
       ]
     ]
   },
+  "apache-case-modules/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#1F6F4AFF",
+      "#2B2B2BFF",
+      "#2E8B57FF",
+      "#3B6FB6FF",
+      "#7A3FB0FF",
+      "#C0392BFF",
+      "#C9A227FF",
+      "#D9D9D9FF",
+      "#E8A33DFF",
+      "#F0C674FF"
+    ],
+    "triangleCount": 18464,
+    "bbox": [
+      [
+        -300,
+        -78,
+        -3
+      ],
+      [
+        110,
+        78,
+        76.01
+      ]
+    ]
+  },
+  "apache-case-modules/baseplate.stl": {
+    "format": "stl",
+    "triangleCount": 11740,
+    "bbox": [
+      [
+        -106,
+        -74,
+        0
+      ],
+      [
+        106,
+        74,
+        7
+      ]
+    ]
+  },
+  "apache-case-modules/carrier-tray.stl": {
+    "format": "stl",
+    "triangleCount": 1652,
+    "bbox": [
+      [
+        -7,
+        -21.2,
+        0
+      ],
+      [
+        107,
+        41.2,
+        9
+      ]
+    ]
+  },
+  "apache-case-modules/cell-bed.stl": {
+    "format": "stl",
+    "triangleCount": 2452,
+    "bbox": [
+      [
+        -32,
+        -70,
+        0
+      ],
+      [
+        13,
+        70,
+        30.9
+      ]
+    ]
+  },
+  "apache-case-modules/hook.stl": {
+    "format": "stl",
+    "triangleCount": 612,
+    "bbox": [
+      [
+        -32,
+        -50.3,
+        0
+      ],
+      [
+        13.718,
+        -30.9,
+        24
+      ]
+    ]
+  },
+  "apache-case-modules/plate-1-baseplate.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#3B6FB6FF"
+    ],
+    "triangleCount": 11740,
+    "bbox": [
+      [
+        -106,
+        -74,
+        0
+      ],
+      [
+        106,
+        74,
+        7
+      ]
+    ]
+  },
+  "apache-case-modules/plate-2-modules.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2E8B57FF",
+      "#E8A33DFF",
+      "#F0C674FF"
+    ],
+    "triangleCount": 5324,
+    "bbox": [
+      [
+        -107,
+        -108.2,
+        0
+      ],
+      [
+        88,
+        100,
+        30.9
+      ]
+    ]
+  },
   "collar-slide-tag/multicolor.3mf": {
     "format": "3mf",
     "colors": [
@@ -309,6 +441,195 @@
         22,
         12.5,
         3.1
+      ]
+    ]
+  },
+  "eink-dual-lora-case/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#141414FF",
+      "#1E8F5AFF",
+      "#2A6FDBFF",
+      "#3D4A3AFF",
+      "#555555FF",
+      "#708090FF",
+      "#7A3FB0FF",
+      "#8A6A3AFF",
+      "#A0522DFF",
+      "#B03A6FFF",
+      "#BFE6FFFF",
+      "#C08A3EFF",
+      "#C9A227FF",
+      "#D9D9D9FF",
+      "#E07B39FF",
+      "#E6E4DCFF",
+      "#E8C547FF"
+    ],
+    "triangleCount": 30616,
+    "bbox": [
+      [
+        -42.8,
+        -29.932,
+        -49.796
+      ],
+      [
+        37.432,
+        26.232,
+        121
+      ]
+    ]
+  },
+  "eink-dual-lora-case/cradle.stl": {
+    "format": "stl",
+    "triangleCount": 196,
+    "bbox": [
+      [
+        -7.45,
+        -7.6,
+        0
+      ],
+      [
+        7.45,
+        7.6,
+        17.3
+      ]
+    ]
+  },
+  "eink-dual-lora-case/exploded.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#141414FF",
+      "#1E8F5AFF",
+      "#2A6FDBFF",
+      "#3D4A3AFF",
+      "#555555FF",
+      "#708090FF",
+      "#7A3FB0FF",
+      "#8A6A3AFF",
+      "#A0522DFF",
+      "#B03A6FFF",
+      "#BFE6FFFF",
+      "#C08A3EFF",
+      "#C9A227FF",
+      "#D9D9D9FF",
+      "#E07B39FF",
+      "#E6E4DCFF",
+      "#E8C547FF"
+    ],
+    "triangleCount": 30640,
+    "bbox": [
+      [
+        -66.8,
+        -149.932,
+        -49.796
+      ],
+      [
+        37.432,
+        111.232,
+        121
+      ]
+    ]
+  },
+  "eink-dual-lora-case/front-cover.stl": {
+    "format": "stl",
+    "triangleCount": 12140,
+    "bbox": [
+      [
+        -35.012,
+        -87.877,
+        0.068
+      ],
+      [
+        35.012,
+        72.012,
+        6.65
+      ]
+    ]
+  },
+  "eink-dual-lora-case/front-cradle.stl": {
+    "format": "stl",
+    "triangleCount": 160,
+    "bbox": [
+      [
+        -4,
+        -4,
+        0
+      ],
+      [
+        4,
+        4,
+        4.3
+      ]
+    ]
+  },
+  "eink-dual-lora-case/midframe.stl": {
+    "format": "stl",
+    "triangleCount": 1364,
+    "bbox": [
+      [
+        -33.4,
+        -38.7,
+        0
+      ],
+      [
+        33.4,
+        70.4,
+        4.4
+      ]
+    ]
+  },
+  "eink-dual-lora-case/plate-1-case.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#3D4A3AFF"
+    ],
+    "triangleCount": 25194,
+    "bbox": [
+      [
+        0.988,
+        2.068,
+        0
+      ],
+      [
+        219.1,
+        166.796,
+        22.7
+      ]
+    ]
+  },
+  "eink-dual-lora-case/plate-2-buttons.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#D9D9D9FF",
+      "#E07B39FF"
+    ],
+    "triangleCount": 3700,
+    "bbox": [
+      [
+        13,
+        13,
+        0
+      ],
+      [
+        47,
+        45.8,
+        10
+      ]
+    ]
+  },
+  "eink-dual-lora-case/tub.stl": {
+    "format": "stl",
+    "triangleCount": 11040,
+    "bbox": [
+      [
+        -37.432,
+        -90.296,
+        0.068
+      ],
+      [
+        37.432,
+        74.432,
+        22.7
       ]
     ]
   },
@@ -576,6 +897,38 @@
         75,
         75,
         4
+      ]
+    ]
+  },
+  "ff5m-filament-sensor/body.stl": {
+    "format": "stl",
+    "triangleCount": 2390,
+    "bbox": [
+      [
+        -7.869,
+        -7.869,
+        0
+      ],
+      [
+        10.97,
+        10.97,
+        29.95
+      ]
+    ]
+  },
+  "ff5m-filament-sensor/cap.stl": {
+    "format": "stl",
+    "triangleCount": 280,
+    "bbox": [
+      [
+        -8,
+        -5,
+        0
+      ],
+      [
+        8,
+        5,
+        6.1
       ]
     ]
   },
@@ -1597,6 +1950,283 @@
       ]
     ]
   },
+  "hanging-solar-node/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#111111FF",
+      "#1D3A6BFF",
+      "#1F5FA8FF",
+      "#2B2B2BFF",
+      "#2F6FB0FF",
+      "#3A4250FF",
+      "#3C8F4AFF",
+      "#7A3B2EFF",
+      "#C9A227FF",
+      "#D8D8D8FF",
+      "#E9E9E4FF"
+    ],
+    "triangleCount": 7048,
+    "bbox": [
+      [
+        -62.6,
+        -28,
+        -267.6
+      ],
+      [
+        62.6,
+        5,
+        81.6
+      ]
+    ]
+  },
+  "hanging-solar-node/card.stl": {
+    "format": "stl",
+    "triangleCount": 1548,
+    "bbox": [
+      [
+        -58.5,
+        -77.5,
+        3
+      ],
+      [
+        58.5,
+        -12,
+        23.4
+      ]
+    ]
+  },
+  "hanging-solar-node/opened.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#111111FF",
+      "#1D3A6BFF",
+      "#1F5FA8FF",
+      "#2B2B2BFF",
+      "#2F6FB0FF",
+      "#3A4250FF",
+      "#3C8F4AFF",
+      "#7A3B2EFF",
+      "#C9A227FF",
+      "#D8D8D8FF",
+      "#E9E9E4FF"
+    ],
+    "triangleCount": 7048,
+    "bbox": [
+      [
+        -62.6,
+        -73,
+        -267.6
+      ],
+      [
+        62.6,
+        1.7,
+        81.6
+      ]
+    ]
+  },
+  "hanging-solar-node/plate.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#3A4250FF"
+    ],
+    "triangleCount": 5240,
+    "bbox": [
+      [
+        -128.2,
+        -81.6,
+        0
+      ],
+      [
+        90.5,
+        81.6,
+        33
+      ]
+    ]
+  },
+  "hanging-solar-node/shroud.stl": {
+    "format": "stl",
+    "triangleCount": 3692,
+    "bbox": [
+      [
+        -62.6,
+        -81.6,
+        -5
+      ],
+      [
+        62.6,
+        81.6,
+        28
+      ]
+    ]
+  },
+  "hc33-lipo-case/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#0A0A0AFF",
+      "#1A1A1AFF",
+      "#2F6FB0FF",
+      "#2F8F4EFF",
+      "#3A3A3AFF",
+      "#7A3FA0FF",
+      "#C9A227FF",
+      "#E8C547FF",
+      "#F0F0F0FF",
+      "#FF7A1AFF"
+    ],
+    "triangleCount": 202616,
+    "bbox": [
+      [
+        -79.5,
+        -31.65,
+        0
+      ],
+      [
+        29.3,
+        31.65,
+        103.7
+      ]
+    ]
+  },
+  "hc33-lipo-case/body-seal.stl": {
+    "format": "stl",
+    "triangleCount": 2940,
+    "bbox": [
+      [
+        -18.51,
+        -31.65,
+        0
+      ],
+      [
+        27.8,
+        31.65,
+        90.7
+      ]
+    ]
+  },
+  "hc33-lipo-case/body-tpu.stl": {
+    "format": "stl",
+    "triangleCount": 109944,
+    "bbox": [
+      [
+        -18.5,
+        -31.65,
+        1.5
+      ],
+      [
+        27.8,
+        31.65,
+        90.7
+      ]
+    ]
+  },
+  "hc33-lipo-case/body.stl": {
+    "format": "stl",
+    "triangleCount": 7256,
+    "bbox": [
+      [
+        -18.5,
+        -29.65,
+        1.5
+      ],
+      [
+        29.9,
+        29.65,
+        90.7
+      ]
+    ]
+  },
+  "hc33-lipo-case/carriage-seal.stl": {
+    "format": "stl",
+    "triangleCount": 6146,
+    "bbox": [
+      [
+        -96,
+        -31.65,
+        0
+      ],
+      [
+        0,
+        31.65,
+        52.3
+      ]
+    ]
+  },
+  "hc33-lipo-case/carriage-tpu.stl": {
+    "format": "stl",
+    "triangleCount": 48162,
+    "bbox": [
+      [
+        -90.7,
+        -31.65,
+        0
+      ],
+      [
+        -1.5,
+        31.65,
+        6
+      ]
+    ]
+  },
+  "hc33-lipo-case/carriage.stl": {
+    "format": "stl",
+    "triangleCount": 10466,
+    "bbox": [
+      [
+        -94.821,
+        -30.185,
+        1.465
+      ],
+      [
+        -1.5,
+        30.185,
+        50.835
+      ]
+    ]
+  },
+  "hc33-lipo-case/closed.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#0A0A0AFF",
+      "#1A1A1AFF",
+      "#3A3A3AFF",
+      "#C9A227FF",
+      "#FF7A1AFF"
+    ],
+    "triangleCount": 201366,
+    "bbox": [
+      [
+        -24.5,
+        -31.65,
+        0
+      ],
+      [
+        29.3,
+        31.65,
+        103.7
+      ]
+    ]
+  },
+  "hc33-lipo-case/print.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#0A0A0AFF",
+      "#1A1A1AFF",
+      "#FF7A1AFF"
+    ],
+    "triangleCount": 201192,
+    "bbox": [
+      [
+        -84.5,
+        -31.65,
+        0
+      ],
+      [
+        76.4,
+        31.65,
+        90.7
+      ]
+    ]
+  },
   "heltec-ht-hc33-case/assembled.3mf": {
     "format": "3mf",
     "colors": [
@@ -1770,6 +2400,412 @@
         42.39,
         105.3,
         21.4
+      ]
+    ]
+  },
+  "hex-bit-holder/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#00EAFFFF"
+    ],
+    "triangleCount": 129344,
+    "bbox": [
+      [
+        -74.999,
+        -7.499,
+        -5.999
+      ],
+      [
+        74.999,
+        147.499,
+        5.999
+      ]
+    ]
+  },
+  "hex-bit-holder/hex-bit-holder-10.stl": {
+    "format": "stl",
+    "triangleCount": 19276,
+    "bbox": [
+      [
+        -74.999,
+        -7.499,
+        -5.999
+      ],
+      [
+        74.999,
+        7.499,
+        5.999
+      ]
+    ]
+  },
+  "hex-bit-holder/hex-bit-holder-3.stl": {
+    "format": "stl",
+    "triangleCount": 13060,
+    "bbox": [
+      [
+        -22.499,
+        -7.499,
+        -5.999
+      ],
+      [
+        22.499,
+        7.499,
+        5.999
+      ]
+    ]
+  },
+  "hex-bit-holder/hex-bit-holder-4.stl": {
+    "format": "stl",
+    "triangleCount": 13948,
+    "bbox": [
+      [
+        -29.999,
+        -7.499,
+        -5.999
+      ],
+      [
+        29.999,
+        7.499,
+        5.999
+      ]
+    ]
+  },
+  "hex-bit-holder/hex-bit-holder-5.stl": {
+    "format": "stl",
+    "triangleCount": 14836,
+    "bbox": [
+      [
+        -37.499,
+        -7.499,
+        -5.999
+      ],
+      [
+        37.499,
+        7.499,
+        5.999
+      ]
+    ]
+  },
+  "hex-bit-holder/hex-bit-holder-6.stl": {
+    "format": "stl",
+    "triangleCount": 15724,
+    "bbox": [
+      [
+        -44.999,
+        -7.499,
+        -5.999
+      ],
+      [
+        44.999,
+        7.499,
+        5.999
+      ]
+    ]
+  },
+  "hex-bit-holder/hex-bit-holder-7.stl": {
+    "format": "stl",
+    "triangleCount": 16612,
+    "bbox": [
+      [
+        -52.499,
+        -7.499,
+        -5.999
+      ],
+      [
+        52.499,
+        7.499,
+        5.999
+      ]
+    ]
+  },
+  "hex-bit-holder/hex-bit-holder-8.stl": {
+    "format": "stl",
+    "triangleCount": 17500,
+    "bbox": [
+      [
+        -59.999,
+        -7.499,
+        -5.999
+      ],
+      [
+        59.999,
+        7.499,
+        5.999
+      ]
+    ]
+  },
+  "hex-bit-holder/hex-bit-holder-9.stl": {
+    "format": "stl",
+    "triangleCount": 18388,
+    "bbox": [
+      [
+        -67.499,
+        -7.499,
+        -5.999
+      ],
+      [
+        67.499,
+        7.499,
+        5.999
+      ]
+    ]
+  },
+  "kobo-meshcore-case/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#141414FF",
+      "#1E90FFFF",
+      "#222222FF",
+      "#2B2B2BFF",
+      "#2F5A99FF",
+      "#3B6FB6FF",
+      "#444444FF",
+      "#5AA469FF",
+      "#7A3FB0FF",
+      "#9AA0A6FF",
+      "#C9A227FF",
+      "#E6E4DCFF",
+      "#E8A33DFF"
+    ],
+    "triangleCount": 19198,
+    "bbox": [
+      [
+        0.3,
+        -20,
+        -0.005
+      ],
+      [
+        200.324,
+        60.3,
+        189.1
+      ]
+    ]
+  },
+  "kobo-meshcore-case/back-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 64,
+    "bbox": [
+      [
+        130.008,
+        6.595,
+        0
+      ],
+      [
+        193.724,
+        118.474,
+        2.5
+      ]
+    ]
+  },
+  "kobo-meshcore-case/bezel-gasket.stl": {
+    "format": "stl",
+    "triangleCount": 192,
+    "bbox": [
+      [
+        136.6,
+        29,
+        0
+      ],
+      [
+        169.6,
+        99.4,
+        0.8
+      ]
+    ]
+  },
+  "kobo-meshcore-case/bezel.stl": {
+    "format": "stl",
+    "triangleCount": 1694,
+    "bbox": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        33.6,
+        85.4,
+        3.5
+      ]
+    ]
+  },
+  "kobo-meshcore-case/cover.stl": {
+    "format": "stl",
+    "triangleCount": 7038,
+    "bbox": [
+      [
+        3.208,
+        -0.005,
+        0
+      ],
+      [
+        80.124,
+        125.074,
+        6.5
+      ]
+    ]
+  },
+  "kobo-meshcore-case/grip.stl": {
+    "format": "stl",
+    "triangleCount": 8760,
+    "bbox": [
+      [
+        0.026,
+        -29.1,
+        -0.005
+      ],
+      [
+        80.124,
+        -0.026,
+        125.074
+      ]
+    ]
+  },
+  "kobo-meshcore-case/kobo-pad.stl": {
+    "format": "stl",
+    "triangleCount": 12,
+    "bbox": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        22,
+        12,
+        1.8
+      ]
+    ]
+  },
+  "kobo-meshcore-case/plate-1-grip.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#3B6FB6FF"
+    ],
+    "triangleCount": 8850,
+    "bbox": [
+      [
+        0.026,
+        -29.1,
+        -0.005
+      ],
+      [
+        80.124,
+        -0.026,
+        125.074
+      ]
+    ]
+  },
+  "kobo-meshcore-case/plate-2-lids.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2F5A99FF",
+      "#E8A33DFF"
+    ],
+    "triangleCount": 8732,
+    "bbox": [
+      [
+        3.208,
+        -0.005,
+        0
+      ],
+      [
+        113.05,
+        125.074,
+        6.5
+      ]
+    ]
+  },
+  "kobo-meshcore-case/plate-3-tpu-85a.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#222222FF",
+      "#555555FF",
+      "#888888FF"
+    ],
+    "triangleCount": 1146,
+    "bbox": [
+      [
+        3.108,
+        6.595,
+        0
+      ],
+      [
+        66.824,
+        118.474,
+        4.19
+      ]
+    ]
+  },
+  "kobo-meshcore-case/plate-4-tpu-70a.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#333333FF",
+      "#666666FF"
+    ],
+    "triangleCount": 204,
+    "bbox": [
+      [
+        0.3,
+        0,
+        0
+      ],
+      [
+        61.6,
+        70.9,
+        1.8
+      ]
+    ]
+  },
+  "kobo-meshcore-case/plate-u1-all.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#1A1A1AFF",
+      "#D8D8D8FF"
+    ],
+    "triangleCount": 10200,
+    "bbox": [
+      [
+        5.026,
+        5.9,
+        -0.005
+      ],
+      [
+        239.75,
+        123.474,
+        125.074
+      ]
+    ]
+  },
+  "kobo-meshcore-case/sma-washer.stl": {
+    "format": "stl",
+    "triangleCount": 320,
+    "bbox": [
+      [
+        -5.5,
+        -5.5,
+        0
+      ],
+      [
+        5.5,
+        5.5,
+        1.2
+      ]
+    ]
+  },
+  "kobo-meshcore-case/usbc-plug.stl": {
+    "format": "stl",
+    "triangleCount": 442,
+    "bbox": [
+      [
+        -7.75,
+        -5,
+        0
+      ],
+      [
+        14.75,
+        5,
+        4.19
       ]
     ]
   },
@@ -2326,6 +3362,849 @@
       ]
     ]
   },
+  "meshology-l1-holster/2x2/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2F7FD8FF",
+      "#9AA0A6FF"
+    ],
+    "triangleCount": 42936,
+    "bbox": [
+      [
+        -43.581,
+        -16.244,
+        0
+      ],
+      [
+        37.094,
+        22.731,
+        87.467
+      ]
+    ]
+  },
+  "meshology-l1-holster/2x2/desk-stand-assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#9AA0A6FF",
+      "#E8A33DFF"
+    ],
+    "triangleCount": 12506,
+    "bbox": [
+      [
+        -36.077,
+        -14.707,
+        0.023
+      ],
+      [
+        36.077,
+        44.977,
+        86.041
+      ]
+    ]
+  },
+  "meshology-l1-holster/2x2/desk-stand.stl": {
+    "format": "stl",
+    "triangleCount": 11510,
+    "bbox": [
+      [
+        -36.077,
+        -14.707,
+        0.023
+      ],
+      [
+        36.077,
+        44.977,
+        34.305
+      ]
+    ]
+  },
+  "meshology-l1-holster/2x2/holster.stl": {
+    "format": "stl",
+    "triangleCount": 42648,
+    "bbox": [
+      [
+        -43.581,
+        -16.244,
+        0
+      ],
+      [
+        37.094,
+        22.731,
+        87.467
+      ]
+    ]
+  },
+  "meshology-l1-holster/2x3/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2F7FD8FF",
+      "#9AA0A6FF"
+    ],
+    "triangleCount": 42936,
+    "bbox": [
+      [
+        -43.581,
+        -16.244,
+        0
+      ],
+      [
+        37.094,
+        22.731,
+        87.467
+      ]
+    ]
+  },
+  "meshology-l1-holster/2x3/desk-stand-assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#9AA0A6FF",
+      "#E8A33DFF"
+    ],
+    "triangleCount": 12506,
+    "bbox": [
+      [
+        -36.077,
+        -14.707,
+        0.023
+      ],
+      [
+        36.077,
+        44.977,
+        86.041
+      ]
+    ]
+  },
+  "meshology-l1-holster/2x3/desk-stand.stl": {
+    "format": "stl",
+    "triangleCount": 11510,
+    "bbox": [
+      [
+        -36.077,
+        -14.707,
+        0.023
+      ],
+      [
+        36.077,
+        44.977,
+        34.305
+      ]
+    ]
+  },
+  "meshology-l1-holster/2x3/holster.stl": {
+    "format": "stl",
+    "triangleCount": 42648,
+    "bbox": [
+      [
+        -43.581,
+        -16.244,
+        0
+      ],
+      [
+        37.094,
+        22.731,
+        87.467
+      ]
+    ]
+  },
+  "meshology-l1-holster/3x2/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2F7FD8FF",
+      "#9AA0A6FF"
+    ],
+    "triangleCount": 42936,
+    "bbox": [
+      [
+        -43.581,
+        -16.244,
+        0
+      ],
+      [
+        37.094,
+        22.731,
+        87.467
+      ]
+    ]
+  },
+  "meshology-l1-holster/3x2/desk-stand-assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#9AA0A6FF",
+      "#E8A33DFF"
+    ],
+    "triangleCount": 12506,
+    "bbox": [
+      [
+        -36.077,
+        -14.707,
+        0.023
+      ],
+      [
+        36.077,
+        44.977,
+        86.041
+      ]
+    ]
+  },
+  "meshology-l1-holster/3x2/desk-stand.stl": {
+    "format": "stl",
+    "triangleCount": 11510,
+    "bbox": [
+      [
+        -36.077,
+        -14.707,
+        0.023
+      ],
+      [
+        36.077,
+        44.977,
+        34.305
+      ]
+    ]
+  },
+  "meshology-l1-holster/3x2/holster.stl": {
+    "format": "stl",
+    "triangleCount": 42648,
+    "bbox": [
+      [
+        -43.581,
+        -16.244,
+        0
+      ],
+      [
+        37.094,
+        22.731,
+        87.467
+      ]
+    ]
+  },
+  "meshology-l1-holster/3x3/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2F7FD8FF",
+      "#9AA0A6FF"
+    ],
+    "triangleCount": 42936,
+    "bbox": [
+      [
+        -43.581,
+        -16.244,
+        0
+      ],
+      [
+        37.094,
+        22.731,
+        87.467
+      ]
+    ]
+  },
+  "meshology-l1-holster/3x3/desk-stand-assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#9AA0A6FF",
+      "#E8A33DFF"
+    ],
+    "triangleCount": 12506,
+    "bbox": [
+      [
+        -36.077,
+        -14.707,
+        0.023
+      ],
+      [
+        36.077,
+        44.977,
+        86.041
+      ]
+    ]
+  },
+  "meshology-l1-holster/3x3/desk-stand.stl": {
+    "format": "stl",
+    "triangleCount": 11510,
+    "bbox": [
+      [
+        -36.077,
+        -14.707,
+        0.023
+      ],
+      [
+        36.077,
+        44.977,
+        34.305
+      ]
+    ]
+  },
+  "meshology-l1-holster/3x3/holster.stl": {
+    "format": "stl",
+    "triangleCount": 42648,
+    "bbox": [
+      [
+        -43.581,
+        -16.244,
+        0
+      ],
+      [
+        37.094,
+        22.731,
+        87.467
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2F3542FF",
+      "#3742FAFF",
+      "#57606FFF",
+      "#747D8CFF",
+      "#A4B0BEFF",
+      "#CED6E0FF",
+      "#DFE4EAFF",
+      "#F1F2F6FF",
+      "#FFA502FF"
+    ],
+    "triangleCount": 179354,
+    "bbox": [
+      [
+        -204.25,
+        -20,
+        -142.623
+      ],
+      [
+        204.25,
+        225.054,
+        390
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/exploded.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2F3542FF",
+      "#3742FAFF",
+      "#57606FFF",
+      "#747D8CFF",
+      "#A4B0BEFF",
+      "#CED6E0FF",
+      "#E1B12CFF",
+      "#F1F2F6FF",
+      "#FFA502FF"
+    ],
+    "triangleCount": 277614,
+    "bbox": [
+      [
+        -299.25,
+        -170,
+        -261.056
+      ],
+      [
+        299.25,
+        231,
+        440
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/fairlead-cheek-inner.stl": {
+    "format": "stl",
+    "triangleCount": 852,
+    "bbox": [
+      [
+        -42,
+        -0.01,
+        0
+      ],
+      [
+        0,
+        89.01,
+        8
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/fairlead-cheek.stl": {
+    "format": "stl",
+    "triangleCount": 1172,
+    "bbox": [
+      [
+        0,
+        -0.01,
+        0
+      ],
+      [
+        42,
+        89.01,
+        8
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/frame.stl": {
+    "format": "stl",
+    "triangleCount": 10498,
+    "bbox": [
+      [
+        -131.75,
+        -226,
+        0
+      ],
+      [
+        131.75,
+        11,
+        136
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/front-door.stl": {
+    "format": "stl",
+    "triangleCount": 7100,
+    "bbox": [
+      [
+        -48.5,
+        -9.5,
+        0
+      ],
+      [
+        48.5,
+        195.5,
+        71.2
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/front-plate-left.stl": {
+    "format": "stl",
+    "triangleCount": 5190,
+    "bbox": [
+      [
+        -204.25,
+        -6.492,
+        0
+      ],
+      [
+        -43,
+        194.508,
+        8
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/front-plate.stl": {
+    "format": "stl",
+    "triangleCount": 5190,
+    "bbox": [
+      [
+        43,
+        -6.492,
+        0
+      ],
+      [
+        204.25,
+        194.508,
+        8
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/gear-cover-left.stl": {
+    "format": "stl",
+    "triangleCount": 3254,
+    "bbox": [
+      [
+        -130.271,
+        -97.997,
+        0
+      ],
+      [
+        -0.25,
+        6,
+        23.2
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/gear-cover.stl": {
+    "format": "stl",
+    "triangleCount": 3254,
+    "bbox": [
+      [
+        0.25,
+        -97.997,
+        0
+      ],
+      [
+        130.271,
+        6,
+        23.2
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/idler.stl": {
+    "format": "stl",
+    "triangleCount": 15642,
+    "bbox": [
+      [
+        -20.25,
+        -20.25,
+        0
+      ],
+      [
+        20.25,
+        20.25,
+        16
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/link-bar.stl": {
+    "format": "stl",
+    "triangleCount": 268,
+    "bbox": [
+      [
+        -8,
+        -0.01,
+        0
+      ],
+      [
+        8,
+        89.01,
+        8
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/open.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2ED573FF",
+      "#2F3542FF",
+      "#57606FFF",
+      "#70A1FFFF",
+      "#747D8CFF",
+      "#7BED9FFF",
+      "#A4B0BEFF",
+      "#E1B12CFF",
+      "#FF6348FF",
+      "#FFA502FF"
+    ],
+    "triangleCount": 170530,
+    "bbox": [
+      [
+        -204.25,
+        -20,
+        -11
+      ],
+      [
+        204.25,
+        136,
+        390
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/output-gear-left.stl": {
+    "format": "stl",
+    "triangleCount": 8908,
+    "bbox": [
+      [
+        -15.75,
+        -15.75,
+        0
+      ],
+      [
+        15.75,
+        15.75,
+        43
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/output-gear.stl": {
+    "format": "stl",
+    "triangleCount": 8908,
+    "bbox": [
+      [
+        -15.75,
+        -15.75,
+        0
+      ],
+      [
+        15.75,
+        15.75,
+        43
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/panel-bar.stl": {
+    "format": "stl",
+    "triangleCount": 28,
+    "bbox": [
+      [
+        -76.5,
+        56,
+        0
+      ],
+      [
+        76.5,
+        76,
+        8
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/panel-spine.stl": {
+    "format": "stl",
+    "triangleCount": 912,
+    "bbox": [
+      [
+        -142.622,
+        15,
+        0
+      ],
+      [
+        0,
+        225.054,
+        8
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/pinion.stl": {
+    "format": "stl",
+    "triangleCount": 9082,
+    "bbox": [
+      [
+        -15.75,
+        -15.75,
+        0
+      ],
+      [
+        15.75,
+        15.75,
+        22.5
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/rear-plate-left.stl": {
+    "format": "stl",
+    "triangleCount": 5522,
+    "bbox": [
+      [
+        -204.25,
+        -194.508,
+        0
+      ],
+      [
+        -43,
+        6.492,
+        8
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/rear-plate.stl": {
+    "format": "stl",
+    "triangleCount": 5522,
+    "bbox": [
+      [
+        43,
+        -194.508,
+        0
+      ],
+      [
+        204.25,
+        6.492,
+        8
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/reel-bearing-front.stl": {
+    "format": "stl",
+    "triangleCount": 6736,
+    "bbox": [
+      [
+        -21.3,
+        -21.3,
+        0
+      ],
+      [
+        21.3,
+        21.3,
+        8
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/reel-bearing-rear.stl": {
+    "format": "stl",
+    "triangleCount": 7696,
+    "bbox": [
+      [
+        -26.8,
+        -26.8,
+        0
+      ],
+      [
+        26.8,
+        26.8,
+        8
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/reel-flange.stl": {
+    "format": "stl",
+    "triangleCount": 536,
+    "bbox": [
+      [
+        -56,
+        -56,
+        0
+      ],
+      [
+        56,
+        56,
+        4
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/reel-hub.stl": {
+    "format": "stl",
+    "triangleCount": 428,
+    "bbox": [
+      [
+        -15,
+        -15,
+        0
+      ],
+      [
+        15,
+        15,
+        20.5
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/roller-bearing-long.stl": {
+    "format": "stl",
+    "triangleCount": 4160,
+    "bbox": [
+      [
+        -11.5,
+        -11.5,
+        0
+      ],
+      [
+        11.5,
+        11.5,
+        39.85
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/roller-bearing-short.stl": {
+    "format": "stl",
+    "triangleCount": 4160,
+    "bbox": [
+      [
+        -11.5,
+        -11.5,
+        0
+      ],
+      [
+        11.5,
+        11.5,
+        31.6
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/roller-long.stl": {
+    "format": "stl",
+    "triangleCount": 3590,
+    "bbox": [
+      [
+        -15,
+        -15,
+        0
+      ],
+      [
+        15,
+        15,
+        80
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/roller-short.stl": {
+    "format": "stl",
+    "triangleCount": 3582,
+    "bbox": [
+      [
+        -15,
+        -15,
+        0
+      ],
+      [
+        15,
+        15,
+        63.5
+      ]
+    ]
+  },
+  "meshtastic-drybag-node/spool.stl": {
+    "format": "stl",
+    "triangleCount": 1238,
+    "bbox": [
+      [
+        -56,
+        -56,
+        0
+      ],
+      [
+        56,
+        56,
+        88.7
+      ]
+    ]
+  },
+  "molle-18650-holder/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2B2B2BFF",
+      "#2F6FB0FF",
+      "#3A4250FF",
+      "#6B7A3AFF"
+    ],
+    "triangleCount": 61862,
+    "bbox": [
+      [
+        -62.2,
+        -30.227,
+        0
+      ],
+      [
+        62.2,
+        4.15,
+        90.008
+      ]
+    ]
+  },
+  "molle-18650-holder/holder.stl": {
+    "format": "stl",
+    "triangleCount": 56754,
+    "bbox": [
+      [
+        -43.099,
+        0,
+        0.051
+      ],
+      [
+        43.099,
+        79.449,
+        30.227
+      ]
+    ]
+  },
+  "molle-18650-holder/plate.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#3A4250FF"
+    ],
+    "triangleCount": 57786,
+    "bbox": [
+      [
+        -43.099,
+        -14.327,
+        0
+      ],
+      [
+        43.099,
+        15.849,
+        79.449
+      ]
+    ]
+  },
   "parametric-qr-case/case.3mf": {
     "format": "3mf",
     "colors": [
@@ -2415,6 +4294,125 @@
         26.915,
         14.965,
         11.165
+      ]
+    ]
+  },
+  "pouch-comms-module/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2D6FB8FF",
+      "#2F8F4EFF",
+      "#3A4250FF",
+      "#C9A227FF",
+      "#D0D3D8FF",
+      "#D9622BFF",
+      "#E8C547FF"
+    ],
+    "triangleCount": 19396,
+    "bbox": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        140,
+        200,
+        87.5
+      ]
+    ]
+  },
+  "pouch-comms-module/box.stl": {
+    "format": "stl",
+    "triangleCount": 8850,
+    "bbox": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        140,
+        190,
+        44
+      ]
+    ]
+  },
+  "pouch-comms-module/clamp.stl": {
+    "format": "stl",
+    "triangleCount": 660,
+    "bbox": [
+      [
+        77.75,
+        105,
+        0
+      ],
+      [
+        109.75,
+        119.5,
+        6
+      ]
+    ]
+  },
+  "pouch-comms-module/exploded.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2D6FB8FF",
+      "#2F8F4EFF",
+      "#3A4250FF",
+      "#C9A227FF",
+      "#D0D3D8FF",
+      "#D9622BFF",
+      "#E8C547FF"
+    ],
+    "triangleCount": 19396,
+    "bbox": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        140,
+        230,
+        179.5
+      ]
+    ]
+  },
+  "pouch-comms-module/lid.stl": {
+    "format": "stl",
+    "triangleCount": 8378,
+    "bbox": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        140,
+        190,
+        5
+      ]
+    ]
+  },
+  "property-sign/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#000000FF",
+      "#FF0000FF",
+      "#FFFFFFFF"
+    ],
+    "triangleCount": 114800,
+    "bbox": [
+      [
+        -121.099,
+        -84.2,
+        -8
+      ],
+      [
+        121.099,
+        84.2,
+        1.6
       ]
     ]
   },
@@ -4272,6 +6270,311 @@
       ]
     ]
   },
+  "solar-node/assembled.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#1B2A4AFF",
+      "#222222FF",
+      "#3D4A3AFF",
+      "#4A6A8AFF",
+      "#555555FF",
+      "#5F7A5AFF",
+      "#6A8AAAFF",
+      "#708090FF",
+      "#7A3FB0FF",
+      "#8A8F94FF",
+      "#B8862EFF",
+      "#C08A3EFF",
+      "#C9A227FF",
+      "#D0D0D0FF",
+      "#D9D9D9FF",
+      "#E07B39FF",
+      "#E8C547FF"
+    ],
+    "triangleCount": 89466,
+    "bbox": [
+      [
+        -131.5,
+        -193.248,
+        -76.371
+      ],
+      [
+        131.5,
+        28.78,
+        349.845
+      ]
+    ]
+  },
+  "solar-node/bezel.stl": {
+    "format": "stl",
+    "triangleCount": 9270,
+    "bbox": [
+      [
+        -131.5,
+        -95.5,
+        0
+      ],
+      [
+        131.5,
+        95.5,
+        5
+      ]
+    ]
+  },
+  "solar-node/deck.stl": {
+    "format": "stl",
+    "triangleCount": 11750,
+    "bbox": [
+      [
+        -131.5,
+        -76.371,
+        0
+      ],
+      [
+        131.5,
+        76.371,
+        25.39
+      ]
+    ]
+  },
+  "solar-node/deployed.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#111111FF",
+      "#1B2A4AFF",
+      "#222222FF",
+      "#3D4A3AFF",
+      "#4A6A8AFF",
+      "#555555FF",
+      "#6A8AAAFF",
+      "#6B4A2BFF",
+      "#8A8F94FF",
+      "#B0B0B0FF",
+      "#C08A3EFF",
+      "#E8E8E8FF"
+    ],
+    "triangleCount": 56222,
+    "bbox": [
+      [
+        -1066.667,
+        -284.897,
+        -881.155
+      ],
+      [
+        800,
+        35.103,
+        3779.85
+      ]
+    ]
+  },
+  "solar-node/door.stl": {
+    "format": "stl",
+    "triangleCount": 88,
+    "bbox": [
+      [
+        -21.2,
+        -23,
+        0
+      ],
+      [
+        21.2,
+        25.7,
+        3
+      ]
+    ]
+  },
+  "solar-node/frame.stl": {
+    "format": "stl",
+    "triangleCount": 5202,
+    "bbox": [
+      [
+        -131.5,
+        -95.5,
+        0
+      ],
+      [
+        131.5,
+        95.5,
+        7
+      ]
+    ]
+  },
+  "solar-node/gasket.stl": {
+    "format": "stl",
+    "triangleCount": 704,
+    "bbox": [
+      [
+        -125.1,
+        -89.1,
+        0
+      ],
+      [
+        125.1,
+        89.1,
+        3
+      ]
+    ]
+  },
+  "solar-node/hood.stl": {
+    "format": "stl",
+    "triangleCount": 396,
+    "bbox": [
+      [
+        -17.5,
+        -17.5,
+        0
+      ],
+      [
+        25.5,
+        17.5,
+        55.5
+      ]
+    ]
+  },
+  "solar-node/horn.stl": {
+    "format": "stl",
+    "triangleCount": 2324,
+    "bbox": [
+      [
+        -22,
+        0,
+        0
+      ],
+      [
+        22,
+        75.193,
+        71.45
+      ]
+    ]
+  },
+  "solar-node/pinion.stl": {
+    "format": "stl",
+    "triangleCount": 1340,
+    "bbox": [
+      [
+        -10.493,
+        -10.493,
+        0
+      ],
+      [
+        10.493,
+        10.493,
+        20.2
+      ]
+    ]
+  },
+  "solar-node/shaft-seal.stl": {
+    "format": "stl",
+    "triangleCount": 448,
+    "bbox": [
+      [
+        -8,
+        -8,
+        0
+      ],
+      [
+        8,
+        8,
+        2.5
+      ]
+    ]
+  },
+  "solar-node/shelf.stl": {
+    "format": "stl",
+    "triangleCount": 4756,
+    "bbox": [
+      [
+        -64.4,
+        -65.371,
+        0
+      ],
+      [
+        64.4,
+        15.629,
+        5.2
+      ]
+    ]
+  },
+  "solar-node/shroud-seal.stl": {
+    "format": "stl",
+    "triangleCount": 704,
+    "bbox": [
+      [
+        -124.647,
+        -56.259,
+        0
+      ],
+      [
+        124.647,
+        68.121,
+        2
+      ]
+    ]
+  },
+  "solar-node/spacer.stl": {
+    "format": "stl",
+    "triangleCount": 320,
+    "bbox": [
+      [
+        -5.5,
+        -5.5,
+        0
+      ],
+      [
+        5.5,
+        5.5,
+        8
+      ]
+    ]
+  },
+  "solar-node/spool-body.stl": {
+    "format": "stl",
+    "triangleCount": 7892,
+    "bbox": [
+      [
+        -56.998,
+        -56.968,
+        0
+      ],
+      [
+        56.998,
+        56.968,
+        13.7
+      ]
+    ]
+  },
+  "solar-node/spool-cap.stl": {
+    "format": "stl",
+    "triangleCount": 3706,
+    "bbox": [
+      [
+        -52.625,
+        -52.625,
+        0
+      ],
+      [
+        52.625,
+        52.625,
+        9.2
+      ]
+    ]
+  },
+  "solar-node/tray.stl": {
+    "format": "stl",
+    "triangleCount": 17248,
+    "bbox": [
+      [
+        -131.5,
+        -76.371,
+        0
+      ],
+      [
+        131.5,
+        149.845,
+        153.414
+      ]
+    ]
+  },
   "split-tray-500/assembled-2x2.3mf": {
     "format": "3mf",
     "colors": [
@@ -4812,6 +7115,93 @@
         97.809,
         63.302,
         13.466
+      ]
+    ]
+  },
+  "telescoping-mast/coupler.stl": {
+    "format": "stl",
+    "triangleCount": 15052,
+    "bbox": [
+      [
+        -27.19,
+        -27.19,
+        0
+      ],
+      [
+        27.19,
+        27.19,
+        44.645
+      ]
+    ]
+  },
+  "telescoping-mast/cutaway.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2F7FD8FF"
+    ],
+    "triangleCount": 17356,
+    "bbox": [
+      [
+        -12.268,
+        -24.54,
+        0
+      ],
+      [
+        24.54,
+        21.249,
+        250
+      ]
+    ]
+  },
+  "telescoping-mast/extended.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#2F7FD8FF",
+      "#F2A33AFF"
+    ],
+    "triangleCount": 87928,
+    "bbox": [
+      [
+        -27.19,
+        -27.19,
+        0
+      ],
+      [
+        27.19,
+        27.19,
+        2215.38
+      ]
+    ]
+  },
+  "telescoping-mast/mast-section.stl": {
+    "format": "stl",
+    "triangleCount": 33468,
+    "bbox": [
+      [
+        -24.54,
+        -24.54,
+        0
+      ],
+      [
+        24.54,
+        24.54,
+        250
+      ]
+    ]
+  },
+  "test-cube-xyz/cube.stl": {
+    "format": "stl",
+    "triangleCount": 1876,
+    "bbox": [
+      [
+        -14.998,
+        -14.998,
+        -14.998
+      ],
+      [
+        14.998,
+        14.998,
+        14.998
       ]
     ]
   },

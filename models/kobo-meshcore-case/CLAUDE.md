@@ -1,6 +1,6 @@
 # kobo-meshcore-case
 
-A sealed grip a Kobo Clara HD slots into to become a MeshCore handheld (three Seeed XIAOs: nRF + two SX1262), with a 2.13" e-paper in front. devOnly, unprinted.
+A sealed grip a Kobo Clara HD slots into to become a MeshCore handheld (three Seeed XIAOs: nRF + two SX1262), with a 2.13" e-paper in front. Published, unprinted.
 
 ## The user's brief (2026-10-19)
 

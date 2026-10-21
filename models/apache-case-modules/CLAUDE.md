@@ -1,6 +1,6 @@
 # apache-case-modules
 
-A modular insert for Harbor Freight Apache cases. The first build is a portable MeshCore repeater in an Apache 1800 (small, HF 64550). devOnly, unprinted.
+A modular insert for Harbor Freight Apache cases. The first build is a portable MeshCore repeater in an Apache 1800 (small, HF 64550). Published, unprinted.
 
 ## The user's brief (2026-10-19)
 

@@ -1,6 +1,6 @@
 # hc33-lipo-case
 
-Case for a Heltec HT-HC33, a Heltec WiFi LoRa 32 V4, a 103665 LiPo, a USB-C TP4056 board and two SMA bulkheads. Two pieces: a carriage (top + door face, everything hung on it) and a body it slides into. devOnly, unprinted.
+Case for a Heltec HT-HC33, a Heltec WiFi LoRa 32 V4, a 103665 LiPo, a USB-C TP4056 board and two SMA bulkheads. Two pieces: a carriage (top + door face, everything hung on it) and a body it slides into. Published, unprinted.
 
 ## The user's brief (2026-10-21)
 

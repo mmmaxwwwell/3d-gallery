@@ -1,6 +1,6 @@
 # solar-node
 
-A sealed box under a salvaged 240 × 168 mm solar panel. devOnly, unprinted.
+A sealed box under a salvaged 240 × 168 mm solar panel. Published, unprinted.
 
 ## The user's brief (2026-10-20)
 

@@ -1,6 +1,6 @@
 # telescoping-mast
 
-A print-in-place telescoping mast: `sections` round tubes printed nested, collapsed, all standing on the bed. `devOnly` until a print proves the gaps.
+A print-in-place telescoping mast: `sections` round tubes printed nested, collapsed, all standing on the bed. Published before a print proved the gaps.
 
 ## How the tubes nest
 
@@ -23,7 +23,7 @@ Every slope is 45°: tooth underside and top, lug underside and top, skirt shoul
 
 ## Checking clearances
 
-There are no build tests yet (devOnly). Check a geometry change by intersecting `tube(i)` with `translate([0,0,rise]) rotate([0,0,turn]) tube(i+1)` using the Manifold backend. Use numeric `-D` values: lib variables aren't in scope for `-D` expressions, and an undefined translate renders as empty, which looks like a pass. These should be empty:
+Build fingerprints are in `tests/build/baseline.json`; they don't prove the gaps. Check a geometry change by intersecting `tube(i)` with `translate([0,0,rise]) rotate([0,0,turn]) tube(i+1)` using the Manifold backend. Use numeric `-D` values: lib variables aren't in scope for `-D` expressions, and an undefined translate renders as empty, which looks like a pass. These should be empty:
 
 - collapsed (0, 0)
 - mid-travel

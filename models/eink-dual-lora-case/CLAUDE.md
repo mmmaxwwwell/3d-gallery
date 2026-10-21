@@ -1,6 +1,6 @@
 # eink-dual-lora-case
 
-A handheld case in the Meshnology N37's shape for the user's own build. It holds a 2.13" e-paper HAT, a pinless hand-wired XIAO Sense, two SX1262 radios, an L76K GPS, two sealed box switches and two front tact switches, a PMW3610 optical sensor for swipes, a speaker with an I2C amp, a strong vibration motor and a 5 Ah battery. devOnly, unprinted. Started 2026-10-20 from scratch; the user called the kobo-meshcore-case "complete garbage", so take nothing from it.
+A handheld case in the Meshnology N37's shape for the user's own build. It holds a 2.13" e-paper HAT, a pinless hand-wired XIAO Sense, two SX1262 radios, an L76K GPS, two sealed box switches and two front tact switches, a PMW3610 optical sensor for swipes, a speaker with an I2C amp, a strong vibration motor and a 5 Ah battery. Published, unprinted. Started 2026-10-20 from scratch; the user called the kobo-meshcore-case "complete garbage", so take nothing from it.
 
 ## The user's brief (2026-10-20)
 

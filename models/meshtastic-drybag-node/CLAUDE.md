@@ -4,7 +4,7 @@ A Meshtastic node in a sealed box that winches itself up into a tree and stays t
 - the box: TPU 64D
 - everything else (front door, gear covers, reels and their flanges and hubs, gears, holder plates, crossmembers, roller cheeks, rollers and their bearings, panel mount): PCTG
 
-devOnly, unprinted.
+Published, unprinted.
 
 ## How the user's design got here
 

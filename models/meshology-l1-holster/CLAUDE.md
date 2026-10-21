@@ -1,6 +1,6 @@
 # meshology-l1-holster
 
-A TPU 64D slide-in holster for the Meshology L1 radio. `devOnly` until a test print confirms the fit.
+A TPU 64D slide-in holster for the Meshology L1 radio. Published before a test print confirmed the fit.
 
 ## Radio outline
 
@@ -44,13 +44,15 @@ The user ties a cord (a marine bungee looped over the radio's GPS antenna wing) 
 
 The holster bolts to a Kanix belt clip (the user's own system, `~/git/kanix/scad`). Only the interface is taken, not Kanix code, which is CC BY-NC-ND. That interface is an M5 grid at 19.05 mm pitch with 4.2 mm self-tap pilots, drilled blind from the clip side. Plates are as tall as their belt: 38 mm for 2 rows, 52 for 3. The width is pitch × (cols − 1) + 14.
 
-- `kanix_cols` × `kanix_rows` = 3 × 2 (the user's pick, the long side horizontal), centred on the back, its pad's top just below the slits so the tabs still flex.
+- `kanix_cols` × `kanix_rows` defaults to 3 × 2 (the user's pick, the long side horizontal), centred on the back, its pad's top just below the slits so the tabs still flex.
+- The manifest has a build per grid: `3x2` (default; the belt clip), `2x2`, `2x3` and `3x3`. They are set by params only (`kanix_cols`, `kanix_rows`, `kanix_margin`); the geometry modules are unchanged. The 3-row builds use `kanix_margin` 6 rather than 7. At 7, the 52 mm pad's bottom pilots fail the floor assert, and 6 is the least that fits. The user asked for the tolerance outside the bolt squares to be cut down to fit them.
+- Every build lists its Kanix MOLLE clips as hardware: one 18 mm `1xN` clip per bolt column (N = `kanix_rows`). They are printed from the Kanix repo (`scad/plates/molle_clip_1xN_60x2.scad`). At 18 mm, under the 19.05 pitch, neighbouring clips sit side by side about 1 mm apart. Checked by bolting the Kanix clip's closed geometry to each build's pad: none of the clips touch the holster anywhere but the pad face.
 - An M5×10 through the clip (5 mm plate, 2.4 mm head counterbore) reaches 7.4 mm in. The pilots go 8 mm, mostly through the pad and on into the wall, and the pad (`kanix_pad`, 5.8) is sized to leave `kanix_skin` (0.8, the user's number) before the pocket, so no screw tip reaches the radio (the user's concern). Check: the pilots must clear `pocket()` shifted 0.79 toward them and touch it at 0.81. That's also why `wall` went from 2.4 to 3.
 - The pad (`kanix_pad()`) is a hull of rounded corners. Its face is the plate's size; its flanks spread into the back wall at 45° underneath (no overhang) and only a rounding's width at the sides and top, to fit the back's flat and stay clear of the slits. Pilots are plain round holes; the user dropped my teardrops, so their tops bridge. Each mouth has a 45° chamfer, `kanix_pilot_chamfer` (0.8, my pick; 4.2 opens to 5.8), so a screw starts square (the user's ask).
 
 ## USB-C opening
 
-In the −x side (the user's right; I first put it on +x and they moved it), centred `usb_z` (38) above the radio's bottom face and `usb_y` (7) back from its front face, `usb_width` (8) × `usb_height` (14), standing upright. A 9 mm-wide port lying front-to-back would run onto the bevel there; that's my inference, not measured. The rim at that spot is lower than the opening's top, so it's a U-notch down from the rim (`usb_notch()`), cut from the rim's ball path (grown by the edge radius) so the rolled rim rounds its edges. Its front side is a straight ramp down from the side rim's front corner (a point at the front wall's mid-plane, rim height, in the notch's hull), so the rim only falls from the front into the notch; the user didn't want it rising first.
+In the −x side (the user's right; I first put it on +x and they moved it), centred `usb_z` (38) above the radio's bottom face and `usb_y` (7) back from its front face, `usb_width` (8) × `usb_height` (14), standing upright. A 9 mm-wide port lying front-to-back would run onto the bevel there; that's my inference, not measured. The rim at that spot is lower than the opening's top, so it's a U-notch down from the rim (`usb_notch()`), cut from the rim's ball path (grown by the edge radius) so the rolled rim rounds its edges. In front of the notch the rim keeps falling toward the front at rim_angle from the notch's bottom (usb_front_rim_z); that side's front lip and the cutout's edge rod follow it down (lip_top_z), and walls()'s plain-shell height z_lo drops with it.
 
 ## Drainage
 
