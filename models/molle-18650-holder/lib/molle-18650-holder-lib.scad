@@ -10,19 +10,24 @@
 // covers, a stick slot up through each block, room for the band lifted over
 // the stick, then the tubes. Over the bands only the tubes' backs exist, so
 // the bands and their bar tacks cross freely and each stick weaves block,
-// band, block. The stick's tip rests on a floor in the bottom block; its hook
-// snaps over the top block's back wall, and its folded head drops into a
-// cradle on top: a hood in front, a cheek either side, and a dome on each
-// cheek that clicks into the ends of the head's lanyard hole. A web fills
-// the grooves between the tubes' backs, so the tubes and blocks are one
-// body with a flat back over the bands.
+// band, block. The slots run out through the bottom, so any length of stick
+// fits, a longer one poking out below. The hook springs over the top block's
+// back wall, and the bulge on the hook's outer leaf clicks into a groove
+// across the wall's back. Nothing stands above the plate but the stick's own
+// head. A web fills the grooves between the tubes' backs, so the tubes and
+// blocks are one body with a flat back over the bands.
 //
-// Each tube ends below in a 45 deg cone that stands on the bed; the cell
-// seats on the cone's inside, and the cone's tip is left open as a drain.
-// The cells stand proud of the tubes' rims, to pinch them out by. Two short
-// crush ribs per tube press the cell back. Every outside edge is rounded:
-// the tubes' rims are half-round and their cones run into them on a fillet,
-// and the blocks are swept with a ball.
+// Each tube ends below in a 45 deg cone; the cell seats on the cone's
+// inside, and the cone's tip is left open as a drain. The cones, the bottom
+// block and the space between them are hulled into one solid bottom, its
+// top sloping up into the grooves between the tubes so nothing catches.
+// A slit runs down the middle of each tube's front, to slide the cell out
+// with a finger. Either side of it the wall is a spring clip, freed by a
+// notch where the tubes meet, with a lip over the cell's top edge: ramped on top so the
+// cell snaps in past it, and 45 deg underneath so a firm push up the slit
+// springs it out again. Two short crush ribs per tube press the cell back.
+// Every outside edge is rounded: the tubes' rims are half-round and their
+// cones run into them on a fillet, and the blocks are swept with a ball.
 //
 // Print it standing on its bottom: the tubes and slots run straight up, the
 // cones grow at 45 deg, and each block's underside over a band is 45 deg.
@@ -46,15 +51,21 @@ cell_clear = 0.3;
 // How far past the cell each crush rib reaches
 rib_squeeze = 0.15;
 
-// MOLLE stick length in inches: 3 spans one PALS band, 4 and 5 two, 6 and 7
-// three
+// The MOLLE stick the holder is sized for, in inches: 3 spans one PALS band,
+// 4 and 5 two, 6 and 7 three. A longer stick fits too, poking out below
 stick_inches = 3;
 
 // Tube wall, shared between neighbouring cells: 4 perimeters of a 0.4 nozzle
 wall = 1.6;
 
-// How far the cells stand above the tubes' rims, to pinch them out by
-grip = 8;
+// Slit down each tube's front, to slide the cell out with a finger
+finger_w = 10;
+
+// Spring clips either side of the finger slit: how long they are
+clip_len = 18;
+
+// How far each clip's lip reaches over the cell's top edge
+lip_reach = 1;
 
 // Drain hole at the tip of each tube's cone
 drain_d = 3;
@@ -80,9 +91,9 @@ function stick_outline(inches) =
     [for (p = molle_stick_outline) p[1] < -22 ? [p[0], p[1] - 25 * (inches - 3)] : p];
 // The head, in the outline's frame: from the blade's front face back to the
 // leaf's, and up from the hook's pocket top; the lanyard hole's centre.
-stick_head    = [-6, 3, 10];   // [u back, u front, height]
-stick_hole_c  = [-1.5, 5.3];   // [u, v]
-stick_hole_d  = 5.4;           // its least width
+// How far the hook's outer leaf bulges in towards the blade (its pinch),
+// in the outline's frame: u = 0 is the blade's back.
+stick_pinch_u = max([for (p = molle_stick_outline) if (p[1] < -5 && p[0] < -0.05) p[0]]);
 
 // ----- The weave -----
 back_wall    = 1.6;  // behind the stick; the hook's pinch clamps it
@@ -91,7 +102,7 @@ slot_side    = 0.4;  // stick clearance across its width
 webbing_room = 1.8;  // a lifted band's room between stick and tubes
 band_clear   = 0.5;  // each side of a band window
 hook_clear   = 0.5;  // plate top below the hook pocket's top
-stick_floor  = 2;    // under the stick's tip
+stick_floor  = 2;    // the sized stick's tip stops this far above the bottom
 min_tip      = 2;    // stick the bottom block must hold
 block_side   = 2.4;  // block outside the outer slots
 block_r      = 1.5;  // blocks' rounded edges
@@ -104,14 +115,14 @@ ease         = 1;    // chamfer where the stick enters a block from below
 rib_w        = 1.6;  // crush rib's width round the pocket
 rib_len      = 20;   // crush ribs run this far up from the cell's bottom
 rib_angle    = 70;   // crush ribs' angle either side of the tube's front
-// The head's cradle.
-head_clear   = 0.2;  // round the head
-cheek_t      = 1.6;
-cheek_back   = 2;    // cheeks run this far behind the plate, past the hole
-hood_t       = 2;
-dome_r       = 2;
-dome_reach   = 0.6;  // past the cheek's face; head_clear less of it catches
-cradle_r     = 0.6;  // cradle's rounded edges
+clip_w       = 3.5;  // each clip's width beside the finger slit
+lip_tip      = 0.6;  // the lip's flat inner face, top to bottom
+finger_chamfer = 1;  // the finger slit's outer edges
+finger_floor = 3;    // the finger slit stops this far above the cell's bottom
+// The groove the hook's leaf clicks into: how deep (the back wall is only
+// back_wall thick), and its clearance round the leaf.
+leaf_groove  = 0.8;
+leaf_clear   = 0.15;
 eps          = 0.01;
 
 // ----- Derived -----
@@ -140,9 +151,15 @@ inner_r  = fillet_r - wall;
 seat_y   = cell_d / 2 <= fillet_c[0] + inner_r * sqrt(2) / 2
            ? cell_d / 2 - drain_d / 2
            : fillet_c[1] - sqrt(pow(inner_r, 2) - pow(cell_d / 2 - fillet_c[0], 2));
-tube_top = seat_y + cell_len - grip;
+// The cell's top, and the lip over it: its 45 deg underside passes through
+// the cell's top edge, a flat inner face, a 45 deg ramp up to the rim.
+cell_top = seat_y + cell_len + cell_clear;
+lip_r    = cell_d / 2 - lip_reach;
+lip_y1   = cell_top + lip_reach + lip_tip;   // top of the lip's inner face
+tube_top = lip_y1 + (pocket_r - lip_r) + wall / 2;
+clip_x   = [finger_w / 2, finger_w / 2 + clip_w];  // a clip's span from the tube's axis
 
-// The plate holds the whole stick: stick_floor under its tip, the hook's
+// The plate is sized to the stick: stick_floor under its tip, the hook's
 // pocket at the top, and the bands that fit between.
 plate_h  = stick_floor + L - hook_clear;
 tip_y    = stick_floor;
@@ -166,10 +183,7 @@ block_z  = front_z + 1;
 // its hook's pocket.
 stick_z  = slot_z0 + slot_gap / 2;
 stick_y  = plate_h + hook_clear;
-head_z1  = stick_z + stick_head[1] + head_clear;   // the hood's back
-head_top = stick_y + stick_head[2];
-cheek_x  = stick_w / 2 + head_clear;               // a cheek's face
-hole_zy  = [stick_z + stick_hole_c[0], stick_y + stick_hole_c[1]];
+pinch_z  = stick_z + stick_pinch_u;   // how far into the back wall the leaf presses
 
 assert(stick_w < pals_col_min, "stick won't pass between the bar tacks");
 assert(bands >= 1, "stick too short to span a band");
@@ -178,11 +192,12 @@ assert(end_h - tip_y >= min_tip, "bottom block holds too little stick");
 assert(n_sticks >= 1, "too few cells to carry a stick");
 assert(tube_top <= plate_h + eps, "the cells are taller than the plate: take a longer stick");
 assert(foot_r < tube_r, "the drain is wider than the tube");
-assert(grip < cell_len / 2, "the cells stand out of their tubes by more than half");
+assert(clip_x[1] < pocket_r - 0.5, "the clips are too wide to be freed from the tube");
+assert(clip_len < cell_len / 2, "the clips are longer than half the tube");
+assert(finger_w < cell_d - 4, "the finger slit is too wide to keep the cell in");
 assert(inner_r > 0, "fillet_r must be more than the wall");
-dome_foot = sqrt(pow(dome_r, 2) - pow(dome_r - dome_reach, 2));  // the dome's radius on the cheek
-assert(dome_foot < stick_hole_d / 2, "the domes are wider than the head's hole");
-assert(hole_zy[0] - dome_foot > -cheek_back + cradle_r, "the cheeks stop short of the domes");
+assert(back_wall - leaf_groove >= 0.8, "the leaf's groove leaves too little back wall");
+assert(pinch_z > leaf_groove, "the leaf's groove is deeper than the leaf presses");
 assert(rib_squeeze < cell_clear + 1, "crush ribs reach too far into the cell");
 for (b = blocks) assert(b[1] - b[0] > block_z, "a block is too short for its 45 deg underside");
 
@@ -214,6 +229,65 @@ module tube_solid(x) {
 module pocket(x) {
     about_axis(x, concat([[0, -1], [drain_d / 2, -1], [drain_d / 2, 0]], arc(fillet_c, inner_r, -45, 0),
                          [[pocket_r, tube_top + 1], [0, tube_top + 1]]));
+}
+
+// The tubes' cones, the bottom block and the space between, hulled: up to a
+// plane that rises at 45 deg from where the tubes reach full width at the
+// front, back into the grooves between them.
+module bottom_fill() {
+    y0 = fillet_c[1];
+    difference() {
+        intersection() {
+            hull() {
+                for (x = cell_xs) tube_solid(x);
+                block(blocks[0], 0);
+            }
+            rotate([90, 0, 90]) translate([0, 0, -body_w])
+                linear_extrude(2 * body_w)
+                    polygon([[-1, -1], [-1, body_z + 1], [y0 - 1, body_z + 1], [y0 + body_z + 1, -1]]);
+        }
+        for (x = cell_xs) pocket(x);
+    }
+}
+
+// The lip on top of a clip, as a ring cut to the clip's span.
+module lips(x) {
+    intersection() {
+        about_axis(x, [[pocket_r + 0.5, cell_top - (pocket_r - cell_d / 2) - 0.5],
+                       [lip_r, cell_top + lip_reach], [lip_r, lip_y1],
+                       [pocket_r + 0.5, lip_y1 + pocket_r - lip_r + 0.5]]);
+        for (s = [-1, 1])
+            translate([x + s * (clip_x[0] + clip_x[1]) / 2, tube_top - clip_len / 2, cell_z + tube_r / 2])
+                cube([clip_x[1] - clip_x[0], clip_len, tube_r], center = true);
+    }
+}
+
+// A slot cut through the tube's front from y0 up out of the rim, its bottom
+// end round, flared at the outside by chamfer.
+module front_slit(x, w, y0, chamfer) {
+    zo = cell_z + sqrt(pow(tube_r, 2) - pow(w / 2, 2));   // the wall's face at the slit's edge
+    for (cz = [[cell_z, zo - chamfer, w], [zo, body_z + 1, w + 2 * chamfer]])
+        hull() {
+            translate([x, y0 + w / 2, cz[0]]) cylinder(d = cz[2], h = cz[1] - cz[0], $fn = 32);
+            translate([x - cz[2] / 2, tube_top, cz[0]]) cube([cz[2], 2, cz[1] - cz[0]]);
+        }
+    if (chamfer > 0)
+        hull() {
+            translate([x, y0 + w / 2, zo - chamfer]) cylinder(d1 = w, d2 = w + 2 * chamfer, h = chamfer, $fn = 32);
+            translate([x - w / 2 - chamfer, tube_top, zo]) cube([w + 2 * chamfer, 2, eps]);
+            translate([x - w / 2, tube_top, zo - chamfer]) cube([w, 2, eps]);
+        }
+}
+
+// The finger slits, and the notches that free the clips: one where each
+// pair of tubes meets, taking the junction with it, and one outside each
+// end tube.
+module tube_slits() {
+    for (x = cell_xs) front_slit(x, finger_w, seat_y + finger_floor, finger_chamfer);
+    for (i = [0 : cells - 2])
+        front_slit((cell_xs[i] + cell_xs[i + 1]) / 2, pitch - 2 * clip_x[1], tube_top - clip_len, 0);
+    for (s = [-1, 1])
+        front_slit(s * (body_w / 2 - (tube_r - clip_x[1]) / 2 + 0.5), tube_r - clip_x[1] + 1, tube_top - clip_len, 0);
 }
 
 // The grooves between the tubes' backs, filled back to the plate's face.
@@ -254,21 +328,26 @@ module rounded_extrusion(x0, x1, profile, r) {
     }
 }
 
-// The head's cradle over one stick: a cheek either side, its back underside
-// at 45 deg, with a dome into the head's hole; a hood in front. Each cheek
-// stands free of the hood, so it springs out as the head goes past.
-module cradle(x) {
-    y0 = plate_h - 3;
-    for (s = [-1, 1]) {
-        xs = [x + s * cheek_x, x + s * (cheek_x + cheek_t)];
-        rounded_extrusion(min(xs), max(xs),
-            [[y0, 0], [y0 + cheek_back, -cheek_back], [head_top, -cheek_back],
-             [head_top, head_z1 - cradle_r * 2], [y0, head_z1 - cradle_r * 2]], cradle_r);
-        translate([x + s * (cheek_x + dome_r - dome_reach), hole_zy[1], hole_zy[0]])
-            sphere(r = dome_r, $fn = 24);
+// The stick as placed, from its traced outline grown by clear.
+module stick_body(x, clear = 0) {
+    o = stick_outline(stick_inches);
+    translate([x, stick_y, stick_z]) rotate([90, 0, 90]) translate([0, 0, -stick_w / 2 - clear])
+        linear_extrude(stick_w + 2 * clear)
+            offset(delta = clear)
+                polygon(points = [for (p = concat(o, molle_stick_hole)) [p[1], p[0]]],
+                        paths = [[for (i = [0 : len(o) - 1]) i],
+                                 [for (i = [0 : len(molle_stick_hole) - 1]) len(o) + i]]);
+}
+
+// The groove across the top block's back that the leaf's bulge clicks into:
+// the leaf's own shape, set back so it cuts leaf_groove deep. The leaf still
+// presses the rest of the way, so the stick stays tight.
+module leaf_groove(x) {
+    intersection() {
+        translate([0, 0, -(pinch_z + leaf_clear - leaf_groove)]) stick_body(x, leaf_clear);
+        translate([x - stick_w, blocks[len(blocks) - 1][0], -1])
+            cube([2 * stick_w, plate_h, leaf_groove + 1]);
     }
-    rounded_extrusion(x - cheek_x - cheek_t, x + cheek_x + cheek_t,
-        [[y0, head_z1], [head_top, head_z1], [head_top, head_z1 + hood_t], [y0, head_z1 + hood_t]], cradle_r);
 }
 
 module block(b, k) {
@@ -277,7 +356,7 @@ module block(b, k) {
 
 module stick_slot(x) {
     translate([x, 0, 0]) {
-        translate([-slot_w / 2, tip_y, slot_z0]) cube([slot_w, plate_h, slot_z1 - slot_z0]);
+        translate([-slot_w / 2, -1, slot_z0]) cube([slot_w, plate_h + 2, slot_z1 - slot_z0]);
         for (y = concat([for (w = windows) w[0]], [plate_h]))
             translate([0, y, (slot_z0 + slot_z1) / 2])
                 cuboid([slot_w + 2 * ease, 2 * ease, slot_z1 - slot_z0 + 2 * ease],
@@ -290,11 +369,13 @@ module holder() {
         union() {
             for (x = cell_xs) tube(x);
             web();
+            bottom_fill();
+            for (x = cell_xs) lips(x);
             for (x = cell_xs, s = [-1, 1]) crush_rib(x, s);
-            for (x = stick_xs) cradle(x);
             for (k = [0 : len(blocks) - 1]) block(blocks[k], k);
         }
-        for (x = stick_xs) stick_slot(x);
+        for (x = stick_xs) { stick_slot(x); leaf_groove(x); }
+        tube_slits();
     }
 }
 
@@ -306,15 +387,9 @@ module ref_cells() {
             cylinder(d = cell_d, h = cell_len, $fn = 48);
 }
 
-// The stick as it sits woven in, from its traced outline.
+// The stick as it sits woven in.
 module ref_sticks() {
-    o = stick_outline(stick_inches);
-    for (x = stick_xs)
-        translate([x, stick_y, stick_z]) rotate([90, 0, 90]) translate([0, 0, -stick_w / 2])
-            linear_extrude(stick_w)
-                polygon(points = [for (p = concat(o, molle_stick_hole)) [p[1], p[0]]],
-                        paths = [[for (i = [0 : len(o) - 1]) i],
-                                 [for (i = [0 : len(molle_stick_hole) - 1]) len(o) + i]]);
+    for (x = stick_xs) stick_body(x);
 }
 
 // PALS bands through the windows, lifted over the sticks.
@@ -322,6 +397,11 @@ module ref_bands() {
     for (w = windows)
         translate([-body_w / 2 - 20, w[0] + band_clear, slot_z1 + 0.2])
             cube([body_w + 40, pals_band_w, pals_webbing_t]);
+}
+
+// As worn, for the viewer (Z up): the open tops up, the front towards -Y.
+module in_use() {
+    rotate([90, 0, 0]) children();
 }
 
 // Standing on its bottom.

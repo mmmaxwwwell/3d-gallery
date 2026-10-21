@@ -4549,22 +4549,22 @@
       "devOnly": true,
       "customizable": true,
       "title": "MOLLE 18650 Holder",
-      "description": "Four 18650 cells standing upright side by side in one printed piece that mounts straight onto PALS webbing with two of BigFootPL's 4\" Molle sticks (in the Library), like a MOLLE pouch: nothing to screw together. The back is a stick weave: a block in each PALS gap, a slot up through each block for a stick, and only the plate across the bands, so each stick runs block, band, block, band. Its tip rests on a floor in the bottom block and its hook snaps over the top block's back wall. With no bolt grid in the way, the blocks fill the PALS gaps exactly. The 4\" stick spans two bands, two columns across. The cells drop in from the top, flush with it, and stand on a floor. A 45\u00b0 bevel down the top front opens each pocket so you can grip a cell, and below the cells the front tapers at 45\u00b0 to the plate. Two crush ribs per pocket hold each cell; a drain hole under each runs out through the taper. 86 \u00d7 104.5 \u00d7 30.7 mm. Prints front face down, no supports. Cell count, cell size and stick length are customizable. Not yet printed.",
+      "description": "Four 18650 cells standing upright, each in a thin tube of its own, the tubes fused side by side onto a MOLLE stick weave so the whole thing goes straight onto PALS webbing with two of BigFootPL's 3\" Molle sticks (in the Library), like a MOLLE pouch: nothing to screw together. It covers one PALS band, two columns across. The back is a block in the PALS gap above the band and one below, a slot up through each for a stick, and only the tubes across the band, so each stick runs block, band, block. The slots run out through the bottom, so a longer stick fits too. The hook springs over the top block's back wall, and the bulge on the hook's outer leaf clicks into a shallow groove across the wall's back, so it stays put and tight with nothing standing above the holder. A web fills the grooves behind the tubes. Each tube ends below in a 45\u00b0 cone with a drain at its tip, and the cones, the bottom block and the space between them are hulled into one smooth bottom. A slit runs down the middle of each tube's front, to slide the cell out with a finger; either side of it the wall is a spring clip, freed by a notch where the tubes meet, with a lip over the cell's top edge that it snaps in past. Two crush ribs per tube stop it rattling. Every outside edge is rounded. 84 \u00d7 79.5 \u00d7 29 mm. Prints standing on its bottom, no supports. Cell count, cell size and stick length are customizable. Not yet printed.",
       "filament": [
         { "material": "PETG", "color": "any" }
       ],
       "previews": [
-        { "file": "assembled.3mf", "format": "3mf", "label": "On two PALS bands, cells in, sticks woven through", "default": true, "module": "assembled",
+        { "file": "assembled.3mf", "format": "3mf", "label": "On a PALS band, cells in, sticks woven through", "default": true, "module": "assembled",
           "legend": [
             { "color": "#3a4250", "label": "Holder", "part": "holder.stl" },
             { "color": "#2f6fb0", "label": "18650 cells (reference)" },
-            { "color": "#2b2b2b", "label": "4\" Molle sticks (reference)" },
+            { "color": "#2b2b2b", "label": "3\" Molle sticks (reference)" },
             { "color": "#6b7a3a", "label": "PALS webbing (reference)" }
           ],
           "components": [
             { "part": "holder.stl", "qty": 1 }
           ] },
-        { "file": "plate.3mf", "format": "3mf", "label": "Print plate: front face down", "plate": true, "module": "plate",
+        { "file": "plate.3mf", "format": "3mf", "label": "Print plate: standing on its bottom", "plate": true, "module": "plate",
           "legend": [
             { "color": "#3a4250", "label": "Holder", "part": "holder.stl" }
           ],
@@ -4573,10 +4573,10 @@
           ] }
       ],
       "parts": [
-        { "file": "holder.stl", "format": "stl", "label": "Holder — four cell pockets, stick weave on the back", "module": "holder" }
+        { "file": "holder.stl", "format": "stl", "label": "Holder — four cell tubes with finger slits and spring clips, stick weave on the back; print standing on its bottom", "module": "holder" }
       ],
       "hardware": [
-        { "qty": 2, "label": "4\" Molle stick — BigFootPL's, printed from the Library; weaves the holder onto the webbing",
+        { "qty": 2, "label": "3\" Molle stick — BigFootPL's, printed from the Library; weaves the holder onto the webbing",
           "source": { "url": "https://www.printables.com/model/411201-molle-stick", "vendor": "Printables" } },
         { "qty": 4, "label": "18650 cell" }
       ]

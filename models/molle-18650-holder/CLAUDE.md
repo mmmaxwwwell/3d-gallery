@@ -11,10 +11,11 @@
   stick's side outline and lanyard hole, traced off `library/molle-stick`'s
   STL (it is a straight 25 mm extrusion), CC BY BigFootPL. `stick_outline()`
   stretches its blade for other lengths. The previews draw it, and the
-  cradle's numbers (`stick_head`, `stick_hole_c`) come from it: head 10 tall
-  over the hook's pocket top, 9 deep, hole 6 × 5.4 centred 5.3 up. The
+  leaf groove is cut from it. The
   customizer has no filesystem, so `customizable-sources.ts` prepends that
   file and drops its include; keep BOSL2's include in the lib.
+- **Stick slots are open at the bottom** (the user: don't limit the stick's
+  length). Nothing rests on the tip; the hook and the leaf's click hold it.
 - **Plate height comes from the stick:** `stick_floor + stick_len − hook_clear`.
   End blocks are equal, so on the 3" (and 5") they run 1.15 mm past their
   PALS gaps: the bottom block's back edge is chamfered (`end_relief`) to ride
@@ -22,13 +23,28 @@
 - **Tubes are solids of revolution** (`tube_profile()`): 45° cone to a drain,
   fillet into the side, half-round rim. The cell's seat (`seat_y`) is where
   its edge meets the inner cone or fillet. A `web()` (the tubes' hull, cut at
-  their axes, pockets removed) fills the grooves behind them.
-- **Blocks and cradle pieces are swept with a ball** (`rounded_extrusion`),
+  their axes, pockets removed) fills the grooves behind them, and
+  `bottom_fill()` hulls the cones with the bottom block up to a plane that
+  rises 45° into the front grooves (the user disliked the catchy pockets
+  under the cell ends).
+- **Finger slit and clips.** `tube_slits()` cuts a `finger_w` slit down each
+  tube's front (round bottom, chamfered outer edge) and a notch where each
+  pair of tubes meets, over the top `clip_len`, taking the junction with it.
+  That leaves a `clip_w` spring finger either side of each finger slit;
+  `lips()` puts a lip on each, 45° under (prints, and lets a firm push up
+  the slit spring it) and ramped on top (the cell snaps in). Two slits
+  per junction instead of one notch left a thin free spike: don't go back.
+  The lips raise `tube_top` above the cell, so 69 mm cells need the 4" stick.
+- **Preview pose:** the viewer is Z-up, so `assembled` is wrapped in
+  `in_use()` (open tops up); `plate` in `print_pose()`.
+- **Blocks are swept with a ball** (`rounded_extrusion`),
   so their outlines are exact and every edge is round. Only the stick slots'
   mouths are chamfered.
-- **The cradle's cheeks stand free of the hood** so they spring out; the
-  domes engage 0.4 mm (`dome_reach − head_clear`), ~2.9% strain in a 1.6 mm
-  PETG cheek. The hook's leaf overlaps the back wall by up to 1.4 mm by
-  design: that's the stick's pinch.
+- **The stick is held by its hook's leaf, not its head.** The leaf's bulge
+  (`stick_pinch_u`, 1.42 into the back wall) clicks into `leaf_groove()`,
+  0.8 deep (the back wall is 1.6), so it still presses 0.6: tight. The user
+  rejected a cradle round the head with domes in its lanyard hole ("we
+  don't want to extend"): nothing stands above the plate.
 - Unprinted. Open guesses: `cell_clear` 0.3, `rib_squeeze` 0.15, the slot
-  clearances (0.3 / 0.4), `webbing_room` 1.8, the dome engagement.
+  clearances (0.3 / 0.4), `webbing_room` 1.8, the leaf's 0.8 click, the
+  lips' 1 mm reach and 18 mm clips.
