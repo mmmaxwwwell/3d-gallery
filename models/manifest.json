@@ -4297,6 +4297,48 @@
         { "qty": 1, "label": "Speaker, 28 × 31 × 15.2 mm, and its I2C amp board (22.5 × 38.6 mm)" },
         { "qty": 4, "label": "Zip tie, up to 3 mm wide — radio 1 to the midframe, the motor into its saddle" }
       ]
+    },
+    {
+      "slug": "solar-node",
+      "devOnly": true,
+      "title": "Solar LoRa Node",
+      "description": "A slim sealed box under a 240 × 168 mm solar panel salvaged from a solar LED lamp. The panel drops into a pocket in the frame onto a bead of construction adhesive; a bezel screwed over its border squeezes the bead to 1 mm and leaves the panel flush. The frame and bezel then come off the tray as one, on a ring of 24 M3 cap screws that run outside a TPU gasket: the tray's tongue squeezes the gasket's slot from the sides. Inside lie a 10 Ah LP1260110 LiPo pouch, a Heltec V3, a TP4056 charger and a 5 V buck-boost, each placed by corner brackets on the floor, and an N bulkhead goes through the end wall for the antenna. 263 × 191 × 39.5 mm, so it needs a 270 mm bed. The panel's thickness and the buck-boost's size are guesses. Not yet printed.",
+      "filament": [
+        { "material": "PETG", "color": "any", "note": "Tray, frame and bezel", "parts": ["tray.stl", "frame.stl", "bezel.stl"] },
+        { "material": "TPU 85A", "color": "any", "note": "Lid gasket", "parts": ["gasket.stl"] }
+      ],
+      "previews": [
+        { "file": "assembled.3mf", "format": "3mf", "label": "Assembled, the frame with its panel and bezel lifted 40 mm off the tray", "default": true,
+          "legend": [
+            { "color": "#3d4a3a", "label": "Tray and bezel", "part": "tray.stl", "parts": ["tray.stl", "bezel.stl"] },
+            { "color": "#c08a3e", "label": "Frame", "part": "frame.stl" },
+            { "color": "#e07b39", "label": "Gasket (TPU)", "part": "gasket.stl" },
+            { "color": "#1b2a4a", "label": "Solar panel (reference)" },
+            { "color": "#d9d9d9", "label": "Construction adhesive bead (reference)" },
+            { "color": "#e8c547", "label": "LP1260110 LiPo pouch (reference)" },
+            { "color": "#7a3fb0", "label": "Heltec V3, TP4056 and buck-boost (reference)" },
+            { "color": "#c9a227", "label": "N bulkhead (reference)" }
+          ],
+          "components": [
+            { "part": "tray.stl", "qty": 1 },
+            { "part": "frame.stl", "qty": 1 },
+            { "part": "bezel.stl", "qty": 1 },
+            { "part": "gasket.stl", "qty": 1 }
+          ] }
+      ],
+      "parts": [
+        { "file": "tray.stl", "format": "stl", "label": "Tray — floor, walls, screw columns, seal tongue, bulkhead hole" },
+        { "file": "frame.stl", "format": "stl", "label": "Frame — panel pocket and glue ledge, gasket groove underneath" },
+        { "file": "bezel.stl", "format": "stl", "label": "Bezel — clamps the panel's border" },
+        { "file": "gasket.stl", "format": "stl", "label": "Gasket — TPU 85A U-section, slot up as printed" }
+      ],
+      "hardware": [
+        { "qty": 24, "label": "M3x16 socket cap screw — bezel and frame down into the tray",
+          "usedBy": [ { "part": "bezel.stl", "each": 24 } ] },
+        { "qty": 1, "label": "N female bulkhead to IPEX pigtail — antenna through the end wall" },
+        { "qty": 1, "label": "Construction adhesive — a bead on the frame's ledge under the panel" },
+        { "qty": 4, "label": "Double-sided foam tape — the battery and boards to the floor" }
+      ]
     }
   ]
 }
