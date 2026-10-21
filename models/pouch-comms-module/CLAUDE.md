@@ -21,6 +21,7 @@ A box for a backpack side pouch: power bank, Franklin T9, Pi Zero 2 W, Heltec HT
 - "we also have to add a haltec v4": a Heltec WiFi LoRa 32 V4, 51.7 × 25.4 × 10.7 (Heltec's page).
 - "the 3 boards need to slide into slots vertically next to the power bank".
 - The Franklin "has a microusb sticking out the top of it, and needs to have its power button held … a cage with a m3 set screw".
+- Later the same day the user placed the T9's ports: "the t9 usb port is centered horizontally and vertically on one of the short faces … with the usb port facing at 12 o clock, the power button is on the 3 o clock face centered both axises". So the button is on the +X side, mid-length and mid-height, and the set screw moved off the cage into the right wall.
 - "really look at each of the circuit board modules and get the exact dimensions right so everything fits", and add "FR120N MOSFET Module Optocoupler Isolation Transistor Switch 100V 9.4A … 5 Pack switch on/off LED loads". Asked how many go in the box, the user said 2.
 
 ## Where the board figures come from (2026-10-21)
@@ -50,10 +51,12 @@ A box for a backpack side pouch: power bank, Franklin T9, Pi Zero 2 W, Heltec HT
   - `fr_wire_room` is left at both ends for the terminals' wires. Nothing stops the modules sliding along the rails but their wires.
   - Terminals top out at 37.1, under the lid's 42.5.
 - **Antennas.** The HC33 (HaLow) and V4 (LoRa) each get an SMA bulkhead in the +Y wall over the bay. The Pi and T9 keep their internal antennas.
-- **T9 power button on the front face.** This is from the Franklin user manual (ManualsLib); its exact spot is unmeasured.
-  - The micro-USB is on an end, which I take to be the "top" the user meant, and it faces +Y.
-  - The cage is a plate over that end, on two pillars `pillar_dx` either side of the plug, M3x10 cap screws counterbored. The set screw goes through a hex nut pocket over the button.
-  - It prints as it sits, plate down. The counterbores and nut pocket open upward, their floors on solid plate, so nothing bridges. An earlier version printed it top down, which put those floors over air.
+- **T9 power button.** The set screw runs along X at `button_z`, `t9_cy`, through a `teardrop_x` hole in the right wall and a block (`button_block_x0`..the wall, `button_block_w` along Y) that stands `button_block_gap` off the T9's side.
+  - The nut drops into a slot from the block's top, its flats against the slot's sides so it can't turn.
+  - The M3x10 sits wholly inside the wall and block, and a hex key reaches it through the wall. The asserts keep it in its nut when backed off and inside the wall when pressing.
+  - The block sits between two right-wall bosses (an assert checks that). The T9's -X corner brackets take the push.
+- **Cage.** It's a plate over the T9's micro-USB end (+Y), on two pillars `pillar_dx` either side of the plug, with M3x10 cap screws counterbored.
+  - It prints as it sits, plate down. The counterbores open upward, their floors on solid plate, so nothing bridges.
 - No vents, no lid window, no external charging port. These are open questions in the README.
 
 ## Frame

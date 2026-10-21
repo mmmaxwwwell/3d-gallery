@@ -28,7 +28,8 @@ The +Y end (the SMA end) is the end that sticks out of the pouch.
 - **Franklin T9.**
   - It lies face up at the -Y end of the right side, between corner brackets, with its micro-USB end toward +Y.
   - Its plug has 27 mm of room in front of it before the next post.
-  - The **cage** is a plate over the T9's port end, screwed onto two pillars that stand either side of the plug. An M3 set screw through a captive nut in the plate holds the power button down, so the T9 starts whenever it gets power.
+  - Its micro-USB is centred on that end, and its power button is centred on its right side. An M3 set screw through the right wall, threaded through a nut in a block beside the T9, holds the button in, so the T9 starts whenever it gets power. A hex key reaches the screw through the wall, lid on.
+  - The **cage** is a plate over the T9's port end, screwed onto two pillars that stand either side of the plug.
 - **FR120N shelf.** The cage plate carries on over the T9 as a shelf. The two FR120Ns lie on it side by side in rails, screw terminals up, with 8 mm at each end for the wires.
 - **Boards.** Beside the bank, past the T9, the HC33, V4 and Pi stand on edge in slots, in that order out from the divider. Every board's component side faces the right wall.
   - Each slides down into a groove in the floor, between a full-height slotted post at its +Y end and a low one at its -Y end.
@@ -43,15 +44,16 @@ The +Y end (the SMA end) is the end that sticks out of the pouch.
 
 1. Fit the SMA bulkheads through the end wall, nuts inside.
 2. Stick the T9 down between its brackets, face up, port end toward the boards. Plug its micro-USB in.
-3. Put the M3 nut in the cage's pocket and thread the set screw through it. Slide the two FR120Ns into the shelf's rails and wire them. Screw the cage onto its pillars with 2 M3x10.
-4. Turn the set screw down until the T9's button stays pressed.
-5. Stick the bank down and plug it in.
-6. Slide the boards down into their slots, USB end toward the T9.
-7. Put the lid on with 21 M3x10 cap screws.
+3. Drop the M3 nut into the slot in the block beside the T9's right side, then thread the M3x10 set screw in through the right wall until it just touches the T9.
+4. Slide the two FR120Ns into the shelf's rails and wire them. Screw the cage onto its pillars with 2 M3x10.
+5. Turn the set screw in until the T9's button stays pressed.
+6. Stick the bank down and plug it in.
+7. Slide the boards down into their slots, USB end toward the T9.
+8. Put the lid on with 21 M3x10 cap screws.
 
 ## Unmeasured
 
-- **The T9's power button.** It's somewhere on the front face; the cage assumes it's centred, 15 mm in from the micro-USB end (`t9_button`).
+- **The T9's power button.** How far it stands proud and how far it travels. The set screw takes up either, up to about 4 mm of push past the T9's side before its tail leaves the nut.
 - **The Pi.** PCB 1 mm and parts 3 over / 1 under are taken from its 5 mm overall (`pi_pcb`, `pi_over`, `pi_under`). Each slot is 0.4 wider than its PCB.
 - **The FR120Ns.** 33.5 × 16.5 is from the listing. The terminals' height (10), the PCB (1.6) and the solder tails under it (2) are guesses (`fr_h`, `fr_pcb`, `fr_tails`).
 - **Header pins.** None are fitted on any board. A V4 with its pins soldered won't go into the floor groove.

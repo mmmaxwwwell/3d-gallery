@@ -4380,7 +4380,7 @@
       "slug": "pouch-comms-module",
       "devOnly": true,
       "title": "Pouch Comms Module",
-      "description": "A box that rides in a backpack side pouch, carrying a power bank, a Franklin T9 hotspot and three boards: a Raspberry Pi Zero 2 W, a Heltec HT-HC33 (ESP32-S3 + Wi-Fi HaLow) and a Heltec WiFi LoRa 32 V4, plus two FR120N MOSFET modules for switching LED loads. The bank lies along the left side behind a full-height divider, held at both ends, its ports toward an open bay at the top end where the cables gather. The T9 lies face up at the bottom of the right side; a cage plate screwed over its port end carries an M3 set screw that holds its power button down, so it always starts, and reaches on over the T9 as a shelf where the two FR120Ns lie in rails, screw terminals up. Beside the bank, past the T9, the three boards stand on edge in slots sized from each maker's drawing: a groove in the floor between a full-height post at the top end, cut away where that end has parts (micro-SD, U.FL, camera connector), and a low one that stays under the buttons and sockets at the other. Two SMA bulkheads through the top wall take the HaLow and LoRa antennas. The lid closes on 21 M3 cap screws, and a tongue round the walls and along the divider drops into a groove under it. 140 × 190 × 47.5 mm with 5 mm walls; the bank's 36.5 mm sets the height. Not yet printed.",
+      "description": "A box that rides in a backpack side pouch, carrying a power bank, a Franklin T9 hotspot and three boards: a Raspberry Pi Zero 2 W, a Heltec HT-HC33 (ESP32-S3 + Wi-Fi HaLow) and a Heltec WiFi LoRa 32 V4, plus two FR120N MOSFET modules for switching LED loads. The bank lies along the left side behind a full-height divider, held at both ends, its ports toward an open bay at the top end where the cables gather. The T9 lies face up at the bottom of the right side; an M3 set screw through the right wall, in a nut in a block beside the T9, holds the power button on its side in, so it always starts. A cage plate screwed over its port end reaches on over the T9 as a shelf where the two FR120Ns lie in rails, screw terminals up. Beside the bank, past the T9, the three boards stand on edge in slots sized from each maker's drawing: a groove in the floor between a full-height post at the top end, cut away where that end has parts (micro-SD, U.FL, camera connector), and a low one that stays under the buttons and sockets at the other. Two SMA bulkheads through the top wall take the HaLow and LoRa antennas. The lid closes on 21 M3 cap screws, and a tongue round the walls and along the divider drops into a groove under it. 140 × 190 × 47.5 mm with 5 mm walls; the bank's 36.5 mm sets the height. Not yet printed.",
       "filament": [
         { "material": "PETG", "color": "any" }
       ],
@@ -4417,17 +4417,17 @@
           ] }
       ],
       "parts": [
-        { "file": "box.stl", "format": "stl", "label": "Box — floor, walls, bank divider and stops, T9 brackets and cage pillars, board slots, SMA holes, indexing tongue" },
+        { "file": "box.stl", "format": "stl", "label": "Box — floor, walls, bank divider and stops, T9 brackets and cage pillars, the T9 button's set-screw block, board slots, SMA holes, indexing tongue" },
         { "file": "lid.stl", "format": "stl", "label": "Lid — flat, 21 counterbored M3 holes, indexing groove underneath" },
-        { "file": "cage.stl", "format": "stl", "label": "T9 cage — plate over the T9's port end, nut pocket for the power-button set screw, shelf with rails for two FR120Ns; prints as it sits" }
+        { "file": "cage.stl", "format": "stl", "label": "Cage — plate over the T9's port end on two pillars, shelf with rails for two FR120Ns; prints as it sits" }
       ],
       "hardware": [
         { "qty": 21, "label": "M3x10 socket cap screw — lid into the wall bosses",
           "usedBy": [ { "part": "lid.stl", "each": 21 } ] },
         { "qty": 2, "label": "M3x10 socket cap screw — T9 cage onto its pillars",
           "usedBy": [ { "part": "cage.stl", "each": 2 } ] },
-        { "qty": 1, "label": "M3x10 set screw and M3 hex nut — holds the T9's power button down",
-          "usedBy": [ { "part": "cage.stl", "each": 1 } ] },
+        { "qty": 1, "label": "M3x10 set screw and M3 hex nut — through the right wall, holds the T9's power button in",
+          "usedBy": [ { "part": "box.stl", "each": 1 } ] },
         { "qty": 2, "label": "SMA female bulkhead to U.FL pigtail — HaLow and LoRa antennas through the end wall" },
         { "qty": 2, "label": "FR120N MOSFET module (DIYables) — switches the LED loads; slides into the shelf's rails" },
         { "qty": 2, "label": "Double-sided foam tape — the bank and the T9 to the floor" }

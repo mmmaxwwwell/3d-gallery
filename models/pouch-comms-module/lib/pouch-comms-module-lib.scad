@@ -8,10 +8,14 @@
 // - a flat lid on a ring of M3 cap screws. A tongue on top of the walls and
 //   the divider drops into a groove under the lid, so the lid only goes on
 //   one way and can't shift;
-// - the T9 cage: a plate over the T9's port end, screwed onto two pillars.
-//   An M3 set screw through a captive nut in it holds the T9's power button
-//   down, so the T9 always starts when it gets power. The plate carries on
-//   over the T9 as a shelf, where the FR120Ns lie in rails, terminals up.
+// - the cage: a plate over the T9's port end, screwed onto two pillars,
+//   that carries on over the T9 as a shelf where the FR120Ns lie in rails,
+//   terminals up.
+//
+// The T9's power button is centred on its +X side. An M3 set screw through
+// the right wall, threaded through a nut in a block inside it, holds the
+// button in, so the T9 always starts when it gets power. A hex key reaches
+// it through the wall with the lid on.
 //
 // Plan, looking down on the open box, +Y up (the end that sticks out of
 // the pouch):
@@ -73,9 +77,8 @@ t9_w = 67;
 t9_l = 94;
 t9_h = 14;
 
-// The T9's power button on its front face: across from the T9's centre,
-// and in from its micro-USB end (unmeasured)
-t9_button = [0, 15];
+// The T9's micro-USB is centred on its +Y end and its power button centred
+// on its +X side, both across and up.
 
 // Room the micro-USB plug and its cable's bend need past the T9's end
 t9_plug_room = 25;
@@ -88,18 +91,21 @@ bracket_leg = 10;
 bracket_h = 4;
 bracket_clear = 0.5;
 
-// T9 cage: pillar size, plate thickness, gap over the T9's face, and how
-// far the plate reaches past the button toward -Y
+// Cage: pillar size, the plate's thickness over the pillars, and its gap
+// over the T9's face
 pillar_s = 8;
 cage_t = 6;
 cage_gap = 1.5;
-cage_past = 6;
 
-// M3 set screw on the button: hex nut across flats, its pocket's
-// clearance and depth from the cage's top
+// M3 set screw on the button: its length, the nut's across flats,
+// thickness and its slot's clearance, and the block's width along Y and
+// its gap to the T9's side
+button_screw_l = 10;
 nut_af = 5.5;
+nut_h = 2.4;
 nut_fit = 0.3;
-nut_h = 2.6;
+button_block_w = 11;
+button_block_gap = 0.5;
 
 // The boards stand on edge, top face toward +X. Each is its length and
 // height as it stands, PCB thickness, and how far its parts stand over the
@@ -238,11 +244,15 @@ pillar_y0 = t9_bracket_y1 + 0.5;
 pillar_y1 = pillar_y0 + pillar_s;
 pillar_dx = t9_plug_half + pillar_s / 2;
 pillars = [for (s = [-1, 1]) [col_cx + s * pillar_dx, (pillar_y0 + pillar_y1) / 2]];
-button = [col_cx + t9_button[0], t9_y1 - t9_button[1]];
+t9_x1 = col_cx + t9_w / 2;
+button_z = wall + t9_h / 2;
+button_block_x0 = t9_x1 + button_block_gap;
+button_block_x1 = outer_w - wall;
+button_nut_x = (button_block_x0 + button_block_x1) / 2;
 cage_z0 = t9_top + cage_gap;
 cage_x0 = col_cx - pillar_dx - pillar_s / 2;
 cage_x1 = col_cx + pillar_dx + pillar_s / 2;
-cage_y0 = button[1] - cage_past;
+cage_y0 = pillar_y0;
 
 // Boards, from the divider out: [length, height, pcb, over, under, low
 // post's grip, high post's gaps], each with its parts centred in an equal
@@ -301,9 +311,14 @@ assert(div_y1 <= y_in1 - sma_behind, "the SMAs' backs run into the bank's posts"
 assert(t9_w + 2 * (bracket_clear + bracket_wall) <= col_x1 - col_x0, "T9 doesn't fit across the column");
 assert(pilot_depth < box_h - wall, "pilot breaks through the floor");
 assert(tongue_h + 0.3 <= wall - cbore_h, "the groove runs up into the counterbores' floor");
-assert(cage_z0 + cage_t <= box_h - 5, "the cage's set screw has no room under the lid");
-assert(cage_y0 >= t9_y0 + 2, "the cage reaches past the T9");
-assert(abs(t9_button[0]) + nut_af < pillar_dx, "the button's nut sits over a pillar");
+assert(cage_z0 + cage_t <= box_h - 1, "the cage reaches the lid");
+// Backed off until its tip clears the T9, the set screw still holds in its
+// nut and stays inside the wall
+assert(t9_x1 + button_screw_l >= button_nut_x + nut_h / 2 + 1, "the button's set screw can't reach through its nut");
+assert(t9_x1 + button_screw_l <= outer_w - 1, "the button's set screw sticks out of the wall");
+assert(button_block_x1 - button_block_x0 >= nut_h + nut_fit + 3, "the button's block is too thin for its nut");
+for (p = screws) if (p[0] > outer_w / 2)
+  assert(abs(p[1] - t9_cy) >= button_block_w / 2 + boss_d / 2, "the button's block hits a screw boss");
 assert(fr_z0 + fr_pcb + fr_h <= box_h - 1, "the FR120Ns' terminals reach the lid");
 assert(shelf_y0 >= t9_y0, "the shelf reaches past the T9's far end");
 assert(shelf_w <= t9_w, "the shelf is wider than the T9");
@@ -356,6 +371,11 @@ module teardrop_y(d, len) {
     }
     translate([-d, -d]) square([2 * d, d / 2 + 0.5 + d]);
   }
+}
+
+// Along X, peaked the same way.
+module teardrop_x(d, len) {
+  rotate([0, 0, 90]) teardrop_y(d, len);
 }
 
 // L-shaped corner brackets round a part w x l centred at (x, y)
@@ -417,6 +437,7 @@ module box() {
       for (x = [bank_x0 - eps, bank_x1 - bank_post_reach]) translate([x, bank_y1, 0]) cube([bank_post_reach + eps, bank_post_t, box_h]);
       translate([0, 0, wall - eps]) corner_brackets(col_cx, t9_cy, t9_w, t9_l, bracket_h + eps);
       for (p = pillars) translate([p[0] - pillar_s / 2, pillar_y0, 0]) cube([pillar_s, pillar_s, cage_z0]);
+      translate([button_block_x0, t9_cy - button_block_w / 2, 0]) cube([button_block_x1 - button_block_x0 + eps, button_block_w, wall + t9_h]);
       for (i = [0:len(boards) - 1]) board_posts(i);
       translate([0, 0, box_h - eps]) linear_extrude(tongue_h + eps) tongue_plan();
     }
@@ -424,7 +445,17 @@ module box() {
     for (p = pillars) translate([p[0], p[1], cage_z0 - pilot_depth]) cylinder(d = pilot_d, h = pilot_depth + 1);
     for (s = sma_xs) translate([s, outer_l - wall / 2, sma_z]) teardrop_y(sma_hole_d, wall + 2);
     for (i = [0:len(boards) - 1]) board_slot(i);
+    button_screw_way();
   }
+}
+
+// The set screw's hole through the right wall and the block, and a slot
+// the nut drops into from the block's top, flats against its sides so it
+// can't turn.
+module button_screw_way() {
+  translate([(button_block_x0 + outer_w) / 2, t9_cy, button_z]) teardrop_x(clear_d, outer_w - button_block_x0 + 2);
+  slot_w = nut_af + nut_fit;
+  translate([button_nut_x - (nut_h + nut_fit) / 2, t9_cy - slot_w / 2, button_z - slot_w / 2 / cos(30)]) cube([nut_h + nut_fit, slot_w, wall + t9_h]);
 }
 
 // ---- lid
@@ -457,10 +488,6 @@ module cage() {
       translate([0, 0, -1]) cylinder(d = clear_d, h = cage_t + 2);
       translate([0, 0, cage_t - cbore_h]) cylinder(d = cbore_d, h = cbore_h + 1);
     }
-    translate([button[0], button[1], cage_z0]) {
-      translate([0, 0, -1]) cylinder(d = clear_d, h = cage_t + 2);
-      translate([0, 0, cage_t - nut_h]) cylinder(d = (nut_af + nut_fit) / cos(30), h = nut_h + 1, $fn = 6);
-    }
   }
 }
 
@@ -479,8 +506,8 @@ module cage_in_place(lift = 0) {
   translate([0, 0, lift]) cage();
 }
 
-// As it sits: the counterbores and the nut pocket open upward, their
-// floors on the plate below.
+// As it sits: the counterbores open upward, their floors on the plate
+// below.
 module cage_print() {
   translate([0, 0, -cage_z0]) cage();
 }
