@@ -29,7 +29,7 @@ Seen from the top, the case is a rounded rectangle (10 mm corners). The left and
 - **Rings.** Rings run round the case, PCTG and TPU in turn: a short TPU ring (10.4 mm) from the bottom, on the base; five 14 mm rings from PCTG to PCTG; and a short TPU ring under the top. The rings are 14 mm, not 15, so both short rings fit. The knurl runs right up to the screw heads and the door face's seam. Each TPU ring fills a recess sunk 2 mm into the PCTG with 45° chamfers top and bottom. Its outside is flush with the PCTG rings and knurled 0.8 mm deep:
   - round the body, diamond pyramids 2 mm apart at ±45°;
   - on the door face, 90° V-grooves at ±45°, 2 mm apart. The door face is the carriage's print bed, and V-groove walls print at 45° there where pyramids wouldn't;
-  - on the door face's 45° lead-ins into the corners, smooth: knurl there would face down past 45°.
+  - round the corners and the door face's 45° lead-ins, the body's diamond knurl carries on unbroken. As the carriage prints on its door face, some facets there face down past 45°, so expect them a little rough.
   - The rings stop 1.5 mm short of the side door's track only.
 - **Base.** 1.6 mm of orange TPU under the whole case, flat; the bottom TPU ring stands on it. The strip under the door face prints with the carriage; the rest with the body. Twelve keys rise 1.5 mm from it into the body's walls, flaring 0.4 mm, so the PCTG printed over them holds them as well as the bond does.
 

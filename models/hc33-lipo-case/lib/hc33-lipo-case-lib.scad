@@ -906,21 +906,37 @@ module door_foot() {
   }
 }
 
-// The carriage's TPU: its foot, and its share of the rings, flush. The door face is the
-// carriage's bed, so its knurl is 90° V-grooves at ±45°, knurl_d deep and
-// knurl_pitch apart, whose walls print at 45°; they stop knurl_d short of
-// the ring's chamfers and the face's lead-ins. The leads and corners stay
-// smooth: knurl there would face down past 45°.
+// The carriage's TPU: its foot, and its share of the rings, flush. The
+// rings' diamond knurl carries on from the body round the corners and the
+// door face's lead-ins (rough there: facets face down past 45° as the
+// carriage prints). On the flat of the door face, which is the carriage's
+// bed, the knurl is 90° V-grooves at ±45°, knurl_d deep and knurl_pitch
+// apart, whose walls print at 45°; they stop knurl_d short of the ring's
+// chamfers and the face's lead-ins.
 module carriage_tpu() {
   door_foot();
   difference() {
-    intersection() {
-      grip_rings(false);
-      translate([-ex_l - 1, -ey - 1, 0]) cube([ex_l - hx + 1, 2 * ey + 2, total_h]);
+    union() {
+      intersection() {
+        grip_rings();
+        difference() {
+          translate([-ex_l - 1, -ey - 1, 0]) cube([ex_l - hx + 1, 2 * ey + 2, total_h]);
+          door_flat_zone();
+        }
+      }
+      intersection() {
+        grip_rings(false);
+        door_flat_zone();
+      }
     }
     for (i = [0:band_n - 1]) if (inset_band(i)) door_knurl(band_z0(i) + knurl_d, band_z1(i) - knurl_d);
     screw_holes();
   }
+}
+
+// The door face's flat, through the depth of its rings
+module door_flat_zone() {
+  translate([-ex_l - 1, -lead_y, 0]) cube([2 + grip_inset + knurl_d, 2 * lead_y, total_h]);
 }
 
 module door_knurl(z0, z1) {
