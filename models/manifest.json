@@ -4199,6 +4199,67 @@
           ]
         }
       ]
+    },
+    {
+      "slug": "eink-dual-lora-case",
+      "devOnly": true,
+      "title": "E-ink Dual-LoRa Handheld",
+      "description": "A handheld case in the Meshnology N37's shape (rounded body, a wing at the top left, an antenna bump at the top right), 3 mm taller (66 × 81 × 26.3 mm, plus the wing) so a 2.13\" e-paper HAT stands portrait down the left of the front. Two sealed box switches sit behind the display and press through waterproof two-material buttons in the left side: a TPU boot squeezed against a seal bead on the wall's inside, with a PETG plunger fused into its roof. In the right column, a front-facing XIAO Sense (its microphone through a port) sits above an optical mouse sensor that reads finger swipes through a sealed clear window where the N37 has its joystick, and a front-facing speaker fills the bottom right corner behind a grille, its I2C amp on the back wall behind it. One SX1262 sits behind the XIAO, the other in the wing, each to its own SMA. The front cover closes onto a tub that holds everything, with five M3 screws from the back. The mouse sensor is a placeholder sized for a standard mouse lens. Not yet printed.",
+      "filament": [
+        { "material": "PETG", "color": "any", "note": "Front cover, tub, midframe, cradles and the button plungers", "parts": ["front-cover.stl", "tub.stl", "midframe.stl", "cradle.stl"] },
+        { "material": "TPU 95A", "color": "any", "note": "Button boots, printed with their PETG plungers" }
+      ],
+      "previews": [
+        { "file": "assembled.3mf", "format": "3mf", "label": "Assembled, front cover pulled forward: display, switches, XIAO Sense, mouse sensor, speaker, amp, battery, radios", "default": true,
+          "legend": [
+            { "color": "#3d4a3a", "label": "Front cover and tub", "part": "front-cover.stl", "parts": ["front-cover.stl", "tub.stl"] },
+            { "color": "#c08a3e", "label": "Midframe", "part": "midframe.stl" },
+            { "color": "#8a6a3a", "label": "Switch cradles", "part": "cradle.stl" },
+            { "color": "#e07b39", "label": "Button boots (TPU)" },
+            { "color": "#d9d9d9", "label": "Button plungers (PETG)" },
+            { "color": "#141414", "label": "2.13\" e-paper HAT (reference)" },
+            { "color": "#e6e4dc", "label": "E-paper panel (reference)" },
+            { "color": "#7a3fb0", "label": "XIAO Sense and SX1262 boards (reference)" },
+            { "color": "#2a6fdb", "label": "Speaker (reference)" },
+            { "color": "#b03a6f", "label": "Mouse sensor, placeholder (reference)" },
+            { "color": "#bfe6ff", "label": "Clear window disc (reference)" },
+            { "color": "#1e8f5a", "label": "I2C amp (reference)" },
+            { "color": "#e8c547", "label": "103030 LiPo (reference)" },
+            { "color": "#555555", "label": "Box switches (reference)" },
+            { "color": "#c9a227", "label": "SMA bulkheads (reference)" }
+          ],
+          "components": [
+            { "part": "front-cover.stl", "qty": 1 },
+            { "part": "tub.stl", "qty": 1 },
+            { "part": "midframe.stl", "qty": 1 },
+            { "part": "cradle.stl", "qty": 2 }
+          ] },
+        { "file": "plate-1-case.3mf", "format": "3mf", "label": "Print plate 1 (PETG): front cover face down, tub back down, midframe, two cradles", "plate": true,
+          "legend": [ { "color": "#3d4a3a", "label": "Case parts", "part": "front-cover.stl", "parts": ["front-cover.stl", "tub.stl", "midframe.stl", "cradle.stl"] } ],
+          "components": [ { "part": "front-cover.stl", "qty": 1 }, { "part": "tub.stl", "qty": 1 }, { "part": "midframe.stl", "qty": 1 }, { "part": "cradle.stl", "qty": 2 } ] },
+        { "file": "plate-2-buttons.3mf", "format": "3mf", "label": "Print plate 2 (TPU + PETG): two waterproof buttons, flange down, each a TPU boot with its PETG plunger", "plate": true,
+          "legend": [ { "color": "#e07b39", "label": "Button boots (TPU)" },
+                      { "color": "#d9d9d9", "label": "Button plungers (PETG)" } ] }
+      ],
+      "parts": [
+        { "file": "front-cover.stl", "format": "stl", "label": "Front cover — window, grille, mic port, swipe window; print face down" },
+        { "file": "tub.stl", "format": "stl", "label": "Tub — sides and back; print back face down" },
+        { "file": "midframe.stl", "format": "stl", "label": "Midframe — behind the display and XIAO; print back face down" },
+        { "file": "cradle.stl", "format": "stl", "label": "Switch cradle (print 2) — ring face down" }
+      ],
+      "hardware": [
+        { "qty": 5, "label": "M3x20 socket head cap screw — back into the front cover" },
+        { "qty": 2, "label": "Sealed box switch, 12.5 × 12.8 × 15.3 mm, 4 mm throw — the side buttons" },
+        { "qty": 2, "label": "SMA female bulkhead jack with IPEX pigtail — one per radio" },
+        { "qty": 1, "label": "Clear disc, 12 mm × 1 mm (acrylic or glass) — the swipe window, sealed in with clear silicone" },
+        { "qty": 1, "label": "103030 LiPo, about 1000 mAh — behind the display" },
+        { "qty": 1, "label": "Seeed XIAO nRF52840 Sense" },
+        { "qty": 2, "label": "SX1262 board, XIAO size" },
+        { "qty": 1, "label": "2.13\" e-paper HAT (Waveshare clone)" },
+        { "qty": 1, "label": "Speaker, 28 × 31 × 15.2 mm, and its I2C amp board (22.5 × 38.6 mm)" },
+        { "qty": 1, "label": "Optical mouse sensor and lens (not chosen yet)" },
+        { "qty": 4, "label": "Zip tie, up to 3 mm wide — the radios to the midframe" }
+      ]
     }
   ]
 }
