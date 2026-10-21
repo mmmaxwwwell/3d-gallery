@@ -18,6 +18,8 @@ nothing to screw together.
   longer stick works too; it just pokes out below. The hook
   springs over the top block's back wall, and the bulge on its outer leaf
   clicks into the groove across the wall's back.
+- The top block reaches right down to the band behind the stick, so the
+  band and stick are held snug.
 - To take it off, pull the stick up by its head.
 
 ## Cells
