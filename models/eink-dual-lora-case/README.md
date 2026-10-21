@@ -7,9 +7,9 @@ A handheld case shaped after the Meshnology N37. It has a rounded body with a wi
 - 2.13" e-paper HAT (Waveshare-style, 65 × 30.2 mm), behind the window on the left.
 - Seeed XIAO nRF52840 Sense, facing the front at the top right. Its microphone hears through a small port; its USB-C comes out the right side.
 - Pin holes over the XIAO's program and reset buttons, for a paperclip.
-- An optical mouse sensor below the XIAO, where the N37 has its joystick. Swipe a finger across the round window. The window is a 12 mm clear disc sealed into the front. The sensor hasn't been chosen yet, so its space is sized for a standard mouse lens.
-- Two smaller waterproof buttons right of the swipe window, on 6 × 6 mm tact switches.
-- Speaker (28 × 31 × 15.2 mm), facing the front in the bottom right corner behind a grille. Its I2C amp board lies on the back wall behind it.
+- A swipe sensor below the XIAO, where the N37 has its joystick: a [PMW3610 breakout](https://lectronz.com/products/pmw3610-breakout-board) (31.5 × 23.5 mm, a low-power laser mouse sensor on SPI). Swipe a finger across the round window, a 12 mm clear disc sealed into the front. The board screws to two posts with M3x6 screws, regulator end to the left.
+- Two smaller waterproof buttons right of the swipe window, on 6 × 6 mm SMD tact switches (legs lying flat), held in by the sensor board.
+- Speaker (28 × 31 × 15.2 mm), facing the front in the bottom right corner behind a grille, sitting on the battery. Its I2C amp board lies on the back wall behind it.
 - Two SX1262 radios (XIAO-size boards): one behind the XIAO, one behind the swipe sensor. Each has its own SMA jack: one on top of the wing, one in the bump.
 - GPS: a Seeed L76K module behind the display, its patch antenna facing the front in the wing (as on the N37).
 - A strong vibration motor (Precision Microdrives 312-107) lying up the wing behind the GPS antenna, held in a saddle with two zip ties. It draws 450 mA, so drive it through a MOSFET, not straight from the XIAO.
@@ -27,15 +27,21 @@ Each side button is printed in two materials on one plate: a TPU boot with a PET
 
 ## Assembly
 
-Everything goes into the tub from the front:
+Into the tub, from the front:
 
 1. Side switches in their cradles, pushed into the pockets behind the side buttons. Fit the buttons first.
-2. Battery, amp, motor, the L76K board, both radios.
+2. Battery, amp, motor, the L76K board and both radios.
 3. The midframe, carrying the XIAO and the display.
-4. The front switches in their cradles, the speaker, the mouse sensor and the GPS antenna.
-5. The front cover, with the front buttons in their holes.
+4. The speaker.
 
-Eight M3x20 cap screws go in from the back.
+Onto the front cover, from the inside:
+
+1. Seal the clear disc into the swipe window.
+2. Put the front buttons in their holes, and the front switches in their cradles over them.
+3. Screw the sensor board onto its two posts over the cradles (M3x6).
+4. Seat the GPS antenna in its fences.
+
+Then close the cover onto the tub. Eight M3x20 cap screws go in from the back.
 
 Not yet printed. These are all estimates to check:
 
@@ -44,4 +50,4 @@ Not yet printed. These are all estimates to check:
 - the microphone's position and the XIAO's button positions;
 - the switch plunger height;
 - the GPS antenna's size;
-- the mouse sensor.
+- the swipe sensor's lens size.

@@ -1,6 +1,6 @@
 # eink-dual-lora-case
 
-A handheld case in the Meshnology N37's shape for the user's own build. It holds a 2.13" e-paper HAT, a pinless hand-wired XIAO Sense, two SX1262 radios, an L76K GPS, two sealed box switches and two front tact switches, an optical mouse sensor for swipes, a speaker with an I2C amp, a strong vibration motor and a 5 Ah battery. devOnly, unprinted. Started 2026-10-20 from scratch; the user called the kobo-meshcore-case "complete garbage", so take nothing from it.
+A handheld case in the Meshnology N37's shape for the user's own build. It holds a 2.13" e-paper HAT, a pinless hand-wired XIAO Sense, two SX1262 radios, an L76K GPS, two sealed box switches and two front tact switches, a PMW3610 optical sensor for swipes, a speaker with an I2C amp, a strong vibration motor and a 5 Ah battery. devOnly, unprinted. Started 2026-10-20 from scratch; the user called the kobo-meshcore-case "complete garbage", so take nothing from it.
 
 ## The user's brief (2026-10-20)
 
@@ -19,7 +19,12 @@ A handheld case in the Meshnology N37's shape for the user's own build. It holds
   - the 103030's space "for something else" and "a solid big battery at the bottom like a 5ah battery. add height and fill it": the L76K board took the space;
   - "i really liked how the other module had that angled part around with the rounded edges everywhere" (the L1 holster's band), then "beveled more";
   - "more screw holes", from the user's stock of M3 SHCS in many lengths.
-- "a usb mouse sensor we detect swipes with instead of a dpad". Not bought yet: the sensor is a placeholder sized for a standard mouse lens (21.3 × 19.3, surface 2.4 mm from the lens and 7.4 mm from the PCB). The XIAO can't host USB, so it has to talk to the sensor chip over SPI. Resize the `sns_*` params when the part arrives.
+- "a usb mouse sensor we detect swipes with instead of a dpad", then "you find the swipe sensor man go".
+  - I picked a **PMW3610 breakout**: Trent Rand's ($25, Lectronz), the same 31.5 × 23.5 board as siderakb's open design. It's PixArt's low-power laser mouse sensor on an LM18-LSI lens, SPI at 3.3 V, with a ZMK driver for the nRF52840.
+  - Rejected: BlackBerry optical trackpads (many variants and pinouts, flex pads, 2.85 V) and the Parallax OFN module (out of stock).
+  - Geometry from siderakb's KiCad file: M3 holes 3 in from each edge, sensor 2.99 off-centre along the long side.
+  - From PixArt's datasheet, measured from the tracking surface: lens underside 2.4, board underside 5.8 (7.4 to its top), sensor top 9.05.
+  - The LM18-LSI's footprint (19 × 13) is my estimate.
 
 ## Frame (read this first)
 
@@ -39,11 +44,11 @@ The lib lays out with X right as seen from the front, Y up, Z from the front fac
 
 - **Front cover** (`front_cover`, PETG, face down): the front wall plus the first `cover_depth` (3.6) of the sides, including the front chamfer. It carries the window (45° flare), the speaker grille, the mic port and duct, and the swipe window with the pocket for its clear disc. It also has the lens pads, the HAT's right-edge fence, the speaker fences (none along the speaker's top, where the lens sits), and free-standing screw bosses with pilots. Its tongue (the inner half of the wall) rises into the tub's rebate.
 - **Tub** (`tub`, PETG, back face down): sides and back. It has bosses from the back wall forward to the midframe, the switch pockets (ribs plus a back wall slotted for leads, slot open to the front so it has no roof), the seal beads, posts holding the speaker and battery forward, and fences round the amp. The counterbores are in the back.
-- **Midframe** (PETG, back face down): a plate behind the display and XIAO (`mid_z0`…`mid_z1`), cut away over the speaker and the sensor. Everything it carries is on its front: ribs pressing the HAT's long edges, fences round the XIAO (left and top only; its USB-C end and the lens rule out the others) and radio 2 (no top, under the wing screw). It also has wire holes and zip slots for both radios.
-- **Front cradles** (×2, PETG, ring face down): the same idea for 6×6 tact switches, notched at the back for their legs. The midframe presses them forward through 0.05 mm (`fsw_back_z` vs `mid_z0`), with fences above the upper one and below the lower one (they're too close together for one between).
+- **Midframe** (PETG, back face down): a plate behind the display and XIAO (`mid_z0`…`mid_z1`), cut away over the speaker, the sensor board, the GPS and the battery. Everything it carries is on its front: ribs pressing the HAT's long edges, fences round the XIAO (left and top only; its USB-C end and the lens rule out the others) and radio 2 (no top, under the wing screw). It also has wire holes and zip slots for both radios.
+- **Front cradles** (×2, PETG, ring face down): the same idea for 6×6 SMD tact switches, notched at the back for their flat legs. The sensor board's underside holds them forward. Fences on the cover sit above the upper one, below the lower one and left of each (they're too close together for one between); the right wall's chamfer sets how close to the wall they can go.
 - **Cradles** (×2, PETG, ring face down): a sleeve round each switch box, open behind for the leads, its front a ring the plunger passes through.
 - **Buttons** (×2, plate 2, TPU + PETG): see *Waterproof buttons*.
-- Assembly, all from the front into the tub: cradles with switches into their pockets (the ring's lead-in rides over the boot flange), battery, amp, radio 1, then the midframe with the XIAO, radio 2 and the HAT, then the speaker and sensor, then the front cover. Five M3x20 from the back clamp the midframe between the tub's bosses and the cover's. `screw_head_z = screw_skin + screw_len`, so the counterbores are 5.3 deep.
+- Assembly: into the tub from the front go the side cradles with their switches (the ring's lead-in rides over the boot flange), the battery, amp, motor, L76K board and radios, then the midframe with the XIAO and the HAT, then the speaker. Onto the cover go the disc, the front buttons and cradles, the sensor board (M3x6 into its posts) and the GPS antenna. Then the cover closes on, and eight M3x20 from the back clamp the midframe between the tub's bosses and the cover's. `screw_head_z = screw_skin + screw_len`, so the counterbores are 5.3 deep.
 
 ## Layout
 
@@ -52,11 +57,13 @@ The lib lays out with X right as seen from the front, Y up, Z from the front fac
 - **Left, behind the display:** the two side switches (upper), then the L76K board on tub posts where the 103030 used to be.
 - **Right column, top to bottom:**
   - the XIAO Sense, with USB-C out the right side, a mic port at `mic_offset` (a guess) and pin holes plus guides over its buttons (`xiao_buttons`, a guess);
-  - the mouse sensor, with the two front buttons right of it;
-  - the speaker, its outer corner on the old bottom corner arc.
+  - the PMW3610 board lying across the whole column (`sns_board_c`), finger side forward, its regulator end left so the sensor (`sns_c`, the window) is left of centre. Its left holes take M3x6 into posts on the cover; its right holes sit on backing posts from the tub.
+  - the two front buttons, under the board's right end, which presses their cradles forward (`fsw_back_z` = `sns_pcb_z0`). That's why they're SMD tact switches, legs flat;
+  - the speaker, on the battery bay's top edge and against the right wall.
+  - The column is full: the speaker, board and XIAO stack with 0.1–0.25 mm gaps, and the XIAO's top right corner just clears the inside corner arc.
 - **Behind the right column:**
   - radio 1 behind the XIAO, on the midframe's back;
-  - radio 2 behind the sensor's parts, on tub posts;
+  - radio 2 behind the sensor board, above its screw heads, on tub posts;
   - the amp on the back wall behind the speaker.
 - **Wing:** the GPS patch faces the front (midframe cut round it). Behind it the motor lies up the wing in a saddle on the back wall, held by two zip ties through tunnels under it. SMA 2 sits on the wing's top, nudged left for the motor; SMA 1 is in the bump.
 - **Battery bay:** full depth across the bottom, 60 × 40 × 20 (`batt`). The midframe stops above it. Ribs from the back hold it forward.
@@ -87,4 +94,4 @@ The lib lays out with X right as seen from the front, Y up, Z from the front fac
 
 ## Unmeasured / guesses
 
-The HAT's active area (assumed centred), `disp_parts`, the radios (XIAO-size), the XIAO Sense mic position, the switch plunger height, which box face is 12.5 vs 12.8, the speaker's outlet (assumed centred on its 28 × 31 face), the amp's height, the GPS patch's size, the front tact switches, and the whole mouse sensor.
+The HAT's active area (assumed centred), `disp_parts`, the radios (XIAO-size), the XIAO Sense mic position, the switch plunger height, which box face is 12.5 vs 12.8, the speaker's outlet (assumed centred on its 28 × 31 face), the amp's height, the GPS patch's size, the front tact switches, and the LM18-LSI lens's footprint.

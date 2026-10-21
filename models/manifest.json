@@ -4204,7 +4204,7 @@
       "slug": "eink-dual-lora-case",
       "devOnly": true,
       "title": "E-ink Dual-LoRa Handheld",
-      "description": "A handheld case in the Meshnology N37's shape: a rounded body with a wing at the top left and an antenna bump at the top right, the N37's angled band round its front and back faces, and every edge rounded. A 2.13\" e-paper HAT stands portrait down the left of the front. The body runs on down into a full-depth bay for a 5 Ah battery, 70 × 135 × 26.3 mm (167 mm tall with the wing). Two sealed box switches sit behind the display and press through waterproof two-material buttons in the left side: a TPU boot squeezed against a seal bead on the wall's inside, with a PETG plunger fused into its roof. In the right column, a front-facing XIAO Sense (its microphone through a port, pin holes over its program and reset buttons) sits above an optical mouse sensor that reads finger swipes through a sealed clear window, where the N37 has its joystick. Two smaller sealed buttons sit beside it on tact switches, and a front-facing speaker fills the corner below behind a grille, with its I2C amp behind it. The wing holds the L76K's GPS patch facing the front and a strong vibration motor (Precision Microdrives 312-107) behind it; the L76K board sits behind the display. Two SX1262 radios each have their own SMA. The front cover closes onto a tub that holds everything, with six M3 screws from the back. The mouse sensor and GPS antenna sizes are placeholders. Not yet printed.",
+      "description": "A handheld case in the Meshnology N37's shape: a rounded body with a wing at the top left and an antenna bump at the top right, the N37's angled band round its front and back faces, and every edge rounded. A 2.13\" e-paper HAT stands portrait down the left of the front. The body runs on down into a full-depth bay for a 5 Ah battery, 70 × 135 × 26.3 mm (167 mm tall with the wing). Two sealed box switches sit behind the display and press through waterproof two-material buttons in the left side: a TPU boot squeezed against a seal bead on the wall's inside, with a PETG plunger fused into its roof. In the right column, a front-facing XIAO Sense (its microphone through a port, pin holes over its program and reset buttons) sits above a PMW3610 optical sensor board that reads finger swipes through a sealed clear window, where the N37 has its joystick. Two smaller sealed buttons sit right of the window on tact switches the sensor board holds forward, and a front-facing speaker fills the corner below behind a grille, with its I2C amp behind it. The wing holds the L76K's GPS patch facing the front and a strong vibration motor (Precision Microdrives 312-107) behind it; the L76K board sits behind the display. Two SX1262 radios each have their own SMA. The front cover closes onto a tub that holds everything, with six M3 screws from the back. The GPS antenna's size and the swipe sensor's lens footprint are estimates. Not yet printed.",
       "filament": [
         { "material": "PETG", "color": "any", "note": "Front cover, tub, midframe, cradles and the button plungers", "parts": ["front-cover.stl", "tub.stl", "midframe.stl", "cradle.stl", "front-cradle.stl"] },
         { "material": "TPU 95A", "color": "any", "note": "Button boots, printed with their PETG plungers" }
@@ -4223,7 +4223,7 @@
             { "color": "#a0522d", "label": "GPS patch antenna (reference)" },
             { "color": "#708090", "label": "Vibration motor (reference)" },
             { "color": "#2a6fdb", "label": "Speaker (reference)" },
-            { "color": "#b03a6f", "label": "Mouse sensor, placeholder (reference)" },
+            { "color": "#b03a6f", "label": "PMW3610 swipe sensor board (reference)" },
             { "color": "#bfe6ff", "label": "Clear window disc (reference)" },
             { "color": "#1e8f5a", "label": "I2C amp (reference)" },
             { "color": "#e8c547", "label": "5 Ah battery (reference)" },
@@ -4250,7 +4250,7 @@
             { "color": "#a0522d", "label": "GPS patch antenna (reference)" },
             { "color": "#708090", "label": "Vibration motor (reference)" },
             { "color": "#2a6fdb", "label": "Speaker (reference)" },
-            { "color": "#b03a6f", "label": "Mouse sensor, placeholder (reference)" },
+            { "color": "#b03a6f", "label": "PMW3610 swipe sensor board (reference)" },
             { "color": "#bfe6ff", "label": "Clear window disc (reference)" },
             { "color": "#1e8f5a", "label": "I2C amp (reference)" },
             { "color": "#e8c547", "label": "5 Ah battery (reference)" },
@@ -4281,7 +4281,10 @@
       "hardware": [
         { "qty": 6, "label": "M3x20 socket head cap screw — back into the front cover" },
         { "qty": 2, "label": "Sealed box switch, 12.5 × 12.8 × 15.3 mm, 4 mm throw — the side buttons" },
-        { "qty": 2, "label": "6 × 6 mm tact switch, 4.3 mm tall — the front buttons" },
+        { "qty": 2, "label": "6 × 6 mm SMD tact switch, 4.3 mm tall (legs lying flat) — the front buttons" },
+        { "qty": 1, "label": "PMW3610 breakout with LM18-LSI lens (31.5 × 23.5 mm, SPI, 3.3 V) — the swipe sensor",
+          "source": { "url": "https://lectronz.com/products/pmw3610-breakout-board", "vendor": "Trent Rand (Lectronz)" } },
+        { "qty": 2, "label": "M3x6 socket head cap screw — the swipe sensor board to its posts" },
         { "qty": 1, "label": "Vibration motor, Precision Microdrives 312-107 (12 × 15.1 mm, 3 V, 450 mA), with a logic-level MOSFET and flyback diode to drive it",
           "source": { "url": "https://precisionmicrodrives.com/product/312-107-12mm-vibration-motor-15mm-type", "vendor": "Precision Microdrives" } },
         { "qty": 1, "label": "Seeed L76K GNSS Module for XIAO, with its active patch antenna", "source": { "url": "https://wiki.seeedstudio.com/get_start_l76k_gnss/", "vendor": "Seeed Studio" } },
@@ -4292,7 +4295,6 @@
         { "qty": 2, "label": "SX1262 board, XIAO size" },
         { "qty": 1, "label": "2.13\" e-paper HAT (Waveshare clone)" },
         { "qty": 1, "label": "Speaker, 28 × 31 × 15.2 mm, and its I2C amp board (22.5 × 38.6 mm)" },
-        { "qty": 1, "label": "Optical mouse sensor and lens (not chosen yet)" },
         { "qty": 4, "label": "Zip tie, up to 3 mm wide — radio 1 to the midframe, the motor into its saddle" }
       ]
     }
