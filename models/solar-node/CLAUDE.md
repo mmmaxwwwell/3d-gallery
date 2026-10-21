@@ -31,13 +31,15 @@ A sealed box under a salvaged 240 × 168 mm solar panel. devOnly, unprinted.
   - The SMA goes through the −X wall at y = 0, `n_z` high, so the two antennas mirror each other end to end.
 - **Winch** (user, 2026-10-21).
   - The user's words: two gearmotors ("the same gear motors" as the other build: JGY-370 from meshtastic-drybag-node), two semi-internal spools of 100 ft of 1/32" stainless, "bigger and thinner", overlapping, "driven by a gear on the edge", skateboard (608) bearings, the overlapping pair spinning opposite ways.
-  - My reading of "semi-internal": the spools sit on a deck under the sealed tray and stick out past its ends, where the cable comes off. Nothing on the winch is sealed except the motors' shafts, which go through TPU lip seals on the pinion hubs.
-  - Two levels: U (upper, toward −X) and L (lower, toward +X). Each spool's teeth are on its lower flange, so a pinion boss never sits under the other flange.
-  - The two trains are point-symmetric through the centre, which is where the opposite spin comes from.
-  - 100 ft each is my reading; the user said "100 feet". The cable channel is `bay_w`; `core_r` is solved from `cable_len`.
-  - The overlap is limited by L's pinion hub, which must pass outside U at U's level. L's motor lies along Y between the battery stack (x ≥ 40.6) and the frame's ledge (its top is 3 mm above `tray_h`, so it stays inside the opening), which caps `pin_y` at 61. The lib's asserts check every one of these.
-  - The deck hangs from the tray's long-side screw columns. It has pilots from below and is `deck_band` wide on the edges, with bars under each post and pin.
-- **Rejected layouts:** everything along −Y on a shelf; everything in one flat row along +Y.
+  - The user later asked: "can't we have the two spools like exactly overlapping?". So the spools are coaxial at the box's centre: U (k = 0) above, L (k = 1) below, both 106 teeth. The earlier offset pair overlapped only 29 mm.
+  - Each pinion sits at `mesh_d` from the axis, 9 mm outside the pitch circle while the teeth reach only 1.5 past it. So L's pinion hub (10) and U's pinion post (12) clear the other spool's teeth. Each spool's teeth are on its lower flange, so nothing else sits at that radius.
+  - The motors lie along X on the −X side, gearbox toward −X, one each side of the HC33. They are as near the long walls as the frame's ledge allows, since their tops are 3 mm above `tray_h`.
+  - Bearings: both 608s are on the deck's one centre pin. L sits on the shoulder, with a spacer between the bearings and one above U. The pin's top goes into a 1.5 mm socket under the tray.
+  - The spools sit entirely under the box; the cable comes off between the deck's pillars. "Semi-internal" is still open.
+  - Opposite spin comes from winding the cables on opposite hands; the motors are independent.
+  - Capacity counts whole turns and layers (`wraps`, `layers()`) and solves the largest core that holds `cable_len × wind_margin`. My first version assumed 0.9 packing on a 3.78-cable-wide channel and held only about 85 ft.
+  - The deck hangs from the tray's long-side screw columns. It has pilots from below and is `deck_band` wide on the edges, with bars under the centre post and the pinions.
+- **Rejected layouts:** everything along −Y on a shelf; everything in one flat row along +Y; offset spools overlapping 29 mm.
 - **Corner brackets, foam tape.** Each part sits between corner brackets and is held with foam tape. There are no straps or ties through the floor.
 - **No mount and no vent.** The user hasn't said how it hangs.
 
@@ -55,7 +57,7 @@ A sealed box under a salvaged 240 × 168 mm solar panel. devOnly, unprinted.
 
 ## Checked
 
-- Winch (2026-10-21): none of these intersect, beyond faces touching: spools, pinions, deck, tray, spacers, motors, the stack, the HC33 and the frame. Each seal grips its hub (≈24 mm³).
+- Winch (coaxial, 2026-10-21): none of these intersect, beyond faces touching: spools, pinions, deck, tray, spacers, motors, the stack, the HC33 and the frame. Two intended overlaps: each seal grips its hub (≈24 mm³), and each bearing's press fit in its hub (≈21 mm³).
 
 - The pieces' rigid parts don't intersect.
 - gasket ∩ tray ≈ 606 mm³, which is the tongue's side squeeze. Re-check this if the seal changes.

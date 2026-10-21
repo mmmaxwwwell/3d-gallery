@@ -24,15 +24,16 @@
 // goes through the -X end wall level with the N, so the two antennas stand
 // out of opposite ends on the box's centre line.
 //
-// Winch: two thin spools of 1/32" stainless cable under the tray, on a deck
-// that hangs from the tray's long-side screw columns. The upper spool (U)
-// sits toward -X, the lower (L) toward +X; they overlap in the middle and
-// each sticks out past its end of the box. Each turns on a 608 skateboard
-// bearing on a post from the deck and has teeth round its lower flange,
-// driven by a pinion on a JGY-370 worm gearmotor lying inside the box,
-// output shaft down through a TPU lip seal on the pinion's hub. The two
-// trains are mirror images through the centre, so the spools turn opposite
-// ways to reel in.
+// Winch: two thin spools of 1/32" stainless cable under the tray, stacked
+// on one axis at the box's centre, on a deck that hangs from the tray's
+// long-side screw columns. Each turns on its own 608 skateboard bearing on
+// the deck's centre post and has teeth round its lower flange, driven by a
+// pinion on a JGY-370 worm gearmotor lying inside the box, output shaft
+// down through a TPU lip seal on the pinion's hub. Each pinion sits just
+// outside the other spool's teeth, so the lower spool's pinion hub and the
+// upper pinion's post pass the other level. The motors are independent; the
+// cables are wound on opposite hands so the spools turn opposite ways to
+// reel in.
 //
 // Frame: X along the panel, Y across, Z up, origin at the middle of the
 // tray's underside. Every piece prints as modelled (bottom face down) except
@@ -155,17 +156,18 @@ sma_nut_af = 8;
 sma_panel = 5;
 
 // ---- winch: two thin spools of 1/32" stainless cable under the tray, one
-// above the other, overlapping in the middle and sticking out past each end.
+// above the other on the same axis.
 
-// Cable: diameter, length on each spool, and how well it packs
+// Cable: diameter, length on each spool, and the spare room the spool
+// keeps for uneven winding (no level-wind)
 cable_d = 0.794;
 cable_len = 30480;
-cable_pack = 0.9;
+wind_margin = 1.15;
 
 // Spool gear (teeth round the spool's lower flange): module, teeth, face
 // width; the pinion's teeth and the gap round every turning part
 gear_m = 1.5;
-spool_z = 102;
+spool_z = 106;
 pinion_z = 12;
 spool_gear_w = 5;
 spin_gap = 1;
@@ -181,9 +183,6 @@ fill_margin = 2;
 // The spool's web from hub to gear ring, and its hub round the bearing
 web_t = 2;
 hub_wall = 3;
-
-// How far each spool's teeth reach past the frame's end
-spool_out = 10;
 
 // 608 skateboard bearing: bore, outside, width; press fit in the hub
 brg_bore = 8;
@@ -317,6 +316,7 @@ module tray() {
       translate([0, 0, tray_floor - eps]) corner_brackets(hc33_x, 0, hc33_l, hc33_w, bracket_h);
     }
     for (k = [0, 1]) motor_seat_cut(k);
+    translate([0, 0, -1]) cylinder(d = brg_bore + 0.3, h = pin_socket + 1, $fn = 32);
     for (p = screws) if (abs(p[1]) > lane_y - 1) translate([p[0], p[1], -1]) cylinder(d = pilot_d, h = deck_pilot + 1);
     translate([-(outer_l / 2 - tray_in_e + tray_wall / 2), 0, n_z]) teardrop_x(sma_hole, tray_wall + 2);
     for (p = screws) translate([p[0], p[1], tray_h - pilot_depth]) cylinder(d = pilot_d, h = pilot_depth + 1);
@@ -420,29 +420,34 @@ spool_rg = pitch_r(spool_z);
 spool_tip = tip_r(spool_z);
 flange_r = root_r(spool_z) - 1;
 fill_r = flange_r - fill_margin;
-// Core radius that holds cable_len in the channel
-core_r = sqrt(pow(fill_r, 2) - cable_len * cable_d * cable_d / (PI * bay_w * cable_pack));
-level_h = spool_gear_w + bay_w + cap_t;
 hub_r = brg_od / 2 + hub_wall;
+// Whole turns side by side in the channel, whole layers from the core out to
+// fill_r; the core is the largest (in 0.5 mm steps) that still takes
+// cable_len x wind_margin wound in even layers.
+wraps = floor(bay_w / cable_d);
+function layers(r0) = floor((fill_r - r0) / cable_d);
+function capacity(r0) = let(n = layers(r0)) wraps * 2 * PI * n * (r0 + n * cable_d / 2);
+core_r = max([for (r = [hub_r + core_wall + 4 : 0.5 : fill_r]) if (capacity(r) >= cable_len * wind_margin) r]);
+assert(capacity(hub_r + core_wall + 4) >= cable_len * wind_margin, "the spool can't hold the cable");
+level_h = spool_gear_w + bay_w + cap_t;
 
-// Spool centres: the upper (U) toward -X, the lower (L) toward +X, each
-// teeth reaching spool_out past the frame's end.
-spool_x = outer_l / 2 + spool_out - spool_tip;
-spool_c = [[-spool_x, 0], [spool_x, 0]];
+// Both spools on the box's centre: the upper (U, k = 0) and the lower (L, k = 1)
+spool_c = [[0, 0], [0, 0]];
 z_u0 = -spin_gap - level_h;
 z_l0 = z_u0 - spin_gap - level_h;
 level_z0 = [z_u0, z_l0];
 deck_z1 = z_l0 - spin_gap;
 deck_z0 = deck_z1 - deck_t;
 
-// Pinions: each motor lies along Y with its gearbox end toward the nearer
-// long wall, as far out as the frame's ledge allows (its top is above the
-// ledge's underside). L's pinion sits on L's -X side, U's mirrors it
-// through the centre, so the pair turns opposite ways to reel in.
+// Pinions on the -X side, U's toward +Y and L's toward -Y. Each motor lies
+// along X, gearbox end toward -X, its side as near the long wall as the
+// frame's ledge allows (its top is above the ledge's underside).
 mesh_d = spool_rg + pitch_r(pinion_z);
-pin_y = outer_w / 2 - opening_e - 1 - mot_shaft_in;
-pin_x = spool_x - sqrt(mesh_d * mesh_d - pin_y * pin_y);
-pinion_c = [[-pin_x, -pin_y], [pin_x, pin_y]];
+pin_y = outer_w / 2 - opening_e - 1 - mot_w / 2;
+pin_x = sqrt(mesh_d * mesh_d - pin_y * pin_y);
+pinion_c = [[-pin_x, pin_y], [-pin_x, -pin_y]];
+// The upper pinion's post down through L's level
+pinion_post_d = 12;
 // Each pinion turned so its teeth fall between the spool's (spool at 0°)
 function mesh_phase(psi_a, za, zb, th) = th + 180 - 180 / zb - (psi_a - th) * za / zb;
 pinion_th = [for (k = [0, 1]) let(d = pinion_c[k] - spool_c[k]) atan2(d[1], d[0])];
@@ -454,13 +459,11 @@ deck_pilot = 8;
 deck_screws = [for (p = screws) if (abs(p[1]) > lane_y - 1) p];
 
 assert(core_r - core_wall > hub_r + 4, "no room for the web between hub and core");
-assert(spool_x < outer_l / 2 - 10, "spools barely under the box");
-assert(norm(pinion_c[1] - spool_c[0]) >= spool_tip + pinion_hub_d / 2 + spin_gap, "L's pinion hub runs through U's spool");
-assert(norm(pinion_c[0] - spool_c[1]) >= spool_tip + pinion_hub_d / 2 + spin_gap, "U's pinion pin runs through L's spool");
-assert(2 * spool_x >= spool_tip + brg_shoulder_d / 2 + spin_gap + 4, "a spool's post runs through the other spool");
-assert(pin_x + mot_w / 2 + 1 < stack_x - shelf_w / 2, "L's motor runs into the battery stack");
-assert(pin_x - mot_w / 2 - bracket_out > 0.5 || pin_y - (mot_len - mot_shaft_in) - bracket_out > 0, "the motors overlap");
-assert(-pin_x - mot_w / 2 > hc33_x + hc33_l / 2 + bracket_out + 1, "U's motor runs into the HC33");
+assert(mesh_d - pinion_hub_d / 2 >= spool_tip + spin_gap / 2, "L's pinion hub runs through U's teeth");
+assert(mesh_d - pinion_post_d / 2 >= spool_tip + spin_gap / 2, "U's pinion post runs through L's teeth");
+assert(-pin_x + mot_len - mot_shaft_in + bracket_out + 1 < stack_x - shelf_w / 2, "a motor runs into the battery stack");
+assert(-pin_x - mot_shaft_in - bracket_out > -inside_l / 2, "a motor runs into the -X wall");
+assert(pin_y - mot_w / 2 - bracket_out > hc33_w / 2 + bracket_out + 1, "a motor runs into the HC33");
 assert(mot_face_z + mot_h + 1 <= tray_h + ledge_t + glue_gap, "a motor hits the panel");
 assert(outer_w / 2 - deck_band - spool_tip > spin_gap, "spools run into the deck screws' band");
 assert(shaft_len > mot_face_z + spin_gap, "the motor shaft doesn't reach below the floor");
@@ -572,15 +575,13 @@ module shaft_seal_in_place(k) {
   translate([pinion_c[k][0], pinion_c[k][1], mot_face_z - seal_h]) shaft_seal();
 }
 
-// Motor k's footprint on the floor: along Y, gearbox end toward the wall.
+// Motor k's footprint on the floor: along X, gearbox end toward -X.
 module motor_plan(k, g = 0) {
-  s = k == 0 ? -1 : 1;
-  translate(pinion_c[k]) translate([-mot_w / 2 - g, s > 0 ? -(mot_len - mot_shaft_in) - g : -mot_shaft_in - g])
-    square([mot_w + 2 * g, mot_len + 2 * g]);
+  translate(pinion_c[k]) translate([-mot_shaft_in - g, -mot_w / 2 - g]) square([mot_len + 2 * g, mot_w + 2 * g]);
 }
 
 // Motor k's centre on the floor
-function motor_c(k) = pinion_c[k] + [0, (k == 0 ? 1 : -1) * (mot_len / 2 - mot_shaft_in)];
+function motor_c(k) = pinion_c[k] + [mot_len / 2 - mot_shaft_in, 0];
 
 module motor_seat(k) {
   translate([0, 0, tray_floor - eps]) linear_extrude(seat_h + eps) motor_plan(k, 0.5);
@@ -603,7 +604,7 @@ module deck_plan() {
   }
   intersection() {
     plan(0);
-    for (x = [-spool_x, spool_x, -pin_x, pin_x]) translate([x - deck_bar / 2, -outer_w / 2]) square([deck_bar, outer_w]);
+    for (x = [0, -pin_x]) translate([x - deck_bar / 2, -outer_w / 2]) square([deck_bar, outer_w]);
   }
 }
 
@@ -612,13 +613,14 @@ module deck() {
     union() {
       linear_extrude(deck_t) deck_plan();
       for (p = deck_screws) translate([p[0], p[1], deck_t - eps]) cylinder(d = column_d, h = -deck_z1 + eps);
-      for (k = [0, 1]) translate([spool_c[k][0], spool_c[k][1], deck_t - eps]) {
-        cylinder(d = k == 0 ? 2 * brg_shoulder_d : brg_shoulder_d, h = level_z0[k] - deck_z1 - (k == 0 ? 3 : 0) + eps, $fn = 48);
-        if (k == 0) translate([0, 0, level_z0[k] - deck_z1 - 3]) cylinder(d1 = 2 * brg_shoulder_d, d2 = brg_shoulder_d, h = 3 + eps, $fn = 48);
-        cylinder(d = brg_bore - 0.15, h = -0.5 - deck_z1, $fn = 32);
+      // The centre post: L's shoulder, then the pin through both bearings
+      // and up into a socket under the tray
+      translate([0, 0, deck_t - eps]) {
+        cylinder(d = brg_shoulder_d, h = z_l0 - deck_z1 + eps, $fn = 48);
+        cylinder(d = brg_bore - 0.15, h = pin_socket - 0.3 - deck_z1, $fn = 32);
       }
       for (k = [0, 1]) translate([pinion_c[k][0], pinion_c[k][1], deck_t - eps]) {
-        cylinder(d = 12, h = level_z0[k] - 0.5 - deck_z1 + eps, $fn = 32);
+        cylinder(d = pinion_post_d, h = level_z0[k] - 0.5 - deck_z1 + eps, $fn = 32);
         cylinder(d = pinion_pin_d, h = level_z0[k] - deck_z1 + pinion_pin_len, $fn = 32);
       }
     }
@@ -633,9 +635,10 @@ module deck_in_place() {
   translate([0, 0, deck_z0]) deck();
 }
 
-// Spacer k: on the pin, from the bearing's inner race up to the tray.
+// Spacer k on the pin: U's from its bearing's inner race up to the tray,
+// L's from its bearing's up to U's.
 module spacer(k) {
-  h = -(level_z0[k] + brg_w) - 0.2;
+  h = (k == 0 ? 0 : z_u0) - (level_z0[k] + brg_w) - 0.2;
   difference() {
     cylinder(d = spacer_d, h = h, $fn = 48);
     translate([0, 0, -1]) cylinder(d = brg_bore + 0.3, h = h + 2, $fn = 32);
@@ -645,6 +648,10 @@ module spacer(k) {
 module spacer_in_place(k) {
   translate([spool_c[k][0], spool_c[k][1], level_z0[k] + brg_w]) spacer(k);
 }
+
+// How deep the centre pin goes into the tray's underside
+pin_socket = 1.5;
+assert(tray_floor - pin_socket >= 1, "the pin's socket leaves too little floor");
 
 deck_screw_in = 30 - (deck_t - cbore_h) + deck_z1;
 assert(deck_screw_in >= 5 && deck_screw_in <= deck_pilot - 0.5, "deck screws: M3x30 doesn't fit the pilots");

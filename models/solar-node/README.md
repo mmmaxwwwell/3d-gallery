@@ -36,18 +36,18 @@ Before step 2, fit the rest of the inside:
 
 ## Winch
 
-- **The spools:** two 156 mm spools, each holding 100 ft of 1/32" stainless cable in a 3 mm channel, lie one above the other under the tray. The upper one is toward −X and the lower one toward +X. They overlap by 29 mm in the middle, and each sticks 10 mm out past its end of the box, where its cable comes off.
-- **The drive:** each spool turns on a 608 bearing on a post from the deck. A pinion drives the teeth round its lower flange at 8.5:1, from a JGY-370 worm gearmotor lying inside the box with its shaft down through the floor. The worm holds the load when the motor stops.
-- **Direction:** the two drives are mirror images through the box's centre, so the spools turn opposite ways to reel in. Wind each cable on the same way as seen from its own end.
+- **The spools:** two 162 mm spools are stacked on one axis under the middle of the tray. Each holds 100 ft of 1/32" stainless cable in a 3 mm channel: 3 turns across, 30 layers, about 116 ft if wound evenly. That leaves 15% spare, because nothing guides the cable on evenly.
+- **The drive:** each spool turns on its own 608 bearing on the deck's centre post, with a spacer between the two bearings and one above. A pinion drives the teeth round each spool's lower flange at 8.8:1, from a JGY-370 worm gearmotor lying inside the box, shaft down through the floor. The worm holds the load when the motor stops.
+- **Clearance:** both pinions are on the −X side. Each sits just outside the other spool's teeth, so the lower spool's pinion hub and the upper pinion's post pass the other level with 1.5–2.5 mm to spare.
+- **Direction:** wind the two cables on opposite hands, so the spools turn opposite ways to reel in. The motors are independent.
+- **Cable exit:** the cable comes off between the deck's pillars.
 - **Assembly:**
   1. Press a bearing into each spool body from below.
   2. Screw on the cap with 6 M3x6.
   3. Thread the cable's end through the hole in the core and stop it inside.
-  4. Drop the spools onto their posts, with the long spacer on the lower spool and the short one on the upper.
-  5. Lift the deck up under the tray, so its pins go into the pinions, and screw it into the long-side columns with 16 M3x30.
-- **Overlap limit:** the overlap stops at 29 mm because the lower spool's pinion has to pass outside the upper spool to reach it. Its motor is boxed in by the battery stack on one side and the frame's ledge on the other.
-
-The battery and plate sit at the +X end, the same end as the antenna. Mount the box with that end at the top.
+  4. On the deck's centre pin, stack the lower spool, the spacer between the bearings, the upper spool, then the top spacer.
+  5. Lift the deck up under the tray. The centre pin goes into its socket and the pinion pins go into the pinions.
+  6. Screw the deck into the long-side columns with 16 M3x30.
 
 ## Power
 
@@ -60,5 +60,5 @@ If the cell goes on the Heltec's own battery connector, the Heltec's charger als
 - Panel thickness (`panel_t`, 3 mm assumed).
 - The buck-boost board's size.
 - The JGY-370's size and where its shaft is (`mot_*`, copied unmeasured from meshtastic-drybag-node).
-- The motor needs enough torque for the node's weight on a ~55 mm cable radius through 8.5:1. This is unchecked.
+- The motor needs enough torque for the node's weight on a 51–75 mm cable radius through 8.8:1. This is unchecked.
 - How far the panel's cells come to its edge. The bezel covers 4 mm of the border (`bezel_overlap`).
