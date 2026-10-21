@@ -1327,11 +1327,14 @@ module ref_bulkhead() {
   }
 }
 
-// ---- deployed (reference): hanging on its cables, the telescoping carbon
+// ---- deployed (reference): winched up to the tree's highest limb, which
+// runs across both cables (they hang off its back), the telescoping carbon
 // mast run out to 3 m above the socket, held to the two cables by
-// stabilising bars every third of a metre for the first metre, the last two
-// metres free above the canopy; two LMR-400 runs from the bulkheads up the
-// mast to two N-type omni antennas on a short crossarm at the top.
+// stabilising bars every third of a metre for the first metre, the top bar
+// just under the limb; the last two metres stand behind the limb, above the
+// canopy. Two LMR-400 runs from the bulkheads up the mast to two N-type omni
+// antennas on a short crossarm at the top. The limb: its diameter, the gap
+// between it and the top bar, its length, and the trunk it grows from.
 mast_len = 3000;
 mast_ds = [20, 16, 12];
 bar_ys = [333, 667, 1000];
@@ -1341,8 +1344,16 @@ lmr_d = 10.3;
 ant_len = 600;
 ant_d = 25;
 crossarm = 360;
-cable_show = 3400;
+limb_d = 200;
+limb_gap = 30;
+limb_len = 1600;
+trunk_d = 320;
 mast_top = socket_top + mast_len;
+limb_y = socket_top + bar_ys[len(bar_ys) - 1] + bar_w / 2 + limb_gap + limb_d / 2;
+limb_z = hang_z + cable_d / 2 + limb_d / 2;
+// the mast's section where it passes the limb
+limb_mast_d = mast_ds[min(len(mast_ds) - 1, floor((limb_y - bore_bot) / ((mast_top - bore_bot) / len(mast_ds))))];
+assert(pole_z + limb_mast_d / 2 + 1 < limb_z - limb_d / 2, "the mast runs into the limb");
 
 module ref_mast() {
   n = len(mast_ds);
@@ -1352,8 +1363,17 @@ module ref_mast() {
   translate([0, mast_top - 20, pole_z]) cube([crossarm + 30, 16, 16], center = true);
 }
 
+// Each cable up the limb's back and over its top, made fast there
 module ref_cables_up() {
-  for (m = [-1, 1]) translate([m * throat_x, horn_y, hang_z]) rotate([-90, 0, 0]) cylinder(d = 2, h = cable_show, $fn = 8);
+  for (m = [-1, 1]) translate([m * throat_x, 0, 0]) {
+    translate([0, horn_y, hang_z]) rotate([-90, 0, 0]) cylinder(d = 2, h = limb_y - horn_y, $fn = 8);
+    translate([0, limb_y, limb_z]) rotate([0, 90, 0]) rotate_extrude(angle = 90, $fn = 32) translate([limb_d / 2 + cable_d / 2, 0]) circle(d = 2, $fn = 8);
+  }
+}
+
+module ref_tree() {
+  translate([-limb_len / 2, limb_y, limb_z]) rotate([0, 90, 0]) cylinder(d = limb_d, h = limb_len, $fn = 48);
+  translate([-limb_len / 2 - trunk_d / 3, limb_y - 1500, limb_z]) rotate([-90, 0, 0]) cylinder(d = trunk_d, h = 1900, $fn = 48);
 }
 
 // A bar across the cables, an eye round each, and a clamp back to the mast

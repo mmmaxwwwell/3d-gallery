@@ -4345,7 +4345,7 @@
             { "part": "horn.stl", "qty": 2 },
             { "part": "door.stl", "qty": 2 }
           ] },
-        { "file": "deployed.3mf", "format": "3mf", "label": "Deployed: hanging on its cables, lid shut, the mast run out to 3 m with stabilising bars to the cables every third of a metre for the first metre, two LMR-400 runs up to two N omnis",
+        { "file": "deployed.3mf", "format": "3mf", "label": "Deployed: winched up to the tree's top limb, its 1 m bar just under the limb, lid shut; the mast run out to 3 m with bars to the cables every third of a metre for the first metre, the last 2 m standing above the canopy; two LMR-400 runs up to two N omnis",
           "legend": [
             { "color": "#3d4a3a", "label": "Tray and bezel", "part": "tray.stl", "parts": ["tray.stl", "bezel.stl"] },
             { "color": "#c08a3e", "label": "Frame", "part": "frame.stl" },
@@ -4353,11 +4353,12 @@
             { "color": "#6a8aaa", "label": "Horns", "part": "horn.stl" },
             { "color": "#1b2a4a", "label": "Solar panel (reference)" },
             { "color": "#555555", "label": "608 cable guide bearings (reference)" },
-            { "color": "#8a8f94", "label": "Stainless cables up to the tree (reference)" },
+            { "color": "#8a8f94", "label": "Stainless cables, up the limb's back and over it (reference)" },
             { "color": "#222222", "label": "Telescoping carbon-fibre mast, 3 m, with its crossarm (reference)" },
             { "color": "#b0b0b0", "label": "Stabilising bars, mast to cables (reference)" },
             { "color": "#111111", "label": "LMR-400 runs (reference)" },
-            { "color": "#e8e8e8", "label": "N-type omni antennas (reference)" }
+            { "color": "#e8e8e8", "label": "N-type omni antennas (reference)" },
+            { "color": "#6b4a2b", "label": "The tree's top limb and trunk (reference)" }
           ] }
       ],
       "parts": [
@@ -4478,21 +4479,15 @@
       "slug": "hc33-lipo-case",
       "devOnly": true,
       "title": "HT-HC33 LiPo Case",
-      "description": "A sealed case that stands on end with everything stacked face to face inside it like a stack of cards, each in a chamber of its own: a USB-C TP4056 charger board at the back, then a Heltec HT-HC33 (ESP32-S3 + Wi-Fi HaLow), a 103665 LiPo pouch, and a Heltec WiFi LoRa 32 V4 at the front. Two pieces. The carriage is an L of the top, which carries the two SMA bulkheads at the front-left and back-right corners, and the left face, the door face; every board and the cell hang on it, so the whole stack comes out in one go. Fins between the layers make the chambers; each board sits snug in slotted holders on all four edges (a rib on the door face, bars over its top edge and under its bottom edge either side of the USB-C, and, with the carriage in, a rail on the body's right wall; the side slots follow the V4's chamfered corners), the TP4056 sits between slotted bars top and bottom, and the cell sits between two fins on a floor plate under two roofs. The body is the bottom, back, front and right walls, open at the top and on the left. The carriage slides in from the left: its fins and the cell's floor plate run in channels in the floor and grooves up the right wall, a gusseted hook under the top's right edge catches in the right wall, and each board's right edge slides into its rail. Four M3x10 button-head screws through the door face and two down through the top hold it in. It is watertight: PCTG lips on the carriage press into grooves in black TPU Air channels printed in the body, round the door face's edge and round the top on a ridge over the walls; TPU Air washers sit under the screw heads and the SMAs' outer nuts; orange TPU plugs on straps from the base close the bottom USB-C ports; and the TP4056's side USB-C has a PCTG door, printed in its dovetail track, that slides shut onto a TPU Air gasket, the track wedging it in over the last 3 mm. It is black PCTG with orange TPU 75A printed in place: a 1.6 mm base keyed into the walls, and 15 mm grip rings alternating with plain PCTG ones, each filling a 2 mm recess flush and knurled 0.8 mm deep (diamond pyramids round the body, 90° V-grooves on the door face, smooth on its lead-ins), stopping short of the side door and the door screws. Prints on a Snapmaker U1: TPU Air head 1, PCTG head 3, TPU 75A head 4. 49 × 56.1 × 88.2 mm. The V4 is sized from Heltec's drawing and STEP model; the cell and TP4056 details are nominal, not measured. Not yet printed.",
+      "description": "A case that stands on end with everything stacked face to face inside it like a stack of cards, each in a chamber of its own: a USB-C TP4056 charger board at the back, then a Heltec HT-HC33 (ESP32-S3 + Wi-Fi HaLow), a 103665 LiPo pouch, and a Heltec WiFi LoRa 32 V4 at the front. Two pieces. The carriage is an L of the top, which carries the two SMA bulkheads at the front-left and back-right corners, and the left face, the door face; every board and the cell hang on it, so the whole stack comes out in one go. Fins between the layers make the chambers; each board's left edge sits in a slotted rib on the door face and its top edge in a slotted tab off the next fin, the TP4056 sits between slotted bars top and bottom, and the cell sits between two fins on a floor plate under two roofs. The body is the bottom, back, front and right walls, open at the top and on the left. The carriage slides in from the left: its fins and the cell's floor plate run in channels in the floor and grooves up the right wall, tongues under the top run in grooves along the back and front walls' tops, a nib under the top's right edge hooks into the right wall, and each board's right edge slides into a slotted rail on the right wall. Two M3x10 cap screws through the door face into bosses on the back and front walls hold it in. The HC33's and V4's USB-Cs come out of the bottom, the TP4056's out of the right wall. Seen from the top it is a rounded rectangle and the top edge is rounded. 15 mm rings run round it, plain and inset in turn: each inset ring is sunk 2 mm with 45° chamfers top and bottom, and diamond knurled on the body (smooth on the door face, which the carriage prints on). 49 × 56.2 × 82.5 mm. Cell, V4 and TP4056 details are nominal, not measured. Not yet printed.",
       "filament": [
-        { "material": "PCTG", "color": "black", "note": "Body and carriage", "parts": ["body.stl", "carriage.stl"] },
-        { "material": "TPU 75A", "color": "orange", "note": "The base, the knurled grip rings and the bottom plugs, printed in place on the body and the carriage (Snapmaker U1, head 4)",
-          "parts": ["body-tpu.stl", "carriage-tpu.stl"] },
-        { "material": "TPU Air", "color": "black", "note": "The seal channels, the side door's gasket and the washers, printed in place (Snapmaker U1, head 1)",
-          "parts": ["body-seal.stl", "carriage-seal.stl"] }
+        { "material": "PETG", "color": "any" }
       ],
       "previews": [
         { "file": "assembled.3mf", "format": "3mf", "label": "The carriage drawn out with everything on it", "default": true,
           "legend": [
-            { "color": "#1a1a1a", "label": "Body, black PCTG", "part": "body.stl" },
-            { "color": "#3a3a3a", "label": "Carriage, black PCTG", "part": "carriage.stl" },
-            { "color": "#ff7a1a", "label": "Base, grip rings and plugs, orange TPU 75A", "part": "body-tpu.stl", "parts": ["body-tpu.stl", "carriage-tpu.stl"] },
-            { "color": "#0a0a0a", "label": "Seals, gasket and washers, black TPU Air", "part": "body-seal.stl", "parts": ["body-seal.stl", "carriage-seal.stl"] },
+            { "color": "#3a4250", "label": "Body", "part": "body.stl" },
+            { "color": "#56657a", "label": "Carriage", "part": "carriage.stl" },
             { "color": "#2f6fb0", "label": "TP4056 charger (reference)" },
             { "color": "#e8c547", "label": "103665 LiPo (reference)" },
             { "color": "#2f8f4e", "label": "HT-HC33 (reference)" },
@@ -4501,47 +4496,31 @@
           ],
           "components": [
             { "part": "body.stl", "qty": 1 },
-            { "part": "carriage.stl", "qty": 1 },
-            { "part": "body-tpu.stl", "qty": 1 },
-            { "part": "carriage-tpu.stl", "qty": 1 },
-            { "part": "body-seal.stl", "qty": 1 },
-            { "part": "carriage-seal.stl", "qty": 1 }
+            { "part": "carriage.stl", "qty": 1 }
           ] },
         { "file": "closed.3mf", "format": "3mf", "label": "Closed",
           "legend": [
-            { "color": "#1a1a1a", "label": "Body, black PCTG", "part": "body.stl" },
-            { "color": "#3a3a3a", "label": "Carriage, black PCTG", "part": "carriage.stl" },
-            { "color": "#ff7a1a", "label": "Base, grip rings and plugs, orange TPU 75A", "part": "body-tpu.stl", "parts": ["body-tpu.stl", "carriage-tpu.stl"] },
-            { "color": "#0a0a0a", "label": "Seals, gasket and washers, black TPU Air", "part": "body-seal.stl", "parts": ["body-seal.stl", "carriage-seal.stl"] },
+            { "color": "#3a4250", "label": "Body", "part": "body.stl" },
+            { "color": "#56657a", "label": "Carriage", "part": "carriage.stl" },
             { "color": "#c9a227", "label": "SMA bulkheads (reference)" }
           ] },
-        { "file": "print.3mf", "format": "3mf", "label": "Snapmaker U1 plate: the body standing on its bottom with its side door and plugs, the carriage on its door face, each with its TPU printed in place (TPU Air head 1, PCTG head 3, TPU 75A head 4)", "plate": true,
+        { "file": "print.3mf", "format": "3mf", "label": "Print plate: the body standing on its bottom, the carriage on its door face", "plate": true,
           "legend": [
-            { "color": "#1a1a1a", "label": "Black PCTG: body and carriage", "part": "body.stl", "parts": ["body.stl", "carriage.stl"] },
-            { "color": "#ff7a1a", "label": "Orange TPU 75A: base, grip rings and plugs", "part": "body-tpu.stl", "parts": ["body-tpu.stl", "carriage-tpu.stl"] },
-            { "color": "#0a0a0a", "label": "Black TPU Air: seals, gasket and washers", "part": "body-seal.stl", "parts": ["body-seal.stl", "carriage-seal.stl"] }
+            { "color": "#3a4250", "label": "Body and carriage", "part": "body.stl", "parts": ["body.stl", "carriage.stl"] }
           ],
           "components": [
             { "part": "body.stl", "qty": 1 },
-            { "part": "carriage.stl", "qty": 1 },
-            { "part": "body-tpu.stl", "qty": 1 },
-            { "part": "carriage-tpu.stl", "qty": 1 },
-            { "part": "body-seal.stl", "qty": 1 },
-            { "part": "carriage-seal.stl", "qty": 1 }
+            { "part": "carriage.stl", "qty": 1 }
           ] }
       ],
       "parts": [
-        { "file": "body.stl", "format": "stl", "label": "Body, PCTG — bottom with two USB-C ports, back, front and right walls with the side door printed in its track over the TP4056's port, board rails, fin and floor-plate channels, the hook's groove, four door-screw and two top-screw bosses, the ridge round the top seal, recesses for the grip rings, the base's keys and the seals; prints standing on its bottom" },
-        { "file": "body-tpu.stl", "format": "stl", "label": "Body TPU, 75A — the base under the body keyed into the walls, the knurled grip rings round the body, and the two bottom plugs on their straps; printed in place with the body" },
-        { "file": "body-seal.stl", "format": "stl", "label": "Body seals, TPU Air — the grooved channels up the back and front walls' ends, across the floor's end and round the walls' tops, and the side door's gasket; printed in place with the body" },
-        { "file": "carriage.stl", "format": "stl", "label": "Carriage, PCTG — the top with two SMA holes and two screw seats, the door face with four screw seats, in one L; the seal lips round the door face and the top; fins, board ribs and bars, the TP4056's bars, the cell's floor plate and roofs, the gusseted hook; prints on its door face" },
-        { "file": "carriage-tpu.stl", "format": "stl", "label": "Carriage TPU, 75A — the base's strip under the door face, and the door face's share of the grip rings, flush, V-groove knurled on the face, smooth on the lead-ins; printed in place with the carriage" },
-        { "file": "carriage-seal.stl", "format": "stl", "label": "Carriage washers, TPU Air — under the six screw heads and the two SMAs' outer nuts; printed in place with the carriage" }
+        { "file": "body.stl", "format": "stl", "label": "Body — bottom with two USB-C openings, back, front and right walls, the TP4056's side opening, board rails, fin and floor-plate channels, grooves for the top's tongues and hook, two door-screw bosses, knurled grip rings; prints standing on its bottom" },
+        { "file": "carriage.stl", "format": "stl", "label": "Carriage — the top with two SMA holes and the door face with two counterbored M3 holes, in one L; fins, board ribs and tabs, the TP4056's bars, the cell's floor plate and roofs, the top's tongues and hook; prints on its door face" }
       ],
       "hardware": [
-        { "qty": 6, "label": "M3x10 button head cap screw — four through the door face into the bosses on the back and front walls, two down through the top into the front wall's",
-          "usedBy": [ { "part": "carriage.stl", "each": 6 } ] },
-        { "qty": 2, "label": "SMA female bulkhead to U.FL pigtail — through the top, 5.4 mm thick here, so it needs a long-thread bulkhead" }
+        { "qty": 2, "label": "M3x10 socket cap screw — holds the carriage in, through the door face into the bosses on the back and front walls",
+          "usedBy": [ { "part": "carriage.stl", "each": 2 } ] },
+        { "qty": 2, "label": "SMA female bulkhead to U.FL pigtail — through the top" }
       ]
     },
     {
@@ -4549,22 +4528,22 @@
       "devOnly": true,
       "customizable": true,
       "title": "MOLLE 18650 Holder",
-      "description": "Four 18650 cells standing upright, each in a thin tube of its own, the tubes fused side by side onto a MOLLE stick weave so the whole thing goes straight onto PALS webbing with two of BigFootPL's 3\" Molle sticks (in the Library), like a MOLLE pouch: nothing to screw together. It covers one PALS band, two columns across. The back is a block in the PALS gap above the band and one below, a slot up through each for a stick, and only the tubes across the band, so each stick runs block, band, block. The slots run out through the bottom, so a longer stick fits too. The hook springs over the top block's back wall, and the bulge on the hook's outer leaf clicks into a shallow groove across the wall's back, so it stays put and tight with nothing standing above the holder. A web fills the grooves behind the tubes. Each tube ends below in a 45\u00b0 cone with a drain at its tip, and the cones, the bottom block and the space between them are hulled into one smooth bottom. A slit runs down the middle of each tube's front, to slide the cell out with a finger; either side of it the wall is a spring clip, freed by a notch where the tubes meet, with a lip over the cell's top edge that it snaps in past. Two crush ribs per tube stop it rattling. Every outside edge is rounded. 84 \u00d7 79.5 \u00d7 29 mm. Prints standing on its bottom, no supports. Cell count, cell size and stick length are customizable. Not yet printed.",
+      "description": "Four 18650 cells standing upright side by side in one printed piece that mounts straight onto PALS webbing with two of BigFootPL's 4\" Molle sticks (in the Library), like a MOLLE pouch: nothing to screw together. The back is a stick weave: a block in each PALS gap, a slot up through each block for a stick, and only the plate across the bands, so each stick runs block, band, block, band. Its tip rests on a floor in the bottom block and its hook snaps over the top block's back wall. With no bolt grid in the way, the blocks fill the PALS gaps exactly. The 4\" stick spans two bands, two columns across. The cells drop in from the top, flush with it, and stand on a floor. A 45\u00b0 bevel down the top front opens each pocket so you can grip a cell, and below the cells the front tapers at 45\u00b0 to the plate. Two crush ribs per pocket hold each cell; a drain hole under each runs out through the taper. 86 \u00d7 104.5 \u00d7 30.7 mm. Prints front face down, no supports. Cell count, cell size and stick length are customizable. Not yet printed.",
       "filament": [
         { "material": "PETG", "color": "any" }
       ],
       "previews": [
-        { "file": "assembled.3mf", "format": "3mf", "label": "On a PALS band, cells in, sticks woven through", "default": true, "module": "assembled",
+        { "file": "assembled.3mf", "format": "3mf", "label": "On two PALS bands, cells in, sticks woven through", "default": true, "module": "assembled",
           "legend": [
             { "color": "#3a4250", "label": "Holder", "part": "holder.stl" },
             { "color": "#2f6fb0", "label": "18650 cells (reference)" },
-            { "color": "#2b2b2b", "label": "3\" Molle sticks (reference)" },
+            { "color": "#2b2b2b", "label": "4\" Molle sticks (reference)" },
             { "color": "#6b7a3a", "label": "PALS webbing (reference)" }
           ],
           "components": [
             { "part": "holder.stl", "qty": 1 }
           ] },
-        { "file": "plate.3mf", "format": "3mf", "label": "Print plate: standing on its bottom", "plate": true, "module": "plate",
+        { "file": "plate.3mf", "format": "3mf", "label": "Print plate: front face down", "plate": true, "module": "plate",
           "legend": [
             { "color": "#3a4250", "label": "Holder", "part": "holder.stl" }
           ],
@@ -4573,10 +4552,10 @@
           ] }
       ],
       "parts": [
-        { "file": "holder.stl", "format": "stl", "label": "Holder — four cell tubes with finger slits and spring clips, stick weave on the back; print standing on its bottom", "module": "holder" }
+        { "file": "holder.stl", "format": "stl", "label": "Holder — four cell pockets, stick weave on the back", "module": "holder" }
       ],
       "hardware": [
-        { "qty": 2, "label": "3\" Molle stick — BigFootPL's, printed from the Library; weaves the holder onto the webbing",
+        { "qty": 2, "label": "4\" Molle stick — BigFootPL's, printed from the Library; weaves the holder onto the webbing",
           "source": { "url": "https://www.printables.com/model/411201-molle-stick", "vendor": "Printables" } },
         { "qty": 4, "label": "18650 cell" }
       ]

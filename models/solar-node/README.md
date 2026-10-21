@@ -4,7 +4,9 @@ A sealed box under a 240 × 168 mm solar panel salvaged from a Home Depot solar 
 
 It hangs with a long side down and the winch behind it. The box is a wedge: its back hangs plumb against the winch, and the panel sits on the sloping front at 50° from horizontal (`panel_tilt`). The antennas are at the top of a 3 m telescoping carbon-fibre mast that stands in a socket on top of the box, between the two cables. In the files, +Y is up.
 
-Two views: **Assembled**, with the lid pulled off, and **Deployed**, hanging on its cables with the mast run out to 3 m, its stabilising bars, two LMR-400 runs and two N omnis at the top.
+Two views: **Assembled**, with the lid pulled off, and **Deployed**.
+
+**Deployed** shows it winched up to the highest limb of a tree. The cables run up the limb's back and over it, and the 1 m bar ends up just under the limb. The last 2 m of mast rise behind the limb and hold the two N omnis above the canopy. The limb has to run across both cables, so the mast, 10 mm behind them, clears its back.
 
 ## Pieces
 

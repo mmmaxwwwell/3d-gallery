@@ -1,6 +1,6 @@
 include <../lib/solar-node-lib.scad>;
 $fn = 40;
-// Deployed: hanging on its cables with the lid shut, the mast run out to
+// Deployed: winched up under the tree's top limb, lid shut, the mast run out to
 // 3 m with its stabilising bars, LMR-400 up to two N omnis at the top.
 module upright() { rotate([90, 0, 0]) children(); }
 upright() {
@@ -15,4 +15,5 @@ upright() {
   color("#b0b0b0") ref_bars();
   color("#111111") ref_lmr400();
   color("#e8e8e8") ref_antennas();
+  color("#6b4a2b") ref_tree();
 }
