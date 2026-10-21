@@ -1,6 +1,6 @@
 # pouch-comms-module
 
-A box for a backpack side pouch: power bank, Franklin T9, Pi Zero 2 W, Heltec HT-HC33, Heltec V4, two FR120N MOSFET modules. devOnly, unprinted.
+A box for a backpack side pouch: power bank, Franklin T9 (the "modem"), Pi Zero 2 W, Heltec HT-HC33, Heltec V4, two FR120N MOSFET modules. devOnly, unprinted.
 
 ## The user's brief (2026-10-20)
 
@@ -24,6 +24,8 @@ A box for a backpack side pouch: power bank, Franklin T9, Pi Zero 2 W, Heltec HT
 - Later the same day the user placed the T9's ports: "the t9 usb port is centered horizontally and vertically on one of the short faces … with the usb port facing at 12 o clock, the power button is on the 3 o clock face centered both axises". So the button is on the +X side, mid-length and mid-height, and the set screw moved off the cage into the right wall.
 - "really look at each of the circuit board modules and get the exact dimensions right so everything fits", and add "FR120N MOSFET Module Optocoupler Isolation Transistor Switch 100V 9.4A … 5 Pack switch on/off LED loads". Asked how many go in the box, the user said 2.
 
+- Later still (2026-10-21): "i want the 3 compute modules closer together, and then the two power switching modules, those are next to the compute modules away from the modem. the modem needs to be screwed in place". So the boards are packed `board_gap` = 4 apart against the divider, the FR120Ns lie on the floor past them toward the right wall (off the T9), and the T9 is held by two screwed clamps. I read "the modem" as the T9.
+
 ## Where the board figures come from (2026-10-21)
 
 - **HT-HC33**: Heltec datasheet Rev 1.0 §7.1, 60 × 33.5, M2 holes 2 in from each edge (56 × 29.53). The USB-C is flush with its end; the 61.54 overall is the micro-SD socket, 1.54 past the other end, across 9.2–24 of the height. Buttons at the USB end sit 7.1–10.5 in from each long edge. U.FL near the micro-SD end, about central. Thickness 1.5 / 3.6 under / 3.3 over is the user's own measurement (the datasheet says 7.1 overall).
@@ -40,22 +42,23 @@ A box for a backpack side pouch: power bank, Franklin T9, Pi Zero 2 W, Heltec HT
 - **Indexing.** A tongue on the box, a groove in the lid, so both print without supports. The groove is `groove_break` short of each counterbore, and the tongue is `tongue_break` short of the screws. There's no lip into the box, since it would hit the bank's top edge.
 - **Board rack.** There's only ~6 mm across between the bank and the T9, so the rack is beside the bank past the T9.
   - Each board is long side along Y, PCB in a YZ plane.
-  - Ends are 2 mm short of the +Y wall, with the high post merged into the wall.
+  - The high post merges into the wall.
   - Each board's -Y end (HC33 and V4: the USB-C; Pi: the micro-SD) has a low post that grips only up to `*_low` over the board's bottom edge, under the buttons and sockets there.
   - The +Y high post is cut through (`*_gaps`) where that end has parts: the HC33's micro-SD and U.FL, the V4's U.FL, the Pi's camera connector. The HC33's micro-SD overhang fits in `board_back`.
-  - Every board's top face is +X. Each one's parts span (under + PCB + over) is centred in an equal share of the column, in the order HC33, V4, Pi. That leaves about 16 mm between neighbours for the U.FL plugs.
+  - Every board's top face is +X. They're packed from 1 mm off the divider, `board_gap` between neighbours' parts spans (under + PCB + over), in the order HC33, Pi, V4. The V4 is the shortest, so it's nearest the T9's plug (its low post clears the plug's room). The Pi (longest) only fits where it misses the T9's +Y brackets and the clamp pillars, which this order gives it.
+  - Ends are `board_back` = 3.5 short of the +Y wall, clear of the wall's bosses, so the boards needn't dodge the boss positions.
   - No headers fitted on any board. The V4's soldered pins would hit the floor groove, and a Pi header would too.
   - **The Pi stands ports up**, about 9 mm under the lid. Plan: power it through GPIO 5 V / GND (pins 2 and 6), not the micro-USB.
-- **FR120N shelf.** The cage plate carries on toward -Y over the T9 as a `shelf_t` shelf, 1.5 over the T9's face, with no feet (it would land on the T9 if pushed).
-  - The two modules lie side by side, long side along Y, in rails: a wall either side plus a `rail_ledge` that holds the PCB edge `fr_tails` clear of the shelf.
-  - `fr_wire_room` is left at both ends for the terminals' wires. Nothing stops the modules sliding along the rails but their wires.
-  - Terminals top out at 37.1, under the lid's 42.5.
+- **FR120Ns.** On the box floor, `board_gap` past the last board, in rails: a wall either side plus a `rail_ledge` that holds the PCB edge `fr_tails` clear of the floor. Long side along Y, +Y ends `fr_wire_room` short of the boards' ends; the -Y end has more. Their rails are 0.4 short of the right wall's bosses (39 wide). Nothing stops the modules sliding along the rails but their wires.
+  - Terminals top out at 18.6.
 - **Antennas.** The HC33 (HaLow) and V4 (LoRa) each get an SMA bulkhead in the +Y wall over the bay. The Pi and T9 keep their internal antennas.
 - **T9 power button.** The set screw runs along X at `button_z`, `t9_cy`, through a `teardrop_x` hole in the right wall and a block (`button_block_x0`..the wall, `button_block_w` along Y) that stands `button_block_gap` off the T9's side.
   - The nut drops into a slot from the block's top, its flats against the slot's sides so it can't turn.
   - The M3x10 sits wholly inside the wall and block, and a hex key reaches it through the wall. The asserts keep it in its nut when backed off and inside the wall when pressing.
-  - The block sits between two right-wall bosses (an assert checks that). The T9's -X corner brackets take the push.
-- **Cage.** It's a plate over the T9's micro-USB end (+Y), on two pillars `pillar_dx` either side of the plug, with M3x10 cap screws counterbored.
+  - The right wall's screws are filled in two runs either side of the block (`button_keep`), so the lid has 22. The T9's -X corner brackets take the push.
+- **Clamps.** One piece printed twice: a `clamp_t` plate on two pillars `pillar_dx` either side of the T9's centre line, reaching `clamp_lap` over its end, M3x10 counterbored. The -Y one is the +Y one turned 180° about the T9's centre.
+  - The T9 has no holes, so "screwed in place" means clamped. Its sides have no room for pillars (4.75 to the divider; the button block on the right), so the pillars stand past its ends. The -Y pair pushed the T9 8.5 toward +Y.
+  - The pillars stop `clamp_squeeze` under the T9's face, so the screws pull the plate down onto it.
   - It prints as it sits, plate down. The counterbores open upward, their floors on solid plate, so nothing bridges.
 - No vents, no lid window, no external charging port. These are open questions in the README.
 
@@ -63,15 +66,15 @@ A box for a backpack side pouch: power bank, Franklin T9, Pi Zero 2 W, Heltec HT
 
 - Origin is the outer -X -Y bottom corner. X runs across (140), Y along (190), Z up.
 - Plan from -X: wall, screw bosses (to `clear_e`), bank pocket, divider, then the right column (`col_x0`..`col_x1`, 76.5 wide).
-- `boards` is the rack's order, each `[length, height, pcb, over, under, low grip, gaps]`. `slot_x(i)` is the PCB's centre, and `low_y0(b)` places each low post.
-- The shelf runs `shelf_x0`..+`shelf_w` and `shelf_y0`..`shelf_y1` (= `cage_y0`). `fr_x0(i)`, `fr_y0` and `fr_z0` place each module.
+- `boards` is the rack's order, each `[length, height, pcb, over, under, low grip, gaps]`. `rack_x(i)` is where a board's parts start, `slot_x(i)` the PCB's centre, `rack_x1` the last board's far side, and `low_y0(b)` places each low post.
+- `pillars` are all four clamp pillars; `pillar_y1` is the +Y pair's far side. The FR rails run `fr_rack_x0`..+`fr_rack_w`; `fr_x0(i)`, `fr_y0` and `fr_z0` place each module.
 
 ## Checked
 
-- `exploded.3mf` lifts the bank, T9 and boards 60 up, the cage 96, the FR120Ns 114 and the lid 132, and pulls the SMAs 30 out.
+- `exploded.3mf` lifts the bank, T9, boards and FR120Ns 60 up, the clamps 84 and the lid 132, and pulls the SMAs 30 out.
 - These all intersect in zero volume (faces touching at most):
-  - box with each reference part (bank, T9, boards, SMAs), the lid (tongue in groove) and the cage;
-  - cage with the T9, the boards, the FR120Ns and the lid;
-  - FR120Ns with the box, the T9, the boards and the lid;
+  - box with each reference part (bank, T9, boards, FR120Ns, SMAs), the lid (tongue in groove) and the clamps;
+  - clamps with the T9 (they rest on its face), the boards, the FR120Ns and the lid;
+  - FR120Ns with the T9, the boards and the lid;
   - boards with the bank and the T9.
 - Renders through the dev server's forge (devOnly, so `npm run build:model` skips it), and each part renders on its own with OpenSCAD (Manifold).

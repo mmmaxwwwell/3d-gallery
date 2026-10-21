@@ -4,7 +4,7 @@ $fn = 40;
 lift = 40;
 color("#3a4250") box();
 color("#3a4250") lid_in_place(lift);
-color("#d9622b") cage_in_place();
+color("#d9622b") clamps_in_place();
 color("#e8c547") ref_bank();
 color("#d0d3d8") ref_t9();
 color("#2f8f4e") ref_boards();
