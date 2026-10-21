@@ -13,10 +13,10 @@
 // with the glued panel and the bezel off the tray in one; the bezel never
 // has to come off the panel.
 //
-// Inside, everything lies flat on the floor in one row along the +Y wall,
-// the top edge once the box is mounted: the LP1260110 LiPo pouch (10 Ah)
-// toward -X, then the Heltec V3 with the TP4056 charger and a 5 V
-// buck-boost side by side beside it. Each sits between corner brackets
+// Inside, at the +X end (the top once mounted): the LP1260110 LiPo pouch
+// (10 Ah) flat on the floor, its long side across the box and centred on
+// it, and over it a carrier plate on four posts holding the Heltec V3, the
+// TP4056 charger and a 5 V buck-boost. Each sits between corner brackets
 // (stick them down with foam tape). An N female bulkhead goes through the +X end wall for the
 // pigtail to the Heltec.
 //
@@ -54,7 +54,7 @@ corner_r = 4;
 
 // Tray: floor, height inside (sized for the N bulkhead's panel nut), wall
 tray_floor = 2.5;
-tray_inside_h = 25;
+tray_inside_h = 26;
 tray_wall = 4;
 
 // How far the tray's wall sits in from the frame's edge (the screw columns
@@ -117,8 +117,13 @@ bracket_h = 3;
 bat_bracket_h = 6;
 bracket_clear = 0.5;
 
-// Gap between neighbouring parts' brackets
-board_gap = 2;
+// The carrier plate over the battery: thickness, gap above the pouch, its
+// posts' diameter, and the M3 that holds it to each post (pilot depth for
+// an M3x8)
+shelf_t = 2;
+shelf_gap = 0.5;
+post_d = 7;
+shelf_pilot_depth = 7;
 // END_PARAMS
 
 eps = 0.01;
@@ -209,8 +214,10 @@ module tray() {
         translate([0, 0, tongue_len - 0.5]) linear_extrude(0.5) band(tongue_e + 0.25, tongue_e + tongue_w - 0.25);
       }
       translate([0, 0, tray_floor - eps]) brackets();
+      for (p = shelf_posts) translate([p[0], p[1], tray_floor - eps]) cylinder(d = post_d, h = post_h + eps);
     }
     for (p = screws) translate([p[0], p[1], tray_h - pilot_depth]) cylinder(d = pilot_d, h = pilot_depth + 1);
+    for (p = shelf_posts) translate([p[0], p[1], shelf_z - shelf_pilot_depth]) cylinder(d = pilot_d, h = shelf_pilot_depth + 1);
     translate([outer_l / 2 - tray_in_e + tray_wall / 2, n_y, n_z]) teardrop_x(n_hole_d, tray_wall + 2);
   }
 }
@@ -228,28 +235,71 @@ module corner_brackets(x, y, l, w, h) {
 // Half the room a part takes between its brackets, beyond its own half size
 bracket_out = bracket_clear + bracket_wall;
 
-// The row runs along the +Y wall, 1 mm off it: the battery from the -X end,
-// then the Heltec against the wall with the charger and buck-boost in a
-// second row in front of it.
-bat_x = -inside_l / 2 + 1 + bracket_out + bat_l / 2;
-bat_y = inside_w / 2 - 1 - bracket_out - bat_w / 2;
-boards_x0 = bat_x + bat_l / 2 + 2 * bracket_out + board_gap;
-heltec_x = boards_x0 + heltec_l / 2;
-heltec_y = inside_w / 2 - 1 - bracket_out - heltec_w / 2;
-charger_x = boards_x0 + charger_l / 2;
-charger_y = heltec_y - heltec_w / 2 - 2 * bracket_out - board_gap - charger_w / 2;
-buck_x = charger_x + charger_l / 2 + 2 * bracket_out + board_gap + buck_l / 2;
-buck_y = heltec_y - heltec_w / 2 - 2 * bracket_out - board_gap - buck_w / 2;
+// The stack is laid out in its own frame: u along the battery (global +Y),
+// v across it (global -X, so +v points away from the bulkhead). `at_stack()`
+// places it, centred across the box and as near the +X end as the
+// bulkhead's back allows.
+shelf_l = bat_l + 2 * (bracket_out + post_d);
+shelf_w = bat_w + 2 * (bracket_out + 0.5);
+stack_x = inside_l / 2 - n_back_len - 2 - shelf_w / 2;
+shelf_z = tray_floor + bat_t + shelf_gap;
+post_h = shelf_z - tray_floor;
+post_uv = [for (su = [-1, 1], sv = [-1, 1]) [su * (bat_l / 2 + bracket_out + post_d / 2), sv * (bat_w / 2 - 8)]];
+shelf_posts = [for (q = post_uv) [stack_x - q[1], q[0]]];
 
-module brackets() {
-  corner_brackets(bat_x, bat_y, bat_l, bat_w, bat_bracket_h);
-  corner_brackets(heltec_x, heltec_y, heltec_l, heltec_w, bracket_h);
-  corner_brackets(charger_x, charger_y, charger_l, charger_w, bracket_h);
-  corner_brackets(buck_x, buck_y, buck_l, buck_w, bracket_h);
+module at_stack() {
+  translate([stack_x, 0, 0]) rotate(90) children();
 }
 
-assert(max(heltec_x + heltec_l / 2, buck_x + buck_l / 2) + bracket_out < inside_l / 2 - n_back_len - 2, "boards run into the bulkhead's back");
-assert(bat_t + 1 <= tray_inside_h && heltec_h + 1 <= tray_inside_h);
+// On the plate, between the posts' bosses: the Heltec along the edge nearest
+// the bulkhead, the charger and the buck-boost side by side along the other.
+shelf_boss_d = cbore_d + 2.4;
+board_gap = 2;
+board_end = bat_l / 2 + post_d / 2 - shelf_boss_d / 2 - 1;
+heltec_u = board_end - heltec_l / 2;
+heltec_v = -bat_w / 2 + heltec_w / 2;
+charger_u = board_end - charger_l / 2;
+charger_v = bat_w / 2 - charger_w / 2;
+buck_u = charger_u - charger_l / 2 - 2 * bracket_out - board_gap - buck_l / 2;
+buck_v = bat_w / 2 - buck_w / 2;
+
+module brackets() {
+  at_stack() corner_brackets(0, 0, bat_l, bat_w, bat_bracket_h);
+}
+
+module shelf_brackets() {
+  corner_brackets(heltec_u, heltec_v, heltec_l, heltec_w, bracket_h);
+  corner_brackets(charger_u, charger_v, charger_l, charger_w, bracket_h);
+  corner_brackets(buck_u, buck_v, buck_l, buck_w, bracket_h);
+}
+
+assert(shelf_l / 2 < inside_w / 2 - 1, "plate runs into the side walls");
+assert(heltec_v + heltec_w / 2 + bracket_out + board_gap <= charger_v - charger_w / 2 - bracket_out, "Heltec and charger rows overlap");
+assert(heltec_v + heltec_w / 2 + bracket_out + board_gap <= buck_v - buck_w / 2 - bracket_out, "Heltec and buck-boost rows overlap");
+assert(buck_u - buck_l / 2 >= -board_end, "buck-boost runs into a post's boss");
+// Under the frame's ledge the ceiling is the tray's top
+assert(shelf_z + shelf_t + heltec_h + 1 <= tray_h, "Heltec on the plate hits the frame");
+
+// ---- carrier plate: on the four posts, printed as modelled; its screws sit
+// in counterbored bosses
+
+module shelf() {
+  at_stack() difference() {
+    union() {
+      linear_extrude(shelf_t) offset(2) offset(-2) square([shelf_l, shelf_w], center = true);
+      for (q = post_uv) translate([q[0], q[1], 0]) cylinder(d = shelf_boss_d, h = shelf_t + cbore_h);
+      translate([0, 0, shelf_t - eps]) shelf_brackets();
+    }
+    for (q = post_uv) translate([q[0], q[1], 0]) {
+      translate([0, 0, -1]) cylinder(d = clear_d, h = shelf_t + cbore_h + 2);
+      translate([0, 0, shelf_t]) cylinder(d = cbore_d, h = cbore_h + 1);
+    }
+  }
+}
+
+module shelf_in_place() {
+  translate([0, 0, shelf_z]) shelf();
+}
 
 // ---- frame
 
@@ -325,14 +375,16 @@ module ref_glue(lift = 0) {
 }
 
 module ref_battery() {
-  translate([bat_x, bat_y, tray_floor + bat_t / 2]) cube([bat_l, bat_w, bat_t], center = true);
+  at_stack() translate([0, 0, tray_floor + bat_t / 2]) cube([bat_l, bat_w, bat_t], center = true);
 }
 
 module ref_boards() {
-  z = tray_floor;
-  translate([heltec_x, heltec_y, z + heltec_h / 2]) cube([heltec_l, heltec_w, heltec_h], center = true);
-  translate([charger_x, charger_y, z + 2]) cube([charger_l, charger_w, 4], center = true);
-  translate([buck_x, buck_y, z + 2.5]) cube([buck_l, buck_w, 5], center = true);
+  z = shelf_z + shelf_t;
+  at_stack() {
+    translate([heltec_u, heltec_v, z + heltec_h / 2]) cube([heltec_l, heltec_w, heltec_h], center = true);
+    translate([charger_u, charger_v, z + 2]) cube([charger_l, charger_w, 4], center = true);
+    translate([buck_u, buck_v, z + 2.5]) cube([buck_l, buck_w, 5], center = true);
+  }
 }
 
 module ref_bulkhead() {

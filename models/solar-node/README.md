@@ -7,20 +7,21 @@ A slim sealed box under a 240 × 168 mm solar panel salvaged from a Home Depot s
 | Piece | Material | Prints |
 |---|---|---|
 | Tray | PETG | floor down |
+| Carrier plate | PETG | flat, brackets up |
 | Frame | PETG | bottom down (groove on the bed) |
 | Bezel | PETG | bottom down |
 | Gasket | TPU 85A | floor down, slot up |
 
-The footprint is 263 × 191 mm, so it needs a 270 mm bed (Q2, U1). Height assembled is 39.5 mm. The N bulkhead's flange and nut set most of that.
+The footprint is 263 × 191 mm, so it needs a 270 mm bed (Q2, U1). Height assembled is 40.5 mm. The battery, with the carrier plate and the Heltec over it, sets the inside height.
 
 ## Assembly
 
-1. Stick the battery, Heltec, charger and buck-boost down between their corner brackets with foam tape. Fit the N bulkhead through the +X end wall, nut inside, and run the pigtail to the Heltec.
+1. Stick the battery down between its corner brackets at the +X end with foam tape. Screw the carrier plate onto its four posts over it with M3x8s. Then tape the Heltec, charger and buck-boost into their brackets on the plate. Fit the N bulkhead through the +X end wall, nut inside, and run the pigtail to the Heltec.
 2. Run a bead of construction adhesive round the frame's ledge. Lay the panel in, with its leads down through the opening.
 3. Put the bezel on and drive the 24 M3x16 screws through bezel and frame. Do this on the tray, with the gasket in the frame's groove, so the screws thread into the tray's columns. The bezel squeezes the bead to 1 mm. Leave it to cure.
 4. To open the box later, undo the 24 screws and lift the frame, panel and bezel off together.
 
-Everything inside lies flat in one row along the +Y edge. Mount the box with that edge at the top.
+The battery and plate sit at the +X end, the same end as the antenna. Mount the box with that end at the top.
 
 ## Power
 

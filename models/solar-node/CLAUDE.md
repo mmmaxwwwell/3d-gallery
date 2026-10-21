@@ -17,8 +17,15 @@ A sealed box under a salvaged 240 × 168 mm solar panel. devOnly, unprinted.
 
 - **Box below the panel.** Since the panel is glued in, the box opens by lifting the whole frame (panel and bezel with it) off the tray. One ring of M3 cap screws runs through bezel and frame into the tray, so the bezel never has to come off.
 - **Seal.** A U-section TPU 85A gasket sits in a groove under the frame. The tray's tongue is wider than the gasket's slot and squeezes it from the sides. The screws are outside the seal (memory: seal-screws-through-tpu-failed).
-- **N bulkhead.** It goes through the +X end wall, between two screw columns. Its 24 mm body sets the depth: `n_z + n_body_d/2 <= tray_h`.
-- **Everything flat in one row along the +Y wall** (user, 2026-10-21: "they are supposed to be horizontal and at the top"). +Y is the top edge as mounted. The pouch is at the −X end, with the Heltec beside it against the wall and the charger and buck-boost in front of the Heltec. An earlier session read "pouch low and all chips low" as the −Y edge, with the boards on a shelf over the pouch. The user rejected that, so the shelf is gone.
+- **N bulkhead.** It goes through the +X end wall, between two screw columns. Its 24 mm body needs `tray_inside_h` ≥ 24.5. The stack needs 26: battery, 0.5 gap, 2 mm plate, the Heltec's 10.2, then 1 mm under the frame's ledge.
+- **Stack at the +X end** (user, 2026-10-21): "the long side of the battery needs to be in the center of the short side of the box, and the electronics need to be on the carrier plate on top of the battery again".
+  - The pouch's long axis runs across the box (along Y), centred.
+  - The carrier plate (`shelf()`) screws down onto four posts over the pouch.
+  - The Heltec is along the plate's edge nearest the bulkhead; the charger and buck-boost are along the other edge.
+  - `stack_x` puts the stack as near +X as the bulkhead's back allows.
+  - The stack is laid out in its own u/v frame, which `at_stack()` places. u is along the battery (global +Y); +v points away from the bulkhead (global −X).
+  - My reading: "top" (from the user's earlier "horizontal and at the top") is the +X end, where the antenna is.
+  - Rejected earlier layouts: everything along −Y on a shelf, then everything in one flat row along +Y.
 - **Corner brackets, foam tape.** Each part sits between corner brackets and is held with foam tape. There are no straps or ties through the floor.
 - **No mount and no vent.** The user hasn't said how it hangs.
 
@@ -38,4 +45,4 @@ A sealed box under a salvaged 240 × 168 mm solar panel. devOnly, unprinted.
 
 - The pieces' rigid parts don't intersect.
 - gasket ∩ tray ≈ 606 mm³, which is the tongue's side squeeze. Re-check this if the seal changes.
-- The battery and boards clear the tray, each other and the bulkhead.
+- The plate meets the posts and the boards meet the plate face to face only. The battery, boards and plate clear the tray, the frame and the bulkhead.
