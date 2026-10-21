@@ -54,7 +54,7 @@ The two motors stand either side of the battery stack.
   - An M4x35 bolt goes across socket and pole, 40 mm above the bore's floor. Drill the pole for it.
   - A buttress either side braces the socket against the top wall.
   - **Zip-tie anchors:** each buttress has three pairs of slots through it, front to back, for ties up to 3.6 mm wide. A tie goes in through one slot of a pair and out through the other, round anything laid along the socket's back (the coax, a crossmember's line).
-- **Coax.** Two N-type omni antennas sit on a short crossarm at the mast's top. Two LMR-400 runs come down to them: too thick (10.3 mm) to go inside the mast, so they run down its back, tied to it, and down the socket's back over its tie slots.
+- **Coax.** Two N-type omni antennas: one stands straight up on the mast's tip, the other is zip-tied alongside the shaft just below it (the HC33's on the tip, the V3's alongside). Two LMR-400 runs come down to them: too thick (10.3 mm) to go inside the mast, so they run down its back, tied to it, and down the socket's back over its tie slots.
   - Each run drops out of its hood's open back in a drip loop to an N bulkhead in the top wall (V3 at +x, HC33 at −x, 48 mm either side of the socket).
   - Each bulkhead is midway between two screws and points up and back, square to the wall. Both are N now; it was an SMA for the HC33 before the LMR-400.
 - **Connector hoods.** A printed hood screws over each bulkhead and its plug, on two M3x10s into the top wall.
@@ -113,7 +113,7 @@ The two motors stand either side of the battery stack.
   - So the cable's pull goes straight into the tray, not through the deck's M3s.
 - **Keeping the cable on the races:** the horn's bearings turn on M8x35 bolts, clamped by their inner races between bosses on the cheeks. Each cheek is 0.5 mm from its bearing's outer race, which is less than the cable is thick, so the cable can't walk off a race. The guide bearing has the tray 0.7 mm above it and a pad 0.5 mm below.
 - **Why the horns:** the throat is at the estimated depth of the node's centre of mass, so the node hangs with its back plumb.
-  - The estimate weighs the modelled parts: PETG at 70–90% fill, a 300 g glass panel, the 190 g pouch, 2 × 110 g motors, 45 g of boards, the bearings and bolts, and 100 g of cable. It also counts 1.4 kg on the socket for the mast rig: a 300 g mast, 2 × 3.2 m of LMR-400 at 68 g/m, two 250 g antennas, the crossarm and the bars.
+  - The estimate weighs the modelled parts: PETG at 70–90% fill, a 300 g glass panel, the 190 g pouch, 2 × 110 g motors, 45 g of boards, the bearings and bolts, and 100 g of cable. It also counts 1.4 kg on the socket for the mast rig: a 300 g mast, 2 × 3.2 m of LMR-400 at 68 g/m, two 250 g antennas and the bars.
   - That gives about 4.0 kg, with the centre of mass 24–25 mm in front of the back as the cable pays out. A 1.0–1.8 kg rig moves it between 26 and 23.
   - To trim the hang after weighing a built one, change `hang_z`.
 - **Assembly:**
@@ -150,5 +150,5 @@ If the cell goes on the Heltec's own battery connector, the Heltec's charger als
 - The JGY-370's size and where its shaft is (`mot_*`, copied unmeasured from meshtastic-drybag-node).
 - Motor torque is unchecked. The motor has to lift the node on a 27–51 mm cable radius through 6.2:1.
 - The node's real weight and balance. The horns' throat depth (`hang_z`) is set from an estimate.
-- The mast rig's weight on the socket: mast, LMR-400, antennas, crossarm and bars (1.4 kg assumed).
+- The mast rig's weight on the socket: mast, LMR-400, antennas and bars (1.4 kg assumed).
 - How far the panel's cells come to its edge. The bezel covers 4 mm of the border (`bezel_overlap`).

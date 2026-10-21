@@ -1333,7 +1333,8 @@ module ref_bulkhead() {
 // stabilising bars every third of a metre for the first metre, the top bar
 // just under the limb; the last two metres stand behind the limb, above the
 // canopy. Two LMR-400 runs from the bulkheads up the mast to two N-type omni
-// antennas on a short crossarm at the top. The limb: its diameter, the gap
+// antennas: one standing straight up on the mast's tip, the other
+// zip-tied alongside the shaft just below it, `side_ant_drop` under the tip. The limb: its diameter, the gap
 // between it and the top bar, its length, and the trunk it grows from.
 mast_len = 3000;
 mast_ds = [20, 16, 12];
@@ -1343,7 +1344,7 @@ bar_t = 8;
 lmr_d = 10.3;
 ant_len = 600;
 ant_d = 25;
-crossarm = 360;
+side_ant_drop = 80;
 limb_d = 200;
 limb_gap = 30;
 limb_len = 1600;
@@ -1359,9 +1360,12 @@ module ref_mast() {
   n = len(mast_ds);
   seg = (mast_top - bore_bot) / n;
   for (i = [0 : n - 1]) translate([0, bore_bot + i * seg, pole_z]) rotate([-90, 0, 0]) cylinder(d = mast_ds[i], h = seg + (i < n - 1 ? 60 : 0), $fn = 32);
-  // crossarm
-  translate([0, mast_top - 20, pole_z]) cube([crossarm + 30, 16, 16], center = true);
 }
+
+tip_d = mast_ds[len(mast_ds) - 1];
+side_ant_x = tip_d / 2 + ant_d / 2 + 1;
+side_ant_top = mast_top - side_ant_drop;
+side_ant_base = side_ant_top - ant_len - 30;
 
 // Each cable up the limb's back and over its top, made fast there
 module ref_cables_up() {
@@ -1393,21 +1397,34 @@ module lmr_run(pts) {
 }
 
 // Each run leaves its bulkhead's plug, drops out of the hood's open back in
-// a drip loop, climbs the socket's back over its zip-tie slots and the
-// mast behind it, then out along the crossarm to its antenna.
+// a drip loop, and climbs the socket's back over its zip-tie slots and the
+// mast behind it. The +x run (V3) turns in under the side antenna's base;
+// the -x run (HC33) goes on up to the tip and onto the top antenna.
 module ref_lmr400() {
   for (m = [-1, 1]) {
     a = concat([m * ant_x], from_lid(outer_w / 2 + 40, n_z));
     b = concat([m * ant_x], from_lid(outer_w / 2 + 40, n_z - 30));
-    lmr_run([a, b, [m * 21, b[1] - 10, -lmr_d / 2], [m * 21, socket_top, -lmr_d / 2],
-      [m * 9, socket_top + 60, pole_z - 14], [m * 9, mast_top - 60, pole_z - 14],
-      [m * crossarm / 2, mast_top - 60, pole_z - 14], [m * crossarm / 2, mast_top - 30, pole_z]]);
+    up = m > 0 ? side_ant_base - 60 : mast_top - 60;
+    lmr_run(concat([a, b, [m * 21, b[1] - 10, -lmr_d / 2], [m * 21, socket_top, -lmr_d / 2],
+      [m * 9, socket_top + 60, pole_z - 14], [m * 9, up, pole_z - 14]],
+      m > 0 ? [[side_ant_x, side_ant_base - 30, pole_z - 8], [side_ant_x, side_ant_base, pole_z]]
+            : [[0, mast_top + 10, pole_z - 14], [0, mast_top + 10, pole_z]]));
   }
 }
 
+// The top antenna on the tip (its N plug and mount on the tube's end); the
+// side antenna alongside the shaft, held by two zip ties round both.
 module ref_antennas() {
-  for (m = [-1, 1]) translate([m * crossarm / 2, mast_top - 12, pole_z]) rotate([-90, 0, 0]) {
+  translate([0, mast_top, pole_z]) rotate([-90, 0, 0]) {
+    cylinder(d = tip_d + 6, h = 30, $fn = 6);
+    translate([0, 0, 30]) cylinder(d = ant_d, h = ant_len, $fn = 24);
+  }
+  translate([side_ant_x, side_ant_base, pole_z]) rotate([-90, 0, 0]) {
     cylinder(d = 16, h = 30, $fn = 6);
     translate([0, 0, 30]) cylinder(d = ant_d, h = ant_len, $fn = 24);
+  }
+  for (y = [side_ant_base + 60, side_ant_top - 40]) translate([side_ant_x / 2, y, pole_z]) rotate([-90, 0, 0]) linear_extrude(4) difference() {
+    hull() for (x = [-side_ant_x / 2, side_ant_x / 2]) translate([x, 0]) circle(d = (x < 0 ? tip_d : ant_d) + 2.4, $fn = 32);
+    hull() for (x = [-side_ant_x / 2, side_ant_x / 2]) translate([x, 0]) circle(d = (x < 0 ? tip_d : ant_d), $fn = 32);
   }
 }
