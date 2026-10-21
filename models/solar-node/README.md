@@ -20,8 +20,9 @@ It hangs with a long side down and the winch behind it. The box is a wedge: its 
 | Spacer ×2 | PETG | on end |
 | Shaft seal ×2 | TPU 85A | flat |
 | Shroud seal | TPU 85A | flat |
+| Connector hood ×2 | PETG | open side down, feet on the bed |
 
-Assembled it's 263 mm wide, 186 mm tall from the bottom to the bezel's top edge (the horns and the socket stand 36 mm higher), and 184 mm deep: the 163 mm wedge plus the 21 mm winch deck behind it. The tray prints back down, 263 × 219 × 154 mm, socket included. The deck prints 267 × 222 × 79, so it needs a 270 mm bed (Q2, U1).
+Assembled it's 263 mm wide, 186 mm tall from the bottom to the bezel's top edge (the horns stand 37 mm higher, the socket 40 mm), and 184 mm deep: the 163 mm wedge plus the 21 mm winch deck behind it. The tray prints back down, 263 × 219 × 154 mm, socket included. The deck prints 263 × 223 × 80, so it needs a 270 mm bed (Q2, U1).
 
 ## The wedge
 
@@ -44,12 +45,18 @@ The two motors stand either side of the battery stack.
 
 - **The socket.** It stands on the top wall's outside, plumb, in the middle, so the pole stands midway between the two cables.
   - Its bore is 20.4 mm and 50 mm deep, and stops above the wall, so the box stays sealed.
-  - An M4 bolt goes across socket and pole, 12 mm above the bore's floor. Drill the pole for it.
+  - An M4x35 bolt goes across socket and pole, 40 mm above the bore's floor. Drill the pole for it.
+  - A buttress either side braces the socket against the top wall.
+  - **Zip-tie anchors:** each buttress has three pairs of slots through it, front to back, for ties up to 3.6 mm wide. A tie goes in through one slot of a pair and out through the other, round anything laid along the socket's back (the coax, a crossmember's line).
 - **Coax.** The N and SMA antennas sit at the pole's top, and their coax runs down inside it.
   - Drill an exit hole in the pole just above the socket.
   - From there, short pigtails go to the N (V3) and SMA (HC33) bulkheads in the top wall, 48 mm either side of the socket. Each bulkhead is midway between two screws and points up and back, square to the wall.
+- **Connector hoods.** A printed hood screws over each bulkhead and its plug, on two M3x10s into the top wall.
+  - It is closed on the two faces that look up (its end and its front) and on both sides. It is open toward the wall and down the back, so it drains, and the pigtail leaves through that opening.
+  - Its front reaches past the lid's top edge, resting on the frame's back face without being fixed to it, so the lid still lifts off.
+  - It covers a plug up to 24 mm across and 50 mm long.
 - **Keeping it upright.** For the first metre or so, horizontal crossmembers along the two cables hold the pole aligned, like a fishing rod's guides. The last 2 m stand free above the canopy.
-  - The pole's axis is 14 mm in front of the back, and the cables are 32 mm, so each crossmember's pole clamp sits 18 mm behind the line between the cables.
+  - The pole's axis is 14 mm in front of the back, and the cables are 31 mm, so each crossmember's pole clamp sits 17 mm behind the line between the cables.
 
 ## Assembly
 
@@ -76,32 +83,32 @@ The two motors stand either side of the battery stack.
   - each spool turns on a 608 bearing on a post from the deck;
   - a pinion drives the teeth round each spool's lower flange at 6.2:1, from a JGY-370 worm gearmotor standing inside the box, shaft out through the back;
   - the worm holds the load when the motor stops.
-- **Shroud:** a wall round both spools and both pinions rises from the deck to the back, so the gears run in a closed bay.
-  - A TPU 85A strip in a groove on its top is squeezed 0.3 mm against the tray by the deck's screws, which sit outside it.
-  - Each cable leaves through a slot cut where its path from the spool to its guide bearing crosses the wall: from the core out to a full spool, at the channel's depth.
-  - A 3 mm drain at the bottom of each spool's bay lets water out.
-  - This keeps debris and splashes off the gears; it isn't watertight. The guide, edge and throat bearings stay outside it, being stainless.
-  - Wind each spool so the cable leaves from its outer side, toward its slot.
+- **Enclosure:** a plain rectangular wall rises from the deck to the back. It goes round both spools, both pinions and both guide bearings, so the whole winch runs in one closed box.
+  - A TPU 85A strip in a groove on its top is squeezed 0.3 mm against the back by the deck's screws, which sit outside it.
+  - Each cable leaves through a 4 mm hole in its top wall, straight above its guide bearing.
+  - A 3 mm drain under each spool lets water out.
+  - It keeps debris and splashes off the gears; it isn't watertight. The edge and throat bearings stay outside it, being stainless.
+  - Wind each spool so the cable leaves from its outer side, toward its guide bearing.
 - **Direction:** the two drives are mirror images, so the spools turn opposite ways to reel in.
-- **Cable exit:** the cable runs only on stainless 608 skateboard bearings, four per corner. Each cable leaves its top corner, 218 mm from the other.
-  1. Past its spool, it turns straight up on an upright **guide bearing** standing on the deck, outboard of the cable.
+- **Cable exit:** the cable runs only on stainless 608 skateboard bearings, four per corner. Each cable leaves its top corner, 196 mm from the other.
+  1. Past its spool, it turns straight up on an upright **guide bearing** standing on the deck, outboard of the cable. The bearing turns on an M8x20 hex bolt up through the deck, threaded into the pad under it.
   2. It climbs the back of an **edge bearing** lying across above the back's top edge, and turns forward over it.
-  3. It climbs forward into a **horn**: two cheeks standing up behind the box's sloping top, with a bridge across their front. Every bearing, and the cable, keeps 3 mm off the plane of the box's top (`horn_clear`).
-  4. It leaves straight up through the horn's **throat**: a 1.5 mm gap between two more bearings, 32 mm in front of the back and 55 mm above its top edge.
-- **Keeping the cable on the races:** the horn's bearings turn on M8x25 bolts, clamped by their inner races between bosses on the cheeks. Each cheek is 0.5 mm from its bearing's outer race, which is less than the cable is thick, so the cable can't walk off a race. The guide bearing has the tray 0.7 mm above it and a pad 0.5 mm below.
+  3. It climbs forward into a **horn**: two 8 mm cheeks standing up behind the box's sloping top, solid between them below the cable, with a 5 mm bridge across their front. Every bearing, and the cable, keeps 3 mm off the plane of the box's top (`horn_clear`).
+  4. It leaves straight up through the horn's **throat**: a 1.5 mm gap between two more bearings, 31 mm in front of the back and 54 mm above its top edge.
+- **Keeping the cable on the races:** the horn's bearings turn on M8x35 bolts, clamped by their inner races between bosses on the cheeks. Each cheek is 0.5 mm from its bearing's outer race, which is less than the cable is thick, so the cable can't walk off a race. The guide bearing has the tray 0.7 mm above it and a pad 0.5 mm below.
 - **Why the horns:** the throat is at the estimated depth of the node's centre of mass, so the node hangs with its back plumb.
   - The estimate weighs the modelled parts: PETG at 70–85% fill, a 300 g glass panel, the 190 g pouch, 2 × 110 g motors, 45 g of boards, the bearings and bolts, and 100 g of cable. It also counts 450 g for the pole with its antennas and coax.
-  - That gives about 2.7 kg, with the centre of mass 31–33 mm in front of the back as the cable pays out. A 350–600 g pole moves it by about 1 mm.
+  - That gives about 2.9 kg, with the centre of mass 30–31.5 mm in front of the back as the cable pays out. A 350–600 g pole moves it by about 1 mm.
   - To trim the hang after weighing a built one, change `hang_z`.
 - **Assembly:**
   1. Press a bearing into each spool body from below.
   2. Screw on the cap with 6 M3x6.
   3. Thread the cable's end through the hole in the core and stop it inside.
   4. Wind each spool, then drop it onto its post with a spacer on top.
-  5. Drop a 608 onto each corner's guide post.
-  6. Lead each cable round the inboard side of its guide bearing. Then fit the horn's three bearings on M8x25 bolts, so the cable goes over the edge bearing, over the rear throat bearing and under the front one.
+  5. Bolt a 608 onto each guide pad with an M8x20 from under the deck.
+  6. Lead each cable round the inboard side of its guide bearing. Then fit the horn's three bearings on M8x35 bolts, so the cable goes over the edge bearing, over the rear throat bearing and under the front one.
   7. Lift the deck up against the back. The spool pins go into their sockets and the pinion pins go into the pinions.
-  8. Screw the deck to the back with 16 M3x25: 9 along the top into the solid top wall, 7 along the bottom into bosses.
+  8. Screw the deck to the back with 14 M3x25: 7 along the top into the solid top wall, 7 along the bottom into bosses.
 
 ## Motor speed
 
@@ -114,7 +121,7 @@ The spool turns 12/74 of the motor's speed (6.17:1). The cable sits 27.5 mm from
 | 3 m/min | 9.4 – 17.4 | 58 – 107 |
 | 5 m/min | 15.7 – 28.9 | 97 – 178 |
 
-**Load.** For a 2.7 kg node (pole included) on two lines, each line holds 13 N hanging straight, or 19 N at 45°. On a full spool, through the gears at 80% efficiency, that needs about 1.4–2.0 kg·cm at the motor. Allow 3× for jerks and stalls: about 6 kg·cm.
+**Load.** For a 2.9 kg node (pole included) on two lines, each line holds 14 N hanging straight, or 20 N at 45°. On a full spool, through the gears at 80% efficiency, that needs about 1.5–2.1 kg·cm at the motor. Allow 3× for jerks and stalls: about 6–7 kg·cm.
 
 ## Power
 

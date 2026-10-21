@@ -36,36 +36,45 @@ A sealed box under a salvaged 240 × 168 mm solar panel. devOnly, unprinted.
   - The socket stands plumb on the top wall's outside at x = 0.
   - It is D-shaped down to `z = 0` and peaked on top, because the tray prints back down and the socket lies along the bed. It is trimmed 1 mm under the frame's rearmost point (`frame_rear_z`), which caps `pole_z` at about 15. Mine: `pole_z = socket_r`.
   - The bore is blind, so the box stays sealed. An M4 cross-bolt holds the pole (my pick, not the user's). The coax leaves the pole above the socket.
+  - **Buttresses and tie anchors** (user, relayed by 3d-gallery-f7: "we're going to add a bunch of spots for ziptie connectors on the back of the carbon fiber pole mount, and that needs to be way stronger reinforced ribbed everything").
+    - A buttress either side of the socket (`buttress_w`, `buttress_h`, `buttress_d`), clipped to the top face like the socket.
+    - Three pairs of zip-tie slots go through each, front to back (`tie_xs`, `tie_ys`). A tie loops through a pair round whatever lies on the socket's back.
+    - The M4 cross-bolt moved up to 40 mm (`pole_bolt_up`), above the buttresses.
   - Rejected for now: a pole in the cable plane. At z ≈ 32 it would run through the frame. The crossmembers' clamps sit 18 mm behind the cable line instead.
 - **Antennas.** The N is at +`ant_x` and the SMA at −`ant_x`, both in the top wall, square to it, either side of the socket.
   - Each sits midway between two long-side screws, at the midpoint nearest a third of the way along: 48 mm with `screw_pitch` 32.
   - The top wall is solid to the edge, so each sits in a teardrop recess (`n_recess_d`, `sma_recess_d`) down to the 4 mm wall.
   - Before the pole, they pointed down out of the bottom wall.
+  - **Hoods** (user, relayed by 3d-gallery-f7: "can we add a little 3d printed roof or shroud over the antenna connectors so that they aren't exposed to the elements directly?").
+    - `hood()` is a box in the connector's frame: `hood_r` round the axis, `hood_len` out from the wall. It is closed on its end and front (the faces that look up as it hangs) and on both sides, and open toward the wall and down the back.
+    - It is screwed by two outboard feet (M3x10) into pilots in the solid top wall. Its front overhangs the lid's back face without fixing to it, so the lid still lifts off.
+    - One part, printed twice (`at_hood(k)` mirrors it so the feet stay outboard).
 - **Winch** (user, 2026-10-21).
   - The first brief: two gearmotors ("the same gear motors" as the other build: JGY-370 from meshtastic-drybag-node), two semi-internal spools of 1/32" stainless, "bigger and thinner", overlapping, "driven by a gear on the edge", skateboard (608) bearings, the overlapping pair spinning opposite ways.
   - Then 200 ft each, and "move the spools to not on top of each other anymore, and have rollers set up in the corner to have the cables exit as far apart as possible".
-  - Spools sit side by side at (±`spool_x`, `spool_y`), as high as the deck's band allows, with 74 teeth. Each holds 200 ft in an 8 mm channel (10 wraps). The capacity count is whole wraps × whole layers; the core is solved for `cable_len × wind_margin`.
+  - Spools sit side by side at (±`spool_x`, `spool_y`), as high as the deck's band and the guide bearings allow (`spool_y`), with 74 teeth. Each holds 200 ft in an 8 mm channel (10 wraps). The capacity count is whole wraps × whole layers; the core is solved for `cable_len × wind_margin`.
   - Each pinion is below its spool on the outer side. Each motor stands along Y with its gearbox toward −Y, as far out as the end walls allow. The two trains mirror through x = 0, so the spools turn opposite ways.
-  - **Corner exits.** First printed roller pairs, now 608s (below). `throat_x` keeps the cable between the two outermost deck pillars at the top.
+  - **Corner exits.** First printed roller pairs, now 608s (below). `throat_x` (98) is set so each guide bearing fits inside the enclosure, within the back's face (asserted). The cables leave 196 mm apart; before the enclosure it was 218.
   - **Horns** (user, relayed by session 3d-gallery-a2 on 2026-10-21: "can we somehow draw the line forward so the node hangs more upright?").
     - Each cable leaves its top corner through a horn on the deck that stands up past the back's top edge, behind the box's sloping top. The horn's throat is at `hang_z`, the depth of the centre of mass.
-    - My estimate for the wedge is z ≈ 31–33 in front of the back, from paid out to full. I got it by weighing each part's in-place STL: PETG at 0.7–0.85 fill, a 300 g panel, 190 g pouch, 2 × 110 g motors, 45 g of boards, 120 g of bearings, 80 g of M8s, 100 g of cable, and 450 g of pole at `pole_z`. That's about 2.7 kg. Before the wedge it was z ≈ 12–15.
+    - My estimate is z ≈ 30–31.5 in front of the back, from full to paid out, so `hang_z` = 31. I got it by weighing each part's in-place STL: PETG at 0.7–0.85 fill, a 300 g panel, 190 g pouch, 2 × 110 g motors, 45 g of boards, 120 g of bearings, 135 g of M8s, 100 g of cable, and 450 g of pole at `pole_z`. That's about 2.9 kg. Re-run it after anything heavy moves; before the wedge it was z ≈ 12–15.
+    - **Reinforced** (user, relayed by session 3d-gallery-f7 on 2026-10-21: "the ears and bearings holding the wires need to be really reinforced"). The cheeks are 8 mm (`cheek_t`), the bridge 5 (`horn_wall`), and the horn is solid between the cheeks up to `web_gap` under the cable. The guide bearings turn on M8x20 bolts threaded into the deck's pads (`guide_pilot_d`), not printed pins. Two top deck screws near the cheeks were dropped (14 deck screws).
   - **Stainless 608s for the cable** (user, relayed by session 3d-gallery-05: "use stainless skateboard bearings to hold the wire").
     - Every guide the cable touches is a 608. Per corner there are four: the upright `guide_c` on a deck post (it turns the cable to +Y, outboard of it at `throat_x`), the `edge_c` lying across above the back's top edge (the cable climbs its back and turns forward over it), and the throat pair `horn_cs`.
     - Every bearing and the cable keep `horn_clear` off the box's top plane. The cheeks are trimmed 1 mm behind that plane. The cable from `edge_c` to the throat must climb steeper than the top slopes (asserted).
-    - The horn's bearings are on M8x25 bolts, their inner races clamped by cheek bosses; `race_gap` (0.5) is less than the cable's diameter.
+    - The horn's bearings are on M8x35 bolts, their inner races clamped by cheek bosses; `race_gap` (0.5) is less than the cable's diameter.
     - The printed rollers were dropped. `throat_x` moved from 112 to 109 so the guide bearing fits inside the end.
     - `ref_cable_runs()` straightens the path, so it cuts the races' curves by about 5 mm³ where the real cable wraps them.
-  - **Shroud** (user: "can we make the back with the gears enclosed so we dont get moisture or debris in there?").
-    - A wall (`shroud_wall_2d()`) round the union of each spool's and pinion's teeth plus `shroud_gap` stands on the deck up to `shroud_top`. A TPU 85A strip in a groove on its top is squeezed `shroud_squeeze` against the tray's flat underside, by the deck's screws outside it.
-    - It sits entirely within the back's outline, inside the guide bearings.
-    - The cable slots are `cable_slot_2d()`: the hull of the guide point and the outer-side tangent points for an empty and a full spool, cut through the wall at the channel's depth.
-    - There's a drain at the bottom of each bay.
-    - It's debris- and splash-proof, not sealed. Enclosing the bearings too would need a skin round the whole box, past the 270 bed.
-  - **Motor speed** (user: "how many rpm do i need each gear motor"): see the README's table. My suggestion is a 12 V JGY-370 at about 50–60 rpm with at least 3 kg·cm, which climbs at about 1.5–3 m/min. With the pole the node is about 2.7 kg, so that is now at least 6 kg·cm.
+  - **Enclosure** (user: "can we make the back with the gears enclosed so we dont get moisture or debris in there?", then, relayed by 3d-gallery-f7: "the back with the motors needs to be fully enclosed it doesn't have to be fancy like that").
+    - A plain rectangular wall (`shroud_inside()`: `encl_x`, `encl_y0`, `encl_y1`) round both spools, both pinions and both guide bearings plus `shroud_gap` stands on the deck up to `shroud_top`. A TPU 85A strip in a groove on its top is squeezed `shroud_squeeze` against the back, by the deck's screws outside it.
+    - It sits within the back's face (x ≤ the side walls' outer face). The guide bearing's height (`guide_y`) is set by the top deck pillars above the enclosure.
+    - Each cable leaves through a `cable_hole_d` hole in its top wall at `throat_x`, at the channel's depth. There's a drain under each spool.
+    - It's debris- and splash-proof, not sealed. The edge and horn bearings stay outside.
+    - The deck plate is now solid under the whole back (`back_plan(0)`) plus the horns' footprints.
+  - **Motor speed** (user: "how many rpm do i need each gear motor"): see the README's table. My suggestion is a 12 V JGY-370 at about 50–60 rpm with at least 3 kg·cm, which climbs at about 1.5–3 m/min. With the pole the node is about 2.9 kg, so that is now 6–7 kg·cm.
   - **Preview:** the assembled preview hangs upright (user: "can we have the assembled view be upright with the antennas facing down"). It's `rotate([90, 0, 0])` of the hanging frame, with the lid pulled 40 mm off along its normal and the pole's foot cut to 250 mm.
   - **Superseded history:** a coaxial stack ("exactly overlapping"), and before that an offset pair overlapping 29 mm. My first capacity formula held only about 85 ft of a claimed 100.
-  - **Deck.** It covers the back's outline (`back_plan`) and screws to it on 16 M3x25. The top 9 go into the solid top wall and the bottom 7 into bosses on the back. It has `deck_band` edges, bars under the posts and pinions, pads under the guide bearings, and the horns.
+  - **Deck.** A solid plate over the back's outline (`back_plan`), screwed to it on 14 M3x25. The top 7 go into the solid top wall and the bottom 7 into bosses on the back. It carries the spool posts, pinion pins, guide pads, the enclosure and the horns.
 - **Rejected layouts:**
   - everything along −Y on a shelf;
   - everything in one flat row along +Y;
@@ -95,7 +104,7 @@ A sealed box under a salvaged 240 × 168 mm solar panel. devOnly, unprinted.
 
 ## Checked
 
-- Wedge (2026-10-21): every pair of the tray, plate, frame, bezel, gasket, deck, spools, pinions, spacers, seals, the 608s, motors, battery, boards, panel, bulkheads, pole and the reference cable path. Nothing intersects beyond faces touching, except the intended squeezes: gasket ∩ tray ≈ 607 mm³, shroud strip ∩ tray ≈ 448, shaft seals ∩ pinions ≈ 48, bearings ∩ spools ≈ 42.
+- Wedge with flange, enclosure, reinforced horns, socket buttresses, hoods and zip-tie plate (2026-10-21): every pair of the tray, plate, frame, bezel, gasket, deck, spools, pinions, spacers, seals, the 608s, motors, battery, boards, panel, bulkheads, pole, hoods and the reference cable path. Nothing intersects beyond faces touching, except the intended squeezes: gasket ∩ tray ≈ 607 mm³, enclosure strip ∩ tray ≈ 440, shaft seals ∩ pinions ≈ 48, bearings ∩ spools ≈ 42.
 
 - Rotated layout (2026-10-21): none of these intersect, beyond faces touching: spools, pinions, deck (with horns and shroud), tray, the 608s, spacers, motors, the battery, plate and boards, the frame and bezel, and the N and SMA. The reference cable path clears the tray, frame, bezel and deck. Three intended overlaps: each shaft seal grips its hub (≈24 mm³), each bearing's press fit in its hub (≈21 mm³), and the shroud strip's squeeze on the tray (≈448 mm³).
 

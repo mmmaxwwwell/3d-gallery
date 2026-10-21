@@ -220,18 +220,18 @@ brg_shoulder_d = 12;
 // The spacer from the bearing's inner race up to the tray's underside
 spacer_d = 11;
 
-// The deck behind the tray: thickness, edge band, bar width; and the M3s
+// The deck behind the tray: thickness, the band its screws go through; and the M3s
 // that hold it to the tray's back (length under the head)
 deck_t = 5;
 deck_screw_l = 25;
 deck_band = 12;
-deck_bar = 20;
 
 // The cable runs on stainless 608s (`brg_*`) from the spool to where it
-// leaves. Its x past the spool (the throat's), and how far below the back's
-// top edge the upright guide bearing that turns it stands
-throat_x = 109;
-guide_y_in = 27.5;
+// leaves: its x past the spool (the throat's, set so the guide bearing fits
+// inside the enclosure on the back). The upright guide bearing that turns it
+// stands as high as the enclosure allows, and turns on an M8x20 hex bolt up
+// through the deck, threaded into the deck's pad.
+throat_x = 98;
 
 // Then over an edge bearing lying across above the back's top edge, and up
 // into a horn: a throat between two more bearings, at the depth of the
@@ -240,27 +240,30 @@ guide_y_in = 27.5;
 // from the box's sloping top, the throat's gap, the cheeks' thickness, the
 // gap between a cheek and a bearing's outer race (under the cable's
 // diameter, so it can't walk off the race), and the bridge's thickness. The
-// horn bearings turn on M8x25 hex bolts with nylocs.
-hang_z = 32;
+// horn bearings turn on M8x35 hex bolts with nylocs. Between the cheeks,
+// under the cable, the horn is solid up to `web_gap` below the cable.
+hang_z = 31;
 horn_clear = 3;
 horn_gap = 1.5;
-cheek_t = 4;
+cheek_t = 8;
 race_gap = 0.5;
-horn_wall = 3;
+horn_wall = 5;
+web_gap = 2;
+guide_pilot_d = 7;
 
-// Shroud round the spools and gears, part of the deck, up to the tray's
-// underside: gap round the spools' and pinions' teeth, wall thickness; the
-// TPU 85A strip in a groove on its top (groove width and depth, strip
-// height, how much the deck's screws squeeze it); the slot each cable leaves
-// through (margin round the cable's possible paths); a drain at the bottom
-// of each spool's bay. Keeps out debris and splashes; not watertight.
+// The enclosure on the back: a plain wall, part of the deck, round the
+// spools, pinions and guide bearings, up to the tray's back. Gap inside it
+// round them, wall thickness; the TPU 85A strip in a groove on its top
+// (groove width and depth, strip height, how much the deck's screws squeeze
+// it); the hole each cable leaves through, in its top wall; a drain at the
+// bottom under each spool. Keeps out debris and splashes; not watertight.
 shroud_gap = 2;
 shroud_wall = 2.5;
 shroud_groove_w = 2;
 shroud_groove_d = 1.2;
 shroud_seal_h = 2;
 shroud_squeeze = 0.3;
-cable_slot_margin = 1.5;
+cable_hole_d = 4;
 drain_d = 3;
 
 // JGY-370 worm gearmotor (as in meshtastic-drybag-node, unmeasured): lying
@@ -293,7 +296,21 @@ pole_clear = 0.4;
 socket_wall = 4;
 socket_depth = 50;
 pole_bolt_d = 4.4;
-pole_bolt_up = 12;
+pole_bolt_up = 40;
+// A buttress each side of the socket, from its wall out along the top: how
+// far out, how tall at the socket, how deep (from the back); zip-tie slots
+// through it in pairs (each pair anchors a tie across the socket's back)
+buttress_w = 13;
+buttress_h = 40;
+buttress_d = 20;
+
+// A hood over each antenna connector, screwed to the top wall: room inside
+// round the bulkhead and its plug (radius, length out from the wall), wall,
+// and its two feet's M3 (thickness under the head)
+hood_r = 15;
+hood_len = 53;
+hood_wall = 2.5;
+hood_foot_t = 3;
 // END_PARAMS
 
 eps = 0.01;
@@ -352,8 +369,9 @@ deck_pilot = 8;
 deck_screw_top = 3.5;
 deck_screw_bot = 6;
 deck_boss_d = 8;
+// (none under a horn's cheeks)
 deck_screws = concat(
-  [for (x = lane_xs) [x, back_top - deck_screw_top]],
+  [for (x = lane_xs) if (abs(abs(x) - throat_x) >= (brg_w + 2 * race_gap) / 2 + 2 * cheek_t + column_d / 2 + 0.5) [x, back_top - deck_screw_top]],
   [for (x = lane_xs) if (abs(x) < lane_x - 1) [x, back_bot + deck_screw_bot]]
 );
 
@@ -365,6 +383,8 @@ deck_screws = concat(
 ant_x = -lane_x + (round((outer_l / 6 + lane_x) / pitch_x - 0.5) + 0.5) * pitch_x;
 n_z = tray_h - n_body_d / 2 - 1.5;
 n_hole_d = n_thread_d + n_hole_clear;
+// A zip-tie slot: along the tie's width, across its thickness
+tie_slot = [tie_w + 0.6, tie_t + 0.9];
 top_wall_y = outer_w / 2 - tray_in_e + tray_wall / 2;
 
 assert(groove_e - screw_e >= clear_d / 2 + 1, "groove too close to the screws");
@@ -469,7 +489,7 @@ module tray() {
       pole_socket();
     }
     for (k = [0, 1]) motor_seat_cut(k);
-    for (c = concat(spool_c, [guide_c, [-guide_c[0], guide_c[1]]])) translate([c[0], c[1], -1]) cylinder(d = brg_bore + 0.3, h = pin_socket + 1, $fn = 32);
+    for (c = spool_c) translate([c[0], c[1], -1]) cylinder(d = brg_bore + 0.3, h = pin_socket + 1, $fn = 32);
     for (p = deck_screws) translate([p[0], p[1], -1]) cylinder(d = pilot_d, h = deck_pilot + 1);
     lid_frame() {
       translate([ant_x, top_wall_y, n_z]) rotate(90) teardrop_x(n_hole_d, tray_wall + 2);
@@ -478,6 +498,7 @@ module tray() {
       translate([-ant_x, outer_w / 2 - tray_inset / 2 + 0.5, n_z]) rotate(90) teardrop_x(sma_recess_d, tray_inset + 1);
       for (p = screws) translate([p[0], p[1], tray_h - pilot_depth]) cylinder(d = pilot_d, h = pilot_depth + 1);
     }
+    for (k = [0, 1], z = hood_feet_z) at_hood(k) translate([hood_foot_x, -7, z]) rotate([-90, 0, 0]) cylinder(d = pilot_d, h = 8);
     for (p = shelf_posts) translate([p[0], p[1], shelf_z - shelf_pilot_depth]) cylinder(d = pilot_d, h = shelf_pilot_depth + 1);
     pole_bore();
   }
@@ -508,17 +529,75 @@ module pole_profile(r, z_max, to_bed) {
   }
 }
 
+// The buttresses' top at the socket, and each zip-tie slot pair's height
+buttress_top = top_face_y(buttress_d) + buttress_h;
+tie_xs = [socket_r + 3.5, socket_r + buttress_w - 3.5];
+tie_ys = [for (y = [top_face_y(buttress_d) + 4 : 10 : buttress_top]) if (y + tie_slot[0] / 2 + 2 <= buttress_top - (tie_xs[1] - socket_r + 1)) y];
+
 module pole_socket() {
   intersection() {
-    translate([0, socket_top, 0]) rotate([90, 0, 0]) linear_extrude(socket_top - top_face_y(0) + 1) pole_profile(socket_r, frame_rear_z - 1, true);
+    union() {
+      translate([0, socket_top, 0]) rotate([90, 0, 0]) linear_extrude(socket_top - top_face_y(0) + 1) pole_profile(socket_r, frame_rear_z - 1, true);
+      for (m = [0, 1]) mirror([m, 0, 0]) linear_extrude(buttress_d) polygon([
+        [socket_r - 1, top_face_y(0) - 1], [socket_r + buttress_w, top_face_y(0) - 1],
+        [socket_r + buttress_w, buttress_top - buttress_w - 1], [socket_r - 1, buttress_top]]);
+    }
     lid_frame() translate([-big, outer_w / 2 - eps, -big]) cube(2 * big);
   }
+}
+
+module pole_tie_slots() {
+  for (m = [0, 1], x = tie_xs, y = tie_ys) mirror([m, 0, 0]) translate([x, y, -1]) linear_extrude(buttress_d + 2) offset(0.5) offset(-0.5) square([tie_slot[1], tie_slot[0]], center = true);
 }
 
 module pole_bore() {
   translate([0, socket_top + 1, 0]) rotate([90, 0, 0]) linear_extrude(socket_depth + 1) pole_profile(pole_r, pole_z + pole_r + 2, false);
   translate([0, bore_bot + pole_bolt_up, pole_z]) teardrop_x(pole_bolt_d, 2 * socket_r + 2);
+  pole_tie_slots();
 }
+
+assert(bore_bot + pole_bolt_up - pole_bolt_d / 2 > buttress_top + 1, "the pole's bolt runs into a buttress");
+assert(bore_bot + pole_bolt_up + pole_bolt_d < socket_top - 5, "the pole's bolt is too near the socket's top");
+assert(buttress_d < frame_rear_z - 1, "a buttress runs into the frame");
+assert(len(tie_ys) >= 2, "no room for the socket's zip-tie slots");
+
+// ---- connector hoods: a box over each bulkhead and its plug, open toward
+// the wall and down the back (both face down as it hangs), its end and front
+// faces roofing it. Modelled at the connector (x = 0, axis along +y from the
+// wall's face). Two feet on the outboard side take M3s into the top wall.
+// It reaches past the lid's top edge, resting on the frame's back face
+// without fixing to it, so the lid still lifts off. Printed open face down.
+hood_feet_z = [-10, 8];
+hood_foot_x = hood_r + hood_wall + 4;
+
+module hood() {
+  difference() {
+    union() {
+      translate([-hood_r - hood_wall, 0, -hood_r - hood_wall]) cube([2 * (hood_r + hood_wall), hood_len + hood_wall, 2 * (hood_r + hood_wall)]);
+      for (z = hood_feet_z) translate([hood_r + hood_wall - eps, 0, z - 4]) cube([8 + eps, hood_foot_t, 8]);
+    }
+    translate([-hood_r, -1, -hood_r - hood_wall - 1]) cube([2 * hood_r, hood_len + 1, 2 * hood_r + hood_wall + 1]);
+    for (z = hood_feet_z) translate([hood_foot_x, -1, z]) rotate([-90, 0, 0]) cylinder(d = clear_d, h = hood_foot_t + 2);
+  }
+}
+
+module hood_print() {
+  rotate([90, 0, 0]) hood();
+}
+
+// k = 0 over the N, 1 over the SMA; each hood's feet outboard
+module at_hood(k) {
+  lid_frame() translate([(1 - 2 * k) * ant_x, outer_w / 2, n_z]) mirror([k, 0, 0]) children();
+}
+
+module hood_in_place(k) {
+  at_hood(k) hood();
+}
+
+for (z = hood_feet_z) assert(n_z + z + 4 < tray_h - 1, "a hood's foot runs onto the lid");
+assert(ant_x - hood_r - hood_wall > socket_r + buttress_w + 1, "a hood runs into the socket's buttress");
+assert(n_z - hood_r - hood_wall > tray_h - top_depth, "a hood runs past the back");
+for (x = lane_xs) assert(abs(ant_x + hood_foot_x - abs(x)) >= pilot_d + 1, "a hood's foot pilot runs into a lid screw's");
 
 assert(ant_x - n_body_d / 2 >= socket_r + 1, "the pole's socket runs into a bulkhead");
 
@@ -543,7 +622,6 @@ bracket_out = bracket_clear + bracket_wall;
 // zip ties' slots.
 shelf_boss_d = cbore_d + 2.4;
 board_gap = 2;
-tie_slot = [tie_w + 0.6, tie_t + 0.9];
 tie_band = 0.3 + tie_slot[1] + 1.5;
 shelf_l = bat_l + 2 * (bracket_out + post_d);
 shelf_w = max(bat_w + 2 * (bracket_out + 0.5), hc33_w + heltec_w + 4 * (bracket_out + tie_band));
@@ -646,9 +724,11 @@ assert(capacity(hub_r + core_wall + 4) >= cable_len * wind_margin, "the spool ca
 level_h = spool_gear_w + bay_w + cap_t;
 
 // The spools side by side, k = 0 at -X and k = 1 at +X, as high as the
-// deck's band allows.
+// deck's band and the guide bearings above their outer sides allow.
 spool_x = spool_tip + spool_gap / 2;
-spool_y = back_top - deck_band - 2 - spool_tip;
+guide_x = throat_x + cable_d / 2 + brg_od / 2;
+guide_y = back_top - deck_screw_top - column_d / 2 - 1 - shroud_wall - shroud_gap - brg_od / 2;
+spool_y = min(back_top - deck_band - 2 - spool_tip, guide_y - sqrt(pow(spool_tip + brg_od / 2 + spin_gap, 2) - pow(guide_x - spool_x, 2)));
 spool_c = [[-spool_x, spool_y], [spool_x, spool_y]];
 z_s0 = -spin_gap - level_h;
 level_z0 = [z_s0, z_s0];
@@ -674,8 +754,7 @@ mot_face_z = tray_floor + seat_h;
 // climbs the back of and turns forward over, just clear of the box's top;
 // the horn's two throat bearings [y, z], as low as clearing the top lets
 // them; each cheek's x, and the horn's extent.
-guide_y = back_top - guide_y_in;
-guide_c = [throat_x + cable_d / 2 + brg_od / 2, guide_y];
+guide_c = [guide_x, guide_y];
 guide_z0 = -0.7 - brg_w;
 cable_z = z_s0 + spool_gear_w + bay_w / 2;
 cable_rr = brg_od / 2 + cable_d / 2;
@@ -684,7 +763,7 @@ horn_y = y_past_top(hang_z + horn_gap / 2 + brg_od / 2, brg_od / 2 + horn_clear)
 horn_cs = [[horn_y, hang_z - horn_gap / 2 - brg_od / 2], [horn_y, hang_z + horn_gap / 2 + brg_od / 2]];
 horn_w = brg_w + 2 * race_gap;
 cheek_x = [for (t = [-1, 1]) throat_x + t * (horn_w + cheek_t) / 2];
-horn_y0 = back_top - deck_band;
+horn_y0 = guide_y + brg_od / 2 + shroud_gap;
 horn_y1 = horn_y + brg_od / 2 + horn_wall;
 horn_z1 = horn_cs[1][1] + brg_od / 2 + horn_wall;
 
@@ -834,12 +913,11 @@ module motor_seat_cut(k) {
   translate([pinion_c[k][0], pinion_c[k][1], -1]) cylinder(d = pinion_hub_d + 0.6, h = mot_face_z + 1, $fn = 48);
 }
 
-// Deck behind the tray, printed plate down: an edge band, a bar under each
-// spool's post and each pinion's pin, pads under the guide bearings, the
-// posts (a shoulder for the bearing's inner race, then its 8 mm pin up into
-// a socket under the tray), the pinions' pins, the guide bearings' posts,
-// the horns, and
-// pillars up to the back.
+// Deck behind the tray, printed plate down: a plate under the whole back,
+// the spools' posts (a shoulder for the bearing's inner race, then its 8 mm
+// pin up into a socket in the back), the pinions' pins, pads under the guide
+// bearings tapped for their M8s, the horns, the enclosure, and pillars up to
+// the back.
 // The back's outline, e in from its edge
 module back_plan(e) {
   r = max(corner_r - e, 0.5);
@@ -847,20 +925,8 @@ module back_plan(e) {
 }
 
 module deck_plan() {
-  difference() {
-    back_plan(0);
-    back_plan(deck_band);
-  }
-  intersection() {
-    back_plan(0);
-    for (x = [-spool_x, spool_x, -pin_x, pin_x]) translate([x - deck_bar / 2, back_bot]) square([deck_bar, back_h]);
-  }
-  offset(r = shroud_wall) shroud_inside();
-  for (s = [-1, 1]) scale([s, 1]) {
-    translate(guide_c) circle(d = brg_od + 4);
-    translate([guide_c[0], guide_c[1] - brg_od / 2 - 2]) square([outer_l / 2 - guide_c[0] - 1, back_top - guide_c[1] + brg_od / 2]);
-    translate([cheek_x[0] - cheek_t / 2, back_top - deck_band]) square([horn_w + 2 * cheek_t, horn_y1 - back_top + deck_band]);
-  }
+  back_plan(0);
+  for (s = [-1, 1]) scale([s, 1]) translate([cheek_x[0] - cheek_t / 2, back_top - deck_band]) square([horn_w + 2 * cheek_t, horn_y1 - back_top + deck_band]);
 }
 
 // A horn's cheeks and bridge, in the deck's frame (z from the deck's
@@ -875,6 +941,7 @@ module horn() {
     intersection() {
       union() {
         for (x = cheek_x) translate([x - cheek_t / 2, horn_y0, 0]) cube([cheek_t, horn_y1 - horn_y0, horn_z1 - deck_z0]);
+        translate([cheek_x[0], horn_y0, 0]) cube([cheek_x[1] - cheek_x[0], horn_y1 - horn_y0, cable_z - web_gap - deck_z0]);
         translate([cheek_x[0], horn_y0, horn_z1 - deck_z0 - horn_wall]) cube([cheek_x[1] - cheek_x[0], horn_y1 - horn_y0, horn_wall]);
         for (c = concat([edge_c], horn_cs)) translate([throat_x, c[0], c[1] - deck_z0]) rotate([0, 90, 0]) cylinder(d = brg_shoulder_d, h = horn_w + 0.01, center = true, $fn = 32);
       }
@@ -891,11 +958,12 @@ module horn() {
 // plus shroud_gap), its wall, and the seal strip on the wall's top
 shroud_top = -(shroud_seal_h - shroud_groove_d - shroud_squeeze);
 
+encl_x = max(spool_x + spool_tip, guide_c[0] + brg_od / 2) + shroud_gap;
+encl_y1 = max(spool_y + spool_tip, guide_c[1] + brg_od / 2) + shroud_gap;
+encl_y0 = min(spool_y - spool_tip, pin_y - tip_r(pinion_z)) - shroud_gap;
+
 module shroud_inside() {
-  for (k = [0, 1]) hull() {
-    translate(spool_c[k]) circle(r = spool_tip + shroud_gap, $fn = 180);
-    translate(pinion_c[k]) circle(r = tip_r(pinion_z) + shroud_gap, $fn = 48);
-  }
+  translate([-encl_x, encl_y0]) offset(2) offset(-2) square([2 * encl_x, encl_y1 - encl_y0]);
 }
 
 module shroud_wall_2d() {
@@ -910,16 +978,6 @@ module shroud_seal_2d() {
     offset(r = (shroud_wall + shroud_groove_w) / 2) shroud_inside();
     offset(r = (shroud_wall - shroud_groove_w) / 2) shroud_inside();
   }
-}
-
-// Where each cable can leave its spool for its guide bearing: the tangents
-// from the guide bearing's inboard side to the spool's outer side, from the
-// core out to full.
-function tangent_pt(sc, r, g) = let(d = norm(g - sc), a0 = atan2(g[1] - sc[1], g[0] - sc[0]), a = a0 - sign(sc[0]) * acos(r / d)) sc + r * [cos(a), sin(a)];
-module cable_slot_2d(k) {
-  m = k == 0 ? -1 : 1;
-  g = [m * throat_x, guide_y];
-  hull() for (q = [g, tangent_pt(spool_c[k], core_r, g), tangent_pt(spool_c[k], fill_r, g)]) translate(q) circle(r = cable_slot_margin, $fn = 16);
 }
 
 // The seal strip: TPU 85A, printed flat, laid in the groove.
@@ -945,24 +1003,20 @@ module deck() {
         cylinder(d = pinion_pin_d, h = z_s0 - deck_z1 + pinion_pin_len, $fn = 32);
       }
       // Guide bearings: a pad filling under each to half a millimetre from
-      // its outer race, a shoulder for the inner race, the pin up into a
-      // socket under the tray
+      // its outer race, and a shoulder for the inner race
       for (m = [0, 1]) mirror([m, 0, 0]) translate([guide_c[0], guide_c[1], deck_t - eps]) {
         cylinder(d = brg_od - 1, h = guide_z0 - 0.5 - deck_z1 + eps, $fn = 64);
         cylinder(d = brg_shoulder_d, h = guide_z0 - deck_z1 + eps, $fn = 48);
-        cylinder(d = brg_bore - 0.15, h = pin_socket - 0.3 - deck_z1, $fn = 32);
       }
       for (m = [0, 1]) mirror([m, 0, 0]) horn();
       translate([0, 0, deck_t - eps]) linear_extrude(shroud_top - deck_z1 + eps) shroud_wall_2d();
     }
     translate([0, 0, shroud_top - shroud_groove_d - deck_z0]) linear_extrude(shroud_groove_d + 1) shroud_seal_2d();
     for (k = [0, 1]) {
-      translate([0, 0, z_s0 + spool_gear_w - 1.5 - deck_z0]) linear_extrude(bay_w + 3) intersection() {
-        cable_slot_2d(k);
-        offset(r = shroud_wall + 0.5) shroud_inside();
-      }
-      translate([spool_c[k][0], spool_c[k][1] - spool_tip - shroud_gap - shroud_wall / 2, deck_t + drain_d / 2 + 0.5]) rotate(90) teardrop_x(drain_d, shroud_wall + 2);
+      translate([(2 * k - 1) * throat_x, encl_y1 + shroud_wall / 2, cable_z - deck_z0]) rotate(90) teardrop_x(cable_hole_d, shroud_wall + 2);
+      translate([spool_c[k][0], encl_y0 - shroud_wall / 2, deck_t + drain_d / 2 + 0.5]) rotate(90) teardrop_x(drain_d, shroud_wall + 2);
     }
+    for (m = [0, 1]) mirror([m, 0, 0]) translate([guide_c[0], guide_c[1], -1]) cylinder(d = guide_pilot_d, h = guide_z0 - deck_z0 + 2, $fn = 32);
     for (p = deck_screws) translate([p[0], p[1], 0]) {
       translate([0, 0, -1]) cylinder(d = clear_d, h = deck_t - deck_z0 + 2);
       translate([0, 0, -1]) cylinder(d = cbore_d, h = 1 + cbore_h);
@@ -970,9 +1024,9 @@ module deck() {
   }
 }
 
-assert(spool_y + spool_tip + shroud_gap + shroud_wall < back_top - 1, "the shroud runs out past the back");
-assert(spool_x + spool_tip + shroud_gap + shroud_wall < outer_l / 2 - tray_inset, "the shroud runs out past the tray's floor");
-assert(norm(guide_c - spool_c[1]) - brg_od / 2 > spool_tip + shroud_gap + shroud_wall + 0.5, "the shroud runs into a guide bearing");
+assert(encl_x + shroud_wall <= outer_l / 2 - tray_inset - 0.5, "the enclosure runs out past the back");
+for (p = deck_screws) assert(p[1] - column_d / 2 > encl_y1 + shroud_wall + 0.5 || p[1] + column_d / 2 < encl_y0 - shroud_wall - 0.5, "the enclosure runs into a deck pillar");
+assert(cable_z - cable_hole_d / 2 - deck_z1 > 1, "the cable's hole runs into the deck");
 
 module deck_in_place() {
   translate([0, 0, deck_z0]) deck();
