@@ -75,6 +75,7 @@ import antennaMountsAssembled from "../../../models/antenna-mounts/previews/asse
 import antennaMountsOnMolle from "../../../models/antenna-mounts/previews/on-molle.scad?raw";
 import antennaMountsPlate from "../../../models/antenna-mounts/previews/plate.scad?raw";
 import molle18650HolderLib from "../../../models/molle-18650-holder/lib/molle-18650-holder-lib.scad?raw";
+import molle18650HolderStick from "../../../models/molle-18650-holder/lib/molle-stick-profile.scad?raw";
 import molle18650HolderAssembled from "../../../models/molle-18650-holder/previews/assembled.scad?raw";
 import molle18650HolderPlate from "../../../models/molle-18650-holder/previews/plate.scad?raw";
 
@@ -248,7 +249,9 @@ export const CUSTOMIZABLE_SOURCES: Record<string, { lib: string; previews: Recor
     },
   },
   "molle-18650-holder": {
-    lib: molle18650HolderLib,
+    // The lib includes the traced stick outline; the WASM path has no
+    // filesystem, so prepend it and drop that one include (BOSL2's stays).
+    lib: molle18650HolderStick + "\n" + molle18650HolderLib.replace(/^include <molle-stick-profile\.scad>;$/m, ""),
     previews: {
       assembled: stripIncludes(molle18650HolderAssembled),
       plate: stripIncludes(molle18650HolderPlate),
