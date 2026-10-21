@@ -30,7 +30,8 @@ Seen from the top, the case is a rounded rectangle (10 mm corners). The left and
   - round the body, diamond pyramids 2 mm apart at ±45°;
   - on the door face, 90° V-grooves at ±45°, 2 mm apart. The door face is the carriage's print bed, and V-groove walls print at 45° there where pyramids wouldn't;
   - on the door face's 45° lead-ins into the corners, smooth: knurl there would face down past 45°.
-- **Base.** 1.6 mm of TPU under the whole case, the door face's strip included, with the bottom USB-C openings through it. Twelve keys rise 1.5 mm from it into the body's walls, flaring 0.4 mm, so the PCTG printed over them holds them as well as the bond does.
+  - The rings stop 1.5 mm short of the TP4056's side USB-C opening and of the door screws' heads, leaving flush PCTG round each, so no TPU crosses a hole.
+- **Base.** 1.6 mm of TPU under the whole case, with the bottom USB-C openings through it. The strip under the door face prints with the carriage; the rest with the body. Twelve keys rise 1.5 mm from it into the body's walls, flaring 0.4 mm, so the PCTG printed over them holds them as well as the bond does.
 
 ## How it goes together
 
@@ -44,7 +45,7 @@ Seen from the top, the case is a rounded rectangle (10 mm corners). The left and
 - **Mating.**
   - The fins and the cell's floor plate run in channels in the floor, 1.2 mm deep, and the fins run in grooves up the right wall.
   - Two tongues under the top run in grooves along the back and front walls' tops.
-  - A hook under the top's right edge has a nib that slides into a groove in the right wall, so the top's far end can't lift.
+  - A hook under the top's right edge has a nib that slides into a groove in the right wall, so the top's far end can't lift. Four vertical gussets, 1.6 mm thick and 8 mm long, tie the hook back into the top.
 - **Screws.** Five button-head cap screws hold it in, each threading 6–7 mm into a boss on the body.
   - Through the door face: two M5x10 into bosses on the back wall (39.5 and 54.5 mm up) and one M3x10 into a boss on the front wall (67 up), over the V4. Each head sits 2 mm into the face, on the flat of a plain ring or an inset ring's floor.
   - Through the top: two M5x10 along the front edge into bosses hanging off the front wall.

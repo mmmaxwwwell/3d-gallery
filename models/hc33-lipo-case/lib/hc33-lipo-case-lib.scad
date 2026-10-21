@@ -174,6 +174,12 @@ hook_h = 4;
 nib_l = 1.2;
 nib_h = 1.2;
 
+// Gussets tying the hook back into the top's underside: thickness, reach
+// along the top, and spacing along the hook
+hook_gusset_t = 1.6;
+hook_gusset_l = 8;
+hook_gusset_pitch = 8;
+
 // Button-head screws: M5 and M3 clearance hole, pilot and head diameter;
 // the boss's wall round the pilot, and the screws' length under the head
 m5_clear_d = 5.5;
@@ -203,6 +209,10 @@ grip_inset = 2;
 knurl_pitch = 2;
 knurl_d = 0.8;
 band_margin = 2;
+
+// The PCTG left flush round the TP4056's side opening and the door
+// screws' heads where they cross a TPU ring
+ring_margin = 1.5;
 // END_PARAMS
 
 eps = 0.01;
@@ -320,7 +330,7 @@ function inset_band(i) = i % 2 == 1 && band_z1(i) - band_z0(i) >= 2 * grip_inset
 
 // The base's keys, under the middle of the back and front walls and of the
 // right wall outside the fins' grooves
-function spread(a, b) = let(n = max(1, floor((b - a) / key_pitch))) [for (i = [0:n]) a + (b - a) * i / n];
+function spread(a, b, pitch = key_pitch) = let(n = max(1, floor((b - a) / pitch))) [for (i = [0:n]) a + (b - a) * i / n];
 base_keys = concat(
   [for (sy = [-1, 1], x = spread(-hx + key_d, hx - key_d)) [x, sy * (hy + end_wall / 2)]],
   [for (y = spread(-hy + key_d, hy - key_d)) [hx + wall_groove_d + (side_wall - wall_groove_d) / 2, y]]);
@@ -373,6 +383,7 @@ assert(side_wall - grip_inset - wall_groove_d >= 1.2, "the right wall is too thi
 assert(ceiling - hook_h - nib_h >= divider_z1 + 0.3, "the top's hook runs into the fins");
 assert(hook_y1 > hook_y0 + 5, "the back-right SMA leaves no room for the top's hook");
 assert(nib_l + slide_fit <= side_wall - 2, "the hook's groove cuts through the right wall");
+assert(hook_gusset_l >= hook_h, "the hook's gussets would print past 45°");
 for (p = smas) {
   assert(abs(p[1]) + sma_nut_d / 2 <= hy - 0.3, "an SMA's inner nut hits the back or front wall");
   // The outer nut sits on the flat of the top: inside the outline inset by top_r
@@ -507,11 +518,27 @@ module knurl_core(za, zb, e = 0) {
   polyhedron(concat(outer, inner), faces);
 }
 
+// Where the rings stop: ring_margin round the TP4056's side opening and
+// round each door screw's head seat
+module ring_keepout() {
+  translate([hx - 1, yb + tp_usb_cy, tp_usb_cz]) rotate([0, 90, 0]) linear_extrude(side_wall + 2)
+    offset(usb_open_r + ring_margin) square([usb_open_w - 2 * usb_open_r, usb_open_h - 2 * usb_open_r], center = true);
+  for (s = door_screws) translate([-ex - 1, ds_y(s), s[1]]) rotate([0, 90, 0])
+    cylinder(d = head_d(s[2]) + 0.5 + 2 * ring_margin, h = grip_inset + 2);
+}
+
 // An inset ring's recess in the PCTG: sunk grip_inset with 45° chamfers
-// into it
+// into it, stopping at ring_keepout()
 module ring_recess(i) {
   z0 = band_z0(i);
   z1 = band_z1(i);
+  difference() {
+    ring_recess_whole(z0, z1);
+    ring_keepout();
+  }
+}
+
+module ring_recess_whole(z0, z1) {
   difference() {
     translate([0, 0, z0]) linear_extrude(z1 - z0) difference() {
       offset(delta = 1) outline();
@@ -658,12 +685,21 @@ module body_tpu() {
   }
 }
 
-// The carriage's TPU: its share of the rings, flush. The door face is the
+// The rest of the base, under the door face, printed with the carriage
+module door_foot() {
+  intersection() {
+    shell();
+    translate([-ex - 1, -ey - 1, 0]) cube([ex - hx + 1, 2 * ey + 2, base_t]);
+  }
+}
+
+// The carriage's TPU: its foot, and its share of the rings, flush. The door face is the
 // carriage's bed, so its knurl is 90° V-grooves at ±45°, knurl_d deep and
 // knurl_pitch apart, whose walls print at 45°; they stop knurl_d short of
 // the ring's chamfers and the face's lead-ins. The leads and corners stay
 // smooth: knurl there would face down past 45°.
 module carriage_tpu() {
+  door_foot();
   difference() {
     intersection() {
       grip_rings(false);
@@ -685,13 +721,12 @@ module door_knurl(z0, z1) {
   }
 }
 
-// Under the whole case, the door face's strip included, with the bottom
-// USB-C openings through it
+// Under the body, with the bottom USB-C openings through it
 module tpu_base() {
   difference() {
     intersection() {
       shell();
-      translate([-ex - 1, -ey - 1, 0]) cube([2 * ex + 2, 2 * ey + 2, base_t]);
+      translate([-hx, -ey - 1, 0]) cube([ex + hx + 1, 2 * ey + 2, base_t]);
     }
     for (b = boards) bottom_opening(b[5]);
   }
@@ -786,6 +821,10 @@ module top_mates() {
   along_y(hook_y0, hook_y1)
     polygon([[x - hook_h, ceiling + eps], [x, ceiling + eps], [x, zb + nib_h + nib_l + slide_fit],
              [hx + nib_l, zb + nib_h], [hx + nib_l, zb], [x, zb]]);
+  // Its gussets, their lower edges 45° or steeper as the carriage prints
+  for (y = spread(hook_y0 + hook_gusset_t / 2, hook_y1 - hook_gusset_t / 2, hook_gusset_pitch))
+    along_y(y - hook_gusset_t / 2, y + hook_gusset_t / 2)
+      polygon([[x - hook_gusset_l, ceiling + eps], [x, ceiling + eps], [x, zb]]);
 }
 
 module carriage() {
