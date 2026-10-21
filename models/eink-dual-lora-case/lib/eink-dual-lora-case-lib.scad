@@ -1,13 +1,19 @@
 // E-ink dual-LoRa handheld: the Meshnology N37's shape (rounded body, a
 // wing at the top left, an antenna bump at the top right), 3 mm taller so a
-// 2.13" e-paper HAT stands portrait down the left of the front.
+// 2.13" e-paper HAT stands portrait down the left of the front, and grown
+// downward into a full-depth bay for a 5 Ah battery.
 // Behind the display, two sealed box switches press through waterproof TPU
 // buttons in the left side. In the right column a XIAO Sense faces the front
 // (its mic through a port) above a front-facing speaker in the bottom right
 // corner; the speaker's I2C amp lies on the back wall behind it. One SX1262
-// sits behind the XIAO, the other in the wing. Between the XIAO and the
+// sits behind the XIAO, the other behind the mouse sensor. The wing holds
+// the GPS antenna facing the front, the vibration motor behind it; the GPS
+// board sits behind the display under the switches. Between the XIAO and the
 // speaker, where the N37 has its joystick, an optical mouse sensor looks out
-// through a sealed window to read swipes.
+// through a sealed window to read swipes, two sealed front buttons beside
+// it.
+// The body has the N37's angled band round its front and back faces, every
+// outside edge rounded.
 // Laid out with X right as seen from the front, Y up, and Z depth (0 the
 // front face, case_t the back face). With Z running away from a viewer in
 // front, that frame is a mirror image, so the `*_part` modules and the
@@ -15,17 +21,28 @@
 // front cover prints face down; the tub (sides and back) back face down.
 
 // BEGIN_PARAMS
-// Body seen from the front: the N37's 66 x 78, 3 mm taller so the 65 mm HAT
-// and its ribbon fold fit between the top and bottom walls
+// Body seen from the front, above the battery bay: the N37's 66 x 78, 3 mm
+// taller so the 65 mm HAT and its ribbon fold fit. The inside is laid out
+// to this outline; the outside is `skin` bigger all round, so the band and
+// the rounds can be big without thinning the walls.
 case_w = 66;
 case_h = 81;
+skin = 2;
 // Front to back: the N37's 24.3 plus 2, so the switch boxes fit behind the
 // display
 case_t = 26.3;
 // Body corners seen from the front (the N37's, measured on the L1 holster)
 corner_r = 11;
-// 45° chamfer round the front and back faces
-edge_chamfer = 2;
+// The angled band round the front and back faces: its angle off the face
+// (the N37's: 122.5° inside angle between the face and the band, measured
+// for the L1 holster), and how deep it runs front to back. Every outside
+// edge is rounded edge_round.
+bevel_angle = 57.5;
+bevel_depth = 6;
+edge_round = 2;
+// Inside, the cavity's edges against the front and back walls are chamfered
+// this much, keeping the walls thick under the band
+cavity_chamfer = 1;
 // Side walls, front wall (the display looks through it) and back wall
 wall = 1.8;
 front_wall = 1.6;
@@ -72,6 +89,12 @@ radio_h = 4;
 mic_offset = -6;
 xiao_mic_h = 1;
 mic_port = 1.5;
+// The XIAO's program (boot) and reset buttons, either side of its USB-C:
+// each [along the board from its middle toward the USB-C, across]; their
+// height on the board; the pin hole through the front over each
+xiao_buttons = [[7.5, 6.3], [7.5, -6.3]];
+xiao_button_h = 1.5;
+xiao_pin_hole = 1.6;
 // Optical mouse sensor for swipes (a placeholder until it's bought, sized for
 // a standard mouse lens): lens footprint, PCB outline and thickness, and the
 // distance from the tracking surface to the PCB's underside and to the
@@ -86,6 +109,36 @@ sns_surface_to_lens = 2.4;
 sns_window = 8;
 sns_disc_d = 12;
 sns_disc_t = 1;
+// Two front buttons right of the mouse sensor: 6x6 tact switches (assumed,
+// 4.3 mm tall): their heights, the body's size and height, and the plunger
+fb_y = [11.6, 3.0];
+fsw = 6;
+fsw_body = 3.5;
+fsw_plunger = 0.8;
+// Their sealed buttons: TPU boot flange, sleeve and roof, how far it stands
+// proud of the front, PETG plunger, cradle wall, squeeze on the flange
+fboot_flange_d = 7.6;
+fboot_flange_t = 1;
+fboot_od = 5.5;
+fboot_wall = 0.8;
+fboot_roof = 0.8;
+fb_proud = 1.2;
+fstem_d = 3;
+fstem_head_d = 3.4;
+fcradle_wall = 1;
+fflange_squeeze = 0.2;
+// GPS active patch antenna (the L76K's, on a 10 cm cable; size assumed),
+// facing the front in the wing: footprint, patch thickness, and its LNA
+// board's thickness behind it
+gps = [18, 18];
+gps_patch_t = 4;
+gps_pcb_t = 2.5;
+// Vibration motor (Precision Microdrives 312-107: 12 mm, 3 V, 14.3 G),
+// lying up the wing behind the GPS: body diameter and length, and the length of the
+// spinning weight past the body
+vib_d = 12;
+vib_l = 15.1;
+vib_weight_l = 5.5;
 // Speaker box: across, up, front to back; and its grille's diameter, hole
 // size and pitch
 spk_w = 28;
@@ -99,10 +152,14 @@ grille_pitch = 2.8;
 amp_w = 22.5;
 amp_l = 38.6;
 amp_h = 4.2;
-// LiPo behind the display, under the switches (a 103030 pack)
-batt_w = 30;
-batt_l = 30;
-batt_t = 10;
+// Battery bay across the bottom, full depth: room for a 5 Ah pack, e.g.
+// two 104060 cells (10 x 40 x 60, 2.5 Ah) stacked front to back in parallel.
+// Across, up, front to back
+batt = [60, 40, 20];
+// L76K GNSS board (Seeed's, XIAO-size 18 x 21) behind the display under the
+// switches, on posts; its active patch antenna is the `gps` in the wing
+gnss = [21, 18];
+gnss_h = 3;
 // SMA bulkheads: hole, the jack's hex across corners, and their axis depth
 sma_hole = 6.6;
 sma_hex = 8.3;
@@ -156,6 +213,8 @@ face_groove_depth = 0.5;
 
 eps = 0.01;
 top = case_h / 2;
+// The battery sits under the old bottom wall's line; the body runs on down
+// past it far enough for corner screws below it.
 inner_x = case_w / 2 - wall;
 inner_y = top - wall;
 inner_back_z = case_t - back_wall;
@@ -177,19 +236,31 @@ disp_cy = disp_y0 + disp_l / 2;
 disp_x1 = disp_x0 + disp_w;
 view = [disp_view_w + 2 * disp_view_margin, disp_view_l + 2 * disp_view_margin];
 
-// Inside corner arcs (centres, radius)
+// Inside corner arcs (centres, radius); corner_c is the upper body's,
+// mirrored for its old bottom corners, which the battery bay now continues
 corner_c = [case_w / 2 - corner_r, top - corner_r];
 inner_corner_r = corner_r - wall;
 
-// Screws, free-standing bosses (no top right one: the XIAO fills that corner) on the front cover, clear of the walls:
+// Screws, free-standing bosses (none on the right: the XIAO fills the top
+// right corner, the front buttons the middle, the speaker the bottom) on the front cover, clear of the walls:
 // [position, direction the tub's boss leans into the wall].
 corner_screw = corner_c + [1, 1] * screw_corner_d / sqrt(2);
+batt_c = [0, -inner_y - 0.3 - batt.y / 2];
+batt_z0 = front_wall + 0.5;
+// Bottom corners low enough that their screws clear the battery
+bottom = batt_c.y - batt.y / 2 - 0.3 - boss_r - (corner_r - screw_corner_d / sqrt(2));
+bottom_corner_c = [corner_c.x, bottom + corner_r];
+bottom_screw = bottom_corner_c + [1, -1] * screw_corner_d / sqrt(2);
 screws = [
   [[wing_cx + 5.5, wing_top - wall - boss_r - 0.5], [1, 1]],
   [[3.5, inner_y - boss_r - 0.3], [0, 1]],
-  [[inner_x - boss_r - 0.3, 2], [1, 0]],
   [[-corner_screw.x, -corner_screw.y], [-1, -1]],
   [[-6, -inner_y + boss_r + 0.3], [0, -1]],
+  [[bottom_screw.x, bottom_screw.y], [1, -1]],
+  [[-bottom_screw.x, bottom_screw.y], [-1, -1]],
+  [[0, bottom_screw.y], [0, -1]],
+  // In the middle, between the display and the XIAO, clear of both radios
+  [[3.7, 26], [0, 0]],
 ];
 screw_tip_z = screw_skin;
 screw_head_z = screw_tip_z + screw_len;
@@ -213,10 +284,26 @@ xiao_pcb_z0 = mid_z0 - xiao_pcb;
 usb_z = xiao_pcb_z0 - xiao_usb_h / 2;
 mic = [xiao_c.x + mic_offset, xiao_c.y];
 radio1_c = [inner_x - 2.2 - board_l / 2, xiao_c.y];
-radio2_c = [wing_cx, top + 10.6];
-batt_c = [disp_x0 + batt_w / 2, (btn_y[1] - 9.3 - 0.5) - batt_l / 2];
+// Radio 2 behind the mouse sensor's parts and in front of the amp's
+// level, on posts from the back wall
+radio2_c = [sns_c.x, sns_c.y + 6.2];
+radio2_z0 = sns_pcb_z0 + sns_pcb_t + 3.2;
+// GPS in the wing's front, clear of the display's ribbon and the wing screw
+gps_c = [wing_cx, screws[0][0].y - boss_r - 0.5 - gps.y / 2];
+gps_z0 = front_wall + 0.2;
+gnss_c = [disp_x0 + 4.5 + gnss.x / 2, -13];
+gnss_z0 = mid_z1 + 0.3;
 sma1 = [bump_x, top + bump_h];
-sma2 = [wing_cx - 3.5, wing_top];
+sma2 = [wing_cx - 6.5, wing_top];
+// Vibration motor up the wing behind radio 2, its weight at the top
+vib_c = [wing_x0 + wing_w - wall - 0.3 - vib_d / 2, top + 0.3];
+vib_z = (mid_z1 + inner_back_z) / 2;
+// Front buttons: centred between the sensor and the right wall
+fb_x = (sns_c.x + sns_pcb.x / 2 + inner_x) / 2;
+fb_ring_z = front_wall + fboot_flange_t - fflange_squeeze;
+fsw_back_z = fb_ring_z + fsw_plunger + fsw_body;
+fcradle = [fsw + 2 * fcradle_wall, fsw + 2 * fcradle_wall, fsw_back_z - fb_ring_z];
+fb_hole = fboot_od + 0.4;
 
 // Switches, from the left wall in: the boot's flange against the wall, the
 // cradle's ring squeezing it, the box behind the ring with its plunger
@@ -233,18 +320,36 @@ btn_hole = boot_od + 0.6;
 assert(disp_y0 > -corner_screw.y + boss_r + 0.3, "the display runs into the bottom left screw");
 assert(disp_x1 + 0.2 < 3.5 - boss_r, "the display runs into the top middle screw");
 assert(spk_x1 - spk_w > disp_x1 + 0.5, "the speaker runs into the display");
-assert(spk_y0 + spk_h < 2 - boss_r - 0.5, "the speaker runs into the right screw");
 assert(norm([xiao_c.x + board_l / 2, xiao_c.y + board_w / 2] - corner_c) < inner_corner_r - 0.1, "the XIAO's corner runs into the top right corner");
 assert(xiao_c.y - board_w / 2 > sns_c.y + sns_pcb.y / 2, "the XIAO runs into the mouse sensor");
-assert(sns_c.x + max(sns_pcb.x, sns_lens.x) / 2 < inner_x - 2 * boss_r - 0.6, "the mouse sensor runs into the right screw");
+assert(fb_x - fcradle.x / 2 > sns_c.x + max(sns_pcb.x, sns_lens.x) / 2, "the front buttons run into the mouse sensor");
+assert(fb_x + fcradle.x / 2 <= inner_x, "the front buttons run into the right wall");
+assert(fb_x + fboot_flange_d / 2 <= inner_x + 0.01, "the front buttons' flanges run into the right wall");
+assert(abs(fb_y[0] - fb_y[1]) >= fcradle.y + 0.4, "the front buttons' cradles overlap");
+assert(max(fb_y) + fcradle.y / 2 < xiao_c.y - board_w / 2, "the upper front button runs into the XIAO");
+assert(min(fb_y) - fcradle.y / 2 > spk_y0 + spk_h, "the lower front button runs into the speaker");
+assert(abs(fsw_back_z - mid_z0) < 0.3, "the midframe doesn't hold the front switches against their boots");
+assert(fstem_head_d < fboot_od - 2 * fboot_wall, "the front plunger's head rubs its boot");
+assert(vib_c.y > max(btn_y) + cradle.y / 2 + 1.7, "the motor runs into the upper switch pocket");
+assert(vib_c.y + vib_l + vib_weight_l < screws[0][0].y - boss_r, "the motor runs into the wing screw");
+assert(vib_c.x - vib_d / 2 - 0.3 > sma2.x + sma_hex / 2, "the motor runs into the wing's SMA");
+assert(vib_z - vib_d / 2 > mid_z1 + 0.5 && vib_z + vib_d / 2 < inner_back_z - 0.5, "the motor doesn't fit behind the midframe");
+assert(wall + skin - bevel_w * max(0, btn_z + boot_flange_d / 2 - (case_t - bevel_depth)) / bevel_depth > 1.5, "the back band thins the wall behind the side buttons' seals");
+assert(wall + skin - bevel_w * (1 - disp_back_z / bevel_depth) - (disp_x0 + inner_x) > 1.2, "the front band thins the wall beside the display");
 assert(sns_c.x - max(sns_pcb.x, sns_lens.x) / 2 > disp_x1 + 0.5, "the mouse sensor runs into the display");
 assert(sns_c.y - max(sns_pcb.y, sns_lens.y) / 2 > spk_y0 + spk_h, "the mouse sensor runs into the speaker");
 assert(sns_pcb_z0 > mid_z0 - 0.01 - midframe_t, "the mouse sensor's PCB is in front of the XIAO's layer");
 assert(sns_pcb_z0 + sns_pcb_t + 4 < inner_back_z, "the mouse sensor doesn't fit under the back");
 assert(xiao_c.x - board_l / 2 > disp_x1 + 1, "the XIAO runs into the display");
 assert(xiao_pcb_z0 - xiao_usb_h > front_wall, "the XIAO doesn't fit in front of the midframe");
-assert(radio2_c.y + board_l / 2 < screws[0][0].y - boss_r, "radio 2 runs into the wing screw");
-assert(radio2_c.y - board_l / 2 > top - 0.5, "radio 2 hangs down onto the display");
+assert(min([for (b = xiao_buttons) abs(b.y)]) - (xiao_pin_hole + 1.6) / 2 >= 4.5, "a pin guide runs into the XIAO's USB-C");
+assert(max([for (b = xiao_buttons) abs(b.y)]) + (xiao_pin_hole + 1.6) / 2 < board_w / 2 + 0.2, "a pin guide runs into the XIAO's fence");
+assert(radio2_z0 + radio_h < inner_back_z - amp_h || radio2_c.y - board_w / 2 > amp_c.y + amp_l / 2, "radio 2 runs into the amp");
+assert(radio2_z0 > mid_z1 + radio_h, "radio 2 runs into radio 1");
+assert(radio2_c.y + board_w / 2 < 3.5 + 0 || radio2_c.y + board_w / 2 < screws[1][0].y - boss_r, "radio 2 runs into the top middle screw");
+assert(gps_c.y - gps.y / 2 > disp_y0 + disp_l + disp_fpc + 0.3, "the GPS runs into the display's ribbon");
+assert(gps_c.x - gps.x / 2 > -inner_x && gps_c.x + gps.x / 2 < wing_x0 + wing_w - wall, "the GPS doesn't fit across the wing");
+assert(gps_z0 + gps_patch_t + gps_pcb_t < vib_z - vib_d / 2 - 0.3, "the GPS runs into the motor");
 assert(mid_z1 + radio_h < inner_back_z, "radio 1 doesn't fit behind the midframe");
 assert(front_wall + spk_t + 0.3 < inner_back_z - amp_h, "the speaker runs into the amp");
 assert(amp_c.x - amp_w / 2 > -6 + boss_r, "the amp runs into the bottom middle screw");
@@ -255,18 +360,25 @@ assert(cradle.z >= boot_flange_d && cradle.y >= boot_flange_d - 1, "the cradle's
 assert(btn_y[0] - btn_y[1] >= cradle.y + 3.4, "the switch pockets overlap");
 assert(stem_head_d < boot_od - 2 * boot_wall, "the plunger's head rubs the boot's sleeve");
 assert(-pocket_back_x < -1, "the switch pockets reach across the middle");
-assert(batt_c.y - batt_l / 2 > -corner_screw.y + boss_r + 0.3, "the battery runs into the bottom left screw");
-assert(mid_z1 + batt_t + 0.3 < inner_back_z, "the battery doesn't fit behind the midframe");
+assert(batt_c.y + batt.y / 2 < -corner_screw.y - boss_r - 0.2, "the battery runs into the bottom left screw");
+assert(batt_c.y + batt.y / 2 < spk_y0 - 0.2, "the battery runs into the speaker");
+assert(batt.x / 2 < bottom_corner_c.x + sqrt(pow(inner_corner_r, 2) - pow(max(0, bottom_corner_c.y - (batt_c.y - batt.y / 2)), 2)) - 0.3, "the battery's corners run into the bottom corners");
+assert(batt_z0 + batt.z < inner_back_z - 0.5, "the battery doesn't fit front to back");
+assert(gnss_c.y + gnss.y / 2 < min(btn_y) - cradle.y / 2 - 1.7, "the GNSS board runs into the lower switch pocket");
+assert(gnss_c.y - gnss.y / 2 > -corner_screw.y + boss_r, "the GNSS board runs into the bottom left screw");
+assert(gnss_c.x + gnss.x / 2 < radio2_c.x - board_l / 2, "the GNSS board runs into radio 2");
 assert(sma_z - sma_hex / 2 > mid_z1 + 0.3, "the SMA jacks run into the midframe");
 assert(screw_head_z < case_t - 3, "the screw heads stand proud of the back");
+assert(3.7 - boss_r > disp_x1 + 0.2 && 3.7 + boss_r < xiao_c.x - board_l / 2 - 1.2 && 26 - boss_r > radio2_c.y + board_w / 2, "the middle screw runs into the display or a radio");
 
 module rrect(w, h, r, c = [0, 0]) {
   translate(c) offset(r = r) square([w - 2 * r, h - 2 * r], center = true);
 }
 
+// The inside's reference outline; the walls are `wall` in from it.
 module outline() {
   offset(r = -fillet_r) offset(r = fillet_r) union() {
-    rrect(case_w, case_h, corner_r);
+    rrect(case_w, top - bottom, corner_r, [0, (top + bottom) / 2]);
     hull() {
       translate([wing_x0, top - 20]) square([wing_w, 1]);
       for (x = [wing_x0 + wing_r, wing_x0 + wing_w - wing_r])
@@ -280,22 +392,42 @@ module outline() {
 }
 
 module cavity_outline() { offset(delta = -wall) outline(); }
+module outer_outline() { offset(r = skin) outline(); }
 
-module bicone(c) {
-  cylinder(h = c, r1 = c, r2 = 0, $fn = 16);
-  mirror([0, 0, 1]) cylinder(h = c, r1 = c, r2 = 0, $fn = 16);
-}
+bevel_w = bevel_depth / tan(bevel_angle);
 
-module solid_body() {
+// The band's profile as a convex kernel: a double frustum bevel_w wide at
+// its middle and a point bevel_depth either side, rounded edge_round.
+module body_kernel() {
   minkowski() {
-    translate([0, 0, edge_chamfer])
-      linear_extrude(case_t - 2 * edge_chamfer) offset(delta = -edge_chamfer) outline();
-    bicone(edge_chamfer);
+    union() {
+      cylinder(h = bevel_depth, r1 = bevel_w, r2 = 0, $fn = 24);
+      mirror([0, 0, 1]) cylinder(h = bevel_depth, r1 = bevel_w, r2 = 0, $fn = 24);
+    }
+    sphere(r = edge_round, $fn = 12);
   }
 }
 
+// The outline swept with the kernel: sides straight between the bands, each
+// band rising at bevel_angle off its face, every edge rounded.
+module solid_body() {
+  minkowski() {
+    translate([0, 0, bevel_depth + edge_round])
+      linear_extrude(case_t - 2 * (bevel_depth + edge_round)) offset(delta = -(bevel_w + edge_round)) outer_outline();
+    body_kernel();
+  }
+}
+
+// The cavity with its edges against the front and back walls chamfered 45°.
 module cavity() {
-  translate([0, 0, front_wall]) linear_extrude(inner_back_z - front_wall) cavity_outline();
+  c = cavity_chamfer;
+  minkowski() {
+    translate([0, 0, front_wall + c]) linear_extrude(inner_back_z - front_wall - 2 * c) offset(delta = -c) cavity_outline();
+    union() {
+      cylinder(h = c, r1 = c, r2 = 0, $fn = 8);
+      mirror([0, 0, 1]) cylinder(h = c, r1 = c, r2 = 0, $fn = 8);
+    }
+  }
 }
 
 // A hole through a side or top wall, its axis level, peaked at 45° toward the
@@ -318,9 +450,9 @@ module window() {
   }
 }
 
-plaque_x0 = disp_cx + view.x / 2 + 3 + face_groove + 3;
-plaque = [case_w / 2 - 5 - plaque_x0, case_h - 14];
-plaque_c = [plaque_x0 + plaque.x / 2, 0];
+// The panel groove frames the speaker grille.
+plaque = [spk_w - 2, spk_h - 2];
+plaque_c = spk_c;
 
 module face_grooves() {
   translate([0, 0, -eps]) linear_extrude(face_groove_depth + eps) {
@@ -349,29 +481,38 @@ module sensor_window() {
   translate([sns_c.x, sns_c.y, sns_surface_z]) cylinder(d = sns_disc_d + 0.3, h = sns_disc_t + 1, $fn = 48);
 }
 
+// Pin holes for the XIAO's buttons, poked with a paperclip.
+module xiao_pin_holes() {
+  for (b = xiao_buttons) translate([xiao_c.x + b.x, xiao_c.y + b.y, -1]) cylinder(d = xiao_pin_hole, h = front_wall + 2, $fn = 16);
+}
+
 module mic_hole() {
   translate([mic.x, mic.y, -1]) cylinder(d = mic_port, h = front_wall + 2, $fn = 16);
 }
 
 module grip_grooves() {
   for (y = [grip_y0 : grip_pitch : grip_y1])
-    translate([-(case_w / 2 - grip_depth / 2), y, case_t / 2])
-      cube([grip_depth + 2 * eps, grip_groove, case_t - 8], center = true);
+    translate([-(case_w / 2 + skin - grip_depth / 2), y, case_t / 2])
+      cube([grip_depth + 2 * eps, grip_groove, case_t - 2 * (bevel_depth + edge_round + 1)], center = true);
 }
 
 module usb_opening() {
   translate([inner_x - 1, xiao_c.y, usb_z]) rotate([0, 90, 0])
-    linear_extrude(wall + 2) offset(r = 1) square([usb_h - 2, usb_w - 2], center = true);
+    linear_extrude(wall + skin + 2) offset(r = 1) square([usb_h - 2, usb_w - 2], center = true);
+}
+
+module front_button_holes() {
+  for (y = fb_y) translate([fb_x, y, -1]) cylinder(d = fb_hole, h = front_wall + 2, $fn = 32);
 }
 
 module button_holes() {
   for (y = btn_y) translate([-inner_x + 1, y, btn_z]) rotate([0, -90, 0]) rotate(180)
-    linear_extrude(wall + 2) side_hole_2d(btn_hole, btn_hole / 2 + 0.4);
+    linear_extrude(wall + skin + 2) side_hole_2d(btn_hole, btn_hole / 2 + 0.4);
 }
 
 module sma_holes() {
-  for (p = [sma1, sma2]) translate([p.x, p.y + 1, sma_z]) rotate([90, 0, 0]) rotate(-90)
-    linear_extrude(wall + 2) side_hole_2d(sma_hole, sma_hole / 2 + 0.6);
+  for (p = [sma1, sma2]) translate([p.x, p.y + skin + 1, sma_z]) rotate([90, 0, 0]) rotate(-90)
+    linear_extrude(wall + skin + 2) side_hole_2d(sma_hole, sma_hole / 2 + 0.6);
 }
 
 module case_shell() {
@@ -382,7 +523,9 @@ module case_shell() {
     face_grooves();
     grille();
     mic_hole();
+    xiao_pin_holes();
     sensor_window();
+    front_button_holes();
     grip_grooves();
     usb_opening();
     button_holes();
@@ -440,6 +583,15 @@ module cover_fittings() {
       translate([0, -(spk_h / 2 + 0.7)]) square([spk_w * 0.6, 1], center = true);
     }
     translate(mic) cylinder(d = mic_port + 2.4, h = xiao_pcb_z0 - xiao_mic_h - 0.3 - front_wall + eps, $fn = 24);
+    // Seal beads round the front buttons' holes
+    for (y = fb_y) translate([fb_x, y, 0])
+      rotate_extrude($fn = 40) translate([(fb_hole / 2 + fboot_flange_d / 2) / 2, 0]) circle(r = 0.3, $fn = 10);
+    // Fences round the GPS
+    linear_extrude(2 + eps) translate(gps_c) for (sx = [-1, 1], sy = [-1, 1])
+      translate([sx * (gps.x / 2 + 0.7), sy * (gps.y / 2 - 3)]) square([1, 4], center = true);
+    // Guides leading a pin from each hole down onto its button
+    for (b = xiao_buttons) translate([xiao_c.x + b.x, xiao_c.y + b.y, 0])
+      cylinder(d = xiao_pin_hole + 1.6, h = xiao_pcb_z0 - xiao_button_h - 0.4 - front_wall + eps, $fn = 20);
     // Pads under the lens's corners setting its reference plane at the focal
     // distance from the disc's face; the sensor's PCB clips onto the lens
     for (sx = [-1, 1], sy = [-1, 1])
@@ -463,7 +615,9 @@ module front_cover() {
     window();
     grille();
     mic_hole();
+    xiao_pin_holes();
     sensor_window();
+    front_button_holes();
     usb_opening();
   }
 }
@@ -475,8 +629,20 @@ module tub_fittings() {
   translate([0, 0, mid_z1]) linear_extrude(inner_back_z - mid_z1 + eps) for (s = screws) boss_2d(s);
   for (p = [[spk_x1 - 3, spk_y0 + 4], [spk_x1 - 3, spk_y0 + spk_h - 4]])
     translate([p.x - 1.5, p.y - 1.5, front_wall + spk_t + 0.1]) cube([3, 3, inner_back_z - front_wall - spk_t - 0.1 + eps]);
-  translate([batt_c.x, batt_c.y, mid_z1 + batt_t + 0.3]) linear_extrude(inner_back_z - mid_z1 - batt_t - 0.3 + eps)
-    for (sx = [-1, 1], sy = [-1, 1]) translate([sx * batt_w / 4 - 1.5, sy * batt_l / 4 - 1.5]) square(3);
+  // Ribs holding the battery forward, and posts carrying the GNSS board
+  translate([batt_c.x, batt_c.y, batt_z0 + batt.z + 0.3]) linear_extrude(inner_back_z - batt_z0 - batt.z - 0.3 + eps)
+    for (sx = [-1, 0, 1]) translate([sx * batt.x / 3 - 1, -batt.y / 2 + 4]) square([2, batt.y - 8]);
+  translate([gnss_c.x, gnss_c.y, gnss_z0 + gnss_h]) linear_extrude(inner_back_z - gnss_z0 - gnss_h + eps)
+    for (sx = [-1, 1], sy = [-1, 1]) translate([sx * (gnss.x / 2 - 1.5) - 1, sy * (gnss.y / 2 - 1.5) - 1]) square(2);
+  // Posts carrying radio 2 at its level
+  translate([radio2_c.x, radio2_c.y, radio2_z0 + radio_h]) linear_extrude(inner_back_z - radio2_z0 - radio_h + eps)
+    for (sx = [-1, 1], sy = [-1, 1]) translate([sx * (board_l / 2 - 1.5) - 1, sy * (board_w / 2 - 1.5) - 1]) square(2);
+  // Saddle the motor's body lies in, slotted for two zip ties under it
+  difference() {
+    translate([vib_c.x - vib_d / 2 - 1.5, vib_c.y, vib_z]) cube([vib_d + 3, vib_l, inner_back_z - vib_z + eps]);
+    translate([vib_c.x, vib_c.y - 1, vib_z]) rotate([-90, 0, 0]) cylinder(d = vib_d + 0.3, h = vib_l + 2, $fn = 48);
+    for (y = [vib_c.y + 3, vib_c.y + vib_l - 6]) translate([vib_c.x - vib_d, y, inner_back_z - 1.6]) cube([2 * vib_d, 3, 1.4]);
+  }
   translate([amp_c.x, amp_c.y, inner_back_z - 2]) linear_extrude(2 + eps) for (s = [-1, 1]) {
     translate([s * (amp_w / 2 + 0.7), 0]) square([1, amp_l * 0.5], center = true);
     translate([0, s * (amp_l / 2 + 0.7)]) square([amp_w * 0.5, 1], center = true);
@@ -530,6 +696,8 @@ module midframe() {
         offset(delta = -(wall + 0.3)) outline();
         translate([spk_c.x - spk_w / 2 - 0.5, -case_h]) square([case_w, spk_y0 + spk_h + 0.5 + case_h]);
         translate(sns_c) square(sns_pcb + [1, 1], center = true);
+        translate(gps_c) square(gps + [1, 1], center = true);
+        translate([-case_w, bottom - 1]) square([2 * case_w, batt_c.y + batt.y / 2 + 0.3 - bottom + 1]);
       }
       // Ribs pressing the HAT's board against the front wall, along its long
       // edges, clear of the parts on its back
@@ -537,19 +705,22 @@ module midframe() {
         for (x = [disp_x0 + 0.2, disp_x1 - 1.4])
           translate([x, disp_y0 + 1.5]) square([1.2, disp_l - 3]);
       // The XIAO's USB-C end and the sensor's lens leave it fenced left and
-      // top; radio 2's top runs under the wing screw
+      // top
       board_fence(xiao_c, [board_l, board_w], [1, 0, 0, 1]);
-      board_fence(radio2_c, [board_w, board_l], [1, 1, 1, 0]);
+      // Fences above the upper front cradle and below the lower (their sides
+      // have the switch legs; they sit too close together for one between)
+      for (y = fb_y) let (s = y == max(fb_y) ? 1 : -1) translate([fb_x, y, mid_z0 - 1.5]) linear_extrude(1.5 + eps)
+        translate([0, s * (fcradle.y / 2 + 0.7)]) square([fcradle.x - 2, 1], center = true);
     }
     translate([0, 0, mid_z0 - 3]) linear_extrude(midframe_t + 6) {
       for (s = screws) translate(s[0]) circle(d = clear_d);
       // Battery, radio 1 and the amp's wires to the XIAO's back; the switch
-      // leads; radio 2's pigtail
+      // leads
       translate([xiao_c.x - 4, xiao_c.y]) square([8, 5], center = true);
       translate([disp_x1 - 6, (btn_y[0] + btn_y[1]) / 2]) square([4, 8], center = true);
-      translate([sma2.x + 6, radio2_c.y - board_l / 2 - 0.2]) square([6, 3], center = true);
       zip_slots(radio1_c, [board_l, board_w]);
-      zip_slots(radio2_c, [board_w, board_l]);
+      // The front switches' legs
+      for (y = fb_y, sx = [-1, 1], sy = [-1, 1]) translate([fb_x + sx * 3.25, y + sy * 2.25]) circle(d = 1.6, $fn = 12);
     }
   }
 }
@@ -573,13 +744,13 @@ module cradle_in_place(y) { translate([0, y, 0]) mirror([1, 0, 0]) cradle(); }
 
 // Printed ring face down.
 module cradle_print() {
-  translate([0, 0, cradle.x]) rotate([0, 90, 0]) translate([-ring_front_x, 0, -btn_z]) cradle();
+  rotate([0, 90, 0]) translate([-ring_front_x, 0, -btn_z]) cradle();
 }
 
 // Waterproof button, two materials, printed flange down: a TPU boot (flange,
 // sleeve, roof) and a PETG plunger standing free inside it, fused into the
 // roof. Pressed, the sleeve buckles and the plunger drives the switch.
-boot_sleeve_h = wall + sw_throw;
+boot_sleeve_h = wall + skin + sw_throw;
 module boot_tpu() {
   difference() {
     union() {
@@ -601,6 +772,51 @@ module boot_stem() {
   translate([0, 0, head_z - 0.4]) cylinder(d = stem_head_d, h = 0.4 + boot_roof / 2);
 }
 
+// The front buttons' boots and plungers: the same, smaller, for tact
+// switches.
+fboot_sleeve_h = front_wall + fb_proud;
+module fboot_tpu() {
+  difference() {
+    union() {
+      cylinder(d = fboot_flange_d, h = fboot_flange_t, $fn = 40);
+      cylinder(d = fboot_od, h = fboot_flange_t + fboot_sleeve_h + fboot_roof - 0.4, $fn = 32);
+      translate([0, 0, fboot_flange_t + fboot_sleeve_h + fboot_roof - 0.4])
+        cylinder(d1 = fboot_od, d2 = fboot_od - 0.8, h = 0.4, $fn = 32);
+    }
+    translate([0, 0, -eps]) cylinder(d = fboot_od - 2 * fboot_wall, h = fboot_flange_t + fboot_sleeve_h + eps, $fn = 24);
+    fboot_stem();
+  }
+}
+
+module fboot_stem() {
+  head_z = fboot_flange_t + fboot_sleeve_h;
+  cone = (fstem_head_d - fstem_d) / 2;
+  cylinder(d = fstem_d, h = head_z - cone - 0.3, $fn = 20);
+  translate([0, 0, head_z - cone - 0.3]) cylinder(d1 = fstem_d, d2 = fstem_head_d, h = cone, $fn = 20);
+  translate([0, 0, head_z - 0.3]) cylinder(d = fstem_head_d, h = 0.3 + fboot_roof / 2, $fn = 20);
+}
+
+// Front cradle round a tact switch: a sleeve, its front a ring the plunger
+// passes through, notched at the back for the switch's legs. Modelled in
+// place at button y = 0; prints ring face down as modelled.
+module fcradle() {
+  difference() {
+    translate([fb_x - fcradle.x / 2, -fcradle.y / 2, fb_ring_z]) cube(fcradle);
+    translate([fb_x - fsw / 2 - 0.1, -fsw / 2 - 0.1, fb_ring_z + fsw_plunger]) cube([fsw + 0.2, fsw + 0.2, fcradle.z]);
+    translate([fb_x, 0, fb_ring_z - 1]) cylinder(d = 3.8, h = fsw_plunger + 2, $fn = 24);
+    for (s = [-1, 1]) translate([fb_x + s * (fcradle.x / 2), 0, fsw_back_z - 1.2]) cube([2 * fcradle_wall + 0.4, fsw + 2, 2.4], center = true);
+  }
+}
+
+module fcradle_in_place(y) { translate([0, y, 0]) fcradle(); }
+module fcradle_print() { translate([-fb_x, 0, -fb_ring_z]) fcradle(); }
+
+// A front button in place, flange against the front wall's inside.
+module fbutton_in_place(y, part) {
+  translate([fb_x, y, fb_ring_z]) mirror([0, 0, 1])
+    if (part == "tpu") fboot_tpu(); else fboot_stem();
+}
+
 // A button in place in the left wall, flange against the wall's inside.
 module button_in_place(y, part) {
   translate([-ring_front_x, y, btn_z]) rotate([0, -90, 0])
@@ -615,13 +831,33 @@ module ref_display_board() {
 module ref_display_panel() {
   translate([disp_cx, disp_cy, front_wall + disp_panel / 2]) cube([29.2, 59.2, disp_panel], center = true);
 }
-module ref_boards() {
+// The XIAO on the midframe's front, radio 1 behind it.
+module ref_xiao() {
   translate([xiao_c.x - board_l / 2, xiao_c.y - board_w / 2, xiao_pcb_z0]) cube([board_l, board_w, xiao_pcb]);
   translate([xiao_c.x + board_l / 2 - 7.5, xiao_c.y - 4.5, xiao_pcb_z0 - xiao_usb_h]) cube([7.5 + 1, 9, xiao_usb_h]);
   translate([mic.x - 1.5, mic.y - 1.5, xiao_pcb_z0 - xiao_mic_h]) cube([3, 3, xiao_mic_h]);
-  translate([radio1_c.x, radio1_c.y, mid_z1 + radio_h / 2]) cube([board_l, board_w, radio_h], center = true);
-  translate([radio2_c.x, radio2_c.y, mid_z0 - radio_h / 2]) cube([board_w, board_l, radio_h], center = true);
+  for (b = xiao_buttons) translate([xiao_c.x + b.x - 1.5, xiao_c.y + b.y - 1.5, xiao_pcb_z0 - xiao_button_h]) cube([3, 3, xiao_button_h]);
 }
+module ref_radio2() {
+  translate([radio2_c.x, radio2_c.y, radio2_z0 + radio_h / 2]) cube([board_l, board_w, radio_h], center = true);
+}
+module ref_gps() {
+  translate([gps_c.x, gps_c.y, gps_z0 + gps_patch_t / 2]) cube([gps.x, gps.y, gps_patch_t], center = true);
+  translate([gps_c.x, gps_c.y, gps_z0 + gps_patch_t + gps_pcb_t / 2]) cube([gps.x, gps.y, gps_pcb_t], center = true);
+}
+module ref_motor() {
+  translate([vib_c.x, vib_c.y, vib_z]) rotate([-90, 0, 0]) {
+    cylinder(d = vib_d, h = vib_l, $fn = 32);
+    translate([0, 0, vib_l]) cylinder(d = vib_d - 1, h = vib_weight_l, $fn = 32);
+  }
+}
+module ref_front_switches() {
+  for (y = fb_y) translate([fb_x - fsw / 2, y - fsw / 2, fb_ring_z + fsw_plunger]) cube([fsw, fsw, fsw_body]);
+}
+module ref_radio1() {
+  translate([radio1_c.x, radio1_c.y, mid_z1 + radio_h / 2]) cube([board_l, board_w, radio_h], center = true);
+}
+module ref_boards() { ref_xiao(); ref_radio1(); ref_radio2(); }
 module ref_sensor() {
   translate([sns_c.x, sns_c.y, sns_pcb_z0 + sns_pcb_t / 2]) cube([sns_pcb.x, sns_pcb.y, sns_pcb_t], center = true);
   translate([sns_c.x, sns_c.y, (sns_lens_z0 + sns_pcb_z0) / 2]) cube([sns_lens.x, sns_lens.y, sns_pcb_z0 - sns_lens_z0], center = true);
@@ -637,7 +873,10 @@ module ref_amp() {
   translate([amp_c.x, amp_c.y, inner_back_z - amp_h / 2]) cube([amp_w, amp_l, amp_h], center = true);
 }
 module ref_battery() {
-  translate([batt_c.x, batt_c.y, mid_z1 + batt_t / 2 + 0.2]) cube([batt_w, batt_l, batt_t], center = true);
+  translate([batt_c.x, batt_c.y, batt_z0 + batt.z / 2]) cube(batt, center = true);
+}
+module ref_gnss() {
+  translate([gnss_c.x, gnss_c.y, gnss_z0 + gnss_h / 2]) cube([gnss.x, gnss.y, gnss_h], center = true);
 }
 module ref_switches() {
   for (y = btn_y) mirror([1, 0, 0]) translate([sw_back_x, y - sw_y / 2, btn_z - sw_z / 2]) {
@@ -658,6 +897,7 @@ module front_cover_part() { mirror([1, 0, 0]) front_cover(); }
 module tub_part() { mirror([1, 0, 0]) tub_print(); }
 module midframe_part() { mirror([1, 0, 0]) midframe_print(); }
 module cradle_part() { cradle_print(); }
+module front_cradle_part() { mirror([1, 0, 0]) fcradle_print(); }
 
 // Stands a layout-frame model up for the previews: Y up becomes Z up, the
 // front faces -Y, and X is mirrored the right way round (see the header).
