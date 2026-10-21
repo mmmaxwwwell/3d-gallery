@@ -10,8 +10,9 @@ export default z.strictObject({
   rib_squeeze: between(0, 0.6),
   stick_inches: wholeBetween(3, 7),
   wall: between(0.8, 4),
-  finger_w: between(4, 14),
-  clip_len: between(6, 30),
+  finger_w: between(6, 15),
+  clip_len: between(10, 55),
+  clip_arc: between(20, 80),
   lip_reach: between(0.3, 2.5),
   drain_d: between(1, 8),
 });

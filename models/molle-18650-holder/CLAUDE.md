@@ -26,15 +26,21 @@
   their axes, pockets removed) fills the grooves behind them, and
   `bottom_fill()` hulls the cones with the bottom block up to a plane that
   rises 45° into the front grooves (the user disliked the catchy pockets
-  under the cell ends).
-- **Finger slit and clips.** `tube_slits()` cuts a `finger_w` slit down each
-  tube's front (round bottom, chamfered outer edge) and a notch where each
-  pair of tubes meets, over the top `clip_len`, taking the junction with it.
-  That leaves a `clip_w` spring finger either side of each finger slit;
-  `lips()` puts a lip on each, 45° under (prints, and lets a firm push up
-  the slit spring it) and ramped on top (the cell snaps in). Two slits
-  per junction instead of one notch left a thin free spike: don't go back.
-  The lips raise `tube_top` above the cell, so 69 mm cells need the 4" stick.
+  under the cell ends). The tubes' tops stand 1.1 mm above the plate.
+- **Finger slot and lever.** `finger_slot()` cuts `finger_w` down each
+  tube's front and on under the cell's end to `finger_under` past its axis
+  (the user: wrap round the end, at least half way under). The cell is held
+  by a lever in the tube's *back* (`clip_arc` 45° = the user's "1/8 of a
+  circle", `clip_len` 40): `lever_cut()` cuts its side slits, the slit over
+  its end, and the pocket behind it; `lever_bump()` is the 45°/45° bump
+  over the cell's top edge. The pocket sits in the solid between tubes and
+  MOLLE back: `front_z` stands the tubes `clip_pocket + clip_skin` off
+  `plate_z` (the bands' face) for it, and its back wall is the lever's stop.
+  The lever ends under `ceiling_h` of whole wall (the user: a ceiling so a
+  careless cell can't slam or over-move it), above which the mouth flares
+  on `lead_r`; `collar` flares the outside 45° to keep a rim. Front clips
+  with lips and slits beside them came before this and were dropped.
+- `back_sector()` works in `in_tube()`'s frame, where the back is +Y.
 - **Preview pose:** the viewer is Z-up, so `assembled` is wrapped in
   `in_use()` (open tops up); `plate` in `print_pose()`.
 - **Blocks are swept with a ball** (`rounded_extrusion`),
@@ -47,4 +53,4 @@
   don't want to extend"): nothing stands above the plate.
 - Unprinted. Open guesses: `cell_clear` 0.3, `rib_squeeze` 0.15, the slot
   clearances (0.3 / 0.4), `webbing_room` 1.8, the leaf's 0.8 click, the
-  lips' 1 mm reach and 18 mm clips.
+  levers' 1 mm bump and 0.5 mm spare swing.
