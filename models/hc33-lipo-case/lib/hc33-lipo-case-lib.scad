@@ -138,12 +138,22 @@ sma_hole_d = 6.6;
 sma_nut_d = 9.2;
 sma_behind = 12;
 
-// Walls: the right wall and the door face; the back and front; the bottom;
-// the top (the SMAs' plate)
+// Walls: the right wall and the door face; the back and front; the bottom
+// (over the TPU base); the top (the SMAs' plate)
 side_wall = 6;
 end_wall = 6;
 bottom_t = 2.5;
 top_t = 3;
+
+// The TPU base under the whole case, printed in place under the body on
+// the U1: its thickness; the keys it carries up into the body's walls
+// (diameter at the base, how far up, how much wider at the top), and how
+// far apart they are along the walls
+base_t = 1.6;
+key_d = 2.2;
+key_h = 1.5;
+key_flare = 0.4;
+key_pitch = 10;
 
 // Corner radius seen from the top, and the top edge's radius
 profile_r = 10;
@@ -178,15 +188,16 @@ screw_len = 10;
 // Door-face screws into bosses on the back and front walls, each [wall
 // (-1 back, 1 front), height, M size, axis's distance in from the wall].
 // Each head sits grip_inset into the door face.
-door_screws = [[-1, 39.5, 5, 4.68], [-1, 54.5, 5, 4.68], [1, 65.5, 3, 3.15]];
+door_screws = [[-1, 39.5, 5, 4.68], [-1, 54.5, 5, 4.68], [1, 67, 3, 3.15]];
 
 // M5 screws down through the top into bosses on the front wall: across,
 // and the axis's distance in from the wall
 top_screw_x = [-3, 12];
 top_screw_in = 3;
 
-// Grip rings: height, how far an inset ring is sunk, the knurl's pitch and
-// depth, and the plain margin at the bottom and under the top edge
+// Grip rings: height, how far an inset ring is sunk into the PCTG (the TPU
+// fills it flush), the knurl's pitch and depth in the TPU, and the plain
+// margin at the bottom and under the top edge
 band_h = 15;
 grip_inset = 2;
 knurl_pitch = 2;
@@ -197,6 +208,8 @@ band_margin = 2;
 eps = 0.01;
 
 hx = cell_w / 2 + cell_fit;
+// The floor's top
+floor_z = base_t + bottom_t;
 ex = hx + side_wall;
 
 // Through the stack, from the back wall's inner face. The TP4056 sits far
@@ -225,19 +238,19 @@ dividers = [hc_y - layer_gap / 2, cell_y - layer_gap / 2, v4_y - layer_gap / 2];
 hc_board = [hc_w, hc_y + hc_under, hc_pcb, hc_l, hc_usb_overhang, hc_y + hc_under + hc_pcb + hc_usb_y, 0, 0, 0];
 v4_board = [v4_w, v4_y + v4_under, v4_pcb, v4_l, v4_usb_overhang, v4_y + v4_under + v4_pcb + v4_usb_y, v4_nose, v4_foot, v4_ipex_gap];
 boards = [hc_board, v4_board];
-function board_z0(b) = bottom_t + usb_gap + b[4];
+function board_z0(b) = floor_z + usb_gap + b[4];
 function board_z1(b) = board_z0(b) + b[3];
 
 // TP4056: PCB from tp_x0 to tp_x1, standing on its bar
 tp_pcb_y = tp_y + tp_back;
 tp_x1 = hx - usb_gap - tp_usb_overhang;
 tp_x0 = tp_x1 - tp_l;
-tp_z0 = bottom_t + slide_fit + tp_floor;
+tp_z0 = floor_z + slide_fit + tp_floor;
 tp_z1 = tp_z0 + tp_w;
 tp_usb_cy = tp_pcb_y + tp_pcb + tp_usb_h / 2;
 tp_usb_cz = tp_z0 + tp_w / 2;
 
-cell_z1 = bottom_t + cell_l;
+cell_z1 = floor_z + cell_l;
 
 tallest = max(cell_z1, tp_z1, max([for (b = boards) board_z1(b)]));
 // The fins stop at the roofs; above them the wires cross between chambers
@@ -267,7 +280,7 @@ smas = [[-(hx - sma_e), hy - sma_in_y], [hx - sma_e, -(hy - sma_in_y)]];
 sma_low = ceiling - (sma_behind - 2);
 
 // The fins and the cell's floor plate: their bottom, in the floor's channels
-fin_z0 = bottom_t - floor_channel_d + slide_fit;
+fin_z0 = floor_z - floor_channel_d + slide_fit;
 
 // The cavity's right corners' radius
 cavity_r = 1;
@@ -305,6 +318,13 @@ function band_z1(i) = min(band_margin + (i + 1) * band_h, band_top);
 function band_of(z) = floor((z - band_margin) / band_h);
 function inset_band(i) = i % 2 == 1 && band_z1(i) - band_z0(i) >= 2 * grip_inset + 2;
 
+// The base's keys, under the middle of the back and front walls and of the
+// right wall outside the fins' grooves
+function spread(a, b) = let(n = max(1, floor((b - a) / key_pitch))) [for (i = [0:n]) a + (b - a) * i / n];
+base_keys = concat(
+  [for (sy = [-1, 1], x = spread(-hx + key_d, hx - key_d)) [x, sy * (hy + end_wall / 2)]],
+  [for (y = spread(-hy + key_d, hy - key_d)) [hx + wall_groove_d + (side_wall - wall_groove_d) / 2, y]]);
+
 function slot_y0(b) = b[1] - slot_fit / 2;
 function chamfer_top(b) = len(b) > 6 ? b[6] : 0;
 function chamfer_bottom(b) = len(b) > 7 ? b[7] : 0;
@@ -335,14 +355,21 @@ assert(divider_t + 0.6 <= layer_gap, "the fins leave their neighbours no room");
 assert(v4_board[5] - hc_board[5] >= usb_open_h + 1.2, "the two bottom USB-C openings run together");
 assert(tp_x0 - slot_side_fit - rail_wall >= -hx + 2, "the TP4056 doesn't fit across");
 assert(tp_usb_cy - usb_open_h / 2 >= -1, "the TP4056's opening runs into the back wall");
-assert(tp_usb_cz - usb_open_w / 2 >= bottom_t, "the TP4056's opening runs into the bottom");
-for (b = boards) assert(board_z0(b) - (bottom_t + slide_fit) >= 0.6 - eps, "a board's rib has no floor under its slot");
+assert(tp_usb_cz - usb_open_w / 2 >= floor_z, "the TP4056's opening runs into the bottom");
+for (b = boards) assert(board_z0(b) - (floor_z + slide_fit) >= 0.6 - eps, "a board's rib has no floor under its slot");
 assert(floor_channel_d <= bottom_t - 1, "the floor's channels leave too little floor");
+assert(base_t <= band_margin, "the TPU base runs up into the bottom grip ring");
+// Each key keeps 1 mm of wall either side at its widest; the right wall's
+// sit outside the fins' grooves
+assert((end_wall - key_d - 2 * key_flare) / 2 >= 1 && (side_wall - wall_groove_d - key_d - 2 * key_flare) / 2 >= 1 - eps,
+       "the base's keys leave the walls too thin");
+assert(key_h <= band_margin + band_h - base_t, "the base's keys reach the first inset ring");
 assert(lead_y >= arc_y && arc_x > 0 && arc_y > 0, "the corner radius is too big for the outline");
 // The cavity's corner keeps a wall behind an inset ring's knurl
-assert(profile_r - norm([profile_r - side_wall, profile_r - end_wall]) - grip_inset - knurl_d >= 1.2, "the corners are too thin");
-assert(end_wall - grip_inset - knurl_d >= 1.2, "the back and front walls are too thin behind the grip");
-assert(side_wall - grip_inset - knurl_d - wall_groove_d >= 1.2, "the right wall is too thin behind the grip");
+assert(profile_r - norm([profile_r - side_wall, profile_r - end_wall]) - grip_inset >= 1.2, "the corners are too thin");
+assert(end_wall - grip_inset >= 1.2, "the back and front walls are too thin behind the grip");
+assert(knurl_d < grip_inset, "the knurl cuts through the TPU rings");
+assert(side_wall - grip_inset - wall_groove_d >= 1.2, "the right wall is too thin behind the grip");
 assert(ceiling - hook_h - nib_h >= divider_z1 + 0.3, "the top's hook runs into the fins");
 assert(hook_y1 > hook_y0 + 5, "the back-right SMA leaves no room for the top's hook");
 assert(nib_l + slide_fit <= side_wall - 2, "the hook's groove cuts through the right wall");
@@ -425,7 +452,7 @@ module shell(z0 = 0, z1 = total_h) {
 
 // Open on the left and at the top
 module cavity() {
-  translate([0, 0, bottom_t]) linear_extrude(ceiling - bottom_t + 1) hull() {
+  translate([0, 0, floor_z]) linear_extrude(ceiling - floor_z + 1) hull() {
     for (sy = [-1, 1]) translate([hx - cavity_r, sy * (hy - cavity_r)]) circle(r = cavity_r);
     translate([-hx - 1, -hy]) square([eps, 2 * hy]);
   }
@@ -445,14 +472,14 @@ function outline_pts(e, n = 12) = let(r = profile_r - e, x = ex - e, ly = arc_y 
 
 function cumlen(p) = [for (i = 0, s = 0; i < len(p); s = s + (i + 1 < len(p) ? norm(p[i + 1] - p[i]) : 0), i = i + 1) s];
 
-// The solid inside an inset ring's knurled face, from za to zb: square
-// pyramids on a grid at ±45°, their tips on the ring's inset face and the
-// grooves between them knurl_d deeper. The top and bottom rows stay on the
-// inset face so the knurl meets the chamfers flush.
-module knurl_core(za, zb) {
-  pe = outline_pts(grip_inset);
-  pv = outline_pts(grip_inset + knurl_d);
-  pin = outline_pts(grip_inset + knurl_d + 1);
+// The solid inside a knurled face from za to zb: square pyramids on a grid
+// at ±45°, their tips on the outline inset by e and the grooves between
+// them knurl_d deeper. The top and bottom rows stay on the tips' face so
+// the knurl meets whatever is above and below it flush.
+module knurl_core(za, zb, e = 0) {
+  pe = outline_pts(e);
+  pv = outline_pts(e + knurl_d);
+  pin = outline_pts(e + knurl_d + 1);
   s = cumlen(pe);
   L = s[len(s) - 1];
   q = knurl_pitch / sqrt(2);
@@ -480,19 +507,34 @@ module knurl_core(za, zb) {
   polyhedron(concat(outer, inner), faces);
 }
 
-// What comes off the outside for the inset rings: each sunk grip_inset
-// with 45° chamfers into it, knurled or smooth
-module grip_cut(knurled = true) {
-  for (i = [0:band_n - 1]) if (inset_band(i)) let(z0 = band_z0(i), z1 = band_z1(i)) difference() {
+// An inset ring's recess in the PCTG: sunk grip_inset with 45° chamfers
+// into it
+module ring_recess(i) {
+  z0 = band_z0(i);
+  z1 = band_z1(i);
+  difference() {
     translate([0, 0, z0]) linear_extrude(z1 - z0) difference() {
       offset(delta = 1) outline();
-      offset(delta = -(grip_inset + knurl_d + 0.5)) outline();
+      offset(delta = -(grip_inset + 0.5)) outline();
     }
     hull() { slice(0, z0 - eps); slice(grip_inset, z0 + grip_inset); }
     hull() { slice(grip_inset, z1 - grip_inset - eps); slice(0, z1); }
-    if (knurled) knurl_core(z0 + grip_inset, z1 - grip_inset);
-    else translate([0, 0, z0 + grip_inset - eps]) linear_extrude(z1 - z0 - 2 * grip_inset + 2 * eps)
+    translate([0, 0, z0 + grip_inset - eps]) linear_extrude(z1 - z0 - 2 * grip_inset + 2 * eps)
       offset(delta = -grip_inset) outline();
+  }
+}
+
+module grip_cut() {
+  for (i = [0:band_n - 1]) if (inset_band(i)) ring_recess(i);
+}
+
+// The TPU that fills the recesses, flush with the plain rings: diamond
+// knurled knurl_d deep, or smooth where it prints facing the bed
+module grip_rings(knurled = true) {
+  for (i = [0:band_n - 1]) if (inset_band(i)) intersection() {
+    ring_recess(i);
+    if (knurled) knurl_core(band_z0(i), band_z1(i));
+    else translate([0, 0, band_z0(i) - 1]) linear_extrude(band_z1(i) - band_z0(i) + 2) outline();
   }
 }
 
@@ -503,8 +545,8 @@ module grip_cut(knurled = true) {
 // to the left for the board to slide in.
 module right_rail(b) {
   difference() {
-    translate([b[0] / 2 - slot_engage, yb + rail_y0(b), bottom_t - eps])
-      cube([hx - b[0] / 2 + slot_engage + eps, rail_y1(b) - rail_y0(b), board_z1(b) + roof_fit + roof_t - bottom_t + eps]);
+    translate([b[0] / 2 - slot_engage, yb + rail_y0(b), floor_z - eps])
+      cube([hx - b[0] / 2 + slot_engage + eps, rail_y1(b) - rail_y0(b), board_z1(b) + roof_fit + roof_t - floor_z + eps]);
     translate([0, yb, 0]) along_y(slot_y0(b), slot_y1(b)) polygon(side_slot(b, b[0] / 2, -1, board_z0(b), board_z1(b)));
   }
 }
@@ -513,7 +555,7 @@ module right_rail(b) {
 module tp_right_rails() {
   zr0 = tp_usb_cz - tp_usb_w / 2 - 0.5;
   zr1 = tp_usb_cz + tp_usb_w / 2 + 0.5;
-  for (z = [[bottom_t, zr0], [zr1, tp_z1 + roof_fit + roof_t]]) difference() {
+  for (z = [[floor_z, zr0], [zr1, tp_z1 + roof_fit + roof_t]]) difference() {
     translate([tp_x1 - slot_engage, yb + rail_y0(tp_b), z[0] - eps])
       cube([hx - tp_x1 + slot_engage + eps, rail_y1(tp_b) - rail_y0(tp_b), z[1] - z[0] + eps]);
     translate([tp_x1 - slot_engage - 1, yb + slot_y0(tp_b), tp_z0])
@@ -526,10 +568,10 @@ module tp_right_rails() {
 module fin_channels() {
   w = divider_t / 2 + slide_fit;
   for (c = [[dividers[0] - w, dividers[0] + w], [dividers[1] - w, dividers[2] + w]])
-    translate([-hx - 1, yb + c[0], bottom_t - floor_channel_d]) cube([2 * hx + 1, c[1] - c[0], floor_channel_d + eps]);
+    translate([-hx - 1, yb + c[0], floor_z - floor_channel_d]) cube([2 * hx + 1, c[1] - c[0], floor_channel_d + eps]);
   for (i = [0:len(dividers) - 1])
-    translate([hx - eps, yb + dividers[i] - w, bottom_t - floor_channel_d])
-      cube([wall_groove_d + eps, 2 * w, divider_tops[i] + slide_fit - bottom_t + floor_channel_d]);
+    translate([hx - eps, yb + dividers[i] - w, floor_z - floor_channel_d])
+      cube([wall_groove_d + eps, 2 * w, divider_tops[i] + slide_fit - floor_z + floor_channel_d]);
 }
 
 // The top's grooves: along the back and front walls' tops for its tongues,
@@ -573,7 +615,7 @@ module top_screw_bosses() {
 }
 
 module bottom_opening(y) {
-  translate([0, yb + y, -1]) linear_extrude(bottom_t + 2)
+  translate([0, yb + y, -1]) linear_extrude(floor_z + 2)
     offset(usb_open_r) square([usb_open_w - 2 * usb_open_r, usb_open_h - 2 * usb_open_r], center = true);
 }
 
@@ -581,8 +623,9 @@ module body() {
   difference() {
     intersection() {
       shell();
-      translate([-hx, -ey - 1, -1]) cube([ex + hx + 1, 2 * ey + 2, ceiling + 1]);
+      translate([-hx, -ey - 1, base_t]) cube([ex + hx + 1, 2 * ey + 2, ceiling - base_t]);
     }
+    base_key_shapes();
     cavity();
     fin_channels();
     top_grooves();
@@ -597,6 +640,64 @@ module body() {
   top_screw_bosses();
 }
 
+// ---- TPU base
+
+// A key: flaring as it rises into the wall, so the PETG printed over it
+// holds it
+module base_key_shapes() {
+  for (k = base_keys) translate([k[0], k[1], base_t - eps])
+    cylinder(d1 = key_d, d2 = key_d + 2 * key_flare, h = key_h + eps);
+}
+
+// The body's TPU: the base and its knurled rings
+module body_tpu() {
+  tpu_base();
+  intersection() {
+    grip_rings();
+    translate([-hx, -ey - 1, 0]) cube([ex + hx + 1, 2 * ey + 2, ceiling]);
+  }
+}
+
+// The carriage's TPU: its share of the rings, flush. The door face is the
+// carriage's bed, so its knurl is 90° V-grooves at ±45°, knurl_d deep and
+// knurl_pitch apart, whose walls print at 45°; they stop knurl_d short of
+// the ring's chamfers and the face's lead-ins. The leads and corners stay
+// smooth: knurl there would face down past 45°.
+module carriage_tpu() {
+  difference() {
+    intersection() {
+      grip_rings(false);
+      translate([-ex - 1, -ey - 1, 0]) cube([ex - hx + 1, 2 * ey + 2, ceiling]);
+    }
+    for (i = [0:band_n - 1]) if (inset_band(i)) door_knurl(band_z0(i) + knurl_d, band_z1(i) - knurl_d);
+  }
+}
+
+module door_knurl(z0, z1) {
+  yl = lead_y - knurl_d;
+  s = knurl_d * sqrt(2);
+  span = 2 * yl + (z1 - z0);
+  n = ceil(span / knurl_pitch);
+  intersection() {
+    translate([-ex - 1, -yl, z0]) cube([1 + knurl_d + eps, 2 * yl, z1 - z0]);
+    for (dir = [-1, 1], k = [-n:n]) translate([-ex, 0, (z0 + z1) / 2]) rotate([dir * 45, 0, 0])
+      translate([0, k * knurl_pitch, 0]) rotate([0, 0, 45]) cube([s, s, 2 * span], center = true);
+  }
+}
+
+// Under the whole case, the door face's strip included, with the bottom
+// USB-C openings through it
+module tpu_base() {
+  difference() {
+    intersection() {
+      shell();
+      translate([-ex - 1, -ey - 1, 0]) cube([2 * ex + 2, 2 * ey + 2, base_t]);
+    }
+    for (b = boards) bottom_opening(b[5]);
+  }
+  base_key_shapes();
+}
+
 // ---- carriage, modelled in place
 
 // A board's rib on the door face: from the face to past the board's edge,
@@ -604,7 +705,7 @@ module body() {
 // board to slide in. Kept clear of the body's back and front walls.
 module left_rib(b, x_edge, z0, z1) {
   x0 = -hx - eps;
-  zf = max(bottom_t + slide_fit, z0 - roof_t);
+  zf = max(floor_z + slide_fit, z0 - roof_t);
   y0 = max(rail_y0(b), slide_fit);
   y1 = min(rail_y1(b), depth - slide_fit);
   difference() {
@@ -642,7 +743,7 @@ module board_bars(b, y_fin) {
   for (seg = g > 0 ? [[-hx - eps, -g, true], [g, x1, false]] : [[-hx - eps, x1, true]])
     edge_bar(b, y_fin, seg[0], seg[1], z1 - slot_engage, z1 + roof_fit + roof_t, z1 - slot_engage - 1, z1 + roof_fit, seg[2]);
   for (seg = [[-hx - eps, -u, true], [u, x1, false]])
-    edge_bar(b, y_fin, seg[0], seg[1], bottom_t + slide_fit, z0 + bottom_engage, z0, z0 + bottom_engage + 1, seg[2]);
+    edge_bar(b, y_fin, seg[0], seg[1], floor_z + slide_fit, z0 + bottom_engage, z0, z0 + bottom_engage + 1, seg[2]);
 }
 
 // The TP4056's slotted bars along its bottom and top edges, from the door
@@ -652,7 +753,7 @@ module tp_bars() {
   x1 = tp_x1 - slot_engage - slide_fit;
   y0 = rail_y0(tp_b);
   y1 = dividers[0];
-  for (z = [[bottom_t + slide_fit, tp_z0 + slot_engage, tp_z0, tp_z0 + slot_engage + 1],
+  for (z = [[floor_z + slide_fit, tp_z0 + slot_engage, tp_z0, tp_z0 + slot_engage + 1],
             [tp_z1 - slot_engage, tp_z1 + roof_fit + roof_t, tp_z1 - slot_engage - 1, tp_z1 + roof_fit]])
     difference() {
       translate([-hx - eps, yb + y0, z[0]]) cube([x1 + hx + eps, y1 - y0, z[1] - z[0]]);
@@ -670,7 +771,7 @@ module fins() {
 module cell_cradle() {
   y0 = dividers[1] - divider_t / 2;
   y1 = dividers[2] + divider_t / 2;
-  translate([-hx - eps, yb + y0, fin_z0]) cube([2 * hx - slide_fit + eps, y1 - y0, bottom_t - fin_z0]);
+  translate([-hx - eps, yb + y0, fin_z0]) cube([2 * hx - slide_fit + eps, y1 - y0, floor_z - fin_z0]);
   for (x = [-hx - eps, hx - slide_fit - cell_roof_reach])
     translate([x, yb + y0, cell_z1 + roof_fit]) cube([cell_roof_reach + eps, y1 - y0, roof_t]);
 }
@@ -693,7 +794,7 @@ module carriage() {
       intersection() {
         shell();
         union() {
-          translate([-ex - 1, -ey - 1, -1]) cube([ex - hx + 1, 2 * ey + 2, total_h + 2]);
+          translate([-ex - 1, -ey - 1, base_t]) cube([ex - hx + 1, 2 * ey + 2, total_h]);
           translate([-ex - 1, -ey - 1, ceiling]) cube([2 * ex + 2, 2 * ey + 2, total_h]);
         }
       }
@@ -705,7 +806,7 @@ module carriage() {
       cylinder(d = head_d(s[2]) + 0.5, h = grip_inset + 1);
     }
     for (x = top_screw_x) translate([x, top_screw_y, ceiling - 1]) cylinder(d = m5_clear_d, h = top_t + 2);
-    grip_cut(false);
+    grip_cut();
   }
   fins();
   cell_cradle();
@@ -728,10 +829,14 @@ module carriage_print() {
   translate([0, 0, ex]) rotate([0, -90, 0]) carriage();
 }
 
+module carriage_tpu_print() {
+  translate([0, 0, ex]) rotate([0, -90, 0]) carriage_tpu();
+}
+
 // ---- reference parts
 
 module ref_cell() {
-  translate([-cell_w / 2, yb + cell_y + cell_fit, bottom_t]) cube([cell_w, cell_t, cell_l]);
+  translate([-cell_w / 2, yb + cell_y + cell_fit, floor_z]) cube([cell_w, cell_t, cell_l]);
 }
 
 // A board as its PCB, its parts as blocks either side, clear of the
@@ -743,7 +848,7 @@ module ref_board(b, back, front) {
   translate([-b[0] / 2, yb + b[1], z0]) cube([b[0], b[2], b[3]]);
   if (back > 0) translate([-b[0] / 2 + e, yb + b[1] - back, z0 + 3]) cube([b[0] - 2 * e, back, b[3] - 6]);
   translate([-b[0] / 2 + e, yb + b[1] + b[2], z0 + 3]) cube([b[0] - 2 * e, front, b[3] - 6]);
-  translate([-4.5, yb + b[5] - 1.6, bottom_t + usb_gap]) cube([9, 3.2, b[4] + 7]);
+  translate([-4.5, yb + b[5] - 1.6, floor_z + usb_gap]) cube([9, 3.2, b[4] + 7]);
 }
 
 module ref_hc() { ref_board(hc_board, hc_under, hc_over); }
@@ -761,7 +866,7 @@ module ref_v4() {
   translate([-7.5, yb + b[1] - v4_under, z0 + 37.9]) cube([15, v4_under, 5.3]);
   for (sx = [-1, 1]) translate([sx > 0 ? 2.45 : -6.7, yb + b[1] - 3.4, z0 + 1.06]) cube([4.25, 3.4, 4.2]);
   for (sx = [-1, 1]) translate([sx > 0 ? 6.26 : -9.56, yb + b[1] + b[2], z0 + 1.1]) cube([3.3, 2.52, 4.65]);
-  translate([-4.47, yb + b[5] - 1.95, bottom_t + usb_gap]) cube([8.94, 3.9, b[4] + 7.6]);
+  translate([-4.47, yb + b[5] - 1.95, floor_z + usb_gap]) cube([8.94, 3.9, b[4] + 7.6]);
 }
 
 module ref_tp() {

@@ -8,25 +8,29 @@ A case that stands on end, with everything stacked face to face inside it like a
 
 The HC33's and V4's USB-Cs come out of the bottom, the TP4056's out of the right side. Two SMA bulkheads come out of the top at opposite corners: front-left and back-right.
 
-49 × 56.1 × 82.5 mm. Not printed yet.
+49 × 56.1 × 84.1 mm. Not printed yet.
 
 ## Pieces
 
 | Piece | Material | Prints |
 |---|---|---|
-| Carriage | PETG | on its door face |
-| Body | PETG | standing on its bottom |
+| Body | black PCTG, with its base and grip rings in orange TPU 75A (`body-tpu.stl`) printed in place | standing on its bottom |
+| Carriage | black PCTG, with its share of the grip rings in orange TPU 75A (`carriage-tpu.stl`) printed in place | on its door face |
 
-Both fit on one bed: `print.3mf` is that plate.
+Both go on one Snapmaker U1 bed, `print.3mf`: PCTG from head 3, TPU from head 4 (the plate pins the colours to those heads).
 
 - **Carriage.** One L-shaped piece: the top, with the SMA holes, and the left face, the door face. Everything inside hangs on it, so the whole stack comes out together.
 - **Body.** The bottom and the back, front and right walls. It is open at the top and on the left, and the carriage slides in from the left.
 
 Seen from the top, the case is a rounded rectangle (10 mm corners). The left and right faces run into the corners at 45°, and the top edge is rounded (4 mm) with the same 45° lead.
 
-## Grip
+## Grip and base
 
-Rings 15 mm tall run round the case, plain and inset in turn, from a plain one at the bottom. An inset ring is sunk 2 mm, with a 45° chamfer at its top and bottom edges. On the body its floor is diamond knurled: pyramids 2 mm apart at ±45°, 0.8 mm deep. On the door face the inset rings are smooth: that face is the carriage's print bed, and knurl facing down won't print.
+- **Rings.** 15 mm rings run round the case, PCTG and TPU in turn, from a PCTG one at the bottom. Each TPU ring fills a recess sunk 2 mm into the PCTG with 45° chamfers top and bottom. Its outside is flush with the PCTG rings and knurled 0.8 mm deep:
+  - round the body, diamond pyramids 2 mm apart at ±45°;
+  - on the door face, 90° V-grooves at ±45°, 2 mm apart. The door face is the carriage's print bed, and V-groove walls print at 45° there where pyramids wouldn't;
+  - on the door face's 45° lead-ins into the corners, smooth: knurl there would face down past 45°.
+- **Base.** 1.6 mm of TPU under the whole case, the door face's strip included, with the bottom USB-C openings through it. Twelve keys rise 1.5 mm from it into the body's walls, flaring 0.4 mm, so the PCTG printed over them holds them as well as the bond does.
 
 ## How it goes together
 
@@ -42,7 +46,7 @@ Rings 15 mm tall run round the case, plain and inset in turn, from a plain one a
   - Two tongues under the top run in grooves along the back and front walls' tops.
   - A hook under the top's right edge has a nib that slides into a groove in the right wall, so the top's far end can't lift.
 - **Screws.** Five button-head cap screws hold it in, each threading 6–7 mm into a boss on the body.
-  - Through the door face: two M5x10 into bosses on the back wall (39.5 and 54.5 mm up) and one M3x10 into a boss on the front wall (65.5 up), over the V4. Each head sits 2 mm into the face, on the flat of a plain ring or an inset ring's floor.
+  - Through the door face: two M5x10 into bosses on the back wall (39.5 and 54.5 mm up) and one M3x10 into a boss on the front wall (67 up), over the V4. Each head sits 2 mm into the face, on the flat of a plain ring or an inset ring's floor.
   - Through the top: two M5x10 along the front edge into bosses hanging off the front wall.
   - Each boss sits where nothing on the carriage passes as it slides in. Those spots set how many fit: there is no room inside this size for more door-face M5s.
 

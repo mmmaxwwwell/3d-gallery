@@ -19,6 +19,7 @@ Case for a Heltec HT-HC33, a Heltec WiFi LoRa 32 V4, a 103665 LiPo, a USB-C TP40
 - "I like the overall outer shape": kept the outline, the rounded top and the SMA corners.
 - Then: "i want six screws in the back and make them m5x10 bhcs"; "you got the dimensions for the heltec v4 wrong"; "the boards need more support on the top"; "and support on the bottom to they need to slide in snug"; "can we add a couple screws in the top to really seal it in there".
   - Six door-face M5s need ~14 mm back and front walls (case ~73 deep), because the door face's flat only covers the cavity and the cavity is the carriage's sweep. Asked; the user picked "keep size, fewer/smaller". So: 2 × M5 + 1 × M3 through the door face, 2 × M5 through the top. All button heads.
+- Then: "can we put a tpu base on it with the snapmaker"; then "make the base the orange TPU, and then have the body be black PCTG, and then have the knurling have the same depth but stick out far enough to match the exterior depth too, but the knurling is the orange 75a tpu"; "make sure the knurling and everything extends to the door as well".
 
 ## My picks (not the user's)
 
@@ -43,11 +44,14 @@ Case for a Heltec HT-HC33, a Heltec WiFi LoRa 32 V4, a 103665 LiPo, a USB-C TP40
   - Each head is seated `grip_inset` deep. It sits on the flat of a plain ring or of an inset ring's floor, inside the door face's flat (`lead_y`); all asserted. M5 heads clear `lead_y` by 0.07, which is what fixes their 4.68 axis.
   - Top: M5 bosses hang off the front wall right of the front-left SMA's sweep (x ≥ smas[0] + nut), down to 64.3, over the V4's holders. The hook now stops short of them (`hook_y1`). Heads sit on the top's flat (asserted).
   - Six door-face M5s would need ~14 mm back/front walls; the user chose to keep the size.
-- **Grip** (`grip_cut()`, `knurl_core()`):
-  - The rings start plain at the bottom. That puts both counterbores in plain rings; the other phase can't fit the front boss.
-  - The knurl is a polyhedron heightfield over `outline_pts()`, which samples every inset of the outline at matching points, so peak and valley rows line up. It is square pyramids on a ±45° grid, `knurl_d` deep, with the top and bottom rows held at the inset face so they meet the chamfers flush. Facets are ≤ 39° off vertical as the body prints.
-  - The door face's rings are inset but smooth: it is the carriage's bed. Those recesses print as 11 mm bridges 2 mm up.
-- **Walls**: `end_wall` went 4 → 6 so the cavity's corners keep 1.5 mm behind the knurl's valleys (asserted). That made the case 5.1 mm deeper (with the TP4056's `tp_y`). `side_wall` stays 6.
+- **Materials**: black PCTG pieces; orange TPU 75A printed in place on the U1. The plate pins `#1a1a1a` → head 3 and `#ff7a1a` → head 4 (`gallery_extruders`), as the Kobo case's U1 plate did. TPU bodies: `body_tpu()` (base + body's rings) and `carriage_tpu()` (the carriage's ring share).
+- **Grip** (`ring_recess()`, `grip_cut()`, `grip_rings()`, `knurl_core()`, `door_knurl()`):
+  - The rings start PCTG at the bottom. That puts the door screws' heads on plain rings or an inset ring's floor; the other phase can't fit the front boss.
+  - The PCTG recess (`ring_recess()`) is smooth. The TPU fills it to the outline, and the knurl is cut into the TPU with its peaks on the outline (`knurl_core(…, e = 0)`). `knurl_d < grip_inset` keeps the grooves in the TPU (asserted). The knurl's top and bottom rows stay on the outline, so grooves die out before the chamfers.
+  - The knurl is a polyhedron heightfield over `outline_pts()`, which samples every inset of the outline at matching points, so peak and valley rows line up. It is square pyramids on a ±45° grid; facets are ≤ 39° off vertical as the body prints.
+  - The carriage prints on the door face, so its TPU gets `door_knurl()`: 90° V-grooves, walls at 45° to the bed, stopping `knurl_d` short of the chamfers and the lead-ins. The leads and corners stay smooth. The user asked for knurl "to the door as well".
+- **Base** (`tpu_base()`, `base_t` 1.6): under the whole footprint. The body's PCTG starts at `base_t` and the carriage's door face sits on the base's strip, so `floor_z` (= `base_t + bottom_t`) is the floor's top everywhere `bottom_t` used to be. Keys (`base_keys`, `base_key_shapes()`) rise into the back, front and right walls, flaring so the PCTG over them locks them. The right wall's keys sit outside the fins' grooves. This made the case 1.6 taller and moved the front door M3 to 67 (its free zone rose with everything else).
+- **Walls**: `end_wall` went 4 → 6 so the cavity's corners keep wall behind the ring recesses (asserted). That made the case 5.1 mm deeper (with the TP4056's `tp_y`). `side_wall` stays 6.
 - **The TP4056–HC33 fin is short** (`tp_divider_z1`, just over the TP4056's bar). The user asked for it "so i can put the antenna in": the HC33's antenna goes in the space above the charger.
 - **Top edge** (`shell()`): a hull of outline slices, a 45° lead (`top_lead`) onto a `top_r` arc, the same in every direction. `sma_in_y` keeps each SMA's outer nut on the flat of the top (asserted).
 - **Outline** (`outline()`): a hull of four `profile_r` circles plus points where 45° tangents from them meet the left and right faces (`lead_y`). The door face's corners need the 45° lead-in, since the carriage prints on it.
@@ -76,5 +80,6 @@ Origin at the cavity's centre in plan, z = 0 on the bottom face. X across (door 
   - the carriage pushed 0.3 further in, lifted 0.3, or moved 0.3 in Y;
   - each board or the TP4056 nudged into its slot walls, floors, roofs or rails: 0.2 up, 0.1 down, 0.25 in Y, 0.3 in X. The V4 lifted 0.2 hits its chamfered shoulder roofs as well as its top bar.
   - The cell has 1.1 mm play a side between its fins, as the old dividers gave it.
-- Overhang scan of the print-oriented STLs. Body: only slot and groove roofs, the 2 mm underside of the TP4056's upper rail, the TP4056 opening's 7 mm bridge, and the tops of round holes; nothing from the knurl. Carriage: the door face's ring recesses (bridges), the counterbore steps, and the SMA holes' tops.
+- TPU × PCTG zero-volume, each piece with its own TPU and across (body + TPU vs carriage + TPU), and the slide check above includes both TPU parts.
+- Overhang scan of the print-oriented STLs. The TPU parts have none. The carriage's ring recesses now fill with TPU on the bed, so its old 11 mm bridges are gone. Body: only slot and groove roofs, the 2 mm underside of the TP4056's upper rail, the TP4056 opening's 7 mm bridge, and the tops of round holes; nothing from the knurl. Carriage: the counterbore seats and the round holes' tops.
 - Renders through the forge (`buildModel`): body, carriage, assembled, closed, print plate.
