@@ -4302,9 +4302,9 @@
       "slug": "solar-node",
       "devOnly": true,
       "title": "Solar LoRa Node",
-      "description": "A sealed box under a 240 × 168 mm solar panel salvaged from a solar LED lamp, that hangs on two stainless cables and winches itself up. It hangs with a long side down. The panel drops into a pocket in the frame onto a bead of construction adhesive; a bezel screwed over its border squeezes the bead to 1 mm and leaves the panel flush. The frame and bezel come off the tray as one, on a ring of 28 M3 cap screws outside a TPU gasket that the tray's tongue squeezes from the sides. Low in the box and centred, the 10 Ah LP1260110 LiPo pouch lies under a carrier plate holding a Heltec V3, a Heltec HT-HC33, a TP4056 charger and a 5 V buck-boost; their N and SMA antennas point down out of the bottom wall, spaced evenly. Behind the tray, a deck carries two 116 mm spools side by side in the upper half, each holding 200 ft of 1/32\" stainless cable with room to spare, each on a 608 skateboard bearing. Each is driven at 6.2:1 by a pinion on the teeth round its edge, from a JGY-370 worm gearmotor inside the box whose shaft comes down through a TPU lip seal; the two trains mirror each other, so the spools turn opposite ways to reel in. Each cable leaves through a two-roller throat at its top corner, 224 mm apart. 263 × 191 × 62 mm, so it needs a 270 mm bed. The panel's thickness, the buck-boost's size and the motor's dimensions are guesses. Not yet printed.",
+      "description": "A sealed box under a 240 × 168 mm solar panel salvaged from a solar LED lamp, that hangs on two stainless cables and winches itself up. It hangs with a long side down. The panel drops into a pocket in the frame onto a bead of construction adhesive; a bezel screwed over its border squeezes the bead to 1 mm and leaves the panel flush. The frame and bezel come off the tray as one, on a ring of 28 M3 cap screws outside a TPU gasket that the tray's tongue squeezes from the sides. Low in the box and centred, the 10 Ah LP1260110 LiPo pouch lies under a carrier plate holding a Heltec V3, a Heltec HT-HC33, a TP4056 charger and a 5 V buck-boost; their N and SMA antennas point down out of the bottom wall, spaced evenly. Behind the tray, a deck carries two 116 mm spools side by side in the upper half, each holding 200 ft of 1/32\" stainless cable with room to spare, each on a 608 skateboard bearing. Each is driven at 6.2:1 by a pinion on the teeth round its edge, from a JGY-370 worm gearmotor inside the box whose shaft comes down through a TPU lip seal; the two trains mirror each other, so the spools turn opposite ways to reel in. Each cable leaves its top corner, 224 mm from the other, through a horn standing out past the top edge: a throat between two rollers at the depth of the node's centre of mass, so it hangs upright rather than tipping back. 263 × 191 × 62 mm, so it needs a 270 mm bed. The panel's thickness, the buck-boost's size and the motor's dimensions are guesses. Not yet printed.",
       "filament": [
-        { "material": "PETG", "color": "any", "note": "Tray, carrier plate, frame, bezel, winch deck, spools, pinions, spacers and rollers", "parts": ["tray.stl", "shelf.stl", "frame.stl", "bezel.stl", "deck.stl", "spool-body.stl", "spool-cap.stl", "pinion.stl", "spacer.stl", "roller.stl"] },
+        { "material": "PETG", "color": "any", "note": "Tray, carrier plate, frame, bezel, winch deck, spools, pinions, spacers and rollers", "parts": ["tray.stl", "shelf.stl", "frame.stl", "bezel.stl", "deck.stl", "spool-body.stl", "spool-cap.stl", "pinion.stl", "spacer.stl", "roller.stl", "horn-roller.stl"] },
         { "material": "TPU 85A", "color": "any", "note": "Lid gasket and the two shaft seals", "parts": ["gasket.stl", "shaft-seal.stl"] }
       ],
       "previews": [
@@ -4320,7 +4320,7 @@
             { "color": "#708090", "label": "JGY-370 gearmotors (reference)" },
             { "color": "#555555", "label": "608 bearings (reference) and spacers", "part": "spacer.stl" },
             { "color": "#8a8f94", "label": "Stainless cable, 200 ft per spool (reference)" },
-            { "color": "#a0522d", "label": "Corner rollers", "part": "roller.stl" },
+            { "color": "#a0522d", "label": "Corner and horn rollers", "part": "roller.stl", "parts": ["roller.stl", "horn-roller.stl"] },
             { "color": "#1b2a4a", "label": "Solar panel (reference)" },
             { "color": "#d9d9d9", "label": "Construction adhesive bead (reference)" },
             { "color": "#e8c547", "label": "LP1260110 LiPo pouch (reference)" },
@@ -4339,6 +4339,7 @@
             { "part": "pinion.stl", "qty": 2 },
             { "part": "spacer.stl", "qty": 2 },
             { "part": "roller.stl", "qty": 4 },
+            { "part": "horn-roller.stl", "qty": 4 },
             { "part": "shaft-seal.stl", "qty": 2 }
           ] }
       ],
@@ -4348,12 +4349,13 @@
         { "file": "frame.stl", "format": "stl", "label": "Frame — panel pocket and glue ledge, gasket groove underneath" },
         { "file": "bezel.stl", "format": "stl", "label": "Bezel — clamps the panel's border" },
         { "file": "gasket.stl", "format": "stl", "label": "Gasket — TPU 85A U-section, slot up as printed" },
-        { "file": "deck.stl", "format": "stl", "label": "Winch deck — hangs behind the tray: the spools' posts, pins under the pinions, the corner rollers' pins" },
+        { "file": "deck.stl", "format": "stl", "label": "Winch deck — hangs behind the tray: the spools' posts, pins under the pinions, the corner rollers' pins, and a horn at each top corner" },
         { "file": "spool-body.stl", "format": "stl", "label": "Spool body — gear teeth round its edge, 608 bearing pressed in from below (2)" },
         { "file": "spool-cap.stl", "format": "stl", "label": "Spool cap — core ring and top flange, flange down as printed (2)" },
         { "file": "pinion.stl", "format": "stl", "label": "Pinion — teeth down, hub up through the floor (2)" },
         { "file": "spacer.stl", "format": "stl", "label": "Spacer — a spool's bearing up to the tray (2)" },
         { "file": "roller.stl", "format": "stl", "label": "Corner roller — on the deck's pins, two per corner (4)" },
+        { "file": "horn-roller.stl", "format": "stl", "label": "Horn roller — on an M3x20 across a horn's cheeks, two per horn (4)" },
         { "file": "shaft-seal.stl", "format": "stl", "label": "Shaft seal — TPU 85A lip ring round each pinion hub (2)" }
       ],
       "hardware": [
@@ -4365,6 +4367,8 @@
           "usedBy": [ { "part": "deck.stl", "each": 18 } ] },
         { "qty": 12, "label": "M3x6 socket cap screw — each spool's cap onto its body",
           "usedBy": [ { "part": "spool-body.stl", "each": 6 } ] },
+        { "qty": 4, "label": "M3x20 socket cap screw and nut — the horn rollers' axles",
+          "usedBy": [ { "part": "horn-roller.stl", "each": 1 } ] },
         { "qty": 2, "label": "608 skateboard bearing — one in each spool's hub",
           "usedBy": [ { "part": "spool-body.stl", "each": 1 } ] },
         { "qty": 2, "label": "JGY-370 worm gearmotor, 6 mm D-shaft — one per spool (as in meshtastic-drybag-node)" },

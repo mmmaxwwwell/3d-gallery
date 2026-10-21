@@ -206,6 +206,21 @@ roller_pin_d = 5;
 roller_throat = 3;
 roller_in = 8;
 
+// Horns: past each corner's rollers the cable climbs forward to a throat
+// between two horizontal rollers standing out past the top edge, at the
+// depth of the node's centre of mass, so it hangs upright. That depth
+// (estimated 12-15 mm in front of the tray's underside, depending on how
+// much cable is wound on), how far out past the edge the throat is, the
+// throat's gap, the rollers' diameter, the room between the cheeks, and the
+// cheeks' and bridge's thickness. The rollers turn on M3x20s with nuts.
+hang_z = 13;
+horn_out = 10;
+horn_gap = 1.5;
+horn_roller_d = 8;
+horn_w = 12;
+cheek_t = 5;
+horn_wall = 3;
+
 // JGY-370 worm gearmotor (as in meshtastic-drybag-node, unmeasured): lying
 // on the floor output shaft down, length, width, height from its output
 // face, shaft from the gearbox's end; D-shaft diameter and length
@@ -471,6 +486,16 @@ throat_x = lane_x - pitch_x / 2;
 roller_y = outer_w / 2 - roller_in;
 roller_cs = [for (s = [-1, 1], t = [-1, 1]) [s * throat_x + t * (roller_d + roller_throat) / 2, roller_y]];
 
+// Horn (right corner; the left is its mirror): the throat's y, its two
+// rollers' centres [y, z], each cheek's x, and the horn's extent.
+horn_y = outer_w / 2 + horn_out;
+horn_rollers = [for (t = [-1, 1]) [horn_y, hang_z + t * (horn_gap + horn_roller_d) / 2]];
+cheek_x = [for (t = [-1, 1]) throat_x + t * (horn_w + cheek_t) / 2];
+horn_y0 = roller_y + roller_d / 2 + 1;
+horn_y_up = outer_w / 2 + 1;
+horn_y1 = horn_y + horn_roller_d / 2 + horn_wall;
+horn_z1 = hang_z + horn_gap / 2 + horn_roller_d + horn_wall;
+
 // M3s up through the deck's band into the long-side columns
 deck_pilot = 8;
 deck_screws = [for (p = screws) if (abs(p[1]) > lane_y - 1) p];
@@ -628,6 +653,29 @@ module deck_plan() {
     for (x = [-spool_x, spool_x, -pin_x, pin_x]) translate([x - deck_bar / 2, -outer_w / 2]) square([deck_bar, outer_w]);
   }
   for (s = [-1, 1]) hull() for (c = roller_cs) if (sign(c[0]) == s) translate(c) circle(d = roller_d + 4);
+  for (s = [-1, 1]) scale([s, 1]) translate([cheek_x[0] - cheek_t / 2, outer_w / 2 - deck_band]) square([horn_w + 2 * cheek_t, horn_y1 - outer_w / 2 + deck_band]);
+}
+
+// A horn's cheeks and bridge, in the deck's frame (z from the deck's
+// underside), right corner. Each cheek is under the tray only below its
+// underside; past the top edge it stands up to the bridge. The rollers'
+// screws: head counterbored in the outer cheek, nut in the inner.
+module horn() {
+  z1 = -deck_z0;
+  difference() {
+    union() {
+      for (x = cheek_x) translate([x - cheek_t / 2, 0, 0]) rotate([90, 0, 90]) linear_extrude(cheek_t) {
+        translate([horn_y0, 0]) square([horn_y1 - horn_y0, -0.5 - deck_z0]);
+        translate([horn_y_up, 0]) square([horn_y1 - horn_y_up, horn_z1 - deck_z0]);
+      }
+      translate([cheek_x[0], horn_y_up, horn_z1 - deck_z0 - horn_wall]) cube([cheek_x[1] - cheek_x[0], horn_y1 - horn_y_up, horn_wall]);
+    }
+    for (r = horn_rollers) translate([throat_x, r[0], r[1] - deck_z0]) {
+      teardrop_x(clear_d, horn_w + 2 * cheek_t + 2);
+      translate([cheek_x[1] + cheek_t / 2 - cbore_h / 2 + 0.5 - throat_x, 0, 0]) teardrop_x(cbore_d, cbore_h + 1);
+      translate([cheek_x[0] - cheek_t / 2 + 1.25 - throat_x, 0, 0]) rotate([0, 90, 0]) cylinder(d = 5.5 / cos(30) + 0.3, h = 2.6, center = true, $fn = 6);
+    }
+  }
 }
 
 module deck() {
@@ -647,6 +695,7 @@ module deck() {
         cylinder(d = roller_pin_d + 2, h = 0.5 + eps, $fn = 32);
         cylinder(d = roller_pin_d, h = -deck_z1 - 0.3, $fn = 32);
       }
+      for (m = [0, 1]) mirror([m, 0, 0]) horn();
     }
     for (p = deck_screws) translate([p[0], p[1], 0]) {
       translate([0, 0, -1]) cylinder(d = clear_d, h = deck_t - deck_z0 + 2);
@@ -685,6 +734,42 @@ module roller() {
 module rollers_in_place() {
   for (c = roller_cs) translate([c[0], c[1], deck_z1 + 0.5]) roller();
 }
+
+// Horn roller: a sleeve on its M3 between the cheeks.
+module horn_roller() {
+  difference() {
+    cylinder(d = horn_roller_d, h = horn_w - 1, $fn = 48);
+    translate([0, 0, -1]) cylinder(d = clear_d + 0.2, h = horn_w + 1, $fn = 32);
+  }
+}
+
+module horn_rollers_in_place() {
+  for (m = [0, 1], r = horn_rollers) mirror([m, 0, 0]) translate([throat_x - (horn_w - 1) / 2, r[0], r[1]]) rotate([0, 90, 0]) horn_roller();
+}
+
+// The cable's run from a corner's rollers up through its horn's throat
+// (reference, straightened): from the spool's channel depth to just short
+// of the throat at hang_z, then straight up through it. The real cable bends
+// over the rear horn roller and under the front one on the way.
+module ref_cable_runs() {
+  z0 = z_s0 + spool_gear_w + bay_w / 2;
+  y1 = horn_y - horn_roller_d / 2 - 1;
+  for (m = [0, 1]) mirror([m, 0, 0]) {
+    hull() {
+      translate([throat_x, roller_y, z0]) sphere(d = cable_d, $fn = 8);
+      translate([throat_x, y1, hang_z]) sphere(d = cable_d, $fn = 8);
+    }
+    hull() {
+      translate([throat_x, y1, hang_z]) sphere(d = cable_d, $fn = 8);
+      translate([throat_x, horn_y + 40, hang_z]) sphere(d = cable_d, $fn = 8);
+    }
+  }
+}
+
+assert(horn_y0 >= roller_y + roller_d / 2 + 0.5, "a horn runs into its corner's rollers");
+assert(horn_y - horn_roller_d / 2 > horn_y_up, "a horn roller sits over the box");
+for (p = deck_screws, x = cheek_x) assert(abs(abs(p[0]) - x) >= cheek_t / 2 + column_d / 2 + 0.5 || abs(p[1]) + column_d / 2 < horn_y0 - 0.5 || p[1] < 0, "a cheek runs into a deck pillar");
+assert(cheek_x[1] + cheek_t / 2 < outer_l / 2, "a horn sticks out past the end");
 
 // How deep each spool's pin goes into the tray's underside
 pin_socket = 1.5;

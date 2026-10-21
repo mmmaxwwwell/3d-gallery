@@ -19,9 +19,10 @@ It hangs with a long side down. The panel faces out, and the winch is behind it.
 | Pinion ×2 | PETG | teeth down |
 | Spacer ×2 | PETG | on end |
 | Corner roller ×4 | PETG | on end |
+| Horn roller ×4 | PETG | on end |
 | Shaft seal ×2 | TPU 85A | flat |
 
-The footprint is 263 × 191 mm, so it needs a 270 mm bed (Q2, U1). Height assembled is 62 mm: the 40.5 mm box plus the 21.2 mm winch deck behind it.
+The footprint is 263 × 191 mm, plus the horns: the deck prints 263 × 208, so it needs a 270 mm bed (Q2, U1). Height assembled is 62 mm: the 40.5 mm box plus the 21.2 mm winch deck behind it.
 
 ## Inside
 
@@ -57,17 +58,20 @@ The N (for the V3) and the SMA (for the HC33) point down out of the bottom wall,
   - a pinion drives the teeth round each spool's lower flange at 6.2:1, from a JGY-370 worm gearmotor standing inside the box, shaft down through the floor;
   - the worm holds the load when the motor stops.
 - **Direction:** the two drives are mirror images, so the spools turn opposite ways to reel in.
-- **Cable exit:**
-  - each cable runs up to a throat between two rollers at its top corner, then out past the top edge;
-  - the throats are midway between the last two screw columns, 224 mm apart, as far apart as the box allows.
+- **Cable exit:** each cable leaves through its top corner, 224 mm from the other, as far apart as the box allows.
+  1. It runs up between two upright rollers on the deck, midway between the last two screw columns.
+  2. It climbs forward past the top edge into a horn: two cheeks standing out past the edge with a bridge across their top.
+  3. It leaves straight up through the horn's throat. The throat is a 1.5 mm gap between two horizontal rollers, 13 mm in front of the tray's underside.
+- **Why the horns:** the throat is at the estimated depth of the node's centre of mass, which moves between 12 and 15 mm in front of the tray's underside as the spools fill. So the node hangs upright. Leaving at the deck, 8 mm behind the tray, it tipped back about 12°. To trim the hang after weighing a built one, change `hang_z`.
 - **Assembly:**
   1. Press a bearing into each spool body from below.
   2. Screw on the cap with 6 M3x6.
   3. Thread the cable's end through the hole in the core and stop it inside.
   4. Wind each spool, then drop it onto its post with a spacer on top.
   5. Slip the rollers onto the corner pins, and lead each cable up between its corner's pair.
-  6. Lift the deck up under the tray. The spool pins go into their sockets and the pinion pins go into the pinions.
-  7. Screw the deck into the long-side columns with 18 M3x25.
+  6. Thread each cable forward into its horn, between the two throat positions. Fit the horn rollers on M3x20s, head in the outer cheek's counterbore, nut in the inner cheek's pocket.
+  7. Lift the deck up under the tray. The spool pins go into their sockets and the pinion pins go into the pinions.
+  8. Screw the deck into the long-side columns with 18 M3x25.
 
 ## Power
 
@@ -81,4 +85,5 @@ If the cell goes on the Heltec's own battery connector, the Heltec's charger als
 - The buck-boost board's size.
 - The JGY-370's size and where its shaft is (`mot_*`, copied unmeasured from meshtastic-drybag-node).
 - Motor torque is unchecked. The motor has to lift the node on a 27–51 mm cable radius through 6.2:1.
+- The node's real weight and balance. The horns' throat depth (`hang_z`) is set from an estimate.
 - How far the panel's cells come to its edge. The bezel covers 4 mm of the border (`bezel_overlap`).

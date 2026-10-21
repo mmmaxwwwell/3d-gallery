@@ -36,6 +36,12 @@ A sealed box under a salvaged 240 × 168 mm solar panel. devOnly, unprinted.
   - Spools sit side by side at (±`spool_x`, `spool_y`), as high as the deck's band allows, with 74 teeth. Each holds 200 ft in an 8 mm channel (10 wraps). The capacity count is whole wraps × whole layers; the core is solved for `cable_len × wind_margin`.
   - Each pinion is below its spool on the outer side. Each motor stands along Y with its gearbox toward −Y, as far out as the frame's ledge allows (its top is 3 mm above `tray_h`). The two trains mirror through x = 0, so the spools turn opposite ways.
   - **Rollers.** Two plain sleeves at each top corner, on deck pins, with a `roller_throat` gap between them. They're centred midway between the two outermost long-side columns (`throat_x`), so the cable leaves upward between those columns. The tray's underside keeps the sleeves on.
+  - **Horns** (user, relayed by session 3d-gallery-a2 on 2026-10-21: "can we somehow draw the line forward so the node hangs more upright?").
+    - Past each corner's rollers, the deck carries a horn that stands out past the top edge: two cheeks (`cheek_x`), a bridge over them, and two horizontal rollers on M3x20s forming a throat at `hang_z`.
+    - The cable leaves through that throat, so the hang point is at the centre of mass's depth.
+    - My estimate is in z, from the tray's underside: z ≈ 12–15 as the cable goes from fully paid out to full. It counts the printed parts at 0.5–0.8 fill, a 300 g glass panel, a 190 g pouch, 2 × 110 g motors and 45 g of boards. Previously the node tipped back about 12°.
+    - Each cheek's lower part runs under the tray's edge (z < −0.5); its upper part starts past the top edge.
+    - `ref_cable_runs()` straightens the path. The real cable bends over the rear horn roller and under the front one.
   - **Superseded history:** a coaxial stack ("exactly overlapping"), and before that an offset pair overlapping 29 mm. My first capacity formula held only about 85 ft of a claimed 100.
   - **Deck.** It hangs from the tray's long-side columns on M3x25, with pilots from below. It has `deck_band` edges, bars under the posts and pinions, and pads under the rollers.
 - **Rejected layouts:**
@@ -60,7 +66,7 @@ A sealed box under a salvaged 240 × 168 mm solar panel. devOnly, unprinted.
 
 ## Checked
 
-- Rotated layout (2026-10-21): none of these intersect, beyond faces touching: spools, pinions, deck, tray, rollers, spacers, motors, the battery, plate and boards, the frame, and the N and SMA. Two intended overlaps: each seal grips its hub (≈24 mm³), and each bearing's press fit in its hub (≈21 mm³).
+- Rotated layout (2026-10-21): none of these intersect, beyond faces touching: spools, pinions, deck (with horns), tray, rollers and horn rollers, spacers, motors, the battery, plate and boards, the frame and bezel, and the N and SMA. The reference cable path clears the tray, frame, bezel, deck and horn rollers. Two intended overlaps: each seal grips its hub (≈24 mm³), and each bearing's press fit in its hub (≈21 mm³).
 
 - The pieces' rigid parts don't intersect.
 - gasket ∩ tray ≈ 606 mm³, which is the tongue's side squeeze. Re-check this if the seal changes.
