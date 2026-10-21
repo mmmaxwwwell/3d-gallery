@@ -1,6 +1,6 @@
 # hc33-lipo-case
 
-Case for a Heltec HT-HC33, a Heltec WiFi LoRa 32 V4, a 103665 LiPo, a USB-C TP4056 board and two SMA bulkheads. devOnly, unprinted.
+Case for a Heltec HT-HC33, a Heltec WiFi LoRa 32 V4, a 103665 LiPo, a USB-C TP4056 board and two SMA bulkheads. Two pieces: a carriage (top + door face, everything hung on it) and a body it slides into. devOnly, unprinted.
 
 ## The user's brief (2026-10-21)
 
@@ -14,40 +14,56 @@ Case for a Heltec HT-HC33, a Heltec WiFi LoRa 32 V4, a 103665 LiPo, a USB-C TP40
   - What went wrong, for next time: the first slide bolt (guide on the body, knob through the top) couldn't be fitted. The rod was too long to thread through its guide in the room behind it, and the knob end couldn't pass the guide hole.
   - The redesign moved the bolt onto the door with a peg knob that swings down into a notch. That checks out geometrically, but the user stopped it.
   - Before claiming a mechanism works, check that it can be put together and what each motion sweeps through.
+- Then the hinged door went: "the electronics and antenna mounts need to be on a L shaped carrige that has the top antenna mounts and all of the electroincs secured and then it slides ito the case and gets screwed in. the carrige should be the top faces and the door face. its one piece with holders for all the boards with the antenna plate, and theres receiving and mating channels for everything. I want to have screws on the door face going into the body to secure it in place."
+- And the grip: "15cm alternating rings of diamond knurling, with the diamond knurling faces inset 2mm with a 45 degree chamfer on the transition." 15 mm again. Rings go all the way round.
+- "I like the overall outer shape": kept the outline, the rounded top and the SMA corners.
 
 ## My picks (not the user's)
 
 - **"Opposite corners" = diagonal**: front-left and back-right of the top.
 - **Stack order**, back to front: TP4056, HC33, cell, V4 (the user's swap). No window for the V4's screen.
-- **Door screws** (`door_screw_*`, `m5_*`): two M5x10 cap screws through counterbores in the door into bosses under the top, each hung on a 45° hull so it prints. The user gave up on a toolless latch (below) and asked for these.
-- **The TP4056–HC33 divider is short** (`tp_divider_z1`, just over the TP4056's roof). The user asked for it "so i can put the antenna in": the HC33's antenna goes in the space above the charger.
-- **Chambers**: `dividers` sit in the middle of the layer gaps (`layer_gap` 2.4 leaves 0.6 a side) and stop at `divider_z1`. The `sma_behind` head space above them is the shared wire route. The cell's old fins went: the dividers bound it.
-- **Knurl bands** (`knurl()`) only on the flat of the front and back faces (|x| ≤ `arc_x`). The faces they'd wrap onto are the bed faces of the two prints. On a vertical face, the grooves' walls are 30° past vertical as the body prints. Each band's ends lead in at 45° (`band_region()`), because a square end on the left would face down.
+- **The carriage slides in along +X** (from the left), not down from the top. The TP4056's USB-C lands against its side opening either way, but sliding sideways lets a nib under the top hook the right wall and lets the door face close the opening. Everything on the carriage sweeps through every x left of where it ends up, so **a body feature inside the cavity may only sit where no carriage part's YZ section passes**. The asserts at the bottom of the lib's checks spell this out for the bosses. Re-run the sweep check (Checked, below) after moving anything inside.
+- **Split**: carriage = shell ∩ (x ≤ -hx ∪ z ≥ `ceiling`); body = shell ∩ (x ≥ -hx, z ≤ `ceiling`). The faces meet at those two planes, touching.
+- **Mating features** (the user's "receiving and mating channels"):
+  - the fins' bottoms and the cell's floor plate sit in floor channels (`floor_channel_d`), and the fins' right edges in grooves up the right wall (`wall_groove_d`);
+  - tongues under the top run in grooves on the back and front walls' tops (`tongue_*`);
+  - a hook under the top's right edge (`hook_*`, `nib_*`, `top_mates()`) has a nib into a groove in the right wall, so the far end can't lift. Its groove roof is at 45° for the upright body print. It spans y between the back-right SMA's nut and the cavity's front-right corner (`cavity_r`).
+- **Board holders**:
+  - the HC33 and V4 have a left rib with floor and roof (`left_rib()`) plus a tab over the top edge near the right end, off the next fin (`board_tab()`), its left end at 45° to the fin. On the cap, the V4's tab would have hit the front-left SMA's sweep. Their right edges go into the body's rails as before;
+  - the TP4056 stands on a slotted bar and has a slotted bar over its top edge (`tp_bars()`), both stopping short of the body's TP rails. That raised it by `slide_fit + tp_floor`, and the stack starts `tp_y` off the back wall so its bars have a back wall;
+  - the cell: fins either side, a floor plate between them in a floor channel, two end roofs (`cell_cradle()`), the wires between them. Nothing holds it in X while the carriage is out: foam tape, noted in the README.
+- **Door-face screws are M3x10, not M5** (`door_screw_*`, `m3_*`). M5 bosses don't fit the free zones. Back boss low (39.5, over the TP4056, behind the HC33, under the back-right SMA); front boss high (65, in front of the V4's rail, over the V4, under the front-left SMA). The z values are picked so each counterbore sits in a plain ring (asserted), and the bosses' undersides run 45° down to the wall.
+- **Grip** (`grip_cut()`, `knurl_core()`):
+  - The rings start plain at the bottom. That puts both counterbores in plain rings; the other phase can't fit the front boss.
+  - The knurl is a polyhedron heightfield over `outline_pts()`, which samples every inset of the outline at matching points, so peak and valley rows line up. It is square pyramids on a ±45° grid, `knurl_d` deep, with the top and bottom rows held at the inset face so they meet the chamfers flush. Facets are ≤ 39° off vertical as the body prints.
+  - The door face's rings are inset but smooth: it is the carriage's bed. Those recesses print as 11 mm bridges 2 mm up.
+- **Walls**: `end_wall` went 4 → 6 so the cavity's corners keep 1.5 mm behind the knurl's valleys (asserted). That made the case 5.1 mm deeper (with the TP4056's `tp_y`). `side_wall` stays 6.
+- **The TP4056–HC33 fin is short** (`tp_divider_z1`, just over the TP4056's bar). The user asked for it "so i can put the antenna in": the HC33's antenna goes in the space above the charger.
 - **Top edge** (`shell()`): a hull of outline slices, a 45° lead (`top_lead`) onto a `top_r` arc, the same in every direction. `sma_in_y` keeps each SMA's outer nut on the flat of the top (asserted).
-- **The door is the left wall, hinged along its bottom edge.** A vertical hinge would put knuckles in the top-view outline, and its pivot can't sit at a 10 mm corner's centre without the door sweeping through the cavity's corner. The bottom edge keeps the outline smooth. The hinge axis is `hinge_r` in from the outer face and the bottom (`hinge`), and `hinge_r` is half the door's thickness, so the knuckles stay out of the cavity (asserted).
-- **Knuckles**: even ones are the body's, odd ones the door's (`body_knuckle()`).
-  - The body's knuckle is the knuckle plus a square down to the bottom, with a 45° chord on top toward the cavity, since the body prints with that side up.
-  - Each piece is cut round the other's knuckles, `hinge_clear` wide. The door's cut is a teardrop peaked toward the cavity, the way the door prints.
-  - The outer bottom edge of every knuckle is a 45° chamfer (`knuckle_2d()`).
-- **Slots**:
-  - The right wall's rails have floors and roofs: boards slide in sideways at their final height.
-  - The door's ribs have roofs only. Checked by swinging the door: a floor would rise into the PCB's corner as the door opens.
-  - The door's ribs are clamped to the cavity in Y (`door_rib()`), so the outermost ones don't hit the body's back and front walls.
-- **Outline** (`outline()`): a hull of four `profile_r` circles plus points where 45° tangents from them meet the left and right faces (`lead_y`). The body prints on its right face and the door on its outer face, so those faces' corners are the ones that need the 45° lead-in.
-- **Walls**: `side_wall` 6 (set by the hinge), `end_wall` 4 (the corners keep 2 mm, asserted).
+- **Outline** (`outline()`): a hull of four `profile_r` circles plus points where 45° tangents from them meet the left and right faces (`lead_y`). The door face's corners need the 45° lead-in, since the carriage prints on it.
 - **Not sealed.** If the user wants it waterproof, read [[seal-screws-through-tpu-failed]] in memory first.
+
+## Gone, and why
+
+- The bottom-hinged door, its knuckles and filament pin, and the M5x10s into bosses under the top: replaced by the carriage at the user's ask. Before that, two toolless latches (magnets, then a slide bolt) were dropped. The first slide bolt couldn't be fitted: before claiming a mechanism works, check that it can be put together and what each motion sweeps through.
 
 ## Frame
 
-Origin at the cavity's centre in plan, z = 0 on the bottom face. X across (door at -X), Y through the stack (+Y front), Z up. Layer positions (`tp_y`, `cell_y`, `hc_y`, `v4_y`) run from the back wall's inner face; `yb` shifts them onto the origin. `boards` holds the HC33 and V4 as `[width, PCB back face, PCB thickness, length, USB overhang, USB centre]`. The TP4056 lies along X (`tp_x0`..`tp_x1`) and has its own rails (`tp_right_rails()`). `door_open(a)` swings the door about the hinge.
+Origin at the cavity's centre in plan, z = 0 on the bottom face. X across (door face at -X), Y through the stack (+Y front), Z up.
+- Layer positions (`tp_y`, `hc_y`, `cell_y`, `v4_y`) run from the back wall's inner face; `yb` shifts them onto the origin.
+- `boards` holds the HC33 and V4 as `[width, PCB back face, PCB thickness, length, USB overhang, USB centre]`.
+- The TP4056 lies along X (`tp_x0`..`tp_x1`, `tp_z0`..`tp_z1`).
+- `carriage_out(d)` draws the carriage d out to the left.
+- `carriage()` is modelled in place; `carriage_print()` lays it on its door face. `body()` is already upright for printing.
 
 ## Checked
 
-- Zero-volume intersections (faces touching at most):
-  - body × door;
-  - each piece × every reference part (TP4056, cell, HC33, V4, SMAs, pin);
-  - the door at 5°, 15°, 30°, 60° and 90° × the body and × every board and the cell.
-- Positive controls: each board or the cell nudged (sideways, up or down) hits its slot, floor, roof or divider.
-- Overhang scan of both print-oriented STLs: only the tops of the round SMA and pin holes, plus 0.8 mm² at a bottom opening's peak. Nothing from the knurl or the rounded top.
-- Door screws: a 5 mm rod along each screw's line clears the door's holes and cuts into the bosses' pilots.
-- Renders through the forge (`buildModel`): body, door, assembled, closed, print plate.
+- Zero-volume intersections (faces touching at most), measured by volume, not just emptiness:
+  - body × carriage-with-everything-on-it at 24 points of the slide, from 55 mm out to home (0, 0.1, 0.3, 0.6, 1 … 55);
+  - each piece × every reference part at rest.
+- Positive controls all collide:
+  - the carriage pushed 0.3 further in, lifted 0.3, or moved 0.3 in Y;
+  - each board or the TP4056 nudged into its slot walls, floors, roofs or rails.
+  - The cell has 1.1 mm play a side between its fins, as the old dividers gave it.
+- Overhang scan of the print-oriented STLs. Body: only slot and groove roofs, the 2 mm underside of the TP4056's upper rail, the TP4056 opening's 7 mm bridge, and the tops of round holes; nothing from the knurl. Carriage: the door face's ring recesses (bridges), the counterbore steps, and the SMA holes' tops.
+- Renders through the forge (`buildModel`): body, carriage, assembled, closed, print plate.
