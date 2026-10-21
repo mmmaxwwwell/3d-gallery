@@ -5,21 +5,30 @@
 // out of the right side, and two SMA bulkheads out of the top at opposite
 // corners.
 //
-// Two pieces:
+// Two pieces, each black PCTG with orange TPU 75A and black TPU Air
+// printed in place on a Snapmaker U1:
 // - the carriage: an L of the top (the SMAs' plate) and the left face (the
 //   door face), with everything inside hung on it. Fins between the layers
-//   make the chambers; each board's left edge sits in a slotted rib on the
-//   door face and its top edge in a slotted tab off the next fin; the
-//   TP4056 is held top and bottom by slotted bars; the cell sits between
-//   two fins on a floor plate under two roofs.
+//   make the chambers; each board sits in slotted holders on all four
+//   edges; the TP4056 is held top and bottom by slotted bars; the cell sits
+//   between two fins on a floor plate under two roofs.
 // - the body: bottom, back, front and right walls, open at the top and on
 //   the left. The carriage slides in from the left. Its fins and the cell's
 //   floor plate run in channels in the floor and grooves in the right wall,
-//   the top's tongues run in grooves along the back and front walls' tops,
 //   a nib under the top's right edge hooks into a groove in the right wall,
 //   and each board's right edge slides into a slotted rail on the right
-//   wall. Two M3x10 cap screws through the door face into bosses on the
-//   back and front walls hold it in.
+//   wall. Four M3x10 button-head screws through the door face and two down
+//   through the top hold it in.
+//
+// It is sealed. PCTG lips on the carriage press into grooves in TPU Air
+// channels on the body: up the back and front walls' ends and across the
+// floor's end for the door face, and round the back, front and right
+// walls' tops (on a ridge over the ceiling) for the top. The back and front
+// top lips slide home along their grooves; the rest press in at the end of
+// the slide. TPU Air washers seal the screw heads and the SMAs' outer nuts,
+// orange TPU plugs on straps from the base close the bottom ports, and a
+// PCTG door in a dovetail track on the right face slides shut over the
+// side port onto a TPU Air gasket, its track wedging it in.
 //
 // Stack, back to front: TP4056 (parts to the front, its USB-C end to the
 // right), HC33 (top face to the front), cell, V4 (top face, with its
@@ -27,9 +36,9 @@
 //
 // Seen from the top the outline is a rounded rectangle whose left and
 // right faces lead into the corners at 45°. The top edge is rounded the
-// same way. Rings 15 mm tall run round the case, plain and inset in turn;
-// an inset ring is sunk grip_inset with 45° chamfers top and bottom, and
-// diamond knurled on the body.
+// same way. Rings 15 mm tall run round the case, PCTG and TPU in turn: a
+// TPU ring fills a recess sunk grip_inset with 45° chamfers, flush, and is
+// knurled.
 //
 // Frame: origin at the cavity's centre in plan, z = 0 on the bottom face.
 // X across (the door face at -X), Y through the stack (+Y the front), Z up
@@ -139,11 +148,58 @@ sma_nut_d = 9.2;
 sma_behind = 12;
 
 // Walls: the right wall and the door face; the back and front; the bottom
-// (over the TPU base); the top (the SMAs' plate)
+// (over the TPU base, deep enough for the floor's seal channel under the
+// fins' channels); the top (the SMAs' plate, over the top seal)
 side_wall = 6;
 end_wall = 6;
-bottom_t = 2.5;
+bottom_t = 4.2;
 top_t = 3;
+
+// Watertight joints: PCTG lips on the carriage pressed into channels of
+// TPU Air printed in place on the body, all the way round the joint. A
+// channel's TPU: how wide across its lip and how deep along it; the lip's
+// thickness and reach; how much narrower the groove is than the lip, each
+// side; the flared mouth where a lip slides into a groove end-on
+seal_w = 2.4;
+seal_d = 2.4;
+lip_t = 1;
+lip_l = 1.4;
+seal_squish = 0.15;
+seal_lead = 1.5;
+
+// TPU Air washers under the screw heads and the SMAs' outer nuts: how
+// thick, how far proud of their seats
+washer_t = 0.8;
+washer_proud = 0.3;
+
+// The sliding door over the TP4056's side opening, PCTG, printed in place
+// in its track on the right face: its thickness; the TPU Air gasket round
+// the opening (its margin from the opening, width, how far it stands proud
+// of the track's floor) and how far the door squeezes it; how far past the
+// gasket the door reaches; the run over which the track wedges the door
+// shut; the clearance round the door; the break-off ties that hold it as
+// it prints (width, how many)
+side_door_t = 2;
+side_gasket_margin = 0.6;
+side_gasket_w = 1.2;
+side_gasket_proud = 0.6;
+side_door_squish = 0.3;
+side_door_overlap = 0.8;
+side_door_wedge = 3;
+side_door_fit = 0.3;
+side_door_tie_w = 0.8;
+side_door_ties = 3;
+
+// The bottom ports' plugs, TPU 75A, printed in place on straps from the
+// base's edge: the flange's margin round the port and its thickness, the
+// strap's width and thickness, how much bigger than the port the plug's
+// stem is, and how far short of the floor's top it stops
+plug_margin = 2;
+plug_flange_t = 0.8;
+plug_strap_w = 5;
+plug_strap_t = 0.6;
+plug_fit = 0.1;
+plug_short = 0.3;
 
 // The TPU base under the whole case, printed in place under the body on
 // the U1: its thickness; the keys it carries up into the body's walls
@@ -163,13 +219,11 @@ top_r = 4;
 slide_fit = 0.2;
 
 // The carriage's mating features: how deep the fins and the cell's floor
-// plate sit in the floor and the fins in the right wall; the top's tongues
-// along the back and front walls (width, depth); the hook under the top's
-// right edge (its height under the top, and the nib's reach and height)
+// plate sit in the floor and the fins in the right wall; the hook under the
+// top's right edge (its height under the top, and the nib's reach and
+// height)
 floor_channel_d = 1.2;
 wall_groove_d = 1;
-tongue_w = 1.2;
-tongue_h = 1.5;
 hook_h = 4;
 nib_l = 1.2;
 nib_h = 1.2;
@@ -180,11 +234,8 @@ hook_gusset_t = 1.6;
 hook_gusset_l = 8;
 hook_gusset_pitch = 8;
 
-// Button-head screws: M5 and M3 clearance hole, pilot and head diameter;
-// the boss's wall round the pilot, and the screws' length under the head
-m5_clear_d = 5.5;
-m5_pilot_d = 4.2;
-m5_head_d = 9.5;
+// M3 button-head screws: clearance hole, pilot, head diameter; the boss's
+// wall round the pilot, and the screws' length under the head
 m3_clear_d = 3.4;
 m3_pilot_d = 2.5;
 m3_head_d = 5.7;
@@ -192,14 +243,16 @@ boss_wall = 1.6;
 screw_len = 10;
 
 // Door-face screws into bosses on the back and front walls, each [wall
-// (-1 back, 1 front), height, M size, axis's distance in from the wall].
-// Each head sits grip_inset into the door face.
-door_screws = [[-1, 39.5, 5, 4.68], [-1, 54.5, 5, 4.68], [1, 67, 3, 3.15]];
+// (-1 back, 1 front), height, axis's distance in from the wall], and how
+// deep each head's seat is in the door face
+door_screws = [[-1, 39.5, 3.15], [-1, 54.5, 3.15], [-1, 66, 3.15], [1, 68.5, 3.15]];
+door_seat = 2.5;
 
-// M5 screws down through the top into bosses on the front wall: across,
-// and the axis's distance in from the wall
+// Screws down through the top into bosses on the front wall: across, the
+// axis's distance in from the wall, and how deep each head's seat is
 top_screw_x = [-3, 12];
 top_screw_in = 3;
+top_seat = 2.4;
 
 // Grip rings: height, how far an inset ring is sunk into the PCTG (the TPU
 // fills it flush), the knurl's pitch and depth in the TPU, and the plain
@@ -210,8 +263,8 @@ knurl_pitch = 2;
 knurl_d = 0.8;
 band_margin = 2;
 
-// The PCTG left flush round the TP4056's side opening and the door
-// screws' heads where they cross a TPU ring
+// The PCTG left flush round the side door's track, the door screws' heads,
+// and the door face's seam, where they cross a TPU ring
 ring_margin = 1.5;
 // END_PARAMS
 
@@ -271,7 +324,8 @@ divider_z1 = tallest + roof_fit + roof_t;
 tp_divider_z1 = tp_z1 + roof_fit + roof_t;
 divider_tops = [tp_divider_z1, divider_z1, divider_z1];
 ceiling = max(tallest + sma_behind, divider_z1 + 0.5);
-total_h = ceiling + top_t;
+// The top seal sits on the walls over the ceiling, under the top proper
+total_h = ceiling + seal_w + top_t;
 // The top edge: a 45° lead from the sides onto a top_r arc
 top_lead = (sqrt(2) - 1) / sqrt(2) * top_r;
 top_z0 = total_h - top_r + top_r / sqrt(2) - top_lead;
@@ -295,30 +349,61 @@ fin_z0 = floor_z - floor_channel_d + slide_fit;
 // The cavity's right corners' radius
 cavity_r = 1;
 
-function clear_d(m) = m == 5 ? m5_clear_d : m3_clear_d;
-function pilot_d(m) = m == 5 ? m5_pilot_d : m3_pilot_d;
-function head_d(m) = m == 5 ? m5_head_d : m3_head_d;
-function boss_r(m) = pilot_d(m) / 2 + boss_wall;
+boss_r = m3_pilot_d / 2 + boss_wall;
+// A screw head's seat and its washer
+seat_d = m3_head_d + 0.5;
 
-// Door-face screws: each reaches screw_len past its seat, grip_inset into
-// the door face; its boss's underside runs 45° down to the wall
-door_engage = screw_len - (side_wall - grip_inset);
+// Door-face screws: each reaches screw_len past its seat; its boss's
+// underside runs 45° down to the wall
+door_engage = screw_len - (side_wall - door_seat);
 door_boss_l = door_engage + 1.5;
-function ds_y(s) = s[0] * (hy - s[3]);
-function ds_z0(s) = s[1] - s[3] - boss_r(s[2]) * sqrt(2);
+function ds_y(s) = s[0] * (hy - s[2]);
+function ds_z0(s) = s[1] - s[2] - boss_r * sqrt(2);
 
-// Top screws: through the top into bosses hanging from the top, their
-// undersides 45° down to the front wall
-top_engage = screw_len - top_t;
-top_boss_r = boss_r(5);
+// Top screws: through the top and the seal under it into bosses hanging
+// from the ceiling, their undersides 45° down to the front wall
+top_engage = screw_len - (total_h - top_seat - ceiling);
 top_boss_z0 = ceiling - top_engage - 1.5;
-top_boss_low = top_boss_z0 - top_screw_in - top_boss_r;
+top_boss_low = top_boss_z0 - top_screw_in - boss_r;
 top_screw_y = hy - top_screw_in;
+
+// The seals' centre lines: across the floor's end, and round the top
+seal_z_bottom = base_t + seal_w / 2;
+seal_z_top = ceiling + seal_w / 2;
+// A seal's groove, narrower than its lip, and deeper than the lip reaches
+groove_w = lip_t - 2 * seal_squish;
+groove_d = lip_l + 0.2;
+
+// The side door: the opening's centre and half-size (y across, z up), the
+// gasket's and the door's half-sizes on the right face, the track's floor,
+// the door's inner face shut and open, and how far it slides to open
+sd_y = tp_usb_cy - hy;
+sd_z = tp_usb_cz;
+sd_oy = usb_open_h / 2;
+sd_oz = usb_open_w / 2;
+sd_gy = sd_oy + side_gasket_margin + side_gasket_w;
+sd_gz = sd_oz + side_gasket_margin + side_gasket_w;
+sd_dy = sd_gy + side_door_overlap;
+sd_dz = sd_gz + side_door_overlap;
+sd_floor = ex - side_door_t - (side_gasket_proud - side_door_squish);
+sd_x_shut = ex - side_door_t;
+sd_x_open = sd_floor + side_gasket_proud + side_door_fit;
+sd_travel = sd_dy + sd_oy + 0.5;
+
+// The bottom ports' plugs: each port's centre across the case, the edge
+// its strap runs to (-1 back, 1 front), the flange's half-size, the fold
+// where strap meets flange, and the strap's length under the base
+plug_ports = [for (b = boards) b[5] - hy];
+function plug_s(y) = y < 0 ? -1 : 1;
+plug_fx = usb_open_w / 2 + plug_margin;
+plug_fy = usb_open_h / 2 + plug_margin;
+function plug_join(y) = y - plug_s(y) * plug_fy;
+function plug_strap_l(y) = abs(plug_s(y) * ey - plug_join(y));
 
 // The hook under the top's right edge spans the top's length clear of the
 // back-right SMA's nut and the top screws' bosses
 hook_y0 = smas[1][1] + sma_nut_d / 2 + 0.5;
-hook_y1 = top_screw_y - top_boss_r - 0.3;
+hook_y1 = top_screw_y - boss_r - 0.3;
 
 // Grip rings from the bottom up; the odd ones are inset
 band_top = top_z0 - band_margin;
@@ -332,7 +417,7 @@ function inset_band(i) = i % 2 == 1 && band_z1(i) - band_z0(i) >= 2 * grip_inset
 // right wall outside the fins' grooves
 function spread(a, b, pitch = key_pitch) = let(n = max(1, floor((b - a) / pitch))) [for (i = [0:n]) a + (b - a) * i / n];
 base_keys = concat(
-  [for (sy = [-1, 1], x = spread(-hx + key_d, hx - key_d)) [x, sy * (hy + end_wall / 2)]],
+  [for (sy = [-1, 1], x = spread(-hx + seal_d + key_d + 1, hx - key_d)) [x, sy * (hy + end_wall / 2)]],
   [for (y = spread(-hy + key_d, hy - key_d)) [hx + wall_groove_d + (side_wall - wall_groove_d) / 2, y]]);
 
 function slot_y0(b) = b[1] - slot_fit / 2;
@@ -395,36 +480,52 @@ assert(top_r < profile_r, "the top edge's radius is bigger than the corners'");
 // nothing on the carriage passes. The back ones sit over the TP4056's bars
 // and behind the HC33, under the back-right SMA; the front one sits in
 // front of the V4's rail, over the V4's holders, under the front-left SMA.
-for (s = door_screws) let(r = boss_r(s[2])) {
+for (s = door_screws) {
   if (s[0] < 0) {
     assert(ds_z0(s) >= tp_divider_z1 + 0.5, "a back door-screw boss hits the TP4056's holders");
-    assert(s[3] + r <= hc_y - 0.3, "a back door-screw boss hits the HC33");
+    assert(s[2] + boss_r <= hc_y - 0.3, "a back door-screw boss hits the HC33");
   } else {
     assert(ds_z0(s) >= board_z1(v4_board) + roof_fit + roof_t + 0.3, "the front door-screw boss hits the V4");
   }
-  assert(s[1] + r <= sma_low - 0.5, "a door-screw boss hits an SMA");
-  // The head sits on the flat of a plain ring, or of an inset ring's floor
-  let(h = head_d(s[2]) / 2 + 0.25, i = band_of(s[1]))
+  assert(s[1] + boss_r <= sma_low - 0.5, "a door-screw boss hits an SMA");
+  // The head sits on the flat of a plain ring, or in its collar on an inset
+  // ring's floor
+  let(i = band_of(s[1]), h = seat_d / 2 + (inset_band(i) ? ring_margin : 0.25))
     assert(band_of(s[1] - h) == i && band_of(s[1] + h) == i
            && (!inset_band(i) || (s[1] - h >= band_z0(i) + grip_inset && s[1] + h <= band_z1(i) - grip_inset)),
            "a door screw's head runs across a ring's edge");
-  assert(abs(ds_y(s)) + head_d(s[2]) / 2 <= lead_y, "a door screw's head runs off the flat of the door face");
+  assert(abs(ds_y(s)) + seat_d / 2 <= lead_y, "a door screw's head runs off the flat of the door face");
+  // Inside the door seal
+  assert(abs(ds_y(s)) + seat_d / 2 <= hy + seal_w / 2 - lip_t, "a door screw sits outside the door's seal");
 }
 for (i = [0:len(door_screws) - 1], j = [0:len(door_screws) - 1]) if (i < j)
-  let(a = door_screws[i], b = door_screws[j]) assert(a[0] != b[0] || abs(a[1] - b[1]) >= boss_r(a[2]) + boss_r(b[2]) + 0.5 || ds_z0(b) >= a[1] + boss_r(a[2]) || ds_z0(a) >= b[1] + boss_r(b[2]),
+  let(a = door_screws[i], b = door_screws[j]) assert(a[0] != b[0] || ds_z0(b) >= a[1] + boss_r || ds_z0(a) >= b[1] + boss_r,
     "two door-screw bosses run into each other");
 assert(door_engage >= 6, "the door screws barely reach into their bosses");
+assert(door_seat >= washer_t, "the door screws' seats are shallower than their washers");
 // The top screws' bosses: clear of the front-left SMA's sweep, over the
 // V4's holders, their heads on the flat of the top
 for (x = top_screw_x) {
-  assert(x - top_boss_r >= smas[0][0] + sma_nut_d / 2 + 0.5, "a top-screw boss hits the front-left SMA");
-  assert(norm([max(abs(x) - arc_x, 0), max(top_screw_y - arc_y, 0)]) + m5_head_d / 2 <= profile_r - top_r,
+  assert(x - boss_r >= smas[0][0] + sma_nut_d / 2 + 0.5, "a top-screw boss hits the front-left SMA");
+  assert(norm([max(abs(x) - arc_x, 0), max(top_screw_y - arc_y, 0)]) + seat_d / 2 <= profile_r - top_r,
          "a top screw's head runs onto the rounded top edge");
-  assert(abs(x) + top_boss_r <= hx - 0.5, "a top-screw boss runs into the side walls");
+  assert(abs(x) + boss_r <= hx - 0.5, "a top-screw boss runs into the side walls");
 }
 assert(top_boss_low >= board_z1(v4_board) + roof_fit + roof_t + 0.3, "the top screws' bosses hit the V4's holders");
-assert(depth - top_screw_in - top_boss_r >= dividers[2] + divider_t / 2 + 0.3 || top_boss_low >= divider_z1 + 0.3,
+assert(depth - top_screw_in - boss_r >= dividers[2] + divider_t / 2 + 0.3 || top_boss_low >= divider_z1 + 0.3,
        "the top screws' bosses hit the V4's fin");
+assert(top_engage >= 6, "the top screws barely reach into their bosses");
+// Seals
+assert(groove_d < seal_d - 0.5 && groove_w > 0.3 && (seal_w - groove_w) / 2 >= 0.6, "a seal channel's TPU walls are too thin");
+assert(floor_z - floor_channel_d >= base_t + seal_w + 0.5, "the floor's seal channel runs into the fins' channels");
+assert(seal_w <= end_wall - grip_inset - 1, "the end walls' seal channels leave too little wall");
+assert(seal_d + 0.5 <= side_wall - grip_inset, "the top seal's channel cuts through the right wall's ridge");
+// The side door
+assert(sd_z - sd_dz - side_door_t - side_door_fit >= base_t + 0.8, "the side door's track runs into the base");
+assert(sd_floor - 1 >= hx + wall_groove_d + 1, "the side door's gasket groove leaves too little right wall");
+assert(sd_y + sd_travel + sd_dy + side_door_fit <= lead_y, "the side door's track runs off the right face");
+// The plugs: flange and folded strap fit in the base's thickness
+assert(plug_strap_t + plug_flange_t <= base_t - 0.2, "the plugs' flange and strap don't fit under the floor");
 // The bars under the boards stay clear of the bottom USB-C plugs
 assert(usb_open_w / 2 + 0.5 <= v4_w / 2 - v4_foot, "the V4's bottom bars have no edge to sit under");
 
@@ -461,12 +562,19 @@ module shell(z0 = 0, z1 = total_h) {
   }
 }
 
-// Open on the left and at the top
-module cavity() {
-  translate([0, 0, floor_z]) linear_extrude(ceiling - floor_z + 1) hull() {
+module cavity_2d() {
+  hull() {
     for (sy = [-1, 1]) translate([hx - cavity_r, sy * (hy - cavity_r)]) circle(r = cavity_r);
     translate([-hx - 1, -hy]) square([eps, 2 * hy]);
   }
+}
+
+// Open on the left and at the top, and square through the top seal's
+// band, where the carriage's top fills it: the top's lips would catch on
+// rounded corners there as they slide home
+module cavity() {
+  translate([0, 0, floor_z]) linear_extrude(ceiling - floor_z + eps) cavity_2d();
+  translate([-hx - 1, -hy, ceiling]) cube([2 * hx + 1, 2 * hy, seal_w + 1]);
 }
 
 // ---- grip rings
@@ -518,13 +626,16 @@ module knurl_core(za, zb, e = 0) {
   polyhedron(concat(outer, inner), faces);
 }
 
-// Where the rings stop: ring_margin round the TP4056's side opening and
-// round each door screw's head seat
+// Where the rings stop: ring_margin round the side door's track and each
+// door screw's head seat, and 1 mm short of the door face's seam on the
+// body, which keeps PCTG between the rings and the door seal's channels
 module ring_keepout() {
-  translate([hx - 1, yb + tp_usb_cy, tp_usb_cz]) rotate([0, 90, 0]) linear_extrude(side_wall + 2)
-    offset(usb_open_r + ring_margin) square([usb_open_w - 2 * usb_open_r, usb_open_h - 2 * usb_open_r], center = true);
+  m = ring_margin + side_door_fit + side_door_t;
+  translate([hx, sd_y - sd_dy - m, sd_z - sd_dz - m])
+    cube([side_wall + 2, 2 * sd_dy + sd_travel + 2 * m, 2 * (sd_dz + m)]);
   for (s = door_screws) translate([-ex - 1, ds_y(s), s[1]]) rotate([0, 90, 0])
-    cylinder(d = head_d(s[2]) + 0.5 + 2 * ring_margin, h = grip_inset + 2);
+    cylinder(d = seat_d + 2 * ring_margin, h = door_seat + 2);
+  translate([-hx - eps, -ey - 1, 0]) cube([1 + eps, 2 * ey + 2, total_h]);
 }
 
 // An inset ring's recess in the PCTG: sunk grip_inset with 45° chamfers
@@ -601,12 +712,9 @@ module fin_channels() {
       cube([wall_groove_d + eps, 2 * w, divider_tops[i] + slide_fit - floor_z + floor_channel_d]);
 }
 
-// The top's grooves: along the back and front walls' tops for its tongues,
-// and in the right wall for its hook's nib, the groove's roof at 45° so it
-// prints
-module top_grooves() {
-  for (sy = [-1, 1]) translate([-hx - 1, sy * (hy + end_wall / 2) - tongue_w / 2 - slide_fit, ceiling - tongue_h - slide_fit])
-    cube([2 * hx + 1, tongue_w + 2 * slide_fit, tongue_h + slide_fit + eps]);
+// The groove in the right wall for the top's hook's nib, its roof at 45°
+// so it prints
+module hook_groove() {
   z0 = ceiling - hook_h - slide_fit;
   z1 = ceiling - hook_h + nib_h + slide_fit;
   along_y(hook_y0 - slide_fit, hook_y1 + slide_fit)
@@ -620,12 +728,12 @@ module along_y(y0, y1) {
 // On the back and front walls, their undersides 45° down to the wall so
 // they print
 module door_screw_bosses() {
-  for (s = door_screws) let(r = boss_r(s[2]), y = ds_y(s)) difference() {
+  for (s = door_screws) let(y = ds_y(s)) difference() {
     hull() {
-      translate([-hx, y, s[1]]) rotate([0, 90, 0]) cylinder(r = r, h = door_boss_l);
-      translate([-hx, s[0] > 0 ? hy : -hy - eps, ds_z0(s)]) cube([door_boss_l, eps, s[1] + r - ds_z0(s)]);
+      translate([-hx, y, s[1]]) rotate([0, 90, 0]) cylinder(r = boss_r, h = door_boss_l);
+      translate([-hx, s[0] > 0 ? hy : -hy - eps, ds_z0(s)]) cube([door_boss_l, eps, s[1] + boss_r - ds_z0(s)]);
     }
-    translate([-hx - 1, y, s[1]]) rotate([0, 90, 0]) cylinder(d = pilot_d(s[2]), h = door_engage + 1.5);
+    translate([-hx - 1, y, s[1]]) rotate([0, 90, 0]) cylinder(d = m3_pilot_d, h = door_engage + 1.5);
   }
 }
 
@@ -634,10 +742,10 @@ module door_screw_bosses() {
 module top_screw_bosses() {
   for (x = top_screw_x) difference() {
     hull() {
-      translate([x, top_screw_y, top_boss_z0]) cylinder(r = top_boss_r, h = ceiling - top_boss_z0);
-      translate([x - top_boss_r, hy, top_boss_low]) cube([2 * top_boss_r, eps, ceiling - top_boss_low]);
+      translate([x, top_screw_y, top_boss_z0]) cylinder(r = boss_r, h = ceiling - top_boss_z0);
+      translate([x - boss_r, hy, top_boss_low]) cube([2 * boss_r, eps, ceiling - top_boss_low]);
     }
-    translate([x, top_screw_y, ceiling - top_engage - 1]) cylinder(d = m5_pilot_d, h = top_engage + 2);
+    translate([x, top_screw_y, ceiling - top_engage - 1]) cylinder(d = m3_pilot_d, h = top_engage + 2);
   }
 }
 
@@ -646,25 +754,215 @@ module bottom_opening(y) {
     offset(usb_open_r) square([usb_open_w - 2 * usb_open_r, usb_open_h - 2 * usb_open_r], center = true);
 }
 
+module side_opening() {
+  translate([hx - 1, sd_y, sd_z]) rotate([0, 90, 0]) linear_extrude(side_wall + 2)
+    offset(usb_open_r) square([2 * (sd_oz - usb_open_r), 2 * (sd_oy - usb_open_r)], center = true);
+}
+
+// The body, PCTG, with the side door in its track
 module body() {
   difference() {
     intersection() {
       shell();
-      translate([-hx, -ey - 1, base_t]) cube([ex + hx + 1, 2 * ey + 2, ceiling - base_t]);
+      translate([-hx, -ey - 1, base_t]) cube([ex + hx + 1, 2 * ey + 2, ceiling + seal_w - base_t]);
     }
     base_key_shapes();
     cavity();
     fin_channels();
-    top_grooves();
+    hook_groove();
+    seal_blocks();
+    seal_grooves();
     for (b = boards) bottom_opening(b[5]);
-    translate([hx - 1, yb + tp_usb_cy, tp_usb_cz]) rotate([0, 90, 0]) linear_extrude(side_wall + 2)
-      offset(usb_open_r) square([usb_open_w - 2 * usb_open_r, usb_open_h - 2 * usb_open_r], center = true);
+    side_track();
+    side_gasket(1);
+    side_opening();
     grip_cut();
   }
   for (b = boards) right_rail(b);
   tp_right_rails();
   door_screw_bosses();
   top_screw_bosses();
+  side_door_printed();
+}
+
+// ---- seals
+
+// The TPU Air on the body: channels across the floor's end and up the back
+// and front walls' ends for the door face's lip, and round the tops of the
+// back, front and right walls for the top's
+module seal_blocks() {
+  for (sy = [-1, 1]) translate([-hx - eps, sy > 0 ? hy : -hy - seal_w, base_t])
+    cube([seal_d + eps, seal_w, ceiling + seal_w - base_t]);
+  translate([-hx - eps, -hy - seal_w, base_t]) cube([seal_d + eps, 2 * (hy + seal_w), seal_w]);
+  for (sy = [-1, 1]) translate([-hx - eps, sy > 0 ? hy : -hy - seal_w, ceiling])
+    cube([2 * hx + seal_w + eps, seal_w, seal_w]);
+  translate([hx, -hy - seal_w, ceiling]) cube([seal_w, 2 * (hy + seal_w), seal_w]);
+}
+
+// The grooves the lips press into. The top's back and front lips slide in
+// along their grooves from the left, so those mouths flare.
+module seal_grooves() {
+  for (sy = [-1, 1]) translate([-hx - 1, sy * (hy + seal_w / 2) - groove_w / 2, seal_z_bottom - groove_w / 2])
+    cube([1 + groove_d, groove_w, seal_z_top - seal_z_bottom + groove_w]);
+  translate([-hx - 1, -(hy + seal_w / 2) - groove_w / 2, seal_z_bottom - groove_w / 2])
+    cube([1 + groove_d, 2 * (hy + seal_w / 2) + groove_w, groove_w]);
+  for (sy = [-1, 1]) {
+    y0 = sy > 0 ? hy - 1 : -hy - groove_d;
+    translate([-hx - 1, y0, seal_z_top - groove_w / 2]) cube([2 * hx + 1 + groove_d, groove_d + 1, groove_w]);
+    hull() {
+      translate([-hx - 1, y0, seal_z_top - lip_t / 2 - 0.2]) cube([eps, groove_d + 1, lip_t + 0.4]);
+      translate([-hx + seal_lead, y0, seal_z_top - groove_w / 2]) cube([eps, groove_d + 1, groove_w]);
+    }
+  }
+  translate([hx - 1, -hy - groove_d, seal_z_top - groove_w / 2]) cube([1 + groove_d, 2 * (hy + groove_d), groove_w]);
+}
+
+// The body's TPU Air: the seal channels and the side door's gasket
+module body_seal() {
+  difference() {
+    union() {
+      seal_blocks();
+      side_gasket(0);
+    }
+    seal_grooves();
+    door_screw_bosses();
+  }
+}
+
+// The carriage's lips: up the door face's sides and across its foot into
+// the end channels, and out round the top into the top's
+module door_lips() {
+  for (sy = [-1, 1]) translate([-hx - eps, sy * (hy + seal_w / 2) - lip_t / 2, seal_z_bottom - lip_t / 2])
+    cube([lip_l + eps, lip_t, seal_z_top - seal_z_bottom + lip_t]);
+  translate([-hx - eps, -(hy + seal_w / 2) - lip_t / 2, seal_z_bottom - lip_t / 2])
+    cube([lip_l + eps, 2 * (hy + seal_w / 2) + lip_t, lip_t]);
+}
+
+module top_lips() {
+  for (sy = [-1, 1]) translate([-hx - eps, sy > 0 ? hy - eps : -hy - lip_l, seal_z_top - lip_t / 2])
+    cube([2 * hx + lip_l + eps, lip_l + eps, lip_t]);
+  translate([hx - eps, -hy - lip_l, seal_z_top - lip_t / 2]) cube([lip_l + eps, 2 * (hy + lip_l), lip_t]);
+}
+
+// The washers: under the door screws' and top screws' heads, and the SMAs'
+// outer nuts, each proud of its seat by washer_proud
+module washer_at(d_out, d_in) {
+  difference() {
+    cylinder(d = d_out, h = washer_t);
+    translate([0, 0, -1]) cylinder(d = d_in, h = washer_t + 2);
+  }
+}
+
+module carriage_seal() {
+  for (s = door_screws) translate([-ex + door_seat - washer_proud, ds_y(s), s[1]]) rotate([0, 90, 0])
+    washer_at(seat_d, m3_clear_d);
+  for (x = top_screw_x) translate([x, top_screw_y, total_h - top_seat + washer_proud - washer_t])
+    washer_at(seat_d, m3_clear_d);
+  for (p = smas) translate([p[0], p[1], total_h + washer_proud - washer_t]) washer_at(sma_nut_d + 1, sma_hole_d);
+}
+
+// ---- side door
+
+// The door's section in XZ about the opening's centre, its inner face at
+// xi: a dovetail, wider at its inner face, so the track holds it
+module side_door_2d(xi, grow = 0) {
+  offset(delta = grow) polygon([[xi, -sd_dz - side_door_t], [xi + side_door_t, -sd_dz],
+                                [xi + side_door_t, sd_dz], [xi, sd_dz + side_door_t]]);
+}
+
+module side_door_at(y, xi, grow = 0) {
+  along_y(sd_y + y - sd_dy - grow, sd_y + y + sd_dy + grow) translate([0, sd_z]) side_door_2d(xi, grow);
+}
+
+// The track: everywhere the door goes with side_door_fit round it, open to
+// the face. Over its last side_door_wedge of travel it steps the door in
+// onto the gasket.
+module side_track() {
+  hull() {
+    side_door_at(sd_travel, sd_x_open, side_door_fit);
+    side_door_at(side_door_wedge, sd_x_open, side_door_fit);
+  }
+  hull() {
+    side_door_at(side_door_wedge, sd_x_open, side_door_fit);
+    side_door_at(0, sd_x_shut, side_door_fit);
+  }
+}
+
+// The gasket round the opening: its groove in the track's floor (cut 1) or
+// the TPU Air in it (cut 0), standing side_gasket_proud out of the floor
+module side_gasket(cut) {
+  translate([sd_floor - 1, sd_y, sd_z]) rotate([0, 90, 0]) linear_extrude(1 + (cut ? eps : side_gasket_proud))
+    difference() {
+      offset(r = usb_open_r + side_gasket_margin + side_gasket_w) square([2 * (sd_oz - usb_open_r), 2 * (sd_oy - usb_open_r)], center = true);
+      offset(r = usb_open_r + side_gasket_margin) square([2 * (sd_oz - usb_open_r), 2 * (sd_oy - usb_open_r)], center = true);
+    }
+}
+
+// The door, shut: trimmed to the case's outline at its back end, with two
+// finger grooves at its front end
+module side_door() {
+  difference() {
+    intersection() {
+      side_door_at(0, sd_x_shut);
+      translate([0, 0, -1]) linear_extrude(total_h) outline();
+    }
+    for (k = [0, 1]) translate([ex, sd_y + sd_dy - 1.5 - 2 * k, sd_z]) rotate([0, 0, 45])
+      cube([0.8, 0.8, 2 * sd_dz - 2], center = true);
+  }
+}
+
+// As it prints: open, clear of the gasket, held by break-off ties under
+// its lower edge
+module side_door_printed() {
+  translate([sd_x_open - sd_x_shut, sd_travel, 0]) side_door();
+  for (k = [0:side_door_ties - 1]) let(y = sd_y + sd_travel + (k / (side_door_ties - 1) - 0.5) * (2 * sd_dy - 2 * side_door_tie_w))
+    intersection() {
+      side_door_at(sd_travel, sd_x_open, side_door_fit + eps);
+      translate([sd_x_open - 1, y - side_door_tie_w / 2, sd_z - sd_dz - side_door_t - 2])
+        cube([side_door_t + 2, side_door_tie_w, 2 + side_door_t - 0.5]);
+    }
+}
+
+// ---- bottom plugs
+
+// What comes out of the base for a plug: the flange's recess, the whole
+// base deep, and the strap's groove out to the edge
+module plug_cut(y) {
+  s = plug_s(y);
+  j = plug_join(y);
+  translate([-plug_fx - 0.3, min(j - s * 0.3, j + s * (2 * plug_fy + 0.3)), -1])
+    cube([2 * (plug_fx + 0.3), 2 * plug_fy + 0.6, base_t + 1 + eps]);
+  translate([-plug_strap_w / 2 - 0.3, min(j, s * (ey + 1)), -1])
+    cube([plug_strap_w + 0.6, abs(s * (ey + 1) - j), plug_strap_t + 1.1]);
+}
+
+module plug_stem() {
+  linear_extrude(floor_z - plug_short - plug_strap_t - plug_flange_t)
+    offset(r = usb_open_r + plug_fit) square([usb_open_w - 2 * usb_open_r, usb_open_h - 2 * usb_open_r], center = true);
+}
+
+// As it prints, on the bed out past the base's edge: the strap leaves the
+// edge over the groove at 45°, so it folds back under into the groove, then
+// the flange folds back over the strap's end and the stem goes up the port
+module plug_printed(y) {
+  s = plug_s(y);
+  e = s * ey;
+  l = plug_strap_l(y) + 2;
+  t = plug_strap_t;
+  hull() {
+    translate([-plug_strap_w / 2, e - (s > 0 ? 0.5 : 0), t]) cube([plug_strap_w, 0.5, t]);
+    translate([-plug_strap_w / 2, e + s * t - (s > 0 ? 0 : eps), 0]) cube([plug_strap_w, eps, t]);
+  }
+  translate([-plug_strap_w / 2, min(e + s * t, e + s * (t + l)), 0]) cube([plug_strap_w, l, t]);
+  f0 = e + s * (t + l);
+  translate([-plug_fx, min(f0, f0 + s * 2 * plug_fy) - (s > 0 ? eps : -eps), 0]) cube([2 * plug_fx, 2 * plug_fy, plug_flange_t]);
+  translate([0, f0 + s * plug_fy, plug_flange_t]) plug_stem();
+}
+
+// In the port, the strap left out
+module plug_installed(y) {
+  translate([-plug_fx, y - plug_fy, plug_strap_t]) cube([2 * plug_fx, 2 * plug_fy, plug_flange_t]);
+  translate([0, y, plug_strap_t + plug_flange_t]) plug_stem();
 }
 
 // ---- TPU base
@@ -676,12 +974,14 @@ module base_key_shapes() {
     cylinder(d1 = key_d, d2 = key_d + 2 * key_flare, h = key_h + eps);
 }
 
-// The body's TPU: the base and its knurled rings
-module body_tpu() {
+// The body's TPU: the base, its knurled rings and the plugs, as they print
+// or in their ports
+module body_tpu(plugs_in = false) {
   tpu_base();
+  for (y = plug_ports) if (plugs_in) plug_installed(y); else plug_printed(y);
   intersection() {
     grip_rings();
-    translate([-hx, -ey - 1, 0]) cube([ex + hx + 1, 2 * ey + 2, ceiling]);
+    translate([-hx, -ey - 1, 0]) cube([ex + hx + 1, 2 * ey + 2, ceiling + seal_w]);
   }
 }
 
@@ -703,7 +1003,7 @@ module carriage_tpu() {
   difference() {
     intersection() {
       grip_rings(false);
-      translate([-ex - 1, -ey - 1, 0]) cube([ex - hx + 1, 2 * ey + 2, ceiling]);
+      translate([-ex - 1, -ey - 1, 0]) cube([ex - hx + 1, 2 * ey + 2, total_h]);
     }
     for (i = [0:band_n - 1]) if (inset_band(i)) door_knurl(band_z0(i) + knurl_d, band_z1(i) - knurl_d);
   }
@@ -729,6 +1029,7 @@ module tpu_base() {
       translate([-hx, -ey - 1, 0]) cube([ex + hx + 1, 2 * ey + 2, base_t]);
     }
     for (b = boards) bottom_opening(b[5]);
+    for (y = plug_ports) plug_cut(y);
   }
   base_key_shapes();
 }
@@ -811,11 +1112,9 @@ module cell_cradle() {
     translate([x, yb + y0, cell_z1 + roof_fit]) cube([cell_roof_reach + eps, y1 - y0, roof_t]);
 }
 
-// Under the top: a tongue along each of the back and front walls, and the
-// hook at the right edge, its left face 45° up to the top so it prints
+// Under the top: the hook at the right edge, its left face 45° up to the
+// top so it prints
 module top_mates() {
-  for (sy = [-1, 1]) translate([-hx - eps, sy * (hy + end_wall / 2) - tongue_w / 2, ceiling - tongue_h])
-    cube([2 * hx - slide_fit + eps, tongue_w, tongue_h + eps]);
   x = hx - slide_fit;
   zb = ceiling - hook_h;
   along_y(hook_y0, hook_y1)
@@ -827,6 +1126,8 @@ module top_mates() {
       polygon([[x - hook_gusset_l, ceiling + eps], [x, ceiling + eps], [x, zb]]);
 }
 
+// The carriage, PCTG: the door face, the top over the seal band, and the
+// top's lower part filling the cavity inside the top seal
 module carriage() {
   difference() {
     union() {
@@ -834,17 +1135,26 @@ module carriage() {
         shell();
         union() {
           translate([-ex - 1, -ey - 1, base_t]) cube([ex - hx + 1, 2 * ey + 2, total_h]);
-          translate([-ex - 1, -ey - 1, ceiling]) cube([2 * ex + 2, 2 * ey + 2, total_h]);
+          translate([-ex - 1, -ey - 1, ceiling + seal_w]) cube([2 * ex + 2, 2 * ey + 2, total_h]);
+          translate([-hx - 1, -hy, ceiling]) cube([2 * hx + 1, 2 * hy, seal_w + eps]);
         }
       }
       top_mates();
+      door_lips();
+      top_lips();
     }
-    for (p = smas) translate([p[0], p[1], ceiling - 1]) cylinder(d = sma_hole_d, h = top_t + 2);
+    for (p = smas) translate([p[0], p[1], ceiling - 1]) {
+      cylinder(d = sma_hole_d, h = total_h - ceiling + 2);
+      translate([0, 0, total_h - ceiling + 1 + washer_proud - washer_t]) cylinder(d = sma_nut_d + 1, h = washer_t + 1);
+    }
     for (s = door_screws) translate([-ex - 1, ds_y(s), s[1]]) rotate([0, 90, 0]) {
-      cylinder(d = clear_d(s[2]), h = side_wall + 2);
-      cylinder(d = head_d(s[2]) + 0.5, h = grip_inset + 1);
+      cylinder(d = m3_clear_d, h = side_wall + 2);
+      cylinder(d = seat_d, h = 1 + door_seat - washer_proud + washer_t);
     }
-    for (x = top_screw_x) translate([x, top_screw_y, ceiling - 1]) cylinder(d = m5_clear_d, h = top_t + 2);
+    for (x = top_screw_x) translate([x, top_screw_y, ceiling - 1]) {
+      cylinder(d = m3_clear_d, h = total_h - ceiling + 2);
+      translate([0, 0, total_h - ceiling + 1 - top_seat + washer_proud - washer_t]) cylinder(d = seat_d, h = top_seat + 1);
+    }
     grip_cut();
   }
   fins();
@@ -870,6 +1180,10 @@ module carriage_print() {
 
 module carriage_tpu_print() {
   translate([0, 0, ex]) rotate([0, -90, 0]) carriage_tpu();
+}
+
+module carriage_seal_print() {
+  translate([0, 0, ex]) rotate([0, -90, 0]) carriage_seal();
 }
 
 // ---- reference parts
@@ -915,8 +1229,8 @@ module ref_tp() {
 
 module ref_sma() {
   for (p = smas) translate([p[0], p[1], ceiling]) {
-    translate([0, 0, -(sma_behind - 2)]) cylinder(d = 6.35, h = sma_behind - 2 + top_t + 8);
+    translate([0, 0, -(sma_behind - 2)]) cylinder(d = 6.35, h = sma_behind - 2 + total_h - ceiling + 8);
     translate([0, 0, -2]) cylinder(d = sma_nut_d, h = 2, $fn = 6);
-    translate([0, 0, top_t]) cylinder(d = sma_nut_d, h = 2, $fn = 6);
+    translate([0, 0, total_h - ceiling + washer_proud]) cylinder(d = sma_nut_d, h = 2, $fn = 6);
   }
 }
