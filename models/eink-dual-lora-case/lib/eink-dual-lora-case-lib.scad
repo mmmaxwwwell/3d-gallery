@@ -22,10 +22,11 @@
 
 // BEGIN_PARAMS
 // Body seen from the front, above the battery bay: the N37's 66 x 78, 3 mm
-// taller so the 65 mm HAT and its ribbon fold fit. The inside is laid out
+// taller so the 65 mm HAT and its ribbon fold fit, and 5 mm wider so two
+// 18650s lie across the battery bay. The inside is laid out
 // to this outline; the outside is `skin` bigger all round, so the band and
 // the rounds can be big without thinning the walls.
-case_w = 66;
+case_w = 71;
 case_h = 81;
 skin = 2;
 // Front to back: the N37's 24.3 plus 2, so the switch boxes fit behind the
@@ -58,7 +59,7 @@ wing_r = 5;
 bump_w = 27;
 bump_top_w = 13;
 bump_h = 7;
-bump_x = 18;
+bump_x = 20.5;
 // Radius of the inside corners where the wing and bump meet the body
 fillet_r = 3;
 // 2.13" e-paper HAT (Waveshare clone), standing portrait: board outline,
@@ -164,10 +165,12 @@ grille_pitch = 2.8;
 amp_w = 22.5;
 amp_l = 38.6;
 amp_h = 4.2;
-// Battery bay across the bottom, full depth: room for a 5 Ah pack, e.g.
-// two 104060 cells (10 x 40 x 60, 2.5 Ah) stacked front to back in parallel.
-// Across, up, front to back
-batt = [60, 40, 20];
+// Battery bay across the bottom, full depth: two 18650s (the user's pick),
+// unprotected with welded tabs (65 long, about 66.5 with tabs, 18.5 across),
+// lying across one above the other. The bay across, up, front to back.
+cell_d = 18.5;
+cell_len = 66.5;
+batt = [cell_len, 2 * cell_d + 0.6, cell_d];
 // L76K GNSS board (Seeed's, XIAO-size 18 x 21) behind the display under the
 // switches, on posts; its active patch antenna is the `gps` in the wing
 gnss = [21, 18];
@@ -909,7 +912,8 @@ module ref_amp() {
   translate([amp_c.x, amp_c.y, inner_back_z - amp_h / 2]) cube([amp_w, amp_l, amp_h], center = true);
 }
 module ref_battery() {
-  translate([batt_c.x, batt_c.y, batt_z0 + batt.z / 2]) cube(batt, center = true);
+  for (s = [-1, 1]) translate([batt_c.x, batt_c.y + s * (cell_d + 0.3) / 2, batt_z0 + cell_d / 2])
+    rotate([0, 90, 0]) cylinder(d = cell_d, h = cell_len, center = true);
 }
 module ref_gnss() {
   translate([gnss_c.x, gnss_c.y, gnss_z0 + gnss_h / 2]) cube([gnss.x, gnss.y, gnss_h], center = true);

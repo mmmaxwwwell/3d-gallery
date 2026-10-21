@@ -66,7 +66,11 @@ The lib lays out with X right as seen from the front, Y up, Z from the front fac
   - radio 2 behind the sensor board, above its screw heads, on tub posts;
   - the amp on the back wall behind the speaker.
 - **Wing:** the GPS patch faces the front (midframe cut round it). Behind it the motor lies up the wing in a saddle on the back wall, held by two zip ties through tunnels under it. SMA 2 sits on the wing's top, nudged left for the motor; SMA 1 is in the bump.
-- **Battery bay:** full depth across the bottom, 60 × 40 × 20 (`batt`). The midframe stops above it. Ribs from the back hold it forward.
+- **Battery bay:** full depth across the bottom (`batt`). The midframe stops above it, and ribs from the back hold the cells forward.
+  - On 2026-10-20 the user asked to "swap the batteries in the bottom out for 2 18650s", replacing the 5 Ah pouch.
+  - The cells lie across, one above the other (`cell_d`, `cell_len`). They're assumed unprotected with welded tabs, 66.5 long with the tabs; a protected cell (about 69) wouldn't fit.
+  - The inside was 62.4 wide, so `case_w` went from 66 to 71 and `bump_x` moved with the right side. Standing the cells up instead would have kept the width but added about 26 mm of height.
+  - The bay's depth is the cell diameter, so the back ribs keep their 0.3 mm gap.
 - **Screws** (`screws`, all M3x20, since every boss runs the same depth):
   - wing, top middle, middle (between display and XIAO);
   - the old bottom left corner and bottom middle (now above the battery);

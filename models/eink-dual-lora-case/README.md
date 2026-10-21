@@ -1,6 +1,6 @@
 # E-ink Dual-LoRa Handheld
 
-A handheld case shaped after the Meshnology N37. It has a rounded body with a wing at the top left and an antenna bump at the top right, and the N37's angled band round the front and back faces, with every edge rounded. A 2.13" e-paper HAT stands upright down the left of the front, and the body runs on down into a bay for a big 5 Ah battery. It's 70 × 135 × 26.3 mm, and 167 mm tall with the wing.
+A handheld case shaped after the Meshnology N37. It has a rounded body with a wing at the top left and an antenna bump at the top right, and the N37's angled band round the front and back faces, with every edge rounded. A 2.13" e-paper HAT stands upright down the left of the front, and the body runs on down into a bay for a big 5 Ah battery. It's 75 × 133 × 26.3 mm, and 167 mm tall with the wing.
 
 ## What goes in
 
@@ -14,7 +14,7 @@ A handheld case shaped after the Meshnology N37. It has a rounded body with a wi
 - GPS: a Seeed L76K module behind the display, its patch antenna facing the front in the wing (as on the N37).
 - A strong vibration motor (Precision Microdrives 312-107) lying up the wing behind the GPS antenna, held in a saddle with two zip ties. It draws 450 mA, so drive it through a MOSFET, not straight from the XIAO.
 - Two sealed box switches (12.5 × 12.8 × 15.3 mm) behind the display, worked by waterproof buttons in the left side.
-- A 5 Ah battery in a full-depth bay across the bottom, 60 × 40 × 20 mm: for example two 104060 cells (2.5 Ah each) side by side front to back, in parallel.
+- Two 18650 cells in a full-depth bay across the bottom, lying across one above the other, in parallel. They're unprotected cells with welded tabs: 65 mm long, about 66.5 with the tabs. The case is 5 mm wider than the N37 so they fit.
 
 ## Waterproof buttons
 
