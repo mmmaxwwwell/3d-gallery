@@ -15,7 +15,7 @@ The box is 140 × 190 mm and 47.5 mm tall with the lid on. The walls, floor and 
 
 The +Y end (the SMA end) is the end that sticks out of the pouch.
 
-- **Power bank**: lies along the left side, between the wall and a full-height divider, with its ports toward +Y. A rib stops it at the -Y end.
+- **Power bank**: lies along the left side, between the wall and a full-height divider, with its ports toward +Y. A rib stops it at the -Y end. At the port end, two posts catch its corners and reach 5 mm in from each side, which leaves the middle 34.5 mm clear for the ports.
 - **Bay**: the open space above the bank, about 30 mm, for its plugs and the cables. It opens into the right side past the end of the divider.
 - **Franklin T9**: at the -Y end of the right side, between corner brackets.
 - **HT-HC33 and Pi Zero 2 W**: above the T9, side by side on standoffs, with a 15 mm cable lane between them. The HC33 is next to the divider and the Pi is next to the right wall.
@@ -33,4 +33,5 @@ The +Y end (the SMA end) is the end that sticks out of the pouch.
 - **Charging.** The bank's ports face into the box, so it charges with the lid off. A panel-mount USB-C extension through a wall would fix that, but it isn't in yet.
 - **T9 screen and buttons.** They sit under the solid lid.
 - **Heat.** The box has no vents.
+- **Bank ports.** The posts assume the bank's ports are within the middle 34.5 mm of its end. If they're not, change `bank_post_reach`.
 - **Pi height.** The Pi's standoffs are 3 mm tall. That's enough for a bare board, but not for one with a header soldered underneath.

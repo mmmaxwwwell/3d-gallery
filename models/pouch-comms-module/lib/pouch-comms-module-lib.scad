@@ -8,7 +8,8 @@
 // Plan, looking down on the open box, +Y up (the end that sticks out of
 // the pouch):
 //   - left column: the power bank lying flat, ports toward +Y, held between
-//     the left wall and a full-height divider. A rib at its -Y end stops it.
+//     the left wall and a full-height divider. A rib at its -Y end stops it,
+//     and two posts catch the corners of its port end.
 //   - above the bank: an open bay for its plugs and the cables. The divider
 //     stops at the bank's end, so the bay opens into the right column.
 //   - right column: the T9 at -Y between corner brackets, then the HC33
@@ -42,6 +43,12 @@ bank_head = 1;
 
 // Rib that stops the bank at its -Y end, and its height
 bank_stop_h = 10;
+
+// Posts that catch the bank's port-end corners: how far each reaches in
+// from the side, and its thickness along Y. The middle of the end stays
+// clear for the ports
+bank_post_reach = 5;
+bank_post_t = 3;
 
 // Divider between the bank and the electronics
 divider_t = 2;
@@ -143,7 +150,8 @@ sma_z = wall + inner_h / 2;
 
 screws = [for (x = [x_in0, x_in1], y = [y_in0, y_in1]) [x, y]];
 
-assert(bank_y1 <= y_in1 - 20, "no bay left over the bank's ports");
+assert(bank_w - 2 * bank_post_reach >= 30, "the posts cover the bank's ports");
+assert(bank_y1 + bank_post_t <= y_in1 - 20, "no bay left over the bank's ports");
 assert(t9_w + 2 * (bracket_clear + bracket_wall) <= col_x1 - col_x0, "T9 doesn't fit across the column");
 assert(t9_x1() <= x_in1 - boss_r, "T9 runs into the corner boss");
 assert(lane_w >= 12, "no cable lane between the boards");
@@ -202,8 +210,9 @@ module box() {
         linear_extrude(box_h) plan();
         for (p = screws) translate([p[0], p[1], 0]) cylinder(d = boss_d, h = box_h);
       }
-      translate([div_x0, y_in0 - eps, 0]) cube([divider_t, bank_y1 - y_in0, box_h]);
+      translate([div_x0, y_in0 - eps, 0]) cube([divider_t, bank_y1 + bank_post_t - y_in0, box_h]);
       translate([bank_x0 - eps, y_in0 - eps, 0]) cube([bank_x1 - bank_x0 + 2 * eps, bank_y0 - bank_fit - y_in0, wall + bank_stop_h]);
+      for (x = [bank_x0 - eps, bank_x1 - bank_post_reach]) translate([x, bank_y1, 0]) cube([bank_post_reach + eps, bank_post_t, box_h]);
       translate([0, 0, wall - eps]) {
         corner_brackets(col_cx, t9_cy, t9_w, t9_l, bracket_h + eps);
         standoffs(hc_holes, hc_standoff_d, hc_standoff_h + eps, hc_pilot_d);
@@ -233,27 +242,27 @@ module lid_in_place(lift = 0) {
 
 // ---- reference parts
 
-module ref_bank() {
-  translate([bank_x0 + bank_fit, bank_y0 + bank_fit, wall]) cube([bank_w, bank_l, bank_h]);
+module ref_bank(lift = 0) {
+  translate([0, 0, lift]) translate([bank_x0 + bank_fit, bank_y0 + bank_fit, wall]) cube([bank_w, bank_l, bank_h]);
 }
 
-module ref_t9() {
-  translate([col_cx - t9_w / 2, t9_y0, wall]) cube([t9_w, t9_l, t9_h]);
+module ref_t9(lift = 0) {
+  translate([0, 0, lift]) translate([col_cx - t9_w / 2, t9_y0, wall]) cube([t9_w, t9_l, t9_h]);
 }
 
-module ref_boards() {
-  translate([hc_x0, boards_y0, wall + hc_standoff_h]) {
+module ref_boards(lift = 0) {
+  translate([hc_x0, boards_y0, wall + hc_standoff_h + lift]) {
     cube([hc_w, hc_l, 1.5]);
     translate([3, 6, 1.5]) cube([hc_w - 6, hc_l - 12, 3.3]);
   }
-  translate([pi_x0, boards_y0, wall + pi_standoff_h]) {
+  translate([pi_x0, boards_y0, wall + pi_standoff_h + lift]) {
     cube([pi_w, pi_l, 1.2]);
     translate([3, 8, 1.2]) cube([pi_w - 6, pi_l - 16, 3.5]);
   }
 }
 
-module ref_sma() {
-  translate([sma_x, outer_l, sma_z]) rotate([90, 0, 0]) {
+module ref_sma(out = 0) {
+  translate([sma_x, outer_l + out, sma_z]) rotate([90, 0, 0]) {
     translate([0, 0, -10]) cylinder(d = 8, h = 10);
     cylinder(d = 6.35, h = wall + sma_behind - 2);
   }
