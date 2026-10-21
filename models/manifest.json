@@ -4339,6 +4339,41 @@
         { "qty": 1, "label": "Construction adhesive — a bead on the frame's ledge under the panel" },
         { "qty": 4, "label": "Double-sided foam tape — the battery and boards to the floor" }
       ]
+    },
+    {
+      "slug": "pouch-comms-module",
+      "devOnly": true,
+      "title": "Pouch Comms Module",
+      "description": "A box that rides in a backpack side pouch, carrying a power bank, a Franklin T9 hotspot, a Raspberry Pi Zero 2 W and a Heltec HT-HC33 (ESP32-S3 + Wi-Fi HaLow). The bank lies along the left side behind a full-height divider, its ports toward an open bay at the top end where the cables gather. The T9 sits between corner brackets at the bottom of the right side, and the two boards stand side by side on standoffs above it with a cable lane between them. An SMA bulkhead through the top end wall takes the HC33's HaLow antenna. A flat lid closes it on four M3 cap screws. 140 × 190 × 47.5 mm with 5 mm walls; the bank's 36.5 mm sets the height. Not yet printed.",
+      "filament": [
+        { "material": "PETG", "color": "any" }
+      ],
+      "previews": [
+        { "file": "assembled.3mf", "format": "3mf", "label": "Assembled, the lid lifted 40 mm off the box", "default": true,
+          "legend": [
+            { "color": "#3a4250", "label": "Box and lid", "part": "box.stl", "parts": ["box.stl", "lid.stl"] },
+            { "color": "#e8c547", "label": "Power bank (reference)" },
+            { "color": "#d0d3d8", "label": "Franklin T9 (reference)" },
+            { "color": "#2f8f4e", "label": "HT-HC33 and Pi Zero 2 W (reference)" },
+            { "color": "#c9a227", "label": "SMA bulkhead (reference)" }
+          ],
+          "components": [
+            { "part": "box.stl", "qty": 1 },
+            { "part": "lid.stl", "qty": 1 }
+          ] }
+      ],
+      "parts": [
+        { "file": "box.stl", "format": "stl", "label": "Box — floor, walls, bank divider, T9 brackets, board standoffs, SMA hole" },
+        { "file": "lid.stl", "format": "stl", "label": "Lid — flat, four counterbored M3 holes" }
+      ],
+      "hardware": [
+        { "qty": 4, "label": "M3x10 socket cap screw — lid into the corner bosses",
+          "usedBy": [ { "part": "lid.stl", "each": 4 } ] },
+        { "qty": 4, "label": "M2.5x6 screw — Pi Zero 2 W onto its standoffs" },
+        { "qty": 4, "label": "M2x5 screw — HT-HC33 onto its standoffs" },
+        { "qty": 1, "label": "SMA female bulkhead to U.FL pigtail — HaLow antenna through the end wall" },
+        { "qty": 2, "label": "Double-sided foam tape — the bank and the T9 to the floor" }
+      ]
     }
   ]
 }
