@@ -6,7 +6,10 @@ It hangs with a long side down and the winch behind it. The box is a wedge: its 
 
 Two views: **Assembled**, with the lid pulled off, and **Deployed**.
 
-**Deployed** shows it winched up to the highest limb of a tree. The cables run up the limb's back and over it, and the 1 m bar ends up just under the limb. The last 2 m of mast rise behind the limb and hold the two N omnis above the canopy. The limb has to run across both cables, so the mast, 10 mm behind them, clears its back.
+**Deployed** shows it winched up to the highest limb of a tree. The cables run up the limb's back and over it, and the 1/3 m bar ends up just under the limb.
+- The cables end at the limb, so the 2/3 m and 1 m bars can't be on them in that position, and they aren't drawn.
+- The rest of the mast rises behind the limb and holds the two N omnis above the canopy.
+- The limb has to run across both cables, so the mast, 10 mm behind them, passes its back. There the 20 mm foot section is only 0.7 mm off the bark: in practice it rubs. How it should clear is still open.
 
 ## Pieces
 

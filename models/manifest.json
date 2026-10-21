@@ -4345,7 +4345,7 @@
             { "part": "horn.stl", "qty": 2 },
             { "part": "door.stl", "qty": 2 }
           ] },
-        { "file": "deployed.3mf", "format": "3mf", "label": "Deployed: winched up to the tree's top limb, its 1 m bar just under the limb, lid shut; the mast run out to 3 m with bars to the cables every third of a metre for the first metre, the last 2 m standing above the canopy; two LMR-400 runs up to two N omnis",
+        { "file": "deployed.3mf", "format": "3mf", "label": "Deployed: winched up to the tree's top limb, its 1/3 m bar just under the limb, lid shut; the mast run out to 3 m, standing above the canopy; two LMR-400 runs up to two N omnis",
           "legend": [
             { "color": "#3d4a3a", "label": "Tray and bezel", "part": "tray.stl", "parts": ["tray.stl", "bezel.stl"] },
             { "color": "#c08a3e", "label": "Frame", "part": "frame.stl" },

@@ -1330,8 +1330,10 @@ module ref_bulkhead() {
 // ---- deployed (reference): winched up to the tree's highest limb, which
 // runs across both cables (they hang off its back), the telescoping carbon
 // mast run out to 3 m above the socket, held to the two cables by
-// stabilising bars every third of a metre for the first metre, the top bar
-// just under the limb; the last two metres stand behind the limb, above the
+// stabilising bars every third of a metre for the first metre. It is drawn
+// up until the bar `limb_bar` (the first, at 1/3 m) is just under the limb;
+// the cables end at the limb, so bars above it can't be fitted there and
+// aren't drawn. The rest of the mast stands behind the limb, above the
 // canopy. Two LMR-400 runs from the bulkheads up the mast to two N-type omni
 // antennas: one standing straight up on the mast's tip, the other
 // zip-tied alongside the shaft just below it, `side_ant_drop` under the tip. The limb: its diameter, the gap
@@ -1345,16 +1347,20 @@ lmr_d = 10.3;
 ant_len = 600;
 ant_d = 25;
 side_ant_drop = 80;
+limb_bar = 0;
 limb_d = 200;
 limb_gap = 30;
 limb_len = 1600;
 trunk_d = 320;
 mast_top = socket_top + mast_len;
-limb_y = socket_top + bar_ys[len(bar_ys) - 1] + bar_w / 2 + limb_gap + limb_d / 2;
+limb_y = socket_top + bar_ys[limb_bar] + bar_w / 2 + limb_gap + limb_d / 2;
 limb_z = hang_z + cable_d / 2 + limb_d / 2;
 // the mast's section where it passes the limb
 limb_mast_d = mast_ds[min(len(mast_ds) - 1, floor((limb_y - bore_bot) / ((mast_top - bore_bot) / len(mast_ds))))];
-assert(pole_z + limb_mast_d / 2 + 1 < limb_z - limb_d / 2, "the mast runs into the limb");
+// At the 1/3 m bar the 20 mm foot section passes the limb about 0.7 mm off
+// the bark (open: how it should clear)
+limb_clear = limb_z - limb_d / 2 - pole_z - limb_mast_d / 2;
+assert(limb_clear > 0, "the mast runs into the limb");
 
 module ref_mast() {
   n = len(mast_ds);
@@ -1382,7 +1388,7 @@ module ref_tree() {
 
 // A bar across the cables, an eye round each, and a clamp back to the mast
 module ref_bars() {
-  for (y = bar_ys) translate([0, socket_top + y, 0]) {
+  for (i = [0 : limb_bar], y = [bar_ys[i]]) translate([0, socket_top + y, 0]) {
     translate([-throat_x, -bar_w / 2, hang_z - bar_t / 2]) cube([2 * throat_x, bar_w, bar_t]);
     for (m = [-1, 1]) translate([m * throat_x, 0, hang_z]) rotate([90, 0, 0]) difference() {
       cylinder(d = 14, h = bar_w, center = true, $fn = 24);
