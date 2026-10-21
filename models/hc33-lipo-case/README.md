@@ -8,7 +8,7 @@ A case that stands on end, with everything stacked face to face inside it like a
 
 The HC33's and V4's USB-Cs come out of the bottom, the TP4056's out of the right side. Two SMA bulkheads come out of the top at opposite corners: front-left and back-right.
 
-49 × 56.2 × 82.5 mm. Not printed yet.
+49 × 56.1 × 82.5 mm. Not printed yet.
 
 ## Pieces
 
@@ -31,34 +31,41 @@ Rings 15 mm tall run round the case, plain and inset in turn, from a plain one a
 ## How it goes together
 
 - **Chambers.** The carriage's 1.2 mm fins run between the layers, from the floor up to just over the tallest part. The 10 mm under the top is open across all four chambers: that's where the wires and the SMA pigtails cross. The fin between the TP4056 and the HC33 stops just over the TP4056 (23.5 mm up), so the HC33's chamber takes in the space above the charger, where its antenna goes.
-- **HC33 and V4.** Each board's left edge sits in a slotted rib on the door face, with a floor and a roof. A slotted tab off the next fin holds its top edge near the right end. With the carriage in, the right edge sits in a slotted rail on the body's right wall, whose floor puts the USB-C 0.3 mm over its opening in the bottom.
+- **HC33 and V4.** Each board is held on all four edges, snug: 0.2 mm over the PCB's thickness, 0.15 mm over its top edge.
+  - Its left edge sits in a slotted rib on the door face. With the carriage in, its right edge sits in a slotted rail on the body's right wall. The V4's corners are chamfered (3.81 mm at the top, 2.16 mm at the USB-C end), and those slots' floors and roofs follow the chamfers, so its corners are held too. That works because a board only ever passes a slot moving one way.
+  - A slotted bar off the next fin runs along its top edge. The V4's is split for 6 mm over the LoRa IPEX on its nose.
+  - Slotted bars under its bottom edge carry it either side of the USB-C, leaving the plug's opening clear. They reach only 0.9 mm up the board's faces, clear of the V4's buttons and connectors. They put the USB-C 0.3 mm over its opening in the bottom.
 - **TP4056.** It stands on a slotted bar and has another slotted bar over its top edge, both on the carriage. Its left end sits in a rib on the door face. Its USB-C end slides into the body's rails either side of the opening in the right wall.
 - **Cell.** It sits between two fins, on a floor plate joining them, under a roof at each end of its top. The wires come out between the roofs.
 - **Mating.**
   - The fins and the cell's floor plate run in channels in the floor, 1.2 mm deep, and the fins run in grooves up the right wall.
   - Two tongues under the top run in grooves along the back and front walls' tops.
   - A hook under the top's right edge has a nib that slides into a groove in the right wall, so the top's far end can't lift.
-- **Screws.** Two M3x10 cap screws hold it in. They go through counterbores 3.2 mm deep in the door face and thread 7.2 mm into bosses on the back wall (low) and the front wall (high). Each boss sits where nothing on the carriage passes as it slides in.
+- **Screws.** Five button-head cap screws hold it in, each threading 6–7 mm into a boss on the body.
+  - Through the door face: two M5x10 into bosses on the back wall (39.5 and 54.5 mm up) and one M3x10 into a boss on the front wall (65.5 up), over the V4. Each head sits 2 mm into the face, on the flat of a plain ring or an inset ring's floor.
+  - Through the top: two M5x10 along the front edge into bosses hanging off the front wall.
+  - Each boss sits where nothing on the carriage passes as it slides in. Those spots set how many fit: there is no room inside this size for more door-face M5s.
 
 It isn't sealed: the USB-C openings are open.
 
 ## Assembly
 
 1. Fit the SMA bulkheads through the top, nuts inside.
-2. Slide each piece onto the carriage from the right, toward the door face: the TP4056 between its bars, the HC33 into its rib and tab, the cell between its fins, then the V4. A dab of foam tape keeps the cell from sliding back out before the carriage goes in.
+2. Slide each piece onto the carriage from the right, toward the door face: the TP4056 between its bars, the HC33 and V4 along their bars into their ribs, the cell between its fins. A dab of foam tape keeps the cell from sliding back out before the carriage goes in.
 3. Wire the cell to the TP4056 and to the boards' battery inputs, over the fins, and plug the pigtails in: the back-right SMA to the HC33, the front-left one to the V4.
 4. Slide the carriage into the body from the left until the door face meets it. Each board's right edge goes into its rail as it does.
-5. Put in the two M3x10s.
+5. Put in the screws: the two M5x10s and the M3x10 through the door face, then the two M5x10s down through the top.
 
 ## Unmeasured
 
 - **The cell.** 103665 is nominal 10 × 36 × 65 with its protection board. Real cells run a millimetre or two over (`cell_t`, `cell_w`, `cell_l`).
-- **The V4.** 51.7 × 25.4 × 10.7 is from Heltec's page. These are guesses:
-  - its PCB thickness (`v4_pcb`, 1);
-  - how its parts split either side (`v4_under`, 2.5 behind);
-  - where its USB-C sits (`v4_usb_y`, `v4_usb_overhang`).
+- **The V4.** Taken from Heltec's drawing and STEP model (V4.3.1):
+  - 51.69 × 25.4 overall;
+  - PCB 1.56 thick;
+  - 3.6 behind the PCB (the GNSS connector) and 5.54 in front (the OLED bracket);
+  - the USB-C 1.25 over the PCB, sticking out 0.97.
 
-  Pin headers aren't allowed for.
+  Not yet checked against a board in hand. The STEP model has no OLED, so the 5.54 comes from the drawing's 15.6 overall height with headers. The IPEX's place on the nose is read off the drawing (`v4_ipex_gap`). Pin headers aren't allowed for.
 - **The TP4056 board.** Taken as 28 × 17.5, 1.6 thick, a 9 × 3.2 receptacle sticking out 0.6 (`tp_*`). Boards vary.
 - **The HC33's USB-C height** over its PCB (`hc_usb_y`), as in the other HC33 case.
-- **Board edges.** The slots and tabs assume each board's outer 1.25 mm is clear of parts, along the top edge as well as the sides.
+- **Board edges.** The side and top slots assume each board's outer 1.25 mm is clear of parts, and the bottom bars its outer 0.9 mm. True for the V4 by its model except the IPEX, which its top bar is split round; unknown for the HC33.

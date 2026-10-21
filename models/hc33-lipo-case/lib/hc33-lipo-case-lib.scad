@@ -59,17 +59,25 @@ hc_over = 3.3;
 hc_usb_overhang = 1.54;
 hc_usb_y = 0.3;
 
-// Heltec WiFi LoRa 32 V4: length, width, PCB thickness, thickness over
-// its parts, the tallest part behind the PCB; its USB-C's centre in front
-// of the PCB's top face, and how far it sticks out past the board's end
-// (PCB, the split either side of it and the USB-C unmeasured)
-v4_l = 51.7;
+// Heltec WiFi LoRa 32 V4 (V4.3.1, from Heltec's drawing and STEP model,
+// headers not fitted): length with the nose, width, PCB thickness,
+// thickness over its parts, the tallest part behind the PCB (the GNSS
+// connector); its USB-C's centre in front of the PCB's top face, and how
+// far it sticks out past the board's end
+v4_l = 51.69;
 v4_w = 25.4;
-v4_pcb = 1;
+v4_pcb = 1.56;
 v4_t = 10.7;
-v4_under = 2.5;
-v4_usb_y = 1.6;
-v4_usb_overhang = 0.5;
+v4_under = 3.6;
+v4_usb_y = 1.25;
+v4_usb_overhang = 0.97;
+
+// The V4's outline: the 45° chamfers at the corners of its top end (the
+// nose) and of its USB-C end, and the gap its top bar leaves over the
+// LoRa IPEX on the nose
+v4_nose = 3.81;
+v4_foot = 2.16;
+v4_ipex_gap = 6;
 
 // TP4056 USB-C charger board, lying with its USB-C end to the right:
 // PCB length (along X) and width (up the case), PCB thickness, the solder
@@ -99,14 +107,15 @@ divider_t = 1.2;
 // either side of the slot, the gap over a board's top edge and the roof
 // over it
 slot_engage = 1.25;
-slot_fit = 0.4;
-slot_side_fit = 0.3;
+slot_fit = 0.2;
+slot_side_fit = 0.2;
 rail_wall = 1.2;
-roof_fit = 0.3;
+roof_fit = 0.15;
 roof_t = 1.5;
 
-// How long each tab holding a board's top edge is, at the board
-board_tab_l = 6;
+// How far the bars under each board's bottom edge reach up its faces: less
+// than slot_engage, clear of the parts near the edge
+bottom_engage = 0.9;
 
 // How far each roof over the cell's top end reaches in from its side
 cell_roof_reach = 6;
@@ -155,19 +164,26 @@ hook_h = 4;
 nib_l = 1.2;
 nib_h = 1.2;
 
-// Door-face screws: M3 cap screws through the door face into bosses on the
-// back and front walls. Their heights (back, front), the axis's distance
-// in from the wall, the clearance hole and the pilot, the counterbore
-// (head diameter and how deep it sinks into the door face), the boss's
-// wall round the pilot, and the screw's length under the head
-door_screw_z = [39.5, 65];
-door_screw_in = 3.15;
+// Button-head screws: M5 and M3 clearance hole, pilot and head diameter;
+// the boss's wall round the pilot, and the screws' length under the head
+m5_clear_d = 5.5;
+m5_pilot_d = 4.2;
+m5_head_d = 9.5;
 m3_clear_d = 3.4;
 m3_pilot_d = 2.5;
-m3_cbore_d = 6;
-m3_cbore_h = 3.2;
-m3_wall = 1.6;
-m3_len = 10;
+m3_head_d = 5.7;
+boss_wall = 1.6;
+screw_len = 10;
+
+// Door-face screws into bosses on the back and front walls, each [wall
+// (-1 back, 1 front), height, M size, axis's distance in from the wall].
+// Each head sits grip_inset into the door face.
+door_screws = [[-1, 39.5, 5, 4.68], [-1, 54.5, 5, 4.68], [1, 65.5, 3, 3.15]];
+
+// M5 screws down through the top into bosses on the front wall: across,
+// and the axis's distance in from the wall
+top_screw_x = [-3, 12];
+top_screw_in = 3;
 
 // Grip rings: height, how far an inset ring is sunk, the knurl's pitch and
 // depth, and the plain margin at the bottom and under the top edge
@@ -204,8 +220,10 @@ dividers = [hc_y - layer_gap / 2, cell_y - layer_gap / 2, v4_y - layer_gap / 2];
 // HC33 and V4: [width, PCB's back face, PCB thickness, length, USB-C
 // overhang, USB-C centre]. Each PCB lands on its slot's floor, so the
 // USB-C's face is usb_gap off the bottom.
-hc_board = [hc_w, hc_y + hc_under, hc_pcb, hc_l, hc_usb_overhang, hc_y + hc_under + hc_pcb + hc_usb_y];
-v4_board = [v4_w, v4_y + v4_under, v4_pcb, v4_l, v4_usb_overhang, v4_y + v4_under + v4_pcb + v4_usb_y];
+// Then the chamfers at the top and bottom corners, and the gap in the bar
+// over the top edge.
+hc_board = [hc_w, hc_y + hc_under, hc_pcb, hc_l, hc_usb_overhang, hc_y + hc_under + hc_pcb + hc_usb_y, 0, 0, 0];
+v4_board = [v4_w, v4_y + v4_under, v4_pcb, v4_l, v4_usb_overhang, v4_y + v4_under + v4_pcb + v4_usb_y, v4_nose, v4_foot, v4_ipex_gap];
 boards = [hc_board, v4_board];
 function board_z0(b) = bottom_t + usb_gap + b[4];
 function board_z1(b) = board_z0(b) + b[3];
@@ -254,19 +272,30 @@ fin_z0 = bottom_t - floor_channel_d + slide_fit;
 // The cavity's right corners' radius
 cavity_r = 1;
 
-// The hook under the top's right edge spans the top's length clear of the
-// back-right SMA's nut and the cavity's front-right corner
-hook_y0 = smas[1][1] + sma_nut_d / 2 + 0.5;
-hook_y1 = hy - cavity_r - slide_fit;
+function clear_d(m) = m == 5 ? m5_clear_d : m3_clear_d;
+function pilot_d(m) = m == 5 ? m5_pilot_d : m3_pilot_d;
+function head_d(m) = m == 5 ? m5_head_d : m3_head_d;
+function boss_r(m) = pilot_d(m) / 2 + boss_wall;
 
-// Door-face screws: [y, z] of each, the boss's radius and length, and how
-// far each screw reaches into its boss
-door_screws = [[-(hy - door_screw_in), door_screw_z[0]], [hy - door_screw_in, door_screw_z[1]]];
-m3_boss_r = m3_pilot_d / 2 + m3_wall;
-m3_engage = m3_len - (side_wall - m3_cbore_h);
-m3_boss_l = m3_engage + 1.5;
-// A boss's lowest point: its underside runs 45° down to the wall
-function boss_z0(s) = s[1] - door_screw_in - m3_boss_r * sqrt(2);
+// Door-face screws: each reaches screw_len past its seat, grip_inset into
+// the door face; its boss's underside runs 45° down to the wall
+door_engage = screw_len - (side_wall - grip_inset);
+door_boss_l = door_engage + 1.5;
+function ds_y(s) = s[0] * (hy - s[3]);
+function ds_z0(s) = s[1] - s[3] - boss_r(s[2]) * sqrt(2);
+
+// Top screws: through the top into bosses hanging from the top, their
+// undersides 45° down to the front wall
+top_engage = screw_len - top_t;
+top_boss_r = boss_r(5);
+top_boss_z0 = ceiling - top_engage - 1.5;
+top_boss_low = top_boss_z0 - top_screw_in - top_boss_r;
+top_screw_y = hy - top_screw_in;
+
+// The hook under the top's right edge spans the top's length clear of the
+// back-right SMA's nut and the top screws' bosses
+hook_y0 = smas[1][1] + sma_nut_d / 2 + 0.5;
+hook_y1 = top_screw_y - top_boss_r - 0.3;
 
 // Grip rings from the bottom up; the odd ones are inset
 band_top = top_z0 - band_margin;
@@ -277,6 +306,19 @@ function band_of(z) = floor((z - band_margin) / band_h);
 function inset_band(i) = i % 2 == 1 && band_z1(i) - band_z0(i) >= 2 * grip_inset + 2;
 
 function slot_y0(b) = b[1] - slot_fit / 2;
+function chamfer_top(b) = len(b) > 6 ? b[6] : 0;
+function chamfer_bottom(b) = len(b) > 7 ? b[7] : 0;
+function top_gap(b) = len(b) > 8 ? b[8] : 0;
+// A side slot's section in XZ for a board's edge at x_edge, the board on
+// the side dir (+1 to its right). Its floor and roof follow the board's
+// corner chamfers: a board only ever passes a slot moving one way, so no
+// point of it meets a lower roof or a higher floor on the way in.
+function side_slot(b, x_edge, dir, z0, z1) = let(
+  ct = chamfer_top(b), cb = chamfer_bottom(b), d1 = slot_engage + 1,
+  ks = [for (d = [min(cb, ct), max(cb, ct)]) if (d > 0 && d < d1) d],
+  dd = concat([-slot_side_fit, 0], len(ks) == 2 && ks[0] == ks[1] ? [ks[0]] : ks, [d1]))
+  concat([for (d = dd) [x_edge + dir * d, z0 + max(0, cb - max(d, 0))]],
+         [for (k = [len(dd) - 1:-1:0]) let(d = dd[k]) [x_edge + dir * d, z1 + roof_fit - max(0, ct - max(d, 0))]]);
 function slot_y1(b) = b[1] + b[2] + slot_fit / 2;
 function rail_y0(b) = slot_y0(b) - rail_wall;
 function rail_y1(b) = slot_y1(b) + rail_wall;
@@ -312,21 +354,41 @@ for (p = smas) {
 }
 assert(top_r < profile_r, "the top edge's radius is bigger than the corners'");
 // The carriage slides in along +X, so a boss on the body may only sit where
-// nothing on the carriage passes. The back one sits over the TP4056's bar
-// and behind the HC33's parts, under the back-right SMA; the front one sits
-// in front of the V4's rail, over the V4, under the front-left SMA.
-assert(boss_z0(door_screws[0]) >= tp_divider_z1 + 0.5, "the back door-screw boss hits the TP4056's holders");
-assert(door_screws[0][1] + m3_boss_r <= sma_low - 0.5, "the back door-screw boss hits the back-right SMA");
-assert(door_screw_in + m3_boss_r <= hc_y - 0.3, "the back door-screw boss hits the HC33");
-assert(depth - door_screw_in - m3_boss_r >= rail_y1(v4_board) + 0.3, "the front door-screw boss hits the V4's holders");
-assert(boss_z0(door_screws[1]) >= board_z1(v4_board) + roof_fit + roof_t + 0.5, "the front door-screw boss hits the V4");
-assert(door_screws[1][1] + m3_boss_r <= sma_low - 0.5, "the front door-screw boss hits the front-left SMA");
-for (s = door_screws) {
-  assert(band_of(s[1] - m3_cbore_d / 2) == band_of(s[1] + m3_cbore_d / 2) && band_of(s[1]) % 2 == 0,
-         "a door screw's counterbore runs into an inset ring");
-  assert(abs(s[0]) + m3_cbore_d / 2 <= lead_y, "a door screw's counterbore runs off the flat of the door face");
+// nothing on the carriage passes. The back ones sit over the TP4056's bars
+// and behind the HC33, under the back-right SMA; the front one sits in
+// front of the V4's rail, over the V4's holders, under the front-left SMA.
+for (s = door_screws) let(r = boss_r(s[2])) {
+  if (s[0] < 0) {
+    assert(ds_z0(s) >= tp_divider_z1 + 0.5, "a back door-screw boss hits the TP4056's holders");
+    assert(s[3] + r <= hc_y - 0.3, "a back door-screw boss hits the HC33");
+  } else {
+    assert(ds_z0(s) >= board_z1(v4_board) + roof_fit + roof_t + 0.3, "the front door-screw boss hits the V4");
+  }
+  assert(s[1] + r <= sma_low - 0.5, "a door-screw boss hits an SMA");
+  // The head sits on the flat of a plain ring, or of an inset ring's floor
+  let(h = head_d(s[2]) / 2 + 0.25, i = band_of(s[1]))
+    assert(band_of(s[1] - h) == i && band_of(s[1] + h) == i
+           && (!inset_band(i) || (s[1] - h >= band_z0(i) + grip_inset && s[1] + h <= band_z1(i) - grip_inset)),
+           "a door screw's head runs across a ring's edge");
+  assert(abs(ds_y(s)) + head_d(s[2]) / 2 <= lead_y, "a door screw's head runs off the flat of the door face");
 }
-assert(m3_engage >= 6, "the door screws barely reach into their bosses");
+for (i = [0:len(door_screws) - 1], j = [0:len(door_screws) - 1]) if (i < j)
+  let(a = door_screws[i], b = door_screws[j]) assert(a[0] != b[0] || abs(a[1] - b[1]) >= boss_r(a[2]) + boss_r(b[2]) + 0.5 || ds_z0(b) >= a[1] + boss_r(a[2]) || ds_z0(a) >= b[1] + boss_r(b[2]),
+    "two door-screw bosses run into each other");
+assert(door_engage >= 6, "the door screws barely reach into their bosses");
+// The top screws' bosses: clear of the front-left SMA's sweep, over the
+// V4's holders, their heads on the flat of the top
+for (x = top_screw_x) {
+  assert(x - top_boss_r >= smas[0][0] + sma_nut_d / 2 + 0.5, "a top-screw boss hits the front-left SMA");
+  assert(norm([max(abs(x) - arc_x, 0), max(top_screw_y - arc_y, 0)]) + m5_head_d / 2 <= profile_r - top_r,
+         "a top screw's head runs onto the rounded top edge");
+  assert(abs(x) + top_boss_r <= hx - 0.5, "a top-screw boss runs into the side walls");
+}
+assert(top_boss_low >= board_z1(v4_board) + roof_fit + roof_t + 0.3, "the top screws' bosses hit the V4's holders");
+assert(depth - top_screw_in - top_boss_r >= dividers[2] + divider_t / 2 + 0.3 || top_boss_low >= divider_z1 + 0.3,
+       "the top screws' bosses hit the V4's fin");
+// The bars under the boards stay clear of the bottom USB-C plugs
+assert(usb_open_w / 2 + 0.5 <= v4_w / 2 - v4_foot, "the V4's bottom bars have no edge to sit under");
 
 
 // ---- outline and cavity
@@ -443,8 +505,7 @@ module right_rail(b) {
   difference() {
     translate([b[0] / 2 - slot_engage, yb + rail_y0(b), bottom_t - eps])
       cube([hx - b[0] / 2 + slot_engage + eps, rail_y1(b) - rail_y0(b), board_z1(b) + roof_fit + roof_t - bottom_t + eps]);
-    translate([b[0] / 2 - slot_engage - 1, yb + slot_y0(b), board_z0(b)])
-      cube([slot_engage + 1 + slot_side_fit, slot_y1(b) - slot_y0(b), b[3] + roof_fit]);
+    translate([0, yb, 0]) along_y(slot_y0(b), slot_y1(b)) polygon(side_slot(b, b[0] / 2, -1, board_z0(b), board_z1(b)));
   }
 }
 
@@ -490,12 +551,24 @@ module along_y(y0, y1) {
 // On the back and front walls, their undersides 45° down to the wall so
 // they print
 module door_screw_bosses() {
-  for (s = door_screws) let(sy = sign(s[0])) difference() {
+  for (s = door_screws) let(r = boss_r(s[2]), y = ds_y(s)) difference() {
     hull() {
-      translate([-hx, s[0], s[1]]) rotate([0, 90, 0]) cylinder(r = m3_boss_r, h = m3_boss_l);
-      translate([-hx, sy > 0 ? hy : -hy - eps, boss_z0(s)]) cube([m3_boss_l, eps, s[1] + m3_boss_r - boss_z0(s)]);
+      translate([-hx, y, s[1]]) rotate([0, 90, 0]) cylinder(r = r, h = door_boss_l);
+      translate([-hx, s[0] > 0 ? hy : -hy - eps, ds_z0(s)]) cube([door_boss_l, eps, s[1] + r - ds_z0(s)]);
     }
-    translate([-hx - 1, s[0], s[1]]) rotate([0, 90, 0]) cylinder(d = m3_pilot_d, h = m3_engage + 1.5);
+    translate([-hx - 1, y, s[1]]) rotate([0, 90, 0]) cylinder(d = pilot_d(s[2]), h = door_engage + 1.5);
+  }
+}
+
+// Hanging under the top off the front wall, their undersides 45° down to
+// the wall
+module top_screw_bosses() {
+  for (x = top_screw_x) difference() {
+    hull() {
+      translate([x, top_screw_y, top_boss_z0]) cylinder(r = top_boss_r, h = ceiling - top_boss_z0);
+      translate([x - top_boss_r, hy, top_boss_low]) cube([2 * top_boss_r, eps, ceiling - top_boss_low]);
+    }
+    translate([x, top_screw_y, ceiling - top_engage - 1]) cylinder(d = m5_pilot_d, h = top_engage + 2);
   }
 }
 
@@ -521,6 +594,7 @@ module body() {
   for (b = boards) right_rail(b);
   tp_right_rails();
   door_screw_bosses();
+  top_screw_bosses();
 }
 
 // ---- carriage, modelled in place
@@ -535,28 +609,40 @@ module left_rib(b, x_edge, z0, z1) {
   y1 = min(rail_y1(b), depth - slide_fit);
   difference() {
     translate([x0, yb + y0, zf]) cube([x_edge + slot_engage - x0, y1 - y0, z1 + roof_fit + roof_t - zf]);
-    translate([x_edge - slot_side_fit, yb + slot_y0(b), z0]) cube([slot_engage + 1 + slot_side_fit, slot_y1(b) - slot_y0(b), z1 + roof_fit - z0]);
+    translate([0, yb, 0]) along_y(slot_y0(b), slot_y1(b)) polygon(side_slot(b, x_edge, 1, z0, z1));
   }
 }
 
-// A board's top edge in a slot under a tab off the fin at y_fin, near the
-// board's right end, stopping short of the body's rail. The tab's left end
-// runs 45° back to the fin so it prints.
-module board_tab(b, y_fin) {
-  x1 = b[0] / 2 - slot_engage - slide_fit;
-  x0 = x1 - board_tab_l;
-  z0 = board_z1(b) - slot_engage;
-  z1 = board_z1(b) + roof_fit + roof_t;
-  yf = y_fin;
-  yo = yf > b[1] ? rail_y0(b) : rail_y1(b);
-  w = abs(yf - yo);
+// A slotted bar along a board's top or bottom edge from x0 to x1, z0 to
+// z1, with a web back to the fin at y_fin; the slot runs zs0 to zs1. Off
+// the door face it stands on the bed as the carriage prints; a bar that
+// starts clear of it runs 45° back to the fin instead.
+module edge_bar(b, y_fin, x0, x1, z0, z1, zs0, zs1, on_door) {
+  yn = y_fin > b[1] ? rail_y1(b) : rail_y0(b);
+  yo = y_fin > b[1] ? rail_y0(b) : rail_y1(b);
   difference() {
-    hull() {
-      translate([x0 - w, yb + yf - eps / 2, z0]) cube([x1 - x0 + w, eps, z1 - z0]);
-      translate([x0, yb + yo - eps / 2, z0]) cube([x1 - x0, eps, z1 - z0]);
+    if (on_door) translate([x0, yb + min(y_fin, yo), z0]) cube([x1 - x0, abs(y_fin - yo), z1 - z0]);
+    else hull() {
+      translate([x0 - abs(yn - y_fin), yb + y_fin - eps / 2, z0]) cube([x1 - x0 + abs(yn - y_fin), eps, z1 - z0]);
+      translate([x0 + abs(yo - yn), yb + yo - eps / 2, z0]) cube([max(x1 - x0 - abs(yo - yn), eps), eps, z1 - z0]);
     }
-    translate([x0 - w - 1, yb + slot_y0(b), z0 - 1]) cube([x1 - x0 + w + 2, slot_y1(b) - slot_y0(b), board_z1(b) + roof_fit - z0 + 1]);
+    translate([x0 - 30, yb + slot_y0(b), zs0]) cube([x1 - x0 + 60, slot_y1(b) - slot_y0(b), zs1 - zs0]);
   }
+}
+
+// A board's bars: over its top edge, split round top_gap(b); under its
+// bottom edge either side of the USB-C and its plug's opening. Each stops
+// short of the body's rail.
+module board_bars(b, y_fin) {
+  x1 = b[0] / 2 - slot_engage - slide_fit;
+  z0 = board_z0(b);
+  z1 = board_z1(b);
+  g = top_gap(b) / 2;
+  u = usb_open_w / 2 + 0.5;
+  for (seg = g > 0 ? [[-hx - eps, -g, true], [g, x1, false]] : [[-hx - eps, x1, true]])
+    edge_bar(b, y_fin, seg[0], seg[1], z1 - slot_engage, z1 + roof_fit + roof_t, z1 - slot_engage - 1, z1 + roof_fit, seg[2]);
+  for (seg = [[-hx - eps, -u, true], [u, x1, false]])
+    edge_bar(b, y_fin, seg[0], seg[1], bottom_t + slide_fit, z0 + bottom_engage, z0, z0 + bottom_engage + 1, seg[2]);
 }
 
 // The TP4056's slotted bars along its bottom and top edges, from the door
@@ -614,10 +700,11 @@ module carriage() {
       top_mates();
     }
     for (p = smas) translate([p[0], p[1], ceiling - 1]) cylinder(d = sma_hole_d, h = top_t + 2);
-    for (s = door_screws) translate([-ex - 1, s[0], s[1]]) rotate([0, 90, 0]) {
-      cylinder(d = m3_clear_d, h = side_wall + 2);
-      cylinder(d = m3_cbore_d, h = m3_cbore_h + 1);
+    for (s = door_screws) translate([-ex - 1, ds_y(s), s[1]]) rotate([0, 90, 0]) {
+      cylinder(d = clear_d(s[2]), h = side_wall + 2);
+      cylinder(d = head_d(s[2]) + 0.5, h = grip_inset + 1);
     }
+    for (x = top_screw_x) translate([x, top_screw_y, ceiling - 1]) cylinder(d = m5_clear_d, h = top_t + 2);
     grip_cut(false);
   }
   fins();
@@ -625,8 +712,8 @@ module carriage() {
   tp_bars();
   left_rib(tp_b, tp_x0, tp_z0, tp_z1);
   for (b = boards) left_rib(b, -b[0] / 2, board_z0(b), board_z1(b));
-  board_tab(hc_board, dividers[1] - divider_t / 2);
-  board_tab(v4_board, dividers[2] + divider_t / 2);
+  board_bars(hc_board, dividers[1] - divider_t / 2);
+  board_bars(v4_board, dividers[2] + divider_t / 2);
 }
 
 // The carriage drawn out d to the left of where it sits
@@ -660,7 +747,22 @@ module ref_board(b, back, front) {
 }
 
 module ref_hc() { ref_board(hc_board, hc_under, hc_over); }
-module ref_v4() { ref_board(v4_board, v4_under, v4_over); }
+// The V4 as Heltec draws it: the PCB with its nose and chamfered USB-C
+// end, the OLED and its bracket in front, the GNSS connector and the
+// battery and solar connectors behind, the buttons by the USB-C
+module ref_v4() {
+  b = v4_board;
+  z0 = board_z0(b);
+  w = b[0] / 2;
+  translate([0, yb + b[1] + b[2], 0]) rotate([90, 0, 0]) linear_extrude(b[2])
+    polygon([[-w + v4_foot, z0], [w - v4_foot, z0], [w, z0 + v4_foot], [w, z0 + v4_l - v4_nose],
+             [w - v4_nose, z0 + v4_l], [-w + v4_nose, z0 + v4_l], [-w, z0 + v4_l - v4_nose], [-w, z0 + v4_foot]]);
+  translate([-9.6, yb + b[1] + b[2], z0 + 14.8]) cube([19.2, v4_over, 33]);
+  translate([-7.5, yb + b[1] - v4_under, z0 + 37.9]) cube([15, v4_under, 5.3]);
+  for (sx = [-1, 1]) translate([sx > 0 ? 2.45 : -6.7, yb + b[1] - 3.4, z0 + 1.06]) cube([4.25, 3.4, 4.2]);
+  for (sx = [-1, 1]) translate([sx > 0 ? 6.26 : -9.56, yb + b[1] + b[2], z0 + 1.1]) cube([3.3, 2.52, 4.65]);
+  translate([-4.47, yb + b[5] - 1.95, bottom_t + usb_gap]) cube([8.94, 3.9, b[4] + 7.6]);
+}
 
 module ref_tp() {
   translate([tp_x0, yb + tp_pcb_y, tp_z0]) cube([tp_l, tp_pcb, tp_w]);

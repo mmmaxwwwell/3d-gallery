@@ -17,6 +17,8 @@ Case for a Heltec HT-HC33, a Heltec WiFi LoRa 32 V4, a 103665 LiPo, a USB-C TP40
 - Then the hinged door went: "the electronics and antenna mounts need to be on a L shaped carrige that has the top antenna mounts and all of the electroincs secured and then it slides ito the case and gets screwed in. the carrige should be the top faces and the door face. its one piece with holders for all the boards with the antenna plate, and theres receiving and mating channels for everything. I want to have screws on the door face going into the body to secure it in place."
 - And the grip: "15cm alternating rings of diamond knurling, with the diamond knurling faces inset 2mm with a 45 degree chamfer on the transition." 15 mm again. Rings go all the way round.
 - "I like the overall outer shape": kept the outline, the rounded top and the SMA corners.
+- Then: "i want six screws in the back and make them m5x10 bhcs"; "you got the dimensions for the heltec v4 wrong"; "the boards need more support on the top"; "and support on the bottom to they need to slide in snug"; "can we add a couple screws in the top to really seal it in there".
+  - Six door-face M5s need ~14 mm back and front walls (case ~73 deep), because the door face's flat only covers the cavity and the cavity is the carriage's sweep. Asked; the user picked "keep size, fewer/smaller". So: 2 × M5 + 1 × M3 through the door face, 2 × M5 through the top. All button heads.
 
 ## My picks (not the user's)
 
@@ -29,10 +31,18 @@ Case for a Heltec HT-HC33, a Heltec WiFi LoRa 32 V4, a 103665 LiPo, a USB-C TP40
   - tongues under the top run in grooves on the back and front walls' tops (`tongue_*`);
   - a hook under the top's right edge (`hook_*`, `nib_*`, `top_mates()`) has a nib into a groove in the right wall, so the far end can't lift. Its groove roof is at 45° for the upright body print. It spans y between the back-right SMA's nut and the cavity's front-right corner (`cavity_r`).
 - **Board holders**:
-  - the HC33 and V4 have a left rib with floor and roof (`left_rib()`) plus a tab over the top edge near the right end, off the next fin (`board_tab()`), its left end at 45° to the fin. On the cap, the V4's tab would have hit the front-left SMA's sweep. Their right edges go into the body's rails as before;
+  - the HC33 and V4 are held on all four edges.
+    - Side slots: a left rib (`left_rib()`) and the body's right rail (`right_rail()`). Their section (`side_slot()`) has a floor and roof that follow the board's corner chamfers (`hc_board`/`v4_board` entries 6, 7). A board passes a slot only moving one way (onto the carriage: −X past the rib; into the body: +X into the rail), so no point of it ever meets a lower roof or a higher floor.
+    - Top and bottom bars off the next fin (`board_bars()`, `edge_bar()`): the top one split round `top_gap()` (the V4's IPEX), the bottom ones either side of the USB-C's opening. Each stops short of the body's rail.
+    - A bar starting at the door face stands on the carriage's bed; one starting clear of it hull-leans 45° back to the fin.
+    - Bottom bars reach `bottom_engage` (0.9) up the faces: the V4's buttons and connectors start 1.06 from that edge. The fits are snug at the user's ask (`slot_fit` 0.2, `slot_side_fit` 0.2, `roof_fit` 0.15);
   - the TP4056 stands on a slotted bar and has a slotted bar over its top edge (`tp_bars()`), both stopping short of the body's TP rails. That raised it by `slide_fit + tp_floor`, and the stack starts `tp_y` off the back wall so its bars have a back wall;
   - the cell: fins either side, a floor plate between them in a floor channel, two end roofs (`cell_cradle()`), the wires between them. Nothing holds it in X while the carriage is out: foam tape, noted in the README.
-- **Door-face screws are M3x10, not M5** (`door_screw_*`, `m3_*`). M5 bosses don't fit the free zones. Back boss low (39.5, over the TP4056, behind the HC33, under the back-right SMA); front boss high (65, in front of the V4's rail, over the V4, under the front-left SMA). The z values are picked so each counterbore sits in a plain ring (asserted), and the bosses' undersides run 45° down to the wall.
+- **Screws** (`door_screws`, `top_screw_*`, all button heads, `screw_len` 10). Everything on the carriage sweeps every x left of where it ends up, so the bosses live in the few YZ spots nothing passes.
+  - Door face: back-wall zone y < `hc_y`, z between the TP4056's fin and the back-right SMA: M5 at 39.5 and 54.5. Front zone over the V4's holders, under the front-left SMA: M3 only, at 65.5.
+  - Each head is seated `grip_inset` deep. It sits on the flat of a plain ring or of an inset ring's floor, inside the door face's flat (`lead_y`); all asserted. M5 heads clear `lead_y` by 0.07, which is what fixes their 4.68 axis.
+  - Top: M5 bosses hang off the front wall right of the front-left SMA's sweep (x ≥ smas[0] + nut), down to 64.3, over the V4's holders. The hook now stops short of them (`hook_y1`). Heads sit on the top's flat (asserted).
+  - Six door-face M5s would need ~14 mm back/front walls; the user chose to keep the size.
 - **Grip** (`grip_cut()`, `knurl_core()`):
   - The rings start plain at the bottom. That puts both counterbores in plain rings; the other phase can't fit the front boss.
   - The knurl is a polyhedron heightfield over `outline_pts()`, which samples every inset of the outline at matching points, so peak and valley rows line up. It is square pyramids on a ±45° grid, `knurl_d` deep, with the top and bottom rows held at the inset face so they meet the chamfers flush. Facets are ≤ 39° off vertical as the body prints.
@@ -50,6 +60,7 @@ Case for a Heltec HT-HC33, a Heltec WiFi LoRa 32 V4, a 103665 LiPo, a USB-C TP40
 ## Frame
 
 Origin at the cavity's centre in plan, z = 0 on the bottom face. X across (door face at -X), Y through the stack (+Y front), Z up.
+- `ref_v4()` follows Heltec's drawing; the other refs are boxes.
 - Layer positions (`tp_y`, `hc_y`, `cell_y`, `v4_y`) run from the back wall's inner face; `yb` shifts them onto the origin.
 - `boards` holds the HC33 and V4 as `[width, PCB back face, PCB thickness, length, USB overhang, USB centre]`.
 - The TP4056 lies along X (`tp_x0`..`tp_x1`, `tp_z0`..`tp_z1`).
@@ -63,7 +74,7 @@ Origin at the cavity's centre in plan, z = 0 on the bottom face. X across (door 
   - each piece × every reference part at rest.
 - Positive controls all collide:
   - the carriage pushed 0.3 further in, lifted 0.3, or moved 0.3 in Y;
-  - each board or the TP4056 nudged into its slot walls, floors, roofs or rails.
+  - each board or the TP4056 nudged into its slot walls, floors, roofs or rails: 0.2 up, 0.1 down, 0.25 in Y, 0.3 in X. The V4 lifted 0.2 hits its chamfered shoulder roofs as well as its top bar.
   - The cell has 1.1 mm play a side between its fins, as the old dividers gave it.
 - Overhang scan of the print-oriented STLs. Body: only slot and groove roofs, the 2 mm underside of the TP4056's upper rail, the TP4056 opening's 7 mm bridge, and the tops of round holes; nothing from the knurl. Carriage: the door face's ring recesses (bridges), the counterbore steps, and the SMA holes' tops.
 - Renders through the forge (`buildModel`): body, carriage, assembled, closed, print plate.
