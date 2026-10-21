@@ -1,6 +1,6 @@
 # Hanging Solar Node
 
-A Meshtastic node built onto the back of a small solar panel (about 116 × 156 mm),
+A Meshtastic node built onto the back of a 122 × 160 mm solar panel (10 mm corners, 1.7 thick),
 hung from a tree through the panel's own hole.
 
 - **Shroud** — a thin cup over the panel's back. The panel drops in face out onto a
@@ -31,10 +31,11 @@ It keeps rain out hanging upright; it isn't sealed upside down.
 ## Printing
 
 PETG. Shroud on its back, card on its underside, both on one plate; no supports.
-About 51 g + 14 g.
+About 53 g + 15 g.
 
 ## Unmeasured
 
-The panel's outline, hole and tab positions were read off a photo against a ruler, and
-its thickness (2.5) is a guess: measure them and change `panel_*`, `hang_from_top`
-and `tabs_from_top` in the lib. The holder is taken as 78 × 21 × 21 tall with its cell.
+The panel's outline and thickness are measured. Its hanging hole (5.8 mm, centre 6.5 mm
+down) and solder tabs (119 mm down) are placed from a photo: check them before printing
+(`hang_d`, `hang_from_top`, `tabs_from_top`). The holder is taken as 78 × 21 × 21 tall
+with its cell (`stack_h`).

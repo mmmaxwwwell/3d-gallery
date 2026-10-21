@@ -27,26 +27,26 @@
 // the card on its underside with the posts up.
 
 // BEGIN_PARAMS
-// Panel width, measured from the photo: check with calipers
-panel_w = 116;
+// Panel width (measured)
+panel_w = 122;
 
 // Panel height
-panel_h = 156;
+panel_h = 160;
 
 // Panel corner radius
-panel_r = 7;
+panel_r = 10;
 
-// Panel thickness: a guess
-panel_t = 2.5;
+// Panel thickness (measured)
+panel_t = 1.7;
 
-// The panel's hanging hole: diameter
+// The panel's hanging hole, read off a photo: diameter
 hang_d = 5.8;
 
 // The hanging hole's centre, down from the panel's top edge
 hang_from_top = 6.5;
 
-// The panel's two solder tabs: centre, down from the top edge
-tabs_from_top = 116;
+// The panel's two solder tabs, read off a photo: centre, down from the top edge
+tabs_from_top = 119;
 
 // Adhesive gap between the panel's edge and the shroud's wall, per side
 glue_gap = 0.5;

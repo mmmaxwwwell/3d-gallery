@@ -20,5 +20,5 @@
   My readings: top hole = the panel's hang hole carried through the shroud, bottom
   lock = the card's screws (one bottom right, one left, one at the top of the card);
   "facing down" = the holder lying along the bottom; antenna down through the bottom
-  wall (keeps the top wall unbroken); 2 mm breather (mine). Panel size from a photo,
-  thickness guessed.
+  wall (keeps the top wall unbroken); 2 mm breather (mine). Panel measured by the user: 122 x 160, r10, 1.7 thick; hole and tabs still
+  from a photo.
