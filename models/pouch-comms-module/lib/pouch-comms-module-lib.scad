@@ -1,7 +1,7 @@
 // Pouch comms module: a box that rides in a backpack side pouch, holding a
 // power bank, a Franklin T9 hotspot, and three boards: a Raspberry Pi Zero
 // 2 W, a Heltec HT-HC33 (ESP32-S3 + Wi-Fi HaLow) and a Heltec WiFi LoRa 32
-// V4.
+// V4, plus two FR120N MOSFET modules that switch LED loads.
 //
 // Three pieces:
 // - the box: floor and walls;
@@ -10,7 +10,8 @@
 //   one way and can't shift;
 // - the T9 cage: a plate over the T9's port end, screwed onto two pillars.
 //   An M3 set screw through a captive nut in it holds the T9's power button
-//   down, so the T9 always starts when it gets power.
+//   down, so the T9 always starts when it gets power. The plate carries on
+//   over the T9 as a shelf, where the FR120Ns lie in rails, terminals up.
 //
 // Plan, looking down on the open box, +Y up (the end that sticks out of
 // the pouch):
@@ -26,13 +27,14 @@
 //     plug. Past them, beside the bank, the three boards stand on edge in
 //     slots, long side along Y, ends against the +Y wall. Each slides down
 //     into a groove in the floor between two slotted posts: a full-height
-//     one at its +Y end and a low one at its USB end (-Y) that stays under
-//     the USB-C. The shortest board (V4) takes the middle slot, in line
-//     with the T9's plug, so the plug has the most room.
+//     one at its +Y end, cut away where that end has parts, and a low one at
+//     its -Y end (the HC33's and V4's USB-C, the Pi's micro-SD) that stays
+//     under the parts there. The Pi's ports face up. The shortest board (V4)
+//     takes the middle slot, in line with the T9's plug, so the plug has the
+//     most room.
 //
 // Frame: origin at the box's outer -X -Y bottom corner, X across, Y along,
-// Z up. Box and lid print as modelled, bottom face down. The cage prints
-// upside down (`cage_print()`), its top face on the bed.
+// Z up. Box, lid and cage print as modelled, bottom face down.
 
 // BEGIN_PARAMS
 // Outer size across (X) and along (Y); the height follows from the bank
@@ -99,34 +101,75 @@ nut_af = 5.5;
 nut_fit = 0.3;
 nut_h = 2.6;
 
-// Raspberry Pi Zero 2 W standing on edge: length, width (its height as it
-// stands), PCB thickness, and its thickness over the parts
-pi_l = 65;
-pi_w = 30;
-pi_pcb = 1;
-pi_t = 5;
+// The boards stand on edge, top face toward +X. Each is its length and
+// height as it stands, PCB thickness, and how far its parts stand over the
+// top face and under the bottom face.
 
-// Heltec HT-HC33: the same; parts stand 3.6 under the PCB and 3.3 over
+// Heltec HT-HC33, from its datasheet (Rev 1.0 §7.1), thickness and parts
+// measured. Its micro-SD socket sticks 1.54 out of the +Y end
 hc_l = 60;
 hc_w = 33.5;
 hc_pcb = 1.5;
-hc_t = 8.4;
+hc_over = 3.3;
+hc_under = 3.6;
 
-// Heltec WiFi LoRa 32 V4: the same (PCB thickness unmeasured)
-v4_l = 51.7;
+// Heltec WiFi LoRa 32 V4, from its datasheet (Rev 1.4 §5): 51.69 to the
+// tip of its chamfered antenna end, the USB-C 1.1 past the other; the OLED
+// stands 5.5 over, the battery and solar sockets 3.6 under. Header pins
+// not fitted
+v4_l = 51.69;
 v4_w = 25.4;
-v4_pcb = 1;
-v4_t = 10.7;
+v4_pcb = 1.6;
+v4_over = 5.5;
+v4_under = 3.6;
+
+// Raspberry Pi Zero 2 W, from its mechanical drawing (65 x 30). PCB and
+// parts' heights unmeasured; 5 overall. No GPIO header fitted
+pi_l = 65;
+pi_w = 30;
+pi_pcb = 1;
+pi_over = 3;
+pi_under = 1;
+
+// How high each board's low post grips, up from the board's bottom edge:
+// under the HC33's buttons (7.1 up), the V4's buttons (3.0) and the Pi's
+// micro-SD socket (7.1)
+hc_low = 6.5;
+v4_low = 2.8;
+pi_low = 6.5;
+
+// Bands of each board's +Y end, up from its bottom edge, where its high
+// post is cut away: the HC33's micro-SD and U.FL, the V4's LoRa U.FL, the
+// Pi's camera connector
+hc_gaps = [[8.5, 25]];
+v4_gaps = [[8, 17.4]];
+pi_gaps = [[6.4, 23.2]];
 
 // Board slots: clearance over the PCB's thickness, depth of the groove in
 // the floor, the posts' wall either side of the slot, how far a post's
-// slot reaches over the board's end, and how high the low post at the USB
-// end stands over the board's bottom edge
+// slot reaches over the board's end
 slot_fit = 0.4;
 floor_slot = 1.5;
 guide_wall = 1.5;
 guide_engage = 2.5;
-guide_low_h = 5;
+
+// FR120N MOSFET modules (DIYables), lying on a shelf over the T9, screw
+// terminals up: count, length and width, PCB, the terminals' height over
+// it, and the solder tails under it (the last two unmeasured)
+fr_n = 2;
+fr_l = 33.5;
+fr_w = 16.5;
+fr_pcb = 1.6;
+fr_h = 10;
+fr_tails = 2;
+
+// The shelf: thickness, wire room past each module's ends, the rails'
+// ledge under each long edge and their wall, and the modules' fit
+shelf_t = 3;
+fr_wire_room = 8;
+rail_ledge = 1.2;
+rail_wall = 1.6;
+fr_fit = 0.3;
 
 // SMA bulkheads (1/4-36): their X positions over the bay, hole through
 // the end wall, the inner nut across corners, and how far the connector's
@@ -201,18 +244,39 @@ cage_x0 = col_cx - pillar_dx - pillar_s / 2;
 cage_x1 = col_cx + pillar_dx + pillar_s / 2;
 cage_y0 = button[1] - cage_past;
 
-// Boards, from the divider out: [length, width, pcb, thickness], each in
-// an equal share of the column with its slot in the middle
-boards = [[hc_l, hc_w, hc_pcb, hc_t], [v4_l, v4_w, v4_pcb, v4_t], [pi_l, pi_w, pi_pcb, pi_t]];
+// Boards, from the divider out: [length, height, pcb, over, under, low
+// post's grip, high post's gaps], each with its parts centred in an equal
+// share of the column
+boards = [
+  [hc_l, hc_w, hc_pcb, hc_over, hc_under, hc_low, hc_gaps],
+  [v4_l, v4_w, v4_pcb, v4_over, v4_under, v4_low, v4_gaps],
+  [pi_l, pi_w, pi_pcb, pi_over, pi_under, pi_low, pi_gaps]
+];
+function board_t(b) = b[2] + b[3] + b[4];
 rack_pitch = (col_x1 - col_x0) / len(boards);
-function slot_x(i) = col_x0 + (i + 0.5) * rack_pitch;
+// The PCB's centre
+function slot_x(i) = let(b = boards[i]) col_x0 + (i + 0.5) * rack_pitch + (b[4] - b[3]) / 2;
 function slot_w(b) = b[2] + slot_fit;
 function guide_wide(b) = slot_w(b) + 2 * guide_wall;
-// Every board's +Y end sits 2 mm short of the wall: the post's back
-board_y1 = y_in1 - 2;
+// Every board's +Y end sits board_back short of the wall: the post's back,
+// and room for the HC33's micro-SD
+board_back = 2;
+board_y1 = y_in1 - board_back;
 board_z0 = wall - floor_slot;
 // Where a board's low post starts
 function low_y0(b) = board_y1 - b[0] - 2;
+
+// FR120N shelf: part of the cage, reaching from the cage's plate toward -Y
+// over the T9, the modules side by side along Y in rails
+fr_bay = fr_w + 2 * fr_fit;
+shelf_w = fr_n * fr_bay + (fr_n + 1) * rail_wall;
+shelf_x0 = col_cx - shelf_w / 2;
+shelf_y1 = cage_y0;
+shelf_y0 = shelf_y1 - fr_l - 2 * fr_wire_room;
+shelf_top = cage_z0 + shelf_t;
+fr_z0 = shelf_top + fr_tails;
+function fr_x0(i) = shelf_x0 + rail_wall + i * (fr_bay + rail_wall) + fr_fit;
+fr_y0 = shelf_y0 + fr_wire_room;
 
 sma_z = wall + inner_h / 2;
 
@@ -240,6 +304,9 @@ assert(tongue_h + 0.3 <= wall - cbore_h, "the groove runs up into the counterbor
 assert(cage_z0 + cage_t <= box_h - 5, "the cage's set screw has no room under the lid");
 assert(cage_y0 >= t9_y0 + 2, "the cage reaches past the T9");
 assert(abs(t9_button[0]) + nut_af < pillar_dx, "the button's nut sits over a pillar");
+assert(fr_z0 + fr_pcb + fr_h <= box_h - 1, "the FR120Ns' terminals reach the lid");
+assert(shelf_y0 >= t9_y0, "the shelf reaches past the T9's far end");
+assert(shelf_w <= t9_w, "the shelf is wider than the T9");
 assert(len(sma_xs) == 2);
 for (s = sma_xs) {
   assert(s - sma_nut_d / 2 >= clear_e && s + sma_nut_d / 2 <= div_x0, "an SMA's nut leaves the bay");
@@ -247,8 +314,15 @@ for (s = sma_xs) {
     assert(abs(p[0] - s) >= sma_nut_d / 2 + boss_d / 2 + 0.5, "an SMA's nut hits a screw boss");
 }
 for (i = [0:len(boards) - 1]) let(b = boards[i], x = slot_x(i), gw = guide_wide(b)) {
-  assert(rack_pitch >= b[3] + 4, "boards too close across the rack");
+  if (i > 0) let(a = boards[i - 1], xa = slot_x(i - 1)) {
+    assert(x - b[2] / 2 - b[4] >= xa + a[2] / 2 + a[3] + 4, "boards' parts too close across the rack");
+    assert(x - gw / 2 >= xa + guide_wide(a) / 2, "boards' posts run into each other");
+  }
+  if (i == 0) assert(x - b[2] / 2 - b[4] >= col_x0 + 1, "the first board's parts hit the divider");
+  if (i == len(boards) - 1) assert(x + b[2] / 2 + b[3] <= col_x1, "the last board's parts hit the wall bosses");
   assert(board_z0 + b[1] <= box_h - 1, "a board stands up into the lid");
+  assert(b[5] < b[1], "a low post grips over the board");
+  for (g = b[6]) assert(g[0] < g[1] && g[1] < b[1], "a high post's gap leaves the board");
   // Its low post clears the cage's pillars, and the plug's room
   for (p = pillars) if (abs(p[0] - x) < gw / 2 + pillar_s / 2)
     assert(low_y0(b) >= pillar_y1 + 1, "a board's low post runs into a cage pillar");
@@ -312,10 +386,13 @@ module board_posts(i) {
   b = boards[i];
   gw = guide_wide(b);
   translate([slot_x(i) - gw / 2, 0, 0]) {
-    // high post at +Y, into the wall
-    translate([0, board_y1 - guide_engage, 0]) cube([gw, y_in1 - board_y1 + guide_engage + eps, box_h]);
-    // low post at -Y, under the USB-C
-    translate([0, low_y0(b), 0]) cube([gw, 2 + guide_engage, board_z0 + guide_low_h]);
+    // high post at +Y, into the wall, cut away where the end has parts
+    difference() {
+      translate([0, board_y1 - guide_engage, 0]) cube([gw, y_in1 - board_y1 + guide_engage + eps, box_h]);
+      for (g = b[6]) translate([-1, board_y1 - guide_engage - 1, board_z0 + g[0]]) cube([gw + 2, board_back + guide_engage + 1, g[1] - g[0]]);
+    }
+    // low post at -Y, under the parts at that end
+    translate([0, low_y0(b), 0]) cube([gw, 2 + guide_engage, board_z0 + b[5]]);
   }
 }
 
@@ -371,7 +448,11 @@ module lid_in_place(lift = 0) {
 
 module cage() {
   difference() {
-    translate([cage_x0, cage_y0, cage_z0]) cube([cage_x1 - cage_x0, pillar_y1 - cage_y0, cage_t]);
+    union() {
+      translate([cage_x0, cage_y0, cage_z0]) cube([cage_x1 - cage_x0, pillar_y1 - cage_y0, cage_t]);
+      translate([shelf_x0, shelf_y0, cage_z0]) cube([shelf_w, shelf_y1 - shelf_y0 + eps, shelf_t]);
+      fr_rails();
+    }
     for (p = pillars) translate([p[0], p[1], cage_z0]) {
       translate([0, 0, -1]) cylinder(d = clear_d, h = cage_t + 2);
       translate([0, 0, cage_t - cbore_h]) cylinder(d = cbore_d, h = cbore_h + 1);
@@ -383,14 +464,25 @@ module cage() {
   }
 }
 
+// A wall either side of each FR120N, with a ledge under its long edge
+// that holds it clear of its solder tails. The ends stay open for the
+// terminals' wires.
+module fr_rails() {
+  for (i = [0:fr_n]) let(x = shelf_x0 + i * (fr_bay + rail_wall)) {
+    translate([x, fr_y0, shelf_top - eps]) cube([rail_wall, fr_l, fr_tails + fr_pcb + 0.5 + eps]);
+    for (s = [-1, 1]) if ((s < 0 && i > 0) || (s > 0 && i < fr_n))
+      translate([s < 0 ? x - rail_ledge : x + rail_wall, fr_y0, shelf_top - eps]) cube([rail_ledge, fr_l, fr_tails + eps]);
+  }
+}
+
 module cage_in_place(lift = 0) {
   translate([0, 0, lift]) cage();
 }
 
-// Top face down, so the counterbores' and nut pocket's floors are on the
-// bed rather than over air.
+// As it sits: the counterbores and the nut pocket open upward, their
+// floors on the plate below.
 module cage_print() {
-  translate([0, 0, cage_z0 + cage_t]) mirror([0, 0, 1]) cage();
+  translate([0, 0, -cage_z0]) cage();
 }
 
 // ---- reference parts
@@ -403,14 +495,24 @@ module ref_t9(lift = 0) {
   translate([col_cx - t9_w / 2, t9_y0, wall + lift]) cube([t9_w, t9_l, t9_h]);
 }
 
-// Each board as its PCB, and its parts as a block over most of its face,
+// Each board as its PCB, and its parts as a block over most of each face,
 // leaving the edges the slots hold clear.
 module ref_boards(lift = 0) {
   for (i = [0:len(boards) - 1]) let(b = boards[i], x = slot_x(i), y0 = board_y1 - b[0])
     translate([0, 0, board_z0 + lift]) {
       translate([x - b[2] / 2, y0, 0]) cube([b[2], b[0], b[1]]);
-      translate([x - b[3] / 2, y0 + guide_engage + 1, floor_slot + 1]) cube([b[3], b[0] - 2 * guide_engage - 2, b[1] - floor_slot - 2]);
+      translate([x + b[2] / 2, y0 + guide_engage + 1, floor_slot + 1]) cube([b[3], b[0] - 2 * guide_engage - 2, b[1] - floor_slot - 2]);
+      translate([x - b[2] / 2 - b[4], y0 + guide_engage + 1, floor_slot + 1]) cube([b[4], b[0] - 2 * guide_engage - 2, b[1] - floor_slot - 2]);
     }
+}
+
+// Each FR120N as its PCB on the rails' ledges, and its terminals as a
+// block over it.
+module ref_fr(lift = 0) {
+  for (i = [0:fr_n - 1]) translate([fr_x0(i), fr_y0, fr_z0 + lift]) {
+    cube([fr_w, fr_l, fr_pcb]);
+    translate([1, 0, fr_pcb]) cube([fr_w - 2, fr_l, fr_h]);
+  }
 }
 
 module ref_sma(out = 0) {

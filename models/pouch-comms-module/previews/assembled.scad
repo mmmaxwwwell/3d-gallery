@@ -8,4 +8,5 @@ color("#d9622b") cage_in_place();
 color("#e8c547") ref_bank();
 color("#d0d3d8") ref_t9();
 color("#2f8f4e") ref_boards();
+color("#2d6fb8") ref_fr();
 color("#c9a227") ref_sma();
