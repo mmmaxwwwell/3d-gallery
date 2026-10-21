@@ -4588,7 +4588,7 @@
       "slug": "hanging-solar-node",
       "devOnly": true,
       "title": "Hanging Solar Node",
-      "description": "A Meshtastic node built onto the back of a 122 \u00d7 160 mm solar panel and hung from a tree through the panel's own hole. A thin shroud is a cup over the panel's back: the panel drops in face out onto a lip just inside the walls, and a bead of adhesive on the lip and up the 0.5 mm gap round its edge seals it in. A tube round the panel's hanging hole runs through to the shroud's back and is glued to the panel round the hole, so the hanging cord passes through both. Inside, a card rests on the panel's back carrying the XIAO nRF52840 + Wio-SX1262, an 18650 in its holder along the bottom and a TP4056 charger, each zip-tied through a slot pair with the tie in a groove under the card; a window leaves the panel's solder tabs and the blocking diode free. Three posts on the card meet cups on the shroud's back, and an M3 cap screw through each from outside holds the card top and bottom. The antenna hangs down from an SMA bulkhead in the bottom wall, beside a 2 mm breather that lets condensation out. Watertight hanging upright, not upside down. 125.4 \u00d7 163.4 \u00d7 26.7 mm, about 68 g printed. The panel's hole and solder tabs are placed from a photo. Not yet printed.",
+      "description": "A Meshtastic node built onto the back of a 122 \u00d7 160 mm solar panel and hung from a tree through the panel's own hole. A thin shroud is a box over the panel's back that holds the panel captive: its left, right and top walls run forward past the panel into a channel, and the panel slides up into it from the open bottom, its back running on a ledge just inside the walls and a 45\u00b0 lip over its border in front. Adhesive in the channel seals it. A tube from the shroud's back ends on the panel's back round its hanging hole, so once the panel is home the cord hung through both stops it sliding back out. Inside, a card held 3 mm off the panel, so the solder blobs on the tabs slide under it, carries the XIAO nRF52840 + Wio-SX1262, an 18650 in its holder along the bottom and a TP4056 charger, each zip-tied through a slot pair; a window over the panel's solder tabs leaves room for the joints and the blocking diode. Three posts on the card meet cups on the shroud's back, and an M3 cap screw through each from outside holds the card. The antenna hangs down from an SMA bulkhead in the bottom wall, beside a 2 mm breather that lets condensation out. Watertight hanging upright, not upside down. 125.2 \u00d7 163.2 \u00d7 33 mm, about 75 g printed. The panel's hole and solder tabs are placed from a photo. Not yet printed.",
       "filament": [
         { "material": "PETG", "color": "any" }
       ],
@@ -4643,7 +4643,7 @@
           "usedBy": [ { "part": "shroud.stl", "each": 3 } ] },
         { "qty": 3, "label": "Zip tie, 3.6 mm wide — holder (one long, round its length and over the cell), TP4056, XIAO" },
         { "qty": 1, "label": "SMA bulkhead pigtail to U.FL, with antenna" },
-        { "qty": 1, "label": "Outdoor adhesive/sealant — the panel into the shroud's lip, and round the hanging tube" },
+        { "qty": 1, "label": "Outdoor adhesive/sealant — in the channel the panel slides into, and round the hanging tube" },
         { "qty": 1, "label": "Single 18650 holder (78 × 21 mm) and cell" },
         { "qty": 1, "label": "TP4056 USB-C charger module" },
         { "qty": 1, "label": "XIAO nRF52840 + Wio-SX1262 kit" },

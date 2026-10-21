@@ -3,14 +3,18 @@
 - **Frame:** +X across the panel, +Y up as it hangs, +Z out of the panel's back.
   Z = 0 is the panel's back face, the panel's face is at Z = −`panel_t`, origin at the
   panel's centre. `in_use()` turns Y up for the previews.
-- **The panel is the front.** No bezel: the shroud's walls run forward to the panel's
-  face round its edge (`glue_gap`), and the lip (`lip_w`, 45° underside so it prints
-  shroud-on-its-back) is what the panel's back sits on. The seal is adhesive on the lip
-  and in the gap. The hanging tube is glued to the panel round its hole, so the cord
-  through it carries both.
-- **Card holds to the shroud, not the panel.** Posts on the card stop `post_gap` short
-  of cups on the shroud's back; M3x8 from outside pulls the card up. The card's
-  underside lies on the panel; zip ties run in grooves under it so it stays flat.
+- **The panel is captive in a channel** (user, 2026-10-21: "this design only works if
+  there's a guided slot that the solar panel slides into"). Left, right and top walls
+  run forward past the panel; it slides up from the open bottom. Behind it the ledge
+  (`lip_w`, z ≥ 0); in front a lip whose inner face is 45° (`lip_d`) so the shroud
+  still prints on its back, meeting the panel's face at its edge (≈0.7 play, filled by
+  adhesive). Everything in z < 0 is cut along `swept_down()` so nothing at the bottom
+  stops the panel. The hanging tube ends at z = 0, so the cord through panel + tube is
+  what keeps the panel from sliding back out. First version (panel dropped onto a lip
+  in a cup, glued) was rejected.
+- **Card holds to the shroud, not the panel**, `card_lift` (3) off the panel's back so
+  the tab solder blobs slide under. Posts stop `post_gap` short of cups on the shroud's
+  back; M3x8 from outside pulls the card up.
 - **Layout is fixed coordinates** (`holder_c`, `tp_c`, `xiao_c`, `posts`, `ties`),
   placed round the panel's solder tabs (`tabs_from_top`, under the card's window) and
   the SMA at `sma_x` in the bottom wall. Move them together.
