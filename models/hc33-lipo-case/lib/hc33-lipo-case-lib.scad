@@ -17,8 +17,13 @@
 // - the door: the left wall. Ribs on its inside hold each board's left
 //   edge in a slot with a roof over it, and a roof stops the cell's left
 //   end. It swings down on a hinge along the bottom edge (knuckles round a
-//   1.75 mm filament pin). A pair of disc magnets near the top holds it
-//   shut, and a groove across its top takes a fingernail to pull it open.
+//   1.75 mm filament pin). A groove across its top takes a fingernail to
+//   pull it open.
+// - the bolt: a rod under the top, across the opening (along Y). It slides
+//   in a guide on the body into a keeper on the door, so the door can't
+//   swing. A knob on it comes up through a slot in the top to work it with
+//   a fingertip. At the locked end the slot doglegs: the rod turns in its
+//   holes to tip the knob into it, and then the bolt can't slide.
 // With the door open, everything slides out to the left.
 //
 // Stack, back to front: TP4056 (parts to the front, its USB-C end to the
@@ -148,13 +153,26 @@ knuckles = 5;
 knuckle_gap = 0.4;
 hinge_clear = 0.3;
 
-// Door magnets: one disc in the door and one in a boss under the top,
-// face to face: diameter, thickness, the pocket's clearance, the boss's
-// wall round it and behind it
-magnet_d = 8;
-magnet_h = 3;
-magnet_fit = 0.2;
-magnet_wall = 0.8;
+// Door bolt: the rod's diameter and its clearance in the guide and the
+// keeper, the wall round it, how far into the cavity from the door frame
+// its axis runs, the guide's and the keeper's spans along Y, and how far
+// the tip goes into the keeper
+bolt_d = 4;
+bolt_fit = 0.3;
+bolt_wall = 2;
+bolt_x = 4.5;
+guide_y = [-10, -2];
+keeper_y = [1, 8];
+bolt_engage = 4;
+
+// The bolt's knob: across (X) and along (Y), how far it stands over the
+// top, the slot's clearance round it, and how far the dogleg at the locked
+// end reaches (+X)
+knob_w = 3.6;
+knob_l = 6;
+knob_h = 5;
+knob_fit = 0.4;
+dogleg = 4.5;
 
 // Fingernail groove across the door's outer face near the top: depth
 // (a 90° V), and its centre below the top
@@ -241,11 +259,18 @@ function knuckle_y0(i) = -ey + i * knuckle_l;
 // Even knuckles are the body's, odd ones the door's
 function body_knuckle(i) = i % 2 == 0;
 
-// Door magnets, centred across the stack, under the top
-magnet_r = (magnet_d + magnet_fit) / 2;
-magnet_boss_r = magnet_r + magnet_wall;
-magnet_z = ceiling - magnet_boss_r;
-magnet_len = magnet_h + magnet_fit + magnet_wall;
+// Door bolt. The keeper stays 1.5 under the top: the door's swing lifts
+// its far edge as it goes out.
+bolt_r = bolt_d / 2;
+bolt_hole_r = bolt_r + bolt_fit / 2;
+bolt_cx = -hx + bolt_x;
+bolt_z = ceiling - 1.5 - bolt_wall - bolt_r;
+bolt_house_r = bolt_r + bolt_wall;
+bolt_travel = bolt_engage + 0.5;
+// The rod, locked: from its knob end, just short of the guide, to its tip
+// in the keeper
+rod_y0 = guide_y[0] - 0.3 - knob_l;
+rod_y1 = keeper_y[0] + bolt_engage;
 
 // Grip bands from the bottom up; the even ones are knurled
 band_top = top_z0 - band_margin;
@@ -277,14 +302,19 @@ assert(lead_y >= arc_y && arc_x > 0 && arc_y > 0, "the corner radius is too big 
 // The cavity's corner keeps a wall
 assert(profile_r - norm([profile_r - side_wall, profile_r - end_wall]) >= 2, "the corners are too thin");
 for (p = smas) {
-  assert(abs(p[1]) - sma_nut_d / 2 >= magnet_boss_r + 0.5, "an SMA's nut hits the magnet boss");
+  // The bolt's guide, keeper, rod and knob stay clear of each SMA's nut
+  assert(p[0] - sma_nut_d / 2 >= bolt_cx + bolt_house_r + dogleg + 1
+         || p[1] - sma_nut_d / 2 >= keeper_y[1] + 0.5
+         || p[1] + sma_nut_d / 2 <= rod_y0 - bolt_travel - knob_fit - 0.5, "an SMA's nut hits the door bolt");
   assert(abs(p[1]) + sma_nut_d / 2 <= hy - 0.3, "an SMA's inner nut hits the back or front wall");
   // The outer nut sits on the flat of the top: inside the outline inset by top_r
   assert(norm([max(abs(p[0]) - arc_x, 0), max(abs(p[1]) - arc_y, 0)]) + sma_nut_d / 2 <= profile_r - top_r,
          "an SMA's outer nut runs onto the rounded top edge");
 }
-assert(magnet_z - magnet_boss_r >= divider_z1 + 0.3, "the magnet boss hangs into the chambers");
-assert(magnet_h + magnet_fit + 1 <= side_wall - door_fit, "the door is too thin for its magnet");
+assert(bolt_z - bolt_house_r >= divider_z1 + 0.3, "the bolt's keeper hangs into the chambers");
+assert(bolt_cx - bolt_house_r >= -hx, "the bolt's guide runs into the door");
+// Drawn, the tip sits 0.5 short of the keeper and still spans the gap
+assert(rod_y1 - bolt_travel >= guide_y[1] + 0.5, "the drawn bolt's tip pulls back into its guide");
 assert(top_r < profile_r, "the top edge's radius is bigger than the corners'");
 assert(total_h - pull_z + pull_d <= top_z0, "the pull groove runs into the top edge");
 
@@ -400,21 +430,60 @@ module dividers() {
     cube([2 * hx + eps, divider_t, divider_z1 - bottom_t + eps]);
 }
 
-// Under the top, its far end 45° up to the top so it prints
-module magnet_boss() {
-  x0 = -hx;
-  difference() {
-    hull() {
-      translate([x0, 0, magnet_z]) rotate([0, 90, 0]) cylinder(r = magnet_boss_r, h = magnet_len);
-      translate([x0, -magnet_boss_r, ceiling - eps]) cube([magnet_len + 2 * magnet_boss_r, 2 * magnet_boss_r, eps]);
-    }
-    magnet_pocket(x0, 1);
+// The bolt's hole along Y over y0..y1, a teardrop peaked toward dir (±1
+// in X), the way the piece prints
+module bolt_hole(y0, y1, dir) {
+  translate([bolt_cx, y1, bolt_z]) rotate([90, 0, 0]) linear_extrude(y1 - y0) hull() {
+    circle(r = bolt_hole_r);
+    translate([dir * bolt_hole_r * sqrt(2), 0]) circle(r = 0.1);
   }
 }
 
-// A magnet's pocket in the face at x, going into the piece in direction s
-module magnet_pocket(x, s) {
-  translate([x - s * 1, 0, magnet_z]) rotate([0, s * 90, 0]) cylinder(r = magnet_r, h = magnet_h + magnet_fit + 1);
+// Under the top, its far side 45° up to the top so it prints
+module bolt_guide() {
+  difference() {
+    hull() {
+      translate([bolt_cx, guide_y[1], bolt_z]) rotate([90, 0, 0]) cylinder(r = bolt_house_r, h = guide_y[1] - guide_y[0]);
+      // out to where the 45° tangent off the housing meets the top
+      translate([bolt_cx - bolt_house_r, guide_y[0], ceiling - eps])
+        cube([bolt_house_r * (1 + sqrt(2)) + (ceiling - bolt_z) + 0.2, guide_y[1] - guide_y[0], eps]);
+    }
+    bolt_hole(guide_y[0] - 1, guide_y[1] + 1, -1);
+  }
+}
+
+// On the door's inner face
+module bolt_keeper() {
+  difference() {
+    hull() {
+      translate([bolt_cx, keeper_y[1], bolt_z]) rotate([90, 0, 0]) cylinder(r = bolt_house_r, h = keeper_y[1] - keeper_y[0]);
+      translate([-hx - door_fit - eps, keeper_y[0], bolt_z - bolt_house_r])
+        cube([eps, keeper_y[1] - keeper_y[0], 2 * bolt_house_r]);
+    }
+    bolt_hole(keeper_y[0] - 1, keeper_y[1] + 1, 1);
+  }
+}
+
+// The slot in the top the knob runs in, with the dogleg at the locked end
+module knob_slot() {
+  w = knob_w + 2 * knob_fit;
+  translate([0, 0, ceiling - 1]) linear_extrude(top_t + 2) {
+    translate([bolt_cx - w / 2, rod_y0 - bolt_travel - knob_fit]) square([w, knob_l + bolt_travel + 2 * knob_fit]);
+    translate([bolt_cx - w / 2, rod_y0 - knob_fit]) square([w + dogleg, knob_l + 2 * knob_fit]);
+  }
+}
+
+// The rod and its knob, locked (drawn: slid back by bolt_travel)
+module bolt(drawn = false, tilt = 0) {
+  translate([0, drawn ? -bolt_travel : 0, 0]) translate([bolt_cx, 0, bolt_z]) rotate([0, tilt, 0]) translate([-bolt_cx, 0, -bolt_z]) {
+    translate([bolt_cx, rod_y1, bolt_z]) rotate([90, 0, 0]) cylinder(r = bolt_r, h = rod_y1 - rod_y0);
+    translate([bolt_cx - knob_w / 2, rod_y0, bolt_z]) cube([knob_w, knob_l, total_h + knob_h - bolt_z]);
+  }
+}
+
+// Standing on its knob end
+module bolt_print() {
+  translate([0, 0, -rod_y0]) rotate([90, 0, 0]) bolt();
 }
 
 // The band's outline on the face: its ends lead in at 45°, so no groove
@@ -476,13 +545,14 @@ module body() {
     translate([hx - 1, yb + tp_usb_cy, tp_usb_cz]) rotate([0, 90, 0]) linear_extrude(side_wall + 2)
       offset(usb_open_r) square([usb_open_w - 2 * usb_open_r, usb_open_h - 2 * usb_open_r], center = true);
     for (p = smas) translate([p[0], p[1], ceiling - 1]) cylinder(d = sma_hole_d, h = top_t + 2);
+    knob_slot();
     knurl();
   }
   for (b = boards) right_rail(b);
   tp_right_rails();
   dividers();
   cell_roof(hx - cell_roof_reach, hx + eps);
-  magnet_boss();
+  bolt_guide();
 }
 
 // ---- door, modelled closed
@@ -521,7 +591,6 @@ module door() {
         translate([(hinge_r + hinge_clear) * sqrt(2), 0]) circle(r = 0.1);
       }
     pin_hole(pin_d + pin_loose);
-    magnet_pocket(-hx - door_fit, -1);
     // fingernail groove across the outer face, a 90° V
     translate([-ex, 0, total_h - pull_z]) rotate([90, 0, 0]) rotate(45)
       cube([pull_d * sqrt(2), pull_d * sqrt(2), 2 * ey + 2], center = true);
@@ -529,6 +598,7 @@ module door() {
   for (b = boards) door_rib(b, -b[0] / 2, board_z0(b), board_z1(b));
   door_rib(tp_b, tp_x0, bottom_t + 0.3, tp_z1);
   cell_roof(-hx - door_fit - eps, -hx + cell_roof_reach);
+  bolt_keeper();
 }
 
 // Swung open by a degrees about the hinge

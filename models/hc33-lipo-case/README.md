@@ -16,12 +16,16 @@ The HC33's and V4's USB-Cs come out of the bottom, the TP4056's out of the right
 |---|---|---|
 | Body | PETG | on its right face |
 | Door | PETG | on its outer face |
+| Bolt | PETG | standing on its knob end |
 
-Both fit on one bed: `print.3mf` is that plate. Seen from the top, the case is a rounded rectangle (10 mm corners). The left and right faces run into the corners at 45°, which is what lets each piece print on one of them. The top edge is rounded (4 mm) and leads in at 45° the same way. The only overhangs past 45° are the tops of the round holes: the SMA holes and the hinge pin's.
+All three fit on one bed: `print.3mf` is that plate. Seen from the top, the case is a rounded rectangle (10 mm corners). The left and right faces run into the corners at 45°, which is what lets each piece print on one of them. The top edge is rounded (4 mm) and leads in at 45° the same way. The only overhangs past 45° are the tops of the round holes: the SMA holes and the hinge pin's.
 
 ## How it goes together
 
-- **Door.** The whole left wall swings down on a hinge along its bottom edge: five knuckles round a 1.75 mm filament pin, the body's snug on it and the door's loose. Opened 90°, it lies flat on the table. No tools: a pair of 8 × 3 mm disc magnets, one pressed into the door and one into a boss under the case's top, holds it shut. A V-groove across the door's outer face near the top takes a fingernail to pull it open.
+- **Door.** The whole left wall swings down on a hinge along its bottom edge: five knuckles round a 1.75 mm filament pin, the body's snug on it and the door's loose. Opened 90°, it lies flat on the table. A V-groove across the door's outer face near the top takes a fingernail to pull it open.
+- **Bolt.** It locks the door with no tools. A 4 mm printed rod runs under the top, across the opening, near the door. It slides in a guide on the body and its tip goes 4 mm into a keeper on the door's inside, so the door can't swing. Its knob comes up through a slot in the top, by the door's edge.
+  - To lock: close the door, slide the knob toward the front, then tip it toward the middle of the case into the dogleg at the end of the slot. Tipped, it can't slide.
+  - To unlock: stand the knob back up and slide it toward the back (4.5 mm). The door then swings open.
 - **Chambers.** A 1.2 mm divider runs between each pair of layers, from the bottom up to just over the tallest part. The 10 mm under the top is open across all four chambers: that's where the wires and the SMA pigtails cross.
 - **Boards.** Each board's right edge sits in a slot in a rail on the right wall, and its left edge in a slot in a rib on the door. The slots have roofs over the boards' top edges, so nothing rides up. The HC33's and V4's slots on the right wall also have floors, which put each USB-C 0.3 mm over its opening in the bottom. The door's ribs have no floors, because the door's swing would lift a floor into the board.
 - **TP4056.** It stands on the bottom with its USB-C end against the right wall, through an opening there. Its rail on the right wall comes in two parts, one under the receptacle and one over it.
@@ -33,11 +37,12 @@ It isn't sealed: the USB-C openings are open.
 ## Assembly
 
 1. Fit the SMA bulkheads through the top, nuts inside.
-2. Push the hinge pin (45 mm of 1.75 mm filament) through the knuckles, and melt or glue its ends. Press or glue the magnets into the door's pocket and the body's boss, opposite poles facing.
-3. Wire the cell to the TP4056 and to the boards' battery inputs.
-4. With the door open, slide each piece into its chamber from the left, at the height it sits at, until its right edge is home: the TP4056 at the back, then the HC33, the cell and the V4. Run the wires over the dividers.
-5. Plug the pigtails into the HC33 (from the back-right SMA) and the V4 (from the front-left one).
-6. Close the door.
+2. Push the hinge pin (45 mm of 1.75 mm filament) through the knuckles, and melt or glue its ends.
+3. With the door open, put the bolt in from inside: tip end first through the guide toward the front, knob up through the slot in the top.
+4. Wire the cell to the TP4056 and to the boards' battery inputs.
+5. With the door open, slide each piece into its chamber from the left, at the height it sits at, until its right edge is home: the TP4056 at the back, then the HC33, the cell and the V4. Run the wires over the dividers.
+6. Plug the pigtails into the HC33 (from the back-right SMA) and the V4 (from the front-left one).
+7. Close the door, slide the knob forward and tip it into the dogleg.
 
 ## Unmeasured
 

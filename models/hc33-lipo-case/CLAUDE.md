@@ -10,12 +10,20 @@ Case for a Heltec HT-HC33, a Heltec WiFi LoRa 32 V4, a 103665 LiPo, a USB-C TP40
 - "can we turn the charging circuit so it comes out the side? can we hae a smooth rounded profile when we look at it from the top? add grip indexing like 15cm indents alternating the corners". I read 15cm as 15 mm: the case is 82.5 tall.
 - "i want one of the sides to be a a hinge like a door style so that we can open the side up and have easy access to add or remove anything we need". This replaced the sleeve and top cap.
 - "the indentation to make it easier to hold, can we make that like a ribbing? 15cm bands all the way down alternating, when its on its diamond knurling"; "i want a toolless way to open and close the door"; "the different items in there need more separation like mostly separate chambers except for somewhere to route the wires"; "the battery and the green board have to swap" (green = the HC33 in the renders, so the cell is middle-left seen from the front-left); "i want that top edge rounded too".
+- "i need something that like locks the door in place and then i can undo with my fingers, maybe a latch at the top or something?" The bolt replaced the magnets.
 
 ## My picks (not the user's)
 
 - **"Opposite corners" = diagonal**: front-left and back-right of the top.
 - **Stack order**, back to front: TP4056, HC33, cell, V4 (the user's swap). No window for the V4's screen.
-- **Magnets for the latch** (`magnet_*`): toolless, with nothing sticking out. A quarter-turn cam was the other choice. Its catch on the body would face +X, which is straight down as the body prints, and a 45° catch face either cams the arm round or runs into it as it turns. Magnets give no positive lock: a hard knock could open the door.
+- **The latch is a slide bolt across the opening** (`bolt_*`, `knob_*`, `bolt()`): a rod along Y under the top, in a guide on the body and a keeper on the door. It's along Y for two reasons:
+  - A bolt along X, the way the door's top moves, slides straight out as the door opens.
+  - A catch the door bears on has to face -X (on the door) or +X (on the body). Both point straight down as those pieces print, and a 45° catch face cams the latch open.
+  - A rod across the opening takes the keeper's push in shear, and every face involved prints. The guide hangs from the top on a 45° hull (out to where the tangent off its housing meets the top). Its hole and the keeper's are teardrops peaked the way each piece prints, and the rod still turns in them.
+  - The keeper stays 1.5 under the top, because the door's swing lifts its far edge on the way out (`bolt_z`).
+  - The knob runs in a slot through the top. The dogleg at the locked end (+X) takes the knob when the rod turns about 25°. The knob's weight then holds it there, since it's past top-dead-centre.
+  - Checked: locked, the door collides at 3° open; tipped, the bolt can't slide back; upright, it slides free; at 30° the knob meets the dogleg's wall.
+  - This replaced a magnet pair, which gave no positive lock.
 - **Chambers**: `dividers` sit in the middle of the layer gaps (`layer_gap` 2.4 leaves 0.6 a side) and stop at `divider_z1`. The `sma_behind` head space above them is the shared wire route. The cell's old fins went: the dividers bound it.
 - **Knurl bands** (`knurl()`) only on the flat of the front and back faces (|x| ≤ `arc_x`). The faces they'd wrap onto are the bed faces of the two prints. On a vertical face, the grooves' walls are 30° past vertical as the body prints. Each band's ends lead in at 45° (`band_region()`), because a square end on the left would face down.
 - **Top edge** (`shell()`): a hull of outline slices, a 45° lead (`top_lead`) onto a `top_r` arc, the same in every direction. `sma_in_y` keeps each SMA's outer nut on the flat of the top (asserted).
@@ -44,4 +52,5 @@ Origin at the cavity's centre in plan, z = 0 on the bottom face. X across (door 
   - the door at 5°, 15°, 30°, 60° and 90° × the body and × every board and the cell.
 - Positive controls: each board or the cell nudged (sideways, up or down) hits its slot, floor, roof or divider.
 - Overhang scan of both print-oriented STLs: only the tops of the round SMA and pin holes, plus 0.8 mm² at a bottom opening's peak. Nothing from the knurl or the rounded top.
-- Renders through the forge (`buildModel`): body, door, assembled, closed, print plate.
+- Bolt: locked, drawn, tipped 25°, and drawn at 10° × body and door; drawn × the door swinging 5°–90°; × every reference part.
+- Renders through the forge (`buildModel`): body, door, bolt, assembled, closed, print plate.
