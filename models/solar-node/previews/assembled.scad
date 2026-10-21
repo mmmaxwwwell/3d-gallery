@@ -4,7 +4,6 @@ $fn = 40;
 // tray so the inside shows.
 lift = 40;
 color("#3d4a3a") tray();
-color("#5f7a5a") shelf_in_place();
 color("#c08a3e") frame_in_place(lift);
 color("#3d4a3a") bezel_in_place(lift);
 color("#e07b39") gasket_in_place(lift);
