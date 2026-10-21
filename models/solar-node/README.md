@@ -19,6 +19,7 @@ It hangs with a long side down. The panel faces out, and the winch is behind it.
 | Pinion ×2 | PETG | teeth down |
 | Spacer ×2 | PETG | on end |
 | Shaft seal ×2 | TPU 85A | flat |
+| Shroud seal | TPU 85A | flat |
 
 The footprint is 263 × 191 mm, plus the horns: the deck prints 263 × 222, so it needs a 270 mm bed (Q2, U1). Height assembled is 62 mm: the 40.5 mm box plus the 21.2 mm winch deck behind it.
 
@@ -55,6 +56,12 @@ The N (for the V3) and the SMA (for the HC33) point down out of the bottom wall,
   - each spool turns on a 608 bearing on a post from the deck;
   - a pinion drives the teeth round each spool's lower flange at 6.2:1, from a JGY-370 worm gearmotor standing inside the box, shaft down through the floor;
   - the worm holds the load when the motor stops.
+- **Shroud:** a wall round both spools and both pinions rises from the deck to the tray's underside, so the gears run in a closed bay.
+  - A TPU 85A strip in a groove on its top is squeezed 0.3 mm against the tray by the deck's screws, which sit outside it.
+  - Each cable leaves through a slot cut where its path from the spool to its guide bearing crosses the wall: from the core out to a full spool, at the channel's depth.
+  - A 3 mm drain at the bottom of each spool's bay lets water out.
+  - This keeps debris and splashes off the gears; it isn't watertight. The guide, edge and throat bearings stay outside it, being stainless.
+  - Wind each spool so the cable leaves from its outer side, toward its slot.
 - **Direction:** the two drives are mirror images, so the spools turn opposite ways to reel in.
 - **Cable exit:** the cable runs only on stainless 608 skateboard bearings, four per corner. Each cable leaves its top corner, 218 mm from the other.
   1. Past its spool, it turns straight up on an upright **guide bearing** standing on the deck, outboard of the cable.
@@ -72,6 +79,19 @@ The N (for the V3) and the SMA (for the HC33) point down out of the bottom wall,
   6. Lead each cable round the inboard side of its guide bearing. Then fit the horn's three bearings on M8x25 bolts, so the cable goes over the edge bearing, over the rear throat bearing and under the front one.
   7. Lift the deck up under the tray. The spool pins go into their sockets and the pinion pins go into the pinions.
   8. Screw the deck into the long-side columns with 18 M3x25.
+
+## Motor speed
+
+The spool turns 12/74 of the motor's speed (6.17:1). The cable sits 27.5 mm from the axle on an empty spool and 50.6 mm on a full one, so the same motor speed reels in faster as the spool fills.
+
+| Line speed | Spool rpm (full – empty) | Motor rpm (full – empty) |
+|---|---|---|
+| 1 m/min | 3.1 – 5.8 | 19 – 36 |
+| 2 m/min | 6.3 – 11.6 | 39 – 71 |
+| 3 m/min | 9.4 – 17.4 | 58 – 107 |
+| 5 m/min | 15.7 – 28.9 | 97 – 178 |
+
+**Load.** For a 1.5 kg node on two lines, each line holds 7.4 N hanging straight, or 10.4 N at 45°. On a full spool, through the gears at 80% efficiency, that needs about 0.8–1.1 kg·cm at the motor. Allow 3× for jerks and stalls: about 3 kg·cm.
 
 ## Power
 

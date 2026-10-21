@@ -44,6 +44,13 @@ A sealed box under a salvaged 240 × 168 mm solar panel. devOnly, unprinted.
     - The horn's bearings are on M8x25 bolts, their inner races clamped by cheek bosses; `race_gap` (0.5) is less than the cable's diameter.
     - The printed rollers were dropped. `throat_x` moved from 112 to 109 so the guide bearing fits inside the end.
     - `ref_cable_runs()` straightens the path, so it cuts the races' curves by about 5 mm³ where the real cable wraps them.
+  - **Shroud** (user: "can we make the back with the gears enclosed so we dont get moisture or debris in there?").
+    - A wall (`shroud_wall_2d()`) round the union of each spool's and pinion's teeth plus `shroud_gap` stands on the deck up to `shroud_top`. A TPU 85A strip in a groove on its top is squeezed `shroud_squeeze` against the tray's flat underside, by the deck's screws outside it.
+    - It sits entirely under the tray's floor, inside the guide bearings.
+    - The cable slots are `cable_slot_2d()`: the hull of the guide point and the outer-side tangent points for an empty and a full spool, cut through the wall at the channel's depth.
+    - There's a drain at the bottom of each bay.
+    - It's debris- and splash-proof, not sealed. Enclosing the bearings too would need a skin round the whole box, past the 270 bed.
+  - **Motor speed** (user: "how many rpm do i need each gear motor"): see the README's table. My suggestion is a 12 V JGY-370 at about 50–60 rpm with at least 3 kg·cm, which climbs at about 1.5–3 m/min.
   - **Preview:** the assembled preview hangs upright with the antennas down (user: "can we have the assembled view be upright with the antennas facing down"). It's `rotate([90, 0, 0])` of the model frame, with the lid pulled 40 mm forward.
   - **Superseded history:** a coaxial stack ("exactly overlapping"), and before that an offset pair overlapping 29 mm. My first capacity formula held only about 85 ft of a claimed 100.
   - **Deck.** It hangs from the tray's long-side columns on M3x25, with pilots from below. It has `deck_band` edges, bars under the posts and pinions, pads under the guide bearings, the horns, and slots for the edge bearings.
@@ -69,7 +76,7 @@ A sealed box under a salvaged 240 × 168 mm solar panel. devOnly, unprinted.
 
 ## Checked
 
-- Rotated layout (2026-10-21): none of these intersect, beyond faces touching: spools, pinions, deck (with horns), tray, the 608s, spacers, motors, the battery, plate and boards, the frame and bezel, and the N and SMA. The reference cable path clears the tray, frame, bezel and deck. Two intended overlaps: each seal grips its hub (≈24 mm³), and each bearing's press fit in its hub (≈21 mm³).
+- Rotated layout (2026-10-21): none of these intersect, beyond faces touching: spools, pinions, deck (with horns and shroud), tray, the 608s, spacers, motors, the battery, plate and boards, the frame and bezel, and the N and SMA. The reference cable path clears the tray, frame, bezel and deck. Three intended overlaps: each shaft seal grips its hub (≈24 mm³), each bearing's press fit in its hub (≈21 mm³), and the shroud strip's squeeze on the tray (≈448 mm³).
 
 - The pieces' rigid parts don't intersect.
 - gasket ∩ tray ≈ 606 mm³, which is the tongue's side squeeze. Re-check this if the seal changes.

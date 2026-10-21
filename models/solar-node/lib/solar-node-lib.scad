@@ -225,6 +225,21 @@ cheek_t = 4;
 race_gap = 0.5;
 horn_wall = 3;
 
+// Shroud round the spools and gears, part of the deck, up to the tray's
+// underside: gap round the spools' and pinions' teeth, wall thickness; the
+// TPU 85A strip in a groove on its top (groove width and depth, strip
+// height, how much the deck's screws squeeze it); the slot each cable leaves
+// through (margin round the cable's possible paths); a drain at the bottom
+// of each spool's bay. Keeps out debris and splashes; not watertight.
+shroud_gap = 2;
+shroud_wall = 2.5;
+shroud_groove_w = 2;
+shroud_groove_d = 1.2;
+shroud_seal_h = 2;
+shroud_squeeze = 0.3;
+cable_slot_margin = 1.5;
+drain_d = 3;
+
 // JGY-370 worm gearmotor (as in meshtastic-drybag-node, unmeasured): lying
 // on the floor output shaft down, length, width, height from its output
 // face, shaft from the gearbox's end; D-shaft diameter and length
@@ -664,6 +679,7 @@ module deck_plan() {
     plan(0);
     for (x = [-spool_x, spool_x, -pin_x, pin_x]) translate([x - deck_bar / 2, -outer_w / 2]) square([deck_bar, outer_w]);
   }
+  offset(r = shroud_wall) shroud_inside();
   for (s = [-1, 1]) scale([s, 1]) {
     translate(guide_c) circle(d = brg_od + 4);
     translate([guide_c[0], guide_c[1] - brg_od / 2 - 2]) square([outer_l / 2 - guide_c[0] - 1, outer_w / 2 - guide_c[1] + brg_od / 2]);
@@ -693,6 +709,50 @@ module horn() {
   }
 }
 
+// ---- shroud: the region it closes round (both spools' and pinions' teeth
+// plus shroud_gap), its wall, and the seal strip on the wall's top
+shroud_top = -(shroud_seal_h - shroud_groove_d - shroud_squeeze);
+
+module shroud_inside() {
+  for (k = [0, 1]) hull() {
+    translate(spool_c[k]) circle(r = spool_tip + shroud_gap, $fn = 180);
+    translate(pinion_c[k]) circle(r = tip_r(pinion_z) + shroud_gap, $fn = 48);
+  }
+}
+
+module shroud_wall_2d() {
+  difference() {
+    offset(r = shroud_wall) shroud_inside();
+    shroud_inside();
+  }
+}
+
+module shroud_seal_2d() {
+  difference() {
+    offset(r = (shroud_wall + shroud_groove_w) / 2) shroud_inside();
+    offset(r = (shroud_wall - shroud_groove_w) / 2) shroud_inside();
+  }
+}
+
+// Where each cable can leave its spool for its guide bearing: the tangents
+// from the guide bearing's inboard side to the spool's outer side, from the
+// core out to full.
+function tangent_pt(sc, r, g) = let(d = norm(g - sc), a0 = atan2(g[1] - sc[1], g[0] - sc[0]), a = a0 - sign(sc[0]) * acos(r / d)) sc + r * [cos(a), sin(a)];
+module cable_slot_2d(k) {
+  m = k == 0 ? -1 : 1;
+  g = [m * throat_x, guide_y];
+  hull() for (q = [g, tangent_pt(spool_c[k], core_r, g), tangent_pt(spool_c[k], fill_r, g)]) translate(q) circle(r = cable_slot_margin, $fn = 16);
+}
+
+// The seal strip: TPU 85A, printed flat, laid in the groove.
+module shroud_seal() {
+  linear_extrude(shroud_seal_h) shroud_seal_2d();
+}
+
+module shroud_seal_in_place() {
+  translate([0, 0, shroud_top - shroud_groove_d]) shroud_seal();
+}
+
 module deck() {
   difference() {
     union() {
@@ -715,15 +775,29 @@ module deck() {
         cylinder(d = brg_bore - 0.15, h = pin_socket - 0.3 - deck_z1, $fn = 32);
       }
       for (m = [0, 1]) mirror([m, 0, 0]) horn();
+      translate([0, 0, deck_t - eps]) linear_extrude(shroud_top - deck_z1 + eps) shroud_wall_2d();
+    }
+    translate([0, 0, shroud_top - shroud_groove_d - deck_z0]) linear_extrude(shroud_groove_d + 1) shroud_seal_2d();
+    for (k = [0, 1]) {
+      translate([0, 0, z_s0 + spool_gear_w - 1.5 - deck_z0]) linear_extrude(bay_w + 3) intersection() {
+        cable_slot_2d(k);
+        offset(r = shroud_wall + 0.5) shroud_inside();
+      }
+      translate([spool_c[k][0], spool_c[k][1] - spool_tip - shroud_gap - shroud_wall / 2, deck_t + drain_d / 2 + 0.5]) rotate(90) teardrop_x(drain_d, shroud_wall + 2);
     }
     // The slot each edge bearing hangs through
     for (m = [0, 1]) mirror([m, 0, 0]) translate([cheek_x[0] + cheek_t / 2, edge_slot[0], -1]) cube([horn_w, edge_slot[1] - edge_slot[0], deck_t + 2]);
+
     for (p = deck_screws) translate([p[0], p[1], 0]) {
       translate([0, 0, -1]) cylinder(d = clear_d, h = deck_t - deck_z0 + 2);
       translate([0, 0, -1]) cylinder(d = cbore_d, h = 1 + cbore_h);
     }
   }
 }
+
+assert(spool_y + spool_tip + shroud_gap + shroud_wall < outer_w / 2 - tray_inset, "the shroud runs out past the tray's floor");
+assert(spool_x + spool_tip + shroud_gap + shroud_wall < outer_l / 2 - tray_inset, "the shroud runs out past the tray's floor");
+assert(norm(guide_c - spool_c[1]) - brg_od / 2 > spool_tip + shroud_gap + shroud_wall + 0.5, "the shroud runs into a guide bearing");
 
 module deck_in_place() {
   translate([0, 0, deck_z0]) deck();

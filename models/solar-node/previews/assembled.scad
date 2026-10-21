@@ -20,7 +20,7 @@ upright() {
   color("#4a6a8a") deck_in_place();
   color("#d0d0d0") for (k = [0, 1]) spool_in_place(k);
   color("#b8862e") for (k = [0, 1]) pinion_in_place(k);
-  color("#e07b39") for (k = [0, 1]) shaft_seal_in_place(k);
+  color("#e07b39") { for (k = [0, 1]) shaft_seal_in_place(k); shroud_seal_in_place(); }
   color("#708090") ref_motors();
   color("#555555") { ref_bearings(); ref_guide_bearings(); for (k = [0, 1]) spacer_in_place(k); }
   color("#8a8f94") { ref_cable(); ref_cable_runs(); }
