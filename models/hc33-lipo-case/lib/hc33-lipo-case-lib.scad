@@ -198,11 +198,12 @@ side_door_grip_h = 1.5;
 side_door_grip_w = 2.4;
 side_door_grip_in = 2;
 
-// The TPU base under the whole case, printed in place under the body on
-// the U1: its thickness; the keys it carries up into the body's walls
+// The TPU Air base under the whole case, printed in place under the body
+// and the door face on the U1: its thickness; the keys it carries up into
+// the body's walls
 // (diameter at the base, how far up, how much wider at the top), and how
 // far apart they are along the walls
-base_t = 1.6;
+base_t = 1.5;
 key_d = 2.2;
 key_h = 1.5;
 key_flare = 0.4;
@@ -250,10 +251,12 @@ door_screws_bottom = 3;
 top_screws_per_wall = 3;
 top_screws_right = 3;
 
-// Grip rings: height, how far an inset ring is sunk into the PCTG (the TPU
-// fills it flush), the knurl's pitch and depth in the TPU, the plain
-// margin under the top edge, and the least height of the short TPU rings
-// at the bottom (on the base) and at the top (up to the top's seam)
+// The skin: everything outside the PCTG core, grip_inset thick, is TPU,
+// round the sides and over the top: orange TPU 75A knurled grip rings and,
+// between them and over the top, smooth TPU Air. The rings' height, the
+// skin's thickness, the knurl's pitch and depth, the margin under the top
+// edge, and the least height of the short rings at the bottom (on the
+// base) and at the top (up to the top's seam)
 band_h = 14;
 grip_inset = 2;
 knurl_pitch = 2;
@@ -261,8 +264,7 @@ knurl_d = 0.8;
 band_margin = 2;
 band_end_min = 6;
 
-// The PCTG left flush round the side door's track, where it crosses a TPU
-// ring
+// The PCTG left bare round the side door's track, its housing
 ring_margin = 1.5;
 // END_PARAMS
 
@@ -577,39 +579,68 @@ function outline_pts(e, n = 12) = let(r = profile_r - e, x = exw - e, ly = arc_y
 
 function cumlen(p) = [for (i = 0, s = 0; i < len(p); s = s + (i + 1 < len(p) ? norm(p[i + 1] - p[i]) : 0), i = i + 1) s];
 
-// The solid inside a knurled face from za to zb: square pyramids on a grid
-// at ±45°, their tips on the outline inset by e and the grooves between
-// them knurl_d deeper. The top and bottom rows stay on the tips' face so
-// the knurl meets whatever is above and below it flush.
+// The solid inside a knurled face from za to zb: a diamond knurl of 90°
+// V-grooves at ±45°, knurl_pitch apart and knurl_d deep, leaving flat
+// diamond lands on the outline inset by e. It is one heightfield round the
+// whole perimeter: the grid's step puts every groove bottom and land edge
+// on a grid diagonal, each cell is split into four through its centre so
+// both diagonals are edges, and the columns are a whole number of groove
+// periods, so the pattern meets itself where the perimeter closes. Where
+// the band's height isn't a whole number of steps, the rows above and
+// below stay on the lands' face.
 module knurl_core(za, zb, e = 0) {
   pe = outline_pts(e);
   pv = outline_pts(e + knurl_d);
-  pin = outline_pts(e + knurl_d + 1);
+  pin = outline_pts(e + grip_inset + 0.5);
   s = cumlen(pe);
   L = s[len(s) - 1];
-  q = knurl_pitch / sqrt(2);
-  n = 2 * max(2, round(L / q / 2));
-  m = max(2, round((zb - za) / q));
-  tab = function(p, k) [for (i = [0:len(p) - 1]) [s[i], p[i][k]]];
+  // groove period along s or z, the steps in one period, and the steps
+  // from a groove's bottom to its land's edge
+  per = knurl_pitch * sqrt(2);
+  k = round(per / (knurl_d * sqrt(2) / 2));
+  kd = k * knurl_d / knurl_pitch;
+  n = k * round(L / per);
+  h = L / n;
+  m = floor((zb - za) / h);
+  z0 = (za + zb - m * h) / 2;
+  tab = function(p, c) [for (i = [0:len(p) - 1]) [s[i], p[i][c]]];
   ex_ = tab(pe, 0); ey_ = tab(pe, 1);
   vx = tab(pv, 0); vy = tab(pv, 1);
   ix = tab(pin, 0); iy = tab(pin, 1);
-  outer = [for (j = [0:m], i = [0:n - 1]) let(t = i * L / n, z = za + (zb - za) * j / m,
-                                            v = j > 0 && j < m && (i + j) % 2 == 0,
-                                            p = v ? [lookup(t, vx), lookup(t, vy)] : [lookup(t, ex_), lookup(t, ey_)])
-           [p[0], p[1], z]];
-  inner = [for (z = [za, zb], i = [0:n - 1]) let(t = i * L / n) [lookup(t, ix), lookup(t, iy), z]];
-  function o(i, j) = j * n + (i % n);
-  function ib(i) = (m + 1) * n + (i % n);
-  function it(i) = (m + 2) * n + (i % n);
+  // Depth at grid point (a, b), counted in steps: knurl_d at a groove's
+  // bottom, falling to nothing at its land's edge, kd steps either side.
+  // Grooves run along a + b and a - b, k steps apart, so they sit exactly
+  // on the grid.
+  function dd(q) = abs(q - k * round(q / k));
+  function depth(a, b) = knurl_d * max(0, 1 - min(dd(a + b), dd(a - b)) / kd);
+  function pt(a, b) = let(t = a * h, f = depth(a, b) / knurl_d)
+    [lookup(t, ex_) + (lookup(t, vx) - lookup(t, ex_)) * f, lookup(t, ey_) + (lookup(t, vy) - lookup(t, ey_)) * f, z0 + b * h];
+  corners = [for (j = [0:m], i = [0:n - 1]) pt(i, j)];
+  centres = [for (j = [0:m - 1], i = [0:n - 1]) pt(i + 0.5, j + 0.5)];
+  ring = function(z) [for (i = [0:n - 1]) let(t = i * h) [lookup(t, ex_), lookup(t, ey_), z]];
+  inner = function(z) [for (i = [0:n - 1]) let(t = i * h) [lookup(t, ix), lookup(t, iy), z]];
+  // the lands' face below and above the knurl, then the inner wall
+  pts = concat(corners, centres, ring(za), ring(zb), inner(za), inner(zb));
+  nc = n * (m + 1);
+  ncc = n * m;
+  function c(i, j) = j * n + (i % n);
+  function cc(i, j) = nc + j * n + (i % n);
+  function lo(i) = nc + ncc + (i % n);
+  function hi(i) = nc + ncc + n + (i % n);
+  function ilo(i) = nc + ncc + 2 * n + (i % n);
+  function ihi(i) = nc + ncc + 3 * n + (i % n);
   faces = concat(
-    [for (j = [0:m - 1], i = [0:n - 1]) each ((i + j) % 2 == 0
-      ? [[o(i, j), o(i, j + 1), o(i + 1, j + 1)], [o(i, j), o(i + 1, j + 1), o(i + 1, j)]]
-      : [[o(i, j), o(i, j + 1), o(i + 1, j)], [o(i, j + 1), o(i + 1, j + 1), o(i + 1, j)]])],
-    [for (i = [0:n - 1]) [o(i, 0), o(i + 1, 0), ib(i + 1), ib(i)]],
-    [for (i = [0:n - 1]) [o(i, m), it(i), it(i + 1), o(i + 1, m)]],
-    [for (i = [0:n - 1]) [ib(i), ib(i + 1), it(i + 1), it(i)]]);
-  polyhedron(concat(outer, inner), faces);
+    [for (j = [0:m - 1], i = [0:n - 1]) each [
+      [c(i, j), cc(i, j), c(i + 1, j)],
+      [c(i + 1, j), cc(i, j), c(i + 1, j + 1)],
+      [c(i + 1, j + 1), cc(i, j), c(i, j + 1)],
+      [c(i, j + 1), cc(i, j), c(i, j)]]],
+    [for (i = [0:n - 1]) [lo(i), c(i, 0), c(i + 1, 0), lo(i + 1)]],
+    [for (i = [0:n - 1]) [c(i, m), hi(i), hi(i + 1), c(i + 1, m)]],
+    [for (i = [0:n - 1]) [lo(i), lo(i + 1), ilo(i + 1), ilo(i)]],
+    [for (i = [0:n - 1]) [hi(i), ihi(i), ihi(i + 1), hi(i + 1)]],
+    [for (i = [0:n - 1]) [ilo(i), ilo(i + 1), ihi(i + 1), ihi(i)]]);
+  polyhedron(pts, faces);
 }
 
 // Where the rings stop: ring_margin round the side door's track
@@ -619,41 +650,57 @@ module ring_keepout() {
     cube([right_wall + 2, 2 * sd_dy + sd_travel + 2 * m, 2 * (sd_dz + m)]);
 }
 
-// An inset ring's recess in the PCTG: sunk grip_inset with 45° chamfers
-// into it, stopping at ring_keepout()
-module ring_recess(i) {
-  z0 = band_z0(i);
-  z1 = band_z1(i);
+// The case's shell inset by e over its sides and its top, its top edge
+// rounded the same way
+module shell_inset(e) {
+  steps = 8;
+  union() {
+    translate([0, 0, -1]) linear_extrude(top_z0 + 1) offset(delta = -e) outline();
+    hull() {
+      slice(e, top_z0 - eps);
+      for (i = [0:steps]) let(a = 45 + 45 * i / steps)
+        slice(top_r - (top_r - e) * cos(a), total_h - top_r + (top_r - e) * sin(a) - (i == steps ? eps : 0));
+    }
+  }
+}
+
+// The skin: grip_inset thick over the sides and the top, above the base,
+// except the side door's housing, which stays PCTG
+module skin() {
   difference() {
-    ring_recess_whole(z0, z1);
+    intersection() {
+      shell();
+      translate([-ex_l - 1, -ey - 1, base_t]) cube([ex_l + ex_r + 2, 2 * ey + 2, total_h]);
+    }
+    shell_inset(grip_inset);
     ring_keepout();
   }
 }
 
-module ring_recess_whole(z0, z1) {
-  difference() {
-    translate([0, 0, z0]) linear_extrude(z1 - z0) difference() {
-      offset(delta = 1) outline();
-      offset(delta = -(grip_inset + 0.5)) outline();
-    }
-    hull() { slice(0, z0 - eps); slice(grip_inset, z0 + grip_inset); }
-    hull() { slice(grip_inset, z1 - grip_inset - eps); slice(0, z1); }
-    translate([0, 0, z0 + grip_inset - eps]) linear_extrude(z1 - z0 - 2 * grip_inset + 2 * eps)
-      offset(delta = -grip_inset) outline();
+module inset_bands() {
+  for (i = [0:band_n - 1]) if (inset_band(i))
+    translate([-ex_l - 1, -ey - 1, band_z0(i)]) cube([ex_l + ex_r + 2, 2 * ey + 2, band_z1(i) - band_z0(i)]);
+}
+
+// What the PCTG gives up to the skin
+module grip_cut() {
+  skin();
+}
+
+// The orange TPU rings, diamond knurled
+module grip_rings() {
+  intersection() {
+    skin();
+    inset_bands();
+    union() for (i = [0:band_n - 1]) if (inset_band(i)) knurl_core(band_z0(i), band_z1(i));
   }
 }
 
-module grip_cut() {
-  for (i = [0:band_n - 1]) if (inset_band(i)) ring_recess(i);
-}
-
-// The TPU that fills the recesses, flush with the plain rings: diamond
-// knurled knurl_d deep, or smooth where it prints facing the bed
-module grip_rings(knurled = true) {
-  for (i = [0:band_n - 1]) if (inset_band(i)) intersection() {
-    ring_recess(i);
-    if (knurled) knurl_core(band_z0(i), band_z1(i));
-    else translate([0, 0, band_z0(i) - 1]) linear_extrude(band_z1(i) - band_z0(i) + 2) outline();
+// The TPU Air skin: between the rings and over the top
+module air_skin() {
+  difference() {
+    skin();
+    inset_bands();
   }
 }
 
@@ -776,12 +823,18 @@ module seal_grooves() {
   translate([hx - 1, -hy - groove_d, seal_z_top - groove_w / 2]) cube([1 + groove_d, 2 * (hy + groove_d), groove_w]);
 }
 
-// The body's TPU Air: the seal channels and the side door's gasket
+// The body's TPU Air: the seal channels, the side door's gasket, the base
+// and its share of the skin
 module body_seal() {
   difference() {
     union() {
       seal_blocks();
       side_gasket(0);
+      tpu_base();
+      intersection() {
+        air_skin();
+        body_region();
+      }
     }
     seal_grooves();
   }
@@ -811,7 +864,18 @@ module washer_at(d_out, d_in) {
   }
 }
 
+// The carriage's TPU Air: the base's strip under the door face, its share
+// of the skin, and the SMAs' washers
 module carriage_seal() {
+  door_foot();
+  difference() {
+    intersection() {
+      air_skin();
+      carriage_region();
+    }
+    screw_holes();
+    for (p = smas) translate([p[0], p[1], ceiling]) cylinder(d = sma_hole_d, h = total_h);
+  }
   for (p = smas) translate([p[0], p[1], total_h + washer_proud - washer_t]) washer_at(sma_nut_d + 1, sma_hole_d);
 }
 
@@ -889,75 +953,51 @@ module base_key_shapes() {
     cylinder(d1 = key_d, d2 = key_d + 2 * key_flare, h = key_h + eps);
 }
 
-// The body's TPU: the base and its knurled rings
+module body_region() {
+  translate([-hx, -ey - 1, -1]) cube([ex_r + hx + 1, 2 * ey + 2, ceiling + seal_w + 1]);
+}
+
+module carriage_region() {
+  translate([-ex_l - 1, -ey - 1, -1]) cube([ex_l - hx + 1, 2 * ey + 2, total_h + 2]);
+  translate([-ex_l - 1, -ey - 1, ceiling + seal_w]) cube([ex_l + ex_r + 2, 2 * ey + 2, total_h]);
+}
+
+// The body's orange TPU: its share of the knurled rings
 module body_tpu() {
-  tpu_base();
   intersection() {
     grip_rings();
-    translate([-hx, -ey - 1, 0]) cube([ex_r + hx + 1, 2 * ey + 2, ceiling + seal_w]);
+    body_region();
   }
 }
 
-// The rest of the base, under the door face, printed with the carriage
-module door_foot() {
-  intersection() {
-    shell();
-    translate([-ex_l - 1, -ey - 1, 0]) cube([ex_l - hx + 1, 2 * ey + 2, base_t]);
-  }
-}
-
-// The carriage's TPU: its foot, and its share of the rings, flush. The
-// rings' diamond knurl carries on from the body round the corners and the
-// door face's lead-ins (rough there: facets face down past 45° as the
-// carriage prints). On the flat of the door face, which is the carriage's
-// bed, the knurl is 90° V-grooves at ±45°, knurl_d deep and knurl_pitch
-// apart, whose walls print at 45°; they stop knurl_d short of the ring's
-// chamfers and the face's lead-ins.
+// The carriage's orange TPU: its share of the rings, the knurl running on
+// unbroken from the body's. On the door face, which is the carriage's bed,
+// the grooves' walls print at 45°.
 module carriage_tpu() {
-  door_foot();
   difference() {
-    union() {
-      intersection() {
-        grip_rings();
-        difference() {
-          translate([-ex_l - 1, -ey - 1, 0]) cube([ex_l - hx + 1, 2 * ey + 2, total_h]);
-          door_flat_zone();
-        }
-      }
-      intersection() {
-        grip_rings(false);
-        door_flat_zone();
-      }
+    intersection() {
+      grip_rings();
+      carriage_region();
     }
-    for (i = [0:band_n - 1]) if (inset_band(i)) door_knurl(band_z0(i) + knurl_d, band_z1(i) - knurl_d);
     screw_holes();
   }
 }
 
-// The door face's flat, through the depth of its rings
-module door_flat_zone() {
-  translate([-ex_l - 1, -lead_y, 0]) cube([2 + grip_inset + knurl_d, 2 * lead_y, total_h]);
-}
-
-module door_knurl(z0, z1) {
-  yl = lead_y - knurl_d;
-  s = knurl_d * sqrt(2);
-  span = 2 * yl + (z1 - z0);
-  n = ceil(span / knurl_pitch);
-  intersection() {
-    translate([-ex_l - 1, -yl, z0]) cube([1 + knurl_d + eps, 2 * yl, z1 - z0]);
-    for (dir = [-1, 1], k = [-n:n]) translate([-ex_l, 0, (z0 + z1) / 2]) rotate([dir * 45, 0, 0])
-      translate([0, k * knurl_pitch, 0]) rotate([0, 0, 45]) cube([s, s, 2 * span], center = true);
-  }
-}
-
-// Under the body
+// The TPU Air base, base_t thick under the whole case: under the body with
+// its keys, and under the door face
 module tpu_base() {
   intersection() {
     shell();
     translate([-hx, -ey - 1, 0]) cube([ex_r + hx + 1, 2 * ey + 2, base_t]);
   }
   base_key_shapes();
+}
+
+module door_foot() {
+  intersection() {
+    shell();
+    translate([-ex_l - 1, -ey - 1, 0]) cube([ex_l - hx + 1, 2 * ey + 2, base_t]);
+  }
 }
 
 // ---- carriage, modelled in place

@@ -4479,12 +4479,12 @@
       "slug": "hc33-lipo-case",
       "devOnly": true,
       "title": "HT-HC33 LiPo Case",
-      "description": "A sealed case that stands on end with everything stacked face to face inside it like a stack of cards, each in a chamber of its own: a USB-C TP4056 charger board at the back, then a Heltec HT-HC33 (ESP32-S3 + Wi-Fi HaLow), a 103665 LiPo pouch, and a Heltec WiFi LoRa 32 V4 at the front. Two pieces. The carriage is an L of the top, which carries the two SMA bulkheads at the front-left and back-right corners, and the left face, the door face; every board and the cell hang on it, so the whole stack comes out in one go. Fins between the layers make the chambers; each board sits snug in slotted holders on all four edges (a rib on the door face, bars over its top edge and under its bottom edge either side of the USB-C, and, with the carriage in, a rail on the body's right wall; the side slots follow the V4's chamfered corners), the TP4056 sits between slotted bars top and bottom, and the cell sits between two fins on a floor plate under two roofs. The body is the bottom, back, front and right walls, open at the top and on the left. The carriage slides in from the left: its fins and the cell's floor plate run in channels in the floor and grooves up the right wall, a gusseted hook under the top's right edge catches in the right wall, and each board's right edge slides into its rail. Twenty-six M3x10 socket-head cap screws, counterbored, hold it in, all threading into the walls and floor outside the seals: seventeen through the door face (seven evenly up each side, corner to corner, and three across the bottom under its seal) and nine down through the top (three along each of the back, front and right edges). It is watertight: PCTG lips on the carriage press into grooves in black TPU Air channels printed in the body, round the door face's edge and round the top on a ridge over the walls; TPU Air washers sit under the SMAs' outer nuts; the bottom is flat, with no ports, since the HC33 and V4 are flashed over the air; and the TP4056's side USB-C has a PCTG door, printed in its dovetail track, that slides shut onto a TPU Air gasket, the track wedging it in over the last 3 mm. It is black PCTG with orange TPU 75A printed in place: a 1.6 mm base keyed into the walls, and 14 mm grip rings alternating with plain PCTG ones, with a short TPU ring at the bottom on the base and another under the top, each filling a 2 mm recess flush and knurled 0.8 mm deep right up to the screw heads (diamond pyramids round the body, 90° V-grooves on the door face, smooth on its lead-ins), stopping only round the side door. Prints on a Snapmaker U1: TPU Air head 1, PCTG head 3, TPU 75A head 4. 54.6 × 71.1 × 95.8 mm. The V4 is sized from Heltec's drawing and STEP model; the cell and TP4056 details are nominal, not measured. Not yet printed.",
+      "description": "A sealed case that stands on end with everything stacked face to face inside it like a stack of cards, each in a chamber of its own: a USB-C TP4056 charger board at the back, then a Heltec HT-HC33 (ESP32-S3 + Wi-Fi HaLow), a 103665 LiPo pouch, and a Heltec WiFi LoRa 32 V4 at the front. Two pieces. The carriage is an L of the top, which carries the two SMA bulkheads at the front-left and back-right corners, and the left face, the door face; every board and the cell hang on it, so the whole stack comes out in one go. Fins between the layers make the chambers; each board sits snug in slotted holders on all four edges (a rib on the door face, bars over its top edge and under its bottom edge either side of the USB-C, and, with the carriage in, a rail on the body's right wall; the side slots follow the V4's chamfered corners), the TP4056 sits between slotted bars top and bottom, and the cell sits between two fins on a floor plate under two roofs. The body is the bottom, back, front and right walls, open at the top and on the left. The carriage slides in from the left: its fins and the cell's floor plate run in channels in the floor and grooves up the right wall, a gusseted hook under the top's right edge catches in the right wall, and each board's right edge slides into its rail. Twenty-six M3x10 socket-head cap screws, counterbored, hold it in, all threading into the walls and floor outside the seals: seventeen through the door face (seven evenly up each side, corner to corner, and three across the bottom under its seal) and nine down through the top (three along each of the back, front and right edges). It is watertight: PCTG lips on the carriage press into grooves in black TPU Air channels printed in the body, round the door face's edge and round the top on a ridge over the walls; TPU Air washers sit under the SMAs' outer nuts; the bottom is flat, with no ports, since the HC33 and V4 are flashed over the air; and the TP4056's side USB-C has a PCTG door, printed in its dovetail track, that slides shut onto a TPU Air gasket, the track wedging it in over the last 3 mm. It is a black PCTG core in a 2 mm TPU skin printed in place: a 1.5 mm TPU Air base keyed into the walls, orange TPU 75A grip rings alternating with smooth black TPU Air ones and a TPU Air top, all 14 mm, with the side door's housing left PCTG; with a short TPU ring at the bottom on the base and another under the top, the orange rings carry a diamond knurl (90° V-grooves at ±45°, 0.8 mm deep) unbroken all round. Prints on a Snapmaker U1: TPU Air head 1, PCTG head 3, TPU 75A head 4. 54.6 × 71.1 × 95.7 mm. The V4 is sized from Heltec's drawing and STEP model; the cell and TP4056 details are nominal, not measured. Not yet printed.",
       "filament": [
         { "material": "PCTG", "color": "black", "note": "Body and carriage", "parts": ["body.stl", "carriage.stl"] },
-        { "material": "TPU 75A", "color": "orange", "note": "The base and the knurled grip rings, printed in place on the body and the carriage (Snapmaker U1, head 4)",
+        { "material": "TPU 75A", "color": "orange", "note": "The knurled grip rings, printed in place on the body and the carriage (Snapmaker U1, head 4)",
           "parts": ["body-tpu.stl", "carriage-tpu.stl"] },
-        { "material": "TPU Air", "color": "black", "note": "The seal channels, the side door's gasket and the SMAs' washers, printed in place (Snapmaker U1, head 1)",
+        { "material": "TPU Air", "color": "black", "note": "The base, the smooth skin between the rings and over the top, the seal channels, the side door's gasket and the SMAs' washers, printed in place (Snapmaker U1, head 1)",
           "parts": ["body-seal.stl", "carriage-seal.stl"] }
       ],
       "previews": [
@@ -4492,8 +4492,8 @@
           "legend": [
             { "color": "#1a1a1a", "label": "Body, black PCTG", "part": "body.stl" },
             { "color": "#3a3a3a", "label": "Carriage, black PCTG", "part": "carriage.stl" },
-            { "color": "#ff7a1a", "label": "Base and grip rings, orange TPU 75A", "part": "body-tpu.stl", "parts": ["body-tpu.stl", "carriage-tpu.stl"] },
-            { "color": "#0a0a0a", "label": "Seals, gasket and SMA washers, black TPU Air", "part": "body-seal.stl", "parts": ["body-seal.stl", "carriage-seal.stl"] },
+            { "color": "#ff7a1a", "label": "Knurled grip rings, orange TPU 75A", "part": "body-tpu.stl", "parts": ["body-tpu.stl", "carriage-tpu.stl"] },
+            { "color": "#0a0a0a", "label": "Skin, base, seals and gasket, black TPU Air", "part": "body-seal.stl", "parts": ["body-seal.stl", "carriage-seal.stl"] },
             { "color": "#2f6fb0", "label": "TP4056 charger (reference)" },
             { "color": "#e8c547", "label": "103665 LiPo (reference)" },
             { "color": "#2f8f4e", "label": "HT-HC33 (reference)" },
@@ -4512,15 +4512,15 @@
           "legend": [
             { "color": "#1a1a1a", "label": "Body, black PCTG", "part": "body.stl" },
             { "color": "#3a3a3a", "label": "Carriage, black PCTG", "part": "carriage.stl" },
-            { "color": "#ff7a1a", "label": "Base and grip rings, orange TPU 75A", "part": "body-tpu.stl", "parts": ["body-tpu.stl", "carriage-tpu.stl"] },
-            { "color": "#0a0a0a", "label": "Seals, gasket and SMA washers, black TPU Air", "part": "body-seal.stl", "parts": ["body-seal.stl", "carriage-seal.stl"] },
+            { "color": "#ff7a1a", "label": "Knurled grip rings, orange TPU 75A", "part": "body-tpu.stl", "parts": ["body-tpu.stl", "carriage-tpu.stl"] },
+            { "color": "#0a0a0a", "label": "Skin, base, seals and gasket, black TPU Air", "part": "body-seal.stl", "parts": ["body-seal.stl", "carriage-seal.stl"] },
             { "color": "#c9a227", "label": "SMA bulkheads (reference)" }
           ] },
         { "file": "print.3mf", "format": "3mf", "label": "Snapmaker U1 plate: the body standing on its bottom with its side door, the carriage on its door face, each with its TPU printed in place (TPU Air head 1, PCTG head 3, TPU 75A head 4)", "plate": true,
           "legend": [
             { "color": "#1a1a1a", "label": "Black PCTG: body and carriage", "part": "body.stl", "parts": ["body.stl", "carriage.stl"] },
-            { "color": "#ff7a1a", "label": "Orange TPU 75A: base and grip rings", "part": "body-tpu.stl", "parts": ["body-tpu.stl", "carriage-tpu.stl"] },
-            { "color": "#0a0a0a", "label": "Black TPU Air: seals, gasket and SMA washers", "part": "body-seal.stl", "parts": ["body-seal.stl", "carriage-seal.stl"] }
+            { "color": "#ff7a1a", "label": "Orange TPU 75A: knurled grip rings", "part": "body-tpu.stl", "parts": ["body-tpu.stl", "carriage-tpu.stl"] },
+            { "color": "#0a0a0a", "label": "Black TPU Air: skin, base, seals and gasket", "part": "body-seal.stl", "parts": ["body-seal.stl", "carriage-seal.stl"] }
           ],
           "components": [
             { "part": "body.stl", "qty": 1 },
@@ -4533,11 +4533,11 @@
       ],
       "parts": [
         { "file": "body.stl", "format": "stl", "label": "Body, PCTG — flat bottom, thick back and front walls, right wall and floor with the twenty-six screws' pilots, the side door printed in its track over the TP4056's port, board rails, fin and floor-plate channels, the hook's groove, the ridge round the top seal, recesses for the grip rings, the base's keys and the seals; prints standing on its bottom" },
-        { "file": "body-tpu.stl", "format": "stl", "label": "Body TPU, 75A — the base under the body keyed into the walls, and the knurled grip rings round the body; printed in place with the body" },
-        { "file": "body-seal.stl", "format": "stl", "label": "Body seals, TPU Air — the grooved channels up the back and front walls' ends, across the floor's end and round the walls' tops, and the side door's gasket; printed in place with the body" },
+        { "file": "body-tpu.stl", "format": "stl", "label": "Body TPU, 75A — the knurled grip rings round the body; printed in place with the body" },
+        { "file": "body-seal.stl", "format": "stl", "label": "Body TPU Air — the base keyed into the walls, the smooth skin rings, the grooved seal channels and the side door's gasket; printed in place with the body" },
         { "file": "carriage.stl", "format": "stl", "label": "Carriage, PCTG — the top with two SMA holes and nine counterbored screw holes, the door face with seventeen, in one L; the seal lips round the door face and the top; fins, board ribs and bars, the TP4056's bars, the cell's floor plate and roofs, the gusseted hook; prints on its door face" },
-        { "file": "carriage-tpu.stl", "format": "stl", "label": "Carriage TPU, 75A — the base's strip under the door face, and the door face's share of the grip rings, flush, V-groove knurled on the face, smooth on the lead-ins; printed in place with the carriage" },
-        { "file": "carriage-seal.stl", "format": "stl", "label": "Carriage washers, TPU Air — under the two SMAs' outer nuts; printed in place with the carriage" }
+        { "file": "carriage-tpu.stl", "format": "stl", "label": "Carriage TPU, 75A — the door face's share of the knurled grip rings; printed in place with the carriage" },
+        { "file": "carriage-seal.stl", "format": "stl", "label": "Carriage TPU Air — the base's strip under the door face, the skin over the top and between the rings, and the SMAs' washers; printed in place with the carriage" }
       ],
       "hardware": [
         { "qty": 26, "label": "M3x10 socket head cap screw — seventeen through the door face and nine down through the top, into the walls and floor",
