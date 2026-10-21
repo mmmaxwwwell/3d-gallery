@@ -115,7 +115,10 @@ stick_floor  = 2;    // the sized stick's tip stops this far above the bottom
 min_tip      = 2;    // stick the bottom block must hold
 block_side   = 2.4;  // block outside the outer slots
 block_r      = 1.5;  // blocks' rounded edges
-edge_r       = 0.6;  // the cross-section's rounded edges, and the bed chamfer
+edge_r       = 0.6;  // the cross-section's rounded outside edges
+inner_round  = 2.5;  // its rounded inside corners, where tubes meet
+bed_chamfer  = 1.2;  // the bed edge, stepped in by layers
+layer        = 0.2;  // the steps: the bed chamfer's, and the top band's slices
 // The bottom block's back edge is chamfered this far, so where a stick runs
 // the plate a little past its PALS gap, the edge rides over the next band.
 // The top end needs none: the stick's hook leaf lies behind it.
@@ -208,7 +211,7 @@ assert(collar >= 0, "the wall is thicker than the mouth's flare");
 assert(clip_arc + 2 * clip_slit / tube_r * 180 / PI < 90, "the lever is wider than the tube's back");
 assert(finger_w < cell_d - 4, "the finger slot is too wide to keep the cell in");
 assert(wall > 2 * edge_r, "the wall is too thin for its rounded edges");
-assert(cell_floor > 3 * 0.2, "the floor is thinner than its bed chamfer");
+assert(cell_floor > bed_chamfer, "the floor is thinner than its bed chamfer");
 assert(back_wall - leaf_groove >= 0.8, "the leaf's groove leaves too little back wall");
 assert(pinch_z > leaf_groove, "the leaf's groove is deeper than the leaf presses");
 assert(rib_squeeze < cell_clear + 1, "crush ribs reach too far into the cell");
@@ -221,33 +224,37 @@ module about_axis(x, profile) {
 
 function arc(c, r, a0, a1, n = 8) = [for (i = [0 : n]) let (a = a0 + (a1 - a0) * i / n) c + r * [cos(a), sin(a)]];
 
-// The mouth's rounded flare, from the top down into the pocket.
-function mouth() = arc([pocket_r + lead_r, tube_top - lead_r], lead_r, 90, 180, 8);
-
-// A tube's top band, (r, y): the outside flaring into the collar, over the
-// rim and down the mouth's flare into the bore.
-module tube_band(x) {
-    about_axis(x, concat([[pocket_r, collar_y - 1], [tube_r, collar_y - 1], [tube_r, collar_y],
-                          [tube_r + collar, collar_y + collar]],
-                         arc([tube_r + collar - rim_r, tube_top - rim_r], rim_r, 0, 90, 4),
-                         mouth()));
-}
+// The tube's outside and bore at height y over the collar: the outside
+// flares 45 deg into the collar and rounds over the rim; the bore flares
+// into the mouth on lead_r.
+function band_out(y) =
+    y < collar_y ? tube_r
+  : y < collar_y + collar ? tube_r + y - collar_y
+  : y < tube_top - rim_r ? tube_r + collar
+  : tube_r + collar - rim_r + sqrt(max(0, pow(rim_r, 2) - pow(y - tube_top + rim_r, 2)));
+function band_in(y) =
+    y < tube_top - lead_r ? pocket_r
+  : pocket_r + lead_r - sqrt(max(0, pow(lead_r, 2) - pow(y - tube_top + lead_r, 2)));
 
 // A 2D cross-section (X, Z drawn as 2D y) stood up and run from y0 for h.
 module extrude_y(y0, h) {
     translate([0, y0, 0]) rotate([-90, 0, 0]) linear_extrude(h) mirror([0, 1, 0]) children();
 }
 
-// Every corner rounded by r, inside and out.
-module round_2d(r) {
-    offset(r = -r) offset(delta = r) offset(r = r) offset(delta = -r) children();
+// Outside corners rounded by r, inside corners by ri.
+module round_2d(r, ri) {
+    offset(r = -ri) offset(delta = ri) offset(r = r) offset(delta = -r) children();
 }
 
-// The cross-section's pieces. The tubes and the solid behind them: their
+// The cross-section's pieces. // The tubes and the solid behind them: their
 // hull, with the tubes' backs moved back to the plate's face, cut at the
 // tubes' axes.
 module tubes_2d() {
     for (x = cell_xs) translate([x, cell_z]) circle(r = tube_r, $fn = 96);
+    behind_2d();
+}
+
+module behind_2d() {
     intersection() {
         hull() for (x = cell_xs, dz = [0, front_z - plate_z]) translate([x, cell_z - dz]) circle(r = tube_r, $fn = 96);
         translate([-body_w, plate_z]) square([2 * body_w, cell_z - plate_z]);
@@ -265,36 +272,56 @@ module slots_2d(z0) {
 
 // The walls: tubes, solid behind, the pockets and the front slots out.
 module wall_2d() {
-    round_2d(edge_r) difference() { tubes_2d(); pockets_2d(); slots_2d(cell_z); }
+    round_2d(edge_r, inner_round) difference() { tubes_2d(); pockets_2d(); slots_2d(cell_z); }
 }
 
 // The floor: all of it but the slots, which run on past the cells' middles.
 module floor_2d() {
-    round_2d(edge_r) difference() { tubes_2d(); slots_2d(cell_z - finger_under); }
+    round_2d(edge_r, inner_round) difference() { tubes_2d(); slots_2d(cell_z - finger_under); }
 }
 
 // The tubes, floor and solid between, up to the collar: the floor stepped in
 // at the bed in layers, a chamfer that prints.
 module body() {
-    steps = 3;
+    steps = round(bed_chamfer / layer);
     for (i = [0 : steps - 1])
-        extrude_y(i * edge_r / steps, edge_r / steps + eps)
-            offset(delta = -(edge_r - i * edge_r / steps)) floor_2d();
-    extrude_y(edge_r, cell_floor - edge_r + eps) floor_2d();
+        extrude_y(i * layer, layer + eps) offset(delta = -(bed_chamfer - i * layer)) floor_2d();
+    extrude_y(bed_chamfer, cell_floor - bed_chamfer + eps) floor_2d();
     extrude_y(cell_floor, collar_y - cell_floor + eps) wall_2d();
 }
 
-// Over the collar: each tube's band, the solid behind them to the top, and
-// the slot on up through the rim.
-module body_top() {
-    difference() {
-        union() {
-            for (x = cell_xs) tube_band(x);
-            extrude_y(collar_y - eps, tube_top - rim_r - collar_y)
-                difference() { tubes_2d(); pockets_2d(); }
-        }
-        for (x = cell_xs) translate([x - finger_w / 2, collar_y - 1, cell_z]) cube([finger_w, tube_top, body_z]);
+// Tube i's mouth at height y: its bore, and its flare, which stops ridge
+// short of the line between two tubes so neighbouring mouths meet on a ridge.
+module mouth_2d(i, y) {
+    x = cell_xs[i];
+    translate([x, cell_z]) circle(r = pocket_r, $fn = 96);
+    intersection() {
+        translate([x, cell_z]) circle(r = band_in(y), $fn = 96);
+        xl = i > 0 ? x - pitch / 2 + ridge : x - tube_r - 2;
+        xr = i < cells - 1 ? x + pitch / 2 - ridge : x + tube_r + 2;
+        translate([xl, cell_z - tube_r - 2]) square([xr - xl, 2 * tube_r + 4]);
     }
+}
+
+// The top band at height y: the tubes' outsides, the solid behind them up to
+// the rim, the mouths and slots out, rounded like the walls below.
+module band_2d(y) {
+    round_2d(edge_r, inner_round) difference() {
+        union() {
+            for (x = cell_xs) translate([x, cell_z]) circle(r = band_out(y), $fn = 96);
+            if (y < tube_top - rim_r) behind_2d();
+        }
+        for (i = [0 : cells - 1]) mouth_2d(i, y);
+        slots_2d(cell_z);
+    }
+}
+
+// Over the collar: the top band, in layer-thick slices.
+module body_top() {
+    y0 = collar_y - layer;
+    n = ceil((tube_top - y0) / layer);
+    for (k = [0 : n - 1])
+        extrude_y(y0 + k * layer, layer + eps) band_2d(y0 + (k + 0.5) * layer);
 }
 
 // In a tube's own frame: z along its axis from y = 0, the back (world -Z)
@@ -322,23 +349,6 @@ module lever_bump(x) {
     }
 }
 
-// Tube i's mouth, cut after the tubes are joined so no neighbour's rim or
-// collar stands in it: the bore, and the flare, which stops ridge short of
-// the line between two tubes so neighbouring mouths meet on a ridge.
-module mouth_cut(i) {
-    x = cell_xs[i];
-    y0 = collar_y - 1;
-    about_axis(x, [[0, y0], [pocket_r, y0], [pocket_r, tube_top + 1], [0, tube_top + 1]]);
-    intersection() {
-        about_axis(x, concat([[0, y0], [pocket_r, y0]],
-                             [for (j = [len(mouth()) - 1 : -1 : 0]) mouth()[j]],
-                             [[pocket_r + lead_r, tube_top + 1], [0, tube_top + 1]]));
-        xl = i > 0 ? x - pitch / 2 + ridge : x - tube_r - 2;
-        xr = i < cells - 1 ? x + pitch / 2 - ridge : x + tube_r + 2;
-        translate([xl, y0 - 1, -1]) cube([xr - xl, tube_top, body_z + 2]);
-    }
-}
-
 // The lever's slits, either side and over its end, and its pocket behind
 // it; all of it under the ring.
 module lever_cut(x) {
@@ -362,11 +372,14 @@ module crush_rib(x, s) {
             }
 }
 
-// A block's side view (Y, Z): every block above a band slopes up at 45 deg
-// underneath; the bottom one's back edge is chamfered by end_relief.
+// A block's side view (Y, Z): every block above a band reaches right down
+// to the band at the back, against the pack, and slopes up from there at
+// 45 deg towards the tubes (solid there anyway), so it holds the band and
+// the stick as low as it can and still prints; the bottom one's back edge
+// is chamfered by end_relief.
 function block_profile(b, k) =
     k == 0 ? [[0, end_relief], [end_relief, 0], [b[1], 0], [b[1], block_z], [0, block_z]]
-           : [[b[0], block_z], [b[0] + block_z, 0], [b[1], 0], [b[1], block_z]];
+           : [[b[0], 0], [b[1], 0], [b[1], block_z], [b[0] + block_z, block_z]];
 
 // A side view (Y, Z) extruded across X from x0 to x1, shrunk by r and swept
 // with a ball of r: every edge rounded, the outline unchanged.
@@ -425,7 +438,6 @@ module holder() {
         }
         for (x = stick_xs) { stick_slot(x); leaf_groove(x); }
         for (x = cell_xs) lever_cut(x);
-        for (i = [0 : cells - 1]) mouth_cut(i);
     }
 }
 
