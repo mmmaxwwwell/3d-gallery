@@ -1,0 +1,42 @@
+{
+  "slug": "molle-web-dominator",
+  "title": "Molle web dominator",
+  "summary": "My own twist to Molle web dominator, more towards the original.Printed in 100 microns in 15min.",
+  "source": {
+    "site": "Printables",
+    "url": "https://www.printables.com/model/319168-molle-web-dominator",
+    "id": "319168"
+  },
+  "author": {
+    "name": "Niho",
+    "url": "https://www.printables.com/@Niho_45326"
+  },
+  "license": {
+    "name": "Creative Commons — Attribution  — Share Alike",
+    "id": "CC-BY-SA"
+  },
+  "tags": [
+    "thingiverse",
+    "mollewebb",
+    "gearclip",
+    "mollemaster"
+  ],
+  "category": "Outdoor Sports",
+  "published": "2022-11-17T14:12:14.298977+00:00",
+  "checked": "2026-10-21",
+  "versions": [
+    {
+      "id": "2022-11-17",
+      "imported": "2026-10-21",
+      "files": [
+        {
+          "file": "MOLLEMASTER-Niho.STL",
+          "sha256": "4bf416b8b48212fdc4e8172f99c388ce3297a81a6ab5ad2e14e75329cf9db588",
+          "size": 1234184,
+          "sourceId": "1423370",
+          "sourceDate": "2022-11-17T14:12:04.406897+00:00"
+        }
+      ]
+    }
+  ]
+}
