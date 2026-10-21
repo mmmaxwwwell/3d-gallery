@@ -20,6 +20,7 @@ Case for a Heltec HT-HC33, a Heltec WiFi LoRa 32 V4, a 103665 LiPo, a USB-C TP40
 - **"Opposite corners" = diagonal**: front-left and back-right of the top.
 - **Stack order**, back to front: TP4056, HC33, cell, V4 (the user's swap). No window for the V4's screen.
 - **Door screws** (`door_screw_*`, `m5_*`): two M5x10 cap screws through counterbores in the door into bosses under the top, each hung on a 45° hull so it prints. The user gave up on a toolless latch (below) and asked for these.
+- **The TP4056–HC33 divider is short** (`tp_divider_z1`, just over the TP4056's roof). The user asked for it "so i can put the antenna in": the HC33's antenna goes in the space above the charger.
 - **Chambers**: `dividers` sit in the middle of the layer gaps (`layer_gap` 2.4 leaves 0.6 a side) and stop at `divider_z1`. The `sma_behind` head space above them is the shared wire route. The cell's old fins went: the dividers bound it.
 - **Knurl bands** (`knurl()`) only on the flat of the front and back faces (|x| ≤ `arc_x`). The faces they'd wrap onto are the bed faces of the two prints. On a vertical face, the grooves' walls are 30° past vertical as the body prints. Each band's ends lead in at 45° (`band_region()`), because a square end on the left would face down.
 - **Top edge** (`shell()`): a hull of outline slices, a 45° lead (`top_lead`) onto a `top_r` arc, the same in every direction. `sma_in_y` keeps each SMA's outer nut on the flat of the top (asserted).

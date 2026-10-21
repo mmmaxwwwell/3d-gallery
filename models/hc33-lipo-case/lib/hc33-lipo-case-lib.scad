@@ -215,6 +215,11 @@ tallest = max(cell_z1, tp_z1, max([for (b = boards) board_z1(b)]));
 // The dividers stop at the roofs; above them the wires cross between
 // chambers
 divider_z1 = tallest + roof_fit + roof_t;
+// The divider between the TP4056 and the HC33 stops just over the TP4056's
+// roof, which leaves the space above the TP4056 open to the HC33's chamber
+// for its antenna
+tp_divider_z1 = tp_z1 + roof_fit + roof_t;
+divider_tops = [tp_divider_z1, divider_z1, divider_z1];
 ceiling = max(tallest + sma_behind, divider_z1 + 0.5);
 total_h = ceiling + top_t;
 // The top edge: a 45° lead from the sides onto a top_r arc
@@ -402,8 +407,8 @@ module cell_roof(x0, x1) {
 }
 
 module dividers() {
-  for (y = dividers) translate([-hx, yb + y - divider_t / 2, bottom_t - eps])
-    cube([2 * hx + eps, divider_t, divider_z1 - bottom_t + eps]);
+  for (i = [0:len(dividers) - 1]) translate([-hx, yb + dividers[i] - divider_t / 2, bottom_t - eps])
+    cube([2 * hx + eps, divider_t, divider_tops[i] - bottom_t + eps]);
 }
 
 // Under the top, its far end 45° up to the top so it prints

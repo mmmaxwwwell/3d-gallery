@@ -22,7 +22,7 @@ Both fit on one bed: `print.3mf` is that plate. Seen from the top, the case is a
 ## How it goes together
 
 - **Door.** The whole left wall swings down on a hinge along its bottom edge: five knuckles round a 1.75 mm filament pin, the body's snug on it and the door's loose. Opened 90°, it lies flat on the table. Two M5x10 cap screws near the top hold it shut. They sit in counterbores 3 mm deep in the door and thread 7.2 mm into bosses under the case's top.
-- **Chambers.** A 1.2 mm divider runs between each pair of layers, from the bottom up to just over the tallest part. The 10 mm under the top is open across all four chambers: that's where the wires and the SMA pigtails cross.
+- **Chambers.** A 1.2 mm divider runs between each pair of layers, from the bottom up to just over the tallest part. The 10 mm under the top is open across all four chambers: that's where the wires and the SMA pigtails cross. The one between the TP4056 and the HC33 stops just over the TP4056 (21.8 mm up), so the HC33's chamber takes in the space above the charger, where its antenna goes.
 - **Boards.** Each board's right edge sits in a slot in a rail on the right wall, and its left edge in a slot in a rib on the door. The slots have roofs over the boards' top edges, so nothing rides up. The HC33's and V4's slots on the right wall also have floors, which put each USB-C 0.3 mm over its opening in the bottom. The door's ribs have no floors, because the door's swing would lift a floor into the board.
 - **TP4056.** It stands on the bottom with its USB-C end against the right wall, through an opening there. Its rail on the right wall comes in two parts, one under the receptacle and one over it.
 - **Cell.** It stands on the bottom in its chamber, with a roof over each end.
