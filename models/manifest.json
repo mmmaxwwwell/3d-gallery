@@ -4302,7 +4302,7 @@
       "slug": "solar-node",
       "devOnly": true,
       "title": "Solar LoRa Node",
-      "description": "A sealed box under a 240 × 168 mm solar panel salvaged from a solar LED lamp, that hangs on two stainless cables and winches itself up. It hangs with a long side down, as a wedge: its back hangs plumb against the winch and the panel slopes at 50° from horizontal. The panel drops into a pocket in the frame onto a bead of construction adhesive; a bezel screwed over its border squeezes the bead to 1 mm and leaves the panel flush. The frame and bezel come off the tray as one, on a ring of 27 M3 cap screws outside a TPU gasket that the tray's tongue squeezes from the sides. Low on the back and centred, the 10 Ah LP1260110 LiPo pouch lies under a carrier plate holding a Heltec V3, a Heltec HT-HC33, a TP4056 charger and a 5 V buck-boost. Their antennas are at the top of a 3 m, 20 mm carbon-fibre pole bolted into a sealed socket on the top wall, midway between the cables; its coax comes to N and SMA bulkheads either side of the socket. Behind the tray, a deck carries two 116 mm spools side by side in the upper half, each holding 200 ft of 1/32\" stainless cable with room to spare, each on a 608 skateboard bearing. A shroud round both spools and their gears, sealed to the tray's underside by a TPU strip, keeps out debris and splashes; each cable leaves through a slot and each bay has a drain. Each is driven at 6.2:1 by a pinion on the teeth round its edge, from a JGY-370 worm gearmotor inside the box whose shaft comes down through a TPU lip seal; the two trains mirror each other, so the spools turn opposite ways to reel in. The cable runs only on stainless 608 skateboard bearings: past each spool it turns on an upright guide bearing, rides over one lying past the top edge, and leaves its corner, 218 mm from the other, through a horn standing up behind the sloping top: a throat between two more bearings at the depth of the node's centre of mass, so it hangs with its back plumb. 263 wide, 186 tall and 184 deep, so it needs a 270 mm bed. The panel's thickness, the buck-boost's size and the motor's dimensions are guesses. Not yet printed.",
+      "description": "A sealed box under a 240 × 168 mm solar panel salvaged from a solar LED lamp, that hangs on two stainless cables and winches itself up. It hangs with a long side down, as a wedge: its back hangs plumb against the winch and the panel slopes at 50° from horizontal. The panel drops into a pocket in the frame onto a bead of construction adhesive; a bezel screwed over its border squeezes the bead to 1 mm and leaves the panel flush. The frame and bezel come off the tray as one, on a ring of 28 M3 cap screws, into a flange round the tray's rim, outside a TPU gasket that the tray's tongue squeezes from the sides. Low on the back and centred, the 10 Ah LP1260110 LiPo pouch lies under a carrier plate holding a Heltec V3, a Heltec HT-HC33, a TP4056 charger and a 5 V buck-boost, each zip-tied down through slots in the plate. Their antennas are at the top of a 3 m, 20 mm carbon-fibre pole bolted into a sealed socket on the top wall, midway between the cables; its coax comes to N and SMA bulkheads either side of the socket. Behind the tray, a deck carries two 116 mm spools side by side in the upper half, each holding 200 ft of 1/32\" stainless cable with room to spare, each on a 608 skateboard bearing. A shroud round both spools and their gears, sealed to the tray's underside by a TPU strip, keeps out debris and splashes; each cable leaves through a slot and each bay has a drain. Each is driven at 6.2:1 by a pinion on the teeth round its edge, from a JGY-370 worm gearmotor inside the box whose shaft comes down through a TPU lip seal; the two trains mirror each other, so the spools turn opposite ways to reel in. The cable runs only on stainless 608 skateboard bearings: past each spool it turns on an upright guide bearing, rides over one lying past the top edge, and leaves its corner, 218 mm from the other, through a horn standing up behind the sloping top: a throat between two more bearings at the depth of the node's centre of mass, so it hangs with its back plumb. 263 wide, 186 tall and 184 deep, so it needs a 270 mm bed. The panel's thickness, the buck-boost's size and the motor's dimensions are guesses. Not yet printed.",
       "filament": [
         { "material": "PETG", "color": "any", "note": "Tray, carrier plate, frame, bezel, winch deck, spools, pinions and spacers", "parts": ["tray.stl", "shelf.stl", "frame.stl", "bezel.stl", "deck.stl", "spool-body.stl", "spool-cap.stl", "pinion.stl", "spacer.stl"] },
         { "material": "TPU 85A", "color": "any", "note": "Lid gasket, the two shaft seals and the shroud's seal strip", "parts": ["gasket.stl", "shaft-seal.stl", "shroud-seal.stl"] }
@@ -4343,8 +4343,8 @@
           ] }
       ],
       "parts": [
-        { "file": "tray.stl", "format": "stl", "label": "Tray — the wedge: plumb back, flat bottom, walls square to the lid, screw columns, seal tongue, the pole's socket and the N and SMA holes in the top wall, motor seats with shaft-seal pockets, battery brackets, plate posts, the spool pins' sockets; prints back down" },
-        { "file": "shelf.stl", "format": "stl", "label": "Carrier plate — over the battery, holds the V3, HC33, charger and buck-boost" },
+        { "file": "tray.stl", "format": "stl", "label": "Tray — the wedge: plumb back, flat bottom, walls square to the lid, a screw flange round the rim, seal tongue, the pole's socket and the N and SMA holes in the top wall, motor seats with shaft-seal pockets, battery brackets, plate posts, the spool pins' sockets; prints back down" },
+        { "file": "shelf.stl", "format": "stl", "label": "Carrier plate — 3 mm over the battery, holds the V3, HC33, charger and buck-boost, zip-tie slots beside each" },
         { "file": "frame.stl", "format": "stl", "label": "Frame — panel pocket and glue ledge, gasket groove underneath" },
         { "file": "bezel.stl", "format": "stl", "label": "Bezel — clamps the panel's border" },
         { "file": "gasket.stl", "format": "stl", "label": "Gasket — TPU 85A U-section, slot up as printed" },
@@ -4357,10 +4357,12 @@
         { "file": "shroud-seal.stl", "format": "stl", "label": "Shroud seal — TPU 85A strip in the groove on the shroud's top, flat as printed" }
       ],
       "hardware": [
-        { "qty": 27, "label": "M3x16 socket cap screw — bezel and frame down into the tray",
-          "usedBy": [ { "part": "bezel.stl", "each": 27 } ] },
+        { "qty": 28, "label": "M3x16 socket cap screw — bezel and frame down into the tray's flange",
+          "usedBy": [ { "part": "bezel.stl", "each": 28 } ] },
         { "qty": 4, "label": "M3x8 socket cap screw — the carrier plate onto its posts",
           "usedBy": [ { "part": "shelf.stl", "each": 4 } ] },
+        { "qty": 6, "label": "Zip tie, up to 3.6 mm wide — the boards down onto the carrier plate: two each across the HC33 and V3, one each across the charger and buck-boost",
+          "usedBy": [ { "part": "shelf.stl", "each": 6 } ] },
         { "qty": 16, "label": "M3x25 socket cap screw — the winch deck into the tray's back: 9 along the top, 7 along the bottom",
           "usedBy": [ { "part": "deck.stl", "each": 16 } ] },
         { "qty": 1, "label": "M4x35 socket cap screw and nyloc nut — across the pole's socket and the pole",
@@ -4378,7 +4380,7 @@
         { "qty": 1, "label": "SMA female bulkhead to U.FL pigtail — through the top wall; the SMA antenna goes on the pole's top" },
         { "qty": 1, "label": "N female bulkhead to IPEX pigtail — through the top wall; the antenna goes on the pole's top" },
         { "qty": 1, "label": "Construction adhesive — a bead on the frame's ledge under the panel" },
-        { "qty": 4, "label": "Double-sided foam tape — the battery to the back, the boards to the carrier plate, the motors to their seats" }
+        { "qty": 4, "label": "Double-sided foam tape — the battery to the back, the motors to their seats" }
       ]
     },
     {

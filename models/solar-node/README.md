@@ -25,15 +25,18 @@ Assembled it's 263 mm wide, 186 mm tall from the bottom to the bezel's top edge 
 
 ## The wedge
 
-- The walls stand square to the panel, as on a flat box, so the gasket, tongue and screw ring are unchanged. They run back to the plumb back, and a flat bottom closes the wedge.
+- The walls stand square to the panel, as on a flat box, so the gasket and tongue are unchanged. They run back to the plumb back, and a flat bottom closes the wedge.
+- **Flange.** The lid's 28 screws go into a solid flange round the rim, 11 mm deep. Its underside chamfers 45° back to the wall, because flat it would overhang 50° when printed back down.
 - The top wall runs 40 mm back from the frame (`top_depth`). The bottom wall runs 50 mm (`bottom_depth`), which sets the back's height (153 mm) for the spools.
-- Along the back's top edge, the top wall is solid out to the edge. The deck's top screws go into it.
+- The top wall is solid out to the edge, all the way back. The deck's top screws go into it, and the bulkheads sit in recesses down to a 4 mm wall.
 
 ## Inside
 
 All the electronics sit low and centred on the back:
 - the LP1260110 lies along the bottom;
 - a carrier plate on four posts over it holds the HT-HC33 and the TP4056 in the lower row, and the buck-boost and the V3 in the upper row.
+- **Zip ties** hold every board down. They go through slots in the plate either side of each board: two ties across the HC33 and the V3, one across the charger and the buck-boost. The slots take ties up to 3.6 mm wide.
+- The plate sits 3 mm above the pouch, which leaves room for the ties' straps underneath. The pouch can't lift out of its 6 mm brackets under the plate.
 
 The two motors stand either side of the battery stack.
 
@@ -42,10 +45,9 @@ The two motors stand either side of the battery stack.
 - **The socket.** It stands on the top wall's outside, plumb, in the middle, so the pole stands midway between the two cables.
   - Its bore is 20.4 mm and 50 mm deep, and stops above the wall, so the box stays sealed.
   - An M4 bolt goes across socket and pole, 12 mm above the bore's floor. Drill the pole for it.
-  - The top wall's middle screw column gave way to it, so the lid has 27 screws.
 - **Coax.** The N and SMA antennas sit at the pole's top, and their coax runs down inside it.
   - Drill an exit hole in the pole just above the socket.
-  - From there, short pigtails go to the N (V3) and SMA (HC33) bulkheads in the top wall, 48 mm either side of the socket. Each bulkhead is midway between two screw columns and points up and back, square to the wall.
+  - From there, short pigtails go to the N (V3) and SMA (HC33) bulkheads in the top wall, 48 mm either side of the socket. Each bulkhead is midway between two screws and points up and back, square to the wall.
 - **Keeping it upright.** For the first metre or so, horizontal crossmembers along the two cables hold the pole aligned, like a fishing rod's guides. The last 2 m stand free above the canopy.
   - The pole's axis is 14 mm in front of the back, and the cables are 32 mm, so each crossmember's pole clamp sits 18 mm behind the line between the cables.
 
@@ -53,16 +55,15 @@ The two motors stand either side of the battery stack.
 
 1. **Battery and plate.**
    - Stick the battery down between its corner brackets with foam tape.
-   - Screw the carrier plate onto its four posts with M3x8s.
-   - Tape the HC33, V3, charger and buck-boost into their brackets on the plate.
+   - Set the HC33, V3, charger and buck-boost in their brackets on the plate, and zip-tie each one down through its slots, heads on top. Then screw the plate onto its four posts with M3x8s.
    - Fit the N and SMA bulkheads out through the top wall, nuts inside, and run their pigtails.
 2. **Motors.** For each one:
    1. Press a shaft seal into the pocket in its seat.
    2. From below, push a pinion's hub up through the seal.
    3. Set the motor on its seat, its D-shaft in the pinion's bore (glue it), and tape it between its brackets.
 3. **Panel.** Run a bead of construction adhesive round the frame's ledge. Lay the panel in, with its leads down through the opening.
-4. **Close the box.** Put the bezel on and drive the 27 M3x16s through bezel and frame. Do this on the tray, with the gasket in the frame's groove, so the screws thread into the tray's columns. The bezel squeezes the bead to 1 mm. Leave it to cure.
-5. **Opening it later.** Undo the 27 screws and lift the frame, panel and bezel off together.
+4. **Close the box.** Put the bezel on and drive the 28 M3x16s through bezel and frame. Do this on the tray, with the gasket in the frame's groove, so the screws thread into the tray's flange. The bezel squeezes the bead to 1 mm. Leave it to cure.
+5. **Opening it later.** Undo the 28 screws and lift the frame, panel and bezel off together.
 6. **Pole.** Run the coax down the pole and out of its exit hole. Push the pole into the socket and bolt it with an M4. Then connect the pigtails to the bulkheads.
 
 ## Winch
@@ -100,7 +101,7 @@ The two motors stand either side of the battery stack.
   5. Drop a 608 onto each corner's guide post.
   6. Lead each cable round the inboard side of its guide bearing. Then fit the horn's three bearings on M8x25 bolts, so the cable goes over the edge bearing, over the rear throat bearing and under the front one.
   7. Lift the deck up against the back. The spool pins go into their sockets and the pinion pins go into the pinions.
-  8. Screw the deck to the back with 16 M3x25: 9 along the top into the top wall's solid band, 7 along the bottom into bosses.
+  8. Screw the deck to the back with 16 M3x25: 9 along the top into the solid top wall, 7 along the bottom into bosses.
 
 ## Motor speed
 

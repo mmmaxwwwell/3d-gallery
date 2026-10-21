@@ -33,13 +33,13 @@ A sealed box under a salvaged 240 × 168 mm solar panel. devOnly, unprinted.
   - `top_depth` and `bottom_depth` are how far the top and bottom walls run back from the frame's underside at the outer edge. `bottom_depth` sets `back_h` for the spools and motors.
   - `to_lid()`, `from_lid()`, `top_gap()` and `y_past_top()` convert between the frames and measure clearance from the plane of the box's top (lid y = `outer_w / 2`).
 - **Antenna pole** (user, same day: "a 3 meter carbon fiber pole with guide wires thats going to be fastened into a cylinder in the unit"; antennas at its top; "the antenna sits between the two steel cables, and there is a horizontal crossmembers like a fishing pole keeping it aligned for the first meter or so for stability then the last 2 meters hopefully gets us above the cannopy"; 20 mm OD).
-  - The socket stands plumb on the top wall's outside at x = 0, taking the top middle lid screw's place (27 lid screws).
+  - The socket stands plumb on the top wall's outside at x = 0.
   - It is D-shaped down to `z = 0` and peaked on top, because the tray prints back down and the socket lies along the bed. It is trimmed 1 mm under the frame's rearmost point (`frame_rear_z`), which caps `pole_z` at about 15. Mine: `pole_z = socket_r`.
   - The bore is blind, so the box stays sealed. An M4 cross-bolt holds the pole (my pick, not the user's). The coax leaves the pole above the socket.
   - Rejected for now: a pole in the cable plane. At z ≈ 32 it would run through the frame. The crossmembers' clamps sit 18 mm behind the cable line instead.
 - **Antennas.** The N is at +`ant_x` and the SMA at −`ant_x`, both in the top wall, square to it, either side of the socket.
-  - Each sits midway between two long-side screw columns, at the midpoint nearest a third of the way along: 48 mm with `screw_pitch` 32.
-  - The N body's 24 mm needs half a pitch clear of each column.
+  - Each sits midway between two long-side screws, at the midpoint nearest a third of the way along: 48 mm with `screw_pitch` 32.
+  - The top wall is solid to the edge, so each sits in a teardrop recess (`n_recess_d`, `sma_recess_d`) down to the 4 mm wall.
   - Before the pole, they pointed down out of the bottom wall.
 - **Winch** (user, 2026-10-21).
   - The first brief: two gearmotors ("the same gear motors" as the other build: JGY-370 from meshtastic-drybag-node), two semi-internal spools of 1/32" stainless, "bigger and thinner", overlapping, "driven by a gear on the edge", skateboard (608) bearings, the overlapping pair spinning opposite ways.
@@ -65,19 +65,25 @@ A sealed box under a salvaged 240 × 168 mm solar panel. devOnly, unprinted.
   - **Motor speed** (user: "how many rpm do i need each gear motor"): see the README's table. My suggestion is a 12 V JGY-370 at about 50–60 rpm with at least 3 kg·cm, which climbs at about 1.5–3 m/min. With the pole the node is about 2.7 kg, so that is now at least 6 kg·cm.
   - **Preview:** the assembled preview hangs upright (user: "can we have the assembled view be upright with the antennas facing down"). It's `rotate([90, 0, 0])` of the hanging frame, with the lid pulled 40 mm off along its normal and the pole's foot cut to 250 mm.
   - **Superseded history:** a coaxial stack ("exactly overlapping"), and before that an offset pair overlapping 29 mm. My first capacity formula held only about 85 ft of a claimed 100.
-  - **Deck.** It covers the back's outline (`back_plan`) and screws to it on 16 M3x25. The top 9 go into the top wall's solid band (`top_band_h`) and the bottom 7 into bosses on the back. It has `deck_band` edges, bars under the posts and pinions, pads under the guide bearings, and the horns.
+  - **Deck.** It covers the back's outline (`back_plan`) and screws to it on 16 M3x25. The top 9 go into the solid top wall and the bottom 7 into bosses on the back. It has `deck_band` edges, bars under the posts and pinions, pads under the guide bearings, and the horns.
 - **Rejected layouts:**
   - everything along −Y on a shelf;
   - everything in one flat row along +Y;
   - the stack at the +X end with the HC33 at −X (before the rotation);
   - offset and then coaxial spools.
-- **Corner brackets, foam tape.** Each part sits between corner brackets and is held with foam tape. There are no straps or ties through the floor.
+- **Corner brackets, foam tape.** Each part sits between corner brackets and is held with foam tape. There are no straps or ties through the floor (the back).
+- **Zip ties on the plate** (user, 2026-10-21: "all the chips need something screwed over them to hold them down, everything needs to be secure", then "forget the cages, add ziptie connection points everywhere. just add a little to the platform and add them there as cutouts in the platform", and "we should probably have the platform a little away from the battery").
+  - Each board has a slot either side, outside its brackets, in a `tie_band` beside its long sides. Boards over 40 mm long get two ties, at ±l/4.
+  - `shelf_gap` went from 0.5 to 3 for the straps under the plate. The pouch is held by its 6 mm brackets under the plate.
+- **Flange, not columns** (user: "the box body, just make the flange thicker instead of doing the screw cylinders like that").
+  - The lid screws go into a solid flange `flange_h` (11) deep. Its underside chamfers 45° to the wall: flat, it overhangs 50° as printed back down.
+  - The top wall is solid to the edge, all the way back. With the columns gone, the top middle screw is back (28).
 - **No vent.** It hangs from the two winch cables; there's no other mount.
 
 ## Frame
 
 - **Hanging frame:** X runs along the panel, Y is up, and Z points out from the back. z = 0 is the back's outside, y = 0 is the back's middle, and the deck is at negative z. The internals, deck, winch and socket are modelled here.
-- **Lid frame (`lid_frame()`):** Y runs across the panel and Z out of it. z = 0 is where a flat tray's floor would be (the frame sits at `tray_h`). The frame, bezel, gasket, panel, walls, columns, tongue and bulkheads are modelled here.
+- **Lid frame (`lid_frame()`):** Y runs across the panel and Z out of it. z = 0 is where a flat tray's floor would be (the frame sits at `tray_h`). The frame, bezel, gasket, panel, walls, flange, tongue and bulkheads are modelled here.
 - `*_in_place(lift)` places each lid piece in the hanging frame. The preview lifts them 40 mm along the lid's normal.
 - Distances in from the outer edge (the `_e` params) set out each band:
   - screws at 3.5;

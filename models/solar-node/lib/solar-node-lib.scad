@@ -9,7 +9,7 @@
 //   tongue that side-squeezes a U-section TPU gasket in a groove under the
 //   frame (memory: never screws through a squeezed bead).
 // One ring of M3 cap screws, outside the seal, runs down through bezel and
-// frame into columns on the tray's outside. Undoing them lifts the frame
+// frame into a flange round the tray's rim. Undoing them lifts the frame
 // with the glued panel and the bezel off the tray in one; the bezel never
 // has to come off the panel.
 //
@@ -30,7 +30,7 @@
 // the V3) and SMA (for the HC33) bulkheads in the top wall either side of it.
 //
 // Winch: two spools of 1/32" stainless cable side by side in the upper half,
-// behind the tray on a deck that hangs from its long-side screw columns.
+// behind the tray on a deck screwed to its back.
 // Each turns on a 608 skateboard bearing on a post from the deck and has
 // teeth round its lower flange, driven by a pinion on a JGY-370 worm
 // gearmotor lying inside the box, output shaft down through a TPU lip seal
@@ -91,12 +91,15 @@ panel_tilt = 50;
 top_depth = 40;
 bottom_depth = 50;
 
-// How far the tray's wall sits in from the frame's edge (the screw columns
-// stand out to the edge)
+// How far the tray's wall sits in from the frame's edge (the flange the
+// screws go into stands out to the edge), and the flange's depth under the
+// frame before its underside chamfers 45° back to the wall
 tray_inset = 5.5;
+flange_h = 11;
 
 // M3 cap screws: inset from the outside, most spacing allowed, pilot for
-// self-tapping, clearance, counterbore diameter and depth, column diameter
+// self-tapping, clearance, counterbore diameter and depth; the deck's pillars'
+// diameter
 screw_e = 3.5;
 screw_pitch = 32;
 pilot_d = 2.5;
@@ -151,13 +154,17 @@ bracket_h = 3;
 bat_bracket_h = 6;
 bracket_clear = 0.5;
 
-// The carrier plate over the battery: thickness, gap above the pouch, its
-// posts' diameter, and the M3 that holds it to each post (pilot depth for
-// an M3x8)
+// The carrier plate over the battery: thickness, gap above the pouch (room
+// for the zip ties' straps under the plate), its posts' diameter, and the
+// M3 that holds it to each post (pilot depth for an M3x8)
 shelf_t = 2;
-shelf_gap = 0.5;
+shelf_gap = 3;
 post_d = 7;
 shelf_pilot_depth = 7;
+// Zip ties hold each board down, through slots in the plate either side of
+// it: the widest tie and its thickness the slots take
+tie_w = 3.6;
+tie_t = 1.1;
 // Heltec HT-HC33 (ESP32-S3 + Wi-Fi HaLow), on the carrier plate: board
 // length, width, thickness, room under and over it
 hc33_l = 60;
@@ -214,7 +221,7 @@ brg_shoulder_d = 12;
 spacer_d = 11;
 
 // The deck behind the tray: thickness, edge band, bar width; and the M3s
-// it hangs on from the tray's long-side columns (length under the head)
+// that hold it to the tray's back (length under the head)
 deck_t = 5;
 deck_screw_l = 25;
 deck_band = 12;
@@ -312,9 +319,8 @@ screw_nx = ceil(2 * lane_x / screw_pitch);
 screw_ny = ceil(2 * lane_y / screw_pitch);
 pitch_x = 2 * lane_x / screw_nx;
 lane_xs = [for (i = [0:screw_nx]) -lane_x + i * pitch_x];
-// The pole's socket takes the top wall's middle column's place.
 screws = concat(
-  [for (x = lane_xs, s = [-1, 1]) if (s < 0 || abs(x) > 1) [x, s * lane_y]],
+  [for (x = lane_xs, s = [-1, 1]) [x, s * lane_y]],
   [for (j = [1:screw_ny - 1], s = [-1, 1]) [s * lane_x, -lane_y + j * 2 * lane_y / screw_ny]]
 );
 
@@ -335,7 +341,7 @@ module lid_frame() {
 function to_lid(y, z) = [lc * (y - lid_oy) - ls * (z - lid_oz), ls * (y - lid_oy) + lc * (z - lid_oz)];
 function from_lid(yl, zl) = [lc * yl + ls * zl + lid_oy, -ls * yl + lc * zl + lid_oz];
 // How far (y, z) stands out past the plane of the box's top (the lid's top
-// edge, the columns, the top wall), and the y at height z that is g past it
+// edge, the flange, the top wall), and the y at height z that is g past it
 function top_gap(y, z) = to_lid(y, z)[0] - outer_w / 2;
 function y_past_top(z, g) = lid_oy + (outer_w / 2 + g + ls * (z - lid_oz)) / lc;
 big = 600;
@@ -350,12 +356,12 @@ deck_screws = concat(
   [for (x = lane_xs) [x, back_top - deck_screw_top]],
   [for (x = lane_xs) if (abs(x) < lane_x - 1) [x, back_bot + deck_screw_bot]]
 );
-top_band_h = deck_pilot + 3;
 
 // The N and the SMA point up out of the top wall either side of the pole,
-// each midway between two long-side screw columns, at the midpoint nearest a
-// third of the way along, so the two are spaced evenly; their bodies just
-// under the frame.
+// each midway between two long-side screws, at the midpoint nearest a third
+// of the way along, so the two are spaced evenly; their bodies just under the
+// frame. The top wall is solid out to the edge, so each sits in a recess
+// down to a wall it can clamp.
 ant_x = -lane_x + (round((outer_l / 6 + lane_x) / pitch_x - 0.5) + 0.5) * pitch_x;
 n_z = tray_h - n_body_d / 2 - 1.5;
 n_hole_d = n_thread_d + n_hole_clear;
@@ -366,11 +372,14 @@ assert(groove_e + groove_w <= pocket_e - 0.5, "groove runs into the panel pocket
 assert(groove_depth <= frame_t - 2, "groove leaves too little frame above it");
 assert(tongue_e >= tray_inset + 0.5 && tongue_e + tongue_w <= tray_in_e - 0.5, "tongue doesn't sit on the tray wall");
 assert(n_z + n_body_d / 2 <= tray_h, "bulkhead's body hits the frame");
-assert(from_lid(outer_w / 2 - tray_inset, n_z - n_body_d / 2)[1] >= top_band_h + 0.5, "bulkhead's body hits the top band");
+n_recess_d = n_body_d + 2;
+sma_recess_d = 12;
+assert(from_lid(outer_w / 2 - tray_inset, n_z - n_recess_d / 2)[1] >= 1, "a bulkhead's recess runs out past the back");
 assert(from_lid(outer_w / 2 - tray_in_e - n_back_len, n_z - n_thread_d / 2)[1] >= tray_floor + 1, "bulkhead's back hits the back");
 assert(sqrt(2) * n_hole_d / 2 < n_body_d / 2, "hole's 45° peak shows past the bulkhead");
 assert(tray_wall <= n_panel, "wall too thick for the bulkhead");
-assert(pitch_x / 2 - column_d / 2 >= n_body_d / 2, "bulkhead hits a screw column");
+assert(pitch_x / 2 - pilot_d / 2 - 1 >= n_recess_d / 2, "a bulkhead's recess runs into a screw's pilot");
+assert(flange_h >= pilot_depth + 1.5, "the flange is too shallow for the pilots");
 assert(lane_x * 2 / screw_nx <= screw_pitch && lane_y * 2 / screw_ny <= screw_pitch);
 
 // Outline inset e from the outer edge
@@ -403,9 +412,11 @@ module teardrop_x(d, len) {
   }
 }
 
-// ---- tray: walls and screw columns square to the lid, run back to the
-// plumb back and the flat bottom; along the back's top edge the top wall is
-// solid out to the edge, deep enough for the deck's pilots.
+// ---- tray: walls square to the lid, run back to the plumb back and the
+// flat bottom, under a flange round the rim for the lid's screws. The
+// flange's underside chamfers 45° back to the wall, since flat it would
+// overhang 50° as printed back down. The top wall is solid out to the edge
+// all the way back, which takes the deck's top screws.
 
 // The hanging frame's half-space in front of the back and above the bottom
 module box_clip() {
@@ -423,9 +434,15 @@ module tray() {
       intersection() {
         box_clip();
         union() {
-          lid_frame() translate([0, 0, -big]) {
-            linear_extrude(big + tray_h) band(tray_inset, tray_in_e);
-            for (p = screws) translate([p[0], p[1], 0]) cylinder(d = column_d, h = big + tray_h);
+          lid_frame() {
+            translate([0, 0, -big]) linear_extrude(big + tray_h) band(tray_inset, tray_in_e);
+            difference() {
+              hull() {
+                translate([0, 0, tray_h - flange_h]) linear_extrude(flange_h) plan(0);
+                translate([0, 0, tray_h - flange_h - tray_inset]) linear_extrude(eps) plan(tray_inset);
+              }
+              translate([0, 0, -1]) linear_extrude(tray_h + 2) plan(tray_in_e);
+            }
           }
           intersection() {
             under_lid(tray_inset);
@@ -434,12 +451,9 @@ module tray() {
               translate([-big, back_bot, 0]) cube([2 * big, tray_floor, big]);
             }
           }
-          intersection() {
-            lid_frame() translate([0, 0, -big]) linear_extrude(big + tray_h) intersection() {
-              plan(0);
-              translate([-big, outer_w / 2 - tray_in_e]) square(2 * big);
-            }
-            translate([-big, -big, 0]) cube([2 * big, 2 * big, top_band_h]);
+          lid_frame() translate([0, 0, -big]) linear_extrude(big + tray_h) intersection() {
+            plan(0);
+            translate([-big, outer_w / 2 - tray_in_e]) square(2 * big);
           }
         }
       }
@@ -460,6 +474,8 @@ module tray() {
     lid_frame() {
       translate([ant_x, top_wall_y, n_z]) rotate(90) teardrop_x(n_hole_d, tray_wall + 2);
       translate([-ant_x, top_wall_y, n_z]) rotate(90) teardrop_x(sma_hole, tray_wall + 2);
+      translate([ant_x, outer_w / 2 - tray_inset / 2 + 0.5, n_z]) rotate(90) teardrop_x(n_recess_d, tray_inset + 1);
+      translate([-ant_x, outer_w / 2 - tray_inset / 2 + 0.5, n_z]) rotate(90) teardrop_x(sma_recess_d, tray_inset + 1);
       for (p = screws) translate([p[0], p[1], tray_h - pilot_depth]) cylinder(d = pilot_d, h = pilot_depth + 1);
     }
     for (p = shelf_posts) translate([p[0], p[1], shelf_z - shelf_pilot_depth]) cylinder(d = pilot_d, h = shelf_pilot_depth + 1);
@@ -476,7 +492,7 @@ pole_r = (pole_d + pole_clear) / 2;
 socket_r = pole_r + socket_wall;
 pole_z = socket_r;
 // Where the top wall's outside face is at height z
-function top_face_y(z) = lid_oy + (outer_w / 2 - tray_inset + ls * (z - lid_oz)) / lc;
+function top_face_y(z) = y_past_top(z, 0);
 bore_bot = top_face_y(pole_z + pole_r) + 3;
 socket_top = bore_bot + socket_depth;
 frame_rear_z = from_lid(outer_w / 2, tray_h)[1];
@@ -495,7 +511,7 @@ module pole_profile(r, z_max, to_bed) {
 module pole_socket() {
   intersection() {
     translate([0, socket_top, 0]) rotate([90, 0, 0]) linear_extrude(socket_top - top_face_y(0) + 1) pole_profile(socket_r, frame_rear_z - 1, true);
-    lid_frame() translate([-big, outer_w / 2 - tray_inset - eps, -big]) cube(2 * big);
+    lid_frame() translate([-big, outer_w / 2 - eps, -big]) cube(2 * big);
   }
 }
 
@@ -504,7 +520,6 @@ module pole_bore() {
   translate([0, bore_bot + pole_bolt_up, pole_z]) teardrop_x(pole_bolt_d, 2 * socket_r + 2);
 }
 
-assert(abs(lane_xs[floor(screw_nx / 2) - 1]) - column_d / 2 >= socket_r + 0.5, "the pole's socket runs into a lid screw column");
 assert(ant_x - n_body_d / 2 >= socket_r + 1, "the pole's socket runs into a bulkhead");
 
 // L-shaped corner brackets round a part of size l x w centred at (x, y)
@@ -524,10 +539,14 @@ bracket_out = bracket_clear + bracket_wall;
 // Y, its lower edge just above the deck's bottom bosses. On the plate, between the
 // posts' bosses, the row nearer the bottom holds the HC33 (on the SMA's side)
 // and the charger; the upper row the buck-boost and the V3 (on the N's side).
+// Each board has a band beside each long side, outside its brackets, for its
+// zip ties' slots.
 shelf_boss_d = cbore_d + 2.4;
 board_gap = 2;
+tie_slot = [tie_w + 0.6, tie_t + 0.9];
+tie_band = 0.3 + tie_slot[1] + 1.5;
 shelf_l = bat_l + 2 * (bracket_out + post_d);
-shelf_w = max(bat_w + 2 * (bracket_out + 0.5), hc33_w + heltec_w + 4 * bracket_out + board_gap + 2.5);
+shelf_w = max(bat_w + 2 * (bracket_out + 0.5), hc33_w + heltec_w + 4 * (bracket_out + tie_band));
 stack_y = back_bot + deck_screw_bot + deck_boss_d / 2 + 1 + shelf_w / 2;
 shelf_z = tray_floor + bat_t + shelf_gap;
 post_h = shelf_z - tray_floor;
@@ -539,8 +558,8 @@ module at_stack() {
 }
 
 board_end = bat_l / 2 + post_d / 2 - shelf_boss_d / 2 - 1;
-row_a = -shelf_w / 2 + 1 + bracket_out;
-row_b = shelf_w / 2 - 1 - bracket_out;
+row_a = -shelf_w / 2 + tie_band + bracket_out;
+row_b = shelf_w / 2 - tie_band - bracket_out;
 hc33_u = -board_end + hc33_l / 2;
 hc33_v = row_a + hc33_w / 2;
 charger_u = board_end - charger_l / 2;
@@ -549,6 +568,15 @@ heltec_u = board_end - heltec_l / 2;
 heltec_v = row_b - heltec_w / 2;
 buck_u = -board_end + buck_l / 2;
 buck_v = row_b - buck_w / 2;
+// [u, v, length, width] of each board on the plate
+boards = [[hc33_u, hc33_v, hc33_l, hc33_w], [charger_u, charger_v, charger_l, charger_w], [heltec_u, heltec_v, heltec_l, heltec_w], [buck_u, buck_v, buck_l, buck_w]];
+// Two ties across a long board, one across a short one
+function tie_us(u, l) = l > 40 ? [u - l / 4, u + l / 4] : [u];
+
+module tie_slots() {
+  for (b = boards, tu = tie_us(b[0], b[2]), sv = [-1, 1])
+    translate([tu, b[1] + sv * (b[3] / 2 + bracket_out + 0.3 + tie_slot[1] / 2)]) offset(0.5) offset(-0.5) square(tie_slot, center = true);
+}
 
 module brackets() {
   at_stack() corner_brackets(0, 0, bat_l, bat_w, bat_bracket_h);
@@ -564,12 +592,13 @@ module shelf_brackets() {
 assert(shelf_l / 2 < inside_l / 2 - 1, "plate runs into the end walls");
 assert(hc33_u + hc33_l / 2 + 2 * bracket_out + board_gap <= charger_u - charger_l / 2, "HC33 and charger overlap");
 assert(buck_u + buck_l / 2 + 2 * bracket_out + board_gap <= heltec_u - heltec_l / 2, "buck-boost and V3 overlap");
-assert(max(hc33_v + hc33_w / 2, charger_v + charger_w / 2) + 2 * bracket_out + board_gap <= min(heltec_v - heltec_w / 2, buck_v - buck_w / 2), "the plate's rows overlap");
+assert(max(hc33_v + hc33_w / 2, charger_v + charger_w / 2) + 2 * (bracket_out + tie_band) <= min(heltec_v - heltec_w / 2, buck_v - buck_w / 2), "the plate's rows' tie slots overlap");
+for (b = boards, tu = tie_us(b[0], b[2])) assert(abs(tu - b[0]) + tie_slot[0] / 2 < b[2] / 2 - bracket_leg - 1, "a tie slot runs into its board's brackets");
 // The lid is the ceiling
 assert(to_lid(stack_y + shelf_w / 2, shelf_z + shelf_t + max(heltec_h, hc33_under + hc33_t + hc33_over))[1] + 1 <= tray_h, "a board on the plate hits the lid");
 
 // ---- carrier plate: on the four posts, printed as modelled; its screws sit
-// in counterbored bosses
+// in counterbored bosses, and zip-tie slots go through it beside each board
 
 module shelf() {
   at_stack() difference() {
@@ -582,6 +611,7 @@ module shelf() {
       translate([0, 0, -1]) cylinder(d = clear_d, h = shelf_t + cbore_h + 2);
       translate([0, 0, shelf_t]) cylinder(d = cbore_d, h = cbore_h + 1);
     }
+    translate([0, 0, -1]) linear_extrude(shelf_t + 2) tie_slots();
   }
 }
 
@@ -809,7 +839,7 @@ module motor_seat_cut(k) {
 // posts (a shoulder for the bearing's inner race, then its 8 mm pin up into
 // a socket under the tray), the pinions' pins, the guide bearings' posts,
 // the horns, and
-// pillars up to the long-side columns.
+// pillars up to the back.
 // The back's outline, e in from its edge
 module back_plan(e) {
   r = max(corner_r - e, 0.5);
