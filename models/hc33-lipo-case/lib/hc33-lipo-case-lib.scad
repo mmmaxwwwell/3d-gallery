@@ -147,12 +147,15 @@ sma_hole_d = 6.6;
 sma_nut_d = 9.2;
 sma_behind = 12;
 
-// Walls: the right wall and the door face; the back and front; the bottom
-// (over the TPU base, deep enough for the floor's seal channel under the
-// fins' channels); the top (the SMAs' plate, over the top seal)
+// Walls: the door face; the right wall (thick enough for the top's right
+// row of screws); the back and front; the bottom (over the TPU base, deep
+// enough for the door face's bottom row of screws under the floor's seal
+// channel, under the fins' channels); the top (the SMAs' plate, over the
+// top seal)
 side_wall = 6;
+right_wall = 11.6;
 end_wall = 13.5;
-bottom_t = 4.2;
+bottom_t = 9.8;
 top_t = 5;
 
 // Watertight joints: PCTG lips on the carriage pressed into channels of
@@ -231,11 +234,16 @@ m3_cbore_d = 6.2;
 m3_cbore_h = 3.2;
 screw_len = 10;
 
-// Every screw threads into the back or front wall, outside the seals: the
-// axes' distance in from the cavity's face; how many go down through the
-// top along each wall
+// Every screw threads into a wall or the floor, outside the seals: the
+// axes' distance out from the cavity's face; how many go up each side of
+// the door face (evenly, corner to corner), across its bottom between
+// them, along the top's back and front edges, and along its right edge
+// between those
 screw_in = 4.5;
+door_screws_per_side = 7;
+door_screws_bottom = 3;
 top_screws_per_wall = 3;
+top_screws_right = 3;
 
 // Grip rings: height, how far an inset ring is sunk into the PCTG (the TPU
 // fills it flush), the knurl's pitch and depth in the TPU, the plain
@@ -248,8 +256,8 @@ knurl_d = 0.8;
 band_margin = 2;
 band_end_min = 6;
 
-// The PCTG left flush round the side door's track, the door screws' heads,
-// and the door face's seam, where they cross a TPU ring
+// The PCTG left flush round the side door's track, where it crosses a TPU
+// ring
 ring_margin = 1.5;
 // END_PARAMS
 
@@ -258,7 +266,12 @@ eps = 0.01;
 hx = cell_w / 2 + cell_fit;
 // The floor's top
 floor_z = base_t + bottom_t;
-ex = hx + side_wall;
+// The door face's and the right face's distance out from the cavity's
+// centre; the outline is centred on xo, half as wide as both
+ex_l = hx + side_wall;
+ex_r = hx + right_wall;
+xo = (right_wall - side_wall) / 2;
+exw = hx + (side_wall + right_wall) / 2;
 
 // Through the stack, from the back wall's inner face. The TP4056 sits far
 // enough off the back wall for its holders' rail_wall behind its slot.
@@ -315,9 +328,9 @@ total_h = ceiling + seal_w + top_t;
 top_lead = (sqrt(2) - 1) / sqrt(2) * top_r;
 top_z0 = total_h - top_r + top_r / sqrt(2) - top_lead;
 
-// Outline: corner arcs about (±arc_x, ±arc_y), and 45° lead-ins from the
-// arcs onto the left and right faces
-arc_x = ex - profile_r;
+// Outline: corner arcs about (xo ± arc_x, ±arc_y), and 45° lead-ins from
+// the arcs onto the left and right faces
+arc_x = exw - profile_r;
 arc_y = ey - profile_r;
 lead_y = arc_y + (sqrt(2) - 1) * profile_r;
 
@@ -339,8 +352,13 @@ door_engage = screw_len - (side_wall - m3_cbore_h);
 top_engage = screw_len - (top_t - m3_cbore_h);
 screw_y = hy + screw_in;
 
-// The seals' centre lines: across the floor's end, and round the top
-seal_z_bottom = base_t + seal_w / 2;
+// The door face's lowest screws, as low as their counterbores clear the
+// TPU foot
+door_z_low = base_t + m3_cbore_d / 2 + 0.5;
+// The seals: the floor's channel over the lowest screws; the centre lines
+// across the floor's end and round the top
+seal_floor_z0 = door_z_low + m3_pilot_d / 2 + 0.8;
+seal_z_bottom = seal_floor_z0 + seal_w / 2;
 seal_z_top = ceiling + seal_w / 2;
 // A seal's groove, narrower than its lip, and deeper than the lip reaches
 groove_w = lip_t - 2 * seal_squish;
@@ -357,8 +375,8 @@ sd_gy = sd_oy + side_gasket_margin + side_gasket_w;
 sd_gz = sd_oz + side_gasket_margin + side_gasket_w;
 sd_dy = sd_gy + side_door_overlap;
 sd_dz = sd_gz + side_door_overlap;
-sd_floor = ex - side_door_t - (side_gasket_proud - side_door_squish);
-sd_x_shut = ex - side_door_t;
+sd_floor = ex_r - side_door_t - (side_gasket_proud - side_door_squish);
+sd_x_shut = ex_r - side_door_t;
 sd_x_open = sd_floor + side_gasket_proud + side_door_fit;
 sd_travel = sd_dy + sd_oy + 0.5;
 
@@ -382,22 +400,30 @@ function band_z1(i) = bands[i][1];
 function band_of(z) = [for (i = [0:band_n - 1]) if (z >= bands[i][0] && z < bands[i][1]) i][0];
 function inset_band(i) = i != undef && bands[i][2];
 
-// The door-face screws: up each wall's end, one in the middle of each
-// band_h ring, [y, z]
-door_screws = [for (sy = [-1, 1], i = [1:band_n - 2]) [sy * screw_y, (band_z0(i) + band_z1(i)) / 2]];
-// The top screws: along the back and front walls' tops, clear of the
-// door screws at the left and the rounded corners at the right, [x, y]
-top_x0 = -hx + door_engage + 3;
-top_x1 = arc_x + sqrt(pow(profile_r - top_r - m3_cbore_d / 2 - 0.2, 2) - pow(max(screw_y - arc_y, 0), 2));
-top_screws = [for (sy = [-1, 1], k = [0:top_screws_per_wall - 1])
-              [top_x0 + (top_x1 - top_x0) * k / (top_screws_per_wall - 1), sy * screw_y]];
+// The door-face screws, [y, z]: up each wall's end, evenly from the bottom
+// corner to the top one (as high as the pilot stays in the wall), and
+// across the bottom between them into the floor's end, under its seal
+door_z_high = ceiling + seal_w - m3_pilot_d / 2 - 0.8;
+door_screws = concat(
+  [for (sy = [-1, 1], k = [0:door_screws_per_side - 1])
+     [sy * screw_y, door_z_low + (door_z_high - door_z_low) * k / (door_screws_per_side - 1)]],
+  [for (k = [1:door_screws_bottom]) [-screw_y + 2 * screw_y * k / (door_screws_bottom + 1), door_z_low]]);
+// The top screws, [x, y]: along the back and front walls' tops, from clear
+// of the door screws at the left to the rounded corner at the right; and
+// down the right wall's top between those, evenly
+top_x0 = -hx + door_engage + 4;
+top_x1 = xo + arc_x + sqrt(pow(profile_r - top_r - m3_cbore_d / 2 - 0.2, 2) - pow(max(screw_y - arc_y, 0), 2));
+top_screws = concat(
+  [for (sy = [-1, 1], k = [0:top_screws_per_wall - 1])
+     [top_x0 + (top_x1 - top_x0) * k / (top_screws_per_wall - 1), sy * screw_y]],
+  [for (k = [1:top_screws_right]) [hx + screw_in, -screw_y + 2 * screw_y * k / (top_screws_right + 1)]]);
 
 // The base's keys, under the middle of the back and front walls and of the
 // right wall outside the fins' grooves
 function spread(a, b, pitch = key_pitch) = let(n = max(1, floor((b - a) / pitch))) [for (i = [0:n]) a + (b - a) * i / n];
 base_keys = concat(
   [for (sy = [-1, 1], x = spread(-hx + seal_d + key_d + 1, hx - key_d)) [x, sy * (hy + end_wall / 2)]],
-  [for (y = spread(-hy + key_d, hy - key_d)) [hx + wall_groove_d + (side_wall - wall_groove_d) / 2, y]]);
+  [for (y = spread(-hy + key_d, hy - key_d)) [hx + wall_groove_d + 3.5, y]]);
 
 function slot_y0(b) = b[1] - slot_fit / 2;
 function chamfer_top(b) = len(b) > 6 ? b[6] : 0;
@@ -433,22 +459,22 @@ for (b = boards) assert(board_z0(b) - (floor_z + slide_fit) >= 0.6 - eps, "a boa
 assert(floor_channel_d <= bottom_t - 1, "the floor's channels leave too little floor");
 // Each key keeps 1 mm of wall either side at its widest; the right wall's
 // sit outside the fins' grooves
-assert((end_wall - key_d - 2 * key_flare) / 2 >= 1 && (side_wall - wall_groove_d - key_d - 2 * key_flare) / 2 >= 1 - eps,
+assert((end_wall - key_d - 2 * key_flare) / 2 >= 1 && 3.5 - key_d / 2 - key_flare >= 1 - eps,
        "the base's keys leave the walls too thin");
 assert(lead_y >= arc_y && arc_x > 0 && arc_y > 0, "the corner radius is too big for the outline");
 // The cavity's corner keeps a wall behind an inset ring's knurl
 assert(profile_r - norm([profile_r - side_wall, profile_r - end_wall]) - grip_inset >= 1.2, "the corners are too thin");
 assert(end_wall - grip_inset >= 1.2, "the back and front walls are too thin behind the grip");
 assert(knurl_d < grip_inset, "the knurl cuts through the TPU rings");
-assert(side_wall - grip_inset - wall_groove_d >= 1.2, "the right wall is too thin behind the grip");
+assert(right_wall - grip_inset - wall_groove_d >= 1.2, "the right wall is too thin behind the grip");
 assert(ceiling - hook_h - nib_h >= divider_z1 + 0.3, "the top's hook runs into the fins");
 assert(hook_y1 > hook_y0 + 5, "the back-right SMA leaves no room for the top's hook");
-assert(nib_l + slide_fit <= side_wall - 2, "the hook's groove cuts through the right wall");
+assert(nib_l + slide_fit <= right_wall - 2, "the hook's groove cuts through the right wall");
 assert(hook_gusset_l >= hook_h, "the hook's gussets would print past 45°");
 for (p = smas) {
   assert(abs(p[1]) + sma_nut_d / 2 <= hy - 0.3, "an SMA's inner nut hits the back or front wall");
   // The outer nut sits on the flat of the top: inside the outline inset by top_r
-  assert(norm([max(abs(p[0]) - arc_x, 0), max(abs(p[1]) - arc_y, 0)]) + sma_nut_d / 2 <= profile_r - top_r,
+  assert(norm([max(abs(p[0] - xo) - arc_x, 0), max(abs(p[1]) - arc_y, 0)]) + sma_nut_d / 2 <= profile_r - top_r,
          "an SMA's outer nut runs onto the rounded top edge");
 }
 assert(top_r < profile_r, "the top edge's radius is bigger than the corners'");
@@ -457,21 +483,25 @@ assert(top_r < profile_r, "the top edge's radius is bigger than the corners'");
 assert(screw_in - m3_pilot_d / 2 >= seal_w + 0.8, "the screws run into the seal channels");
 assert(end_wall - grip_inset - screw_in - m3_pilot_d / 2 >= 0.8, "the screws run into the grip rings");
 assert(screw_y + m3_cbore_d / 2 <= lead_y, "the door screws' heads run off the flat of the door face");
-for (s = door_screws)
-  let(i = band_of(s[1]), h = m3_cbore_d / 2 + (inset_band(i) ? ring_margin : 0.25))
-    assert(band_of(s[1] - h) == i && band_of(s[1] + h) == i
-           && (!inset_band(i) || (s[1] - h >= band_z0(i) + grip_inset && s[1] + h <= band_z1(i) - grip_inset)),
-           "a door screw's head runs across a ring's edge");
 assert(top_x1 - top_x0 >= 10 * (top_screws_per_wall - 1), "the top screws are crowded");
 assert(top_t >= m3_cbore_h + 1.2, "the top is too thin for the screws' counterbores");
 assert(door_engage >= 6 && top_engage >= 6, "the screws barely reach into the walls");
-// The top screws' tips stay above the top door screws
-assert(ceiling + seal_w + top_t - m3_cbore_h - screw_len - 1 >= door_screws[band_n - 3][1] + m3_pilot_d, "the top and door screws meet");
+// The door screws' heads stay on the door face's flat, off its rounded
+// top edge, and have room between them; the right row's pilots stay in the
+// right wall clear of its rings, its heads on the top's flat
+assert(door_z_high + m3_cbore_d / 2 <= top_z0 - 0.3, "the top door screws' heads run onto the rounded top edge");
+assert((door_z_high - door_z_low) / (door_screws_per_side - 1) >= m3_cbore_d + 1, "the door screws up the sides are crowded");
+assert(2 * screw_y / (door_screws_bottom + 1) >= m3_cbore_d + 1, "the door screws across the bottom are crowded");
+assert(right_wall - grip_inset - screw_in - m3_pilot_d / 2 >= 0.8, "the top's right screws run into the grip rings");
+assert(hx + screw_in + m3_cbore_d / 2 <= ex_r - top_r, "the top's right screws' heads run onto the rounded top edge");
+assert(2 * screw_y / (top_screws_right + 1) >= m3_cbore_d + 1, "the top's right screws are crowded");
+// The top screws' pilots stay clear of the door screws' pilots
+assert(top_x0 - m3_pilot_d / 2 >= -hx + door_engage + 1 + 1.5, "the top and door screws meet");
 // Seals
 assert(groove_d < seal_d - 0.5 && groove_w > 0.3 && (seal_w - groove_w) / 2 >= 0.6, "a seal channel's TPU walls are too thin");
-assert(floor_z - floor_channel_d >= base_t + seal_w + 0.5, "the floor's seal channel runs into the fins' channels");
+assert(floor_z - floor_channel_d >= seal_floor_z0 + seal_w + 0.5, "the floor's seal channel runs into the fins' channels");
 assert(seal_w <= end_wall - grip_inset - 1, "the end walls' seal channels leave too little wall");
-assert(seal_d + 0.5 <= side_wall - grip_inset, "the top seal's channel cuts through the right wall's ridge");
+assert(seal_d + 0.5 <= right_wall - grip_inset, "the top seal's channel cuts through the right wall's ridge");
 // The side door
 assert(sd_z - sd_dz - side_door_t - side_door_fit >= base_t + 0.8, "the side door's track runs into the base");
 assert(sd_floor - 1 >= hx + wall_groove_d + 1, "the side door's gasket groove leaves too little right wall");
@@ -485,8 +515,8 @@ assert(usbc_w / 2 + 0.5 <= v4_w / 2 - v4_foot, "the V4's bottom bars have no edg
 module outline() {
   hull() {
     for (sx = [-1, 1], sy = [-1, 1]) {
-      translate([sx * arc_x, sy * arc_y]) circle(r = profile_r, $fn = 96);
-      translate([sx * ex - (sx > 0 ? eps : 0), sy * lead_y - (sy > 0 ? eps : 0)]) square(eps);
+      translate([xo + sx * arc_x, sy * arc_y]) circle(r = profile_r, $fn = 96);
+      translate([xo + sx * exw - (sx > 0 ? eps : 0), sy * lead_y - (sy > 0 ? eps : 0)]) square(eps);
     }
   }
 }
@@ -508,7 +538,7 @@ module shell(z0 = 0, z1 = total_h) {
           slice(top_r * (1 - cos(a)), total_h - top_r + top_r * sin(a) - (i == steps ? eps : 0));
       }
     }
-    translate([-ex - 1, -ey - 1, z0]) cube([2 * ex + 2, 2 * ey + 2, z1 - z0]);
+    translate([-ex_l - 1, -ey - 1, z0]) cube([ex_l + ex_r + 2, 2 * ey + 2, z1 - z0]);
   }
 }
 
@@ -534,10 +564,10 @@ function arc_pts(cx, cy, r, a0, n) = [for (i = [0:n]) [cx + r * cos(a0 + 45 * i 
 // The outline inset by e as points, counter-clockwise from the middle of
 // the right face. Every inset gives the same points at the same places
 // along their segments, so one inset's points map onto another's.
-function outline_pts(e, n = 12) = let(r = profile_r - e, x = ex - e, ly = arc_y + r * (sqrt(2) - 1))
-  concat([[x, 0], [x, ly]], arc_pts(arc_x, arc_y, r, 45, n), arc_pts(-arc_x, arc_y, r, 90, n),
-         [[-x, ly], [-x, -ly]], arc_pts(-arc_x, -arc_y, r, 225, n), arc_pts(arc_x, -arc_y, r, 270, n),
-         [[x, -ly], [x, 0]]);
+function outline_pts(e, n = 12) = let(r = profile_r - e, x = exw - e, ly = arc_y + r * (sqrt(2) - 1))
+  [for (p = concat([[x, 0], [x, ly]], arc_pts(arc_x, arc_y, r, 45, n), arc_pts(-arc_x, arc_y, r, 90, n),
+                   [[-x, ly], [-x, -ly]], arc_pts(-arc_x, -arc_y, r, 225, n), arc_pts(arc_x, -arc_y, r, 270, n),
+                   [[x, -ly], [x, 0]])) [p[0] + xo, p[1]]];
 
 function cumlen(p) = [for (i = 0, s = 0; i < len(p); s = s + (i + 1 < len(p) ? norm(p[i + 1] - p[i]) : 0), i = i + 1) s];
 
@@ -576,16 +606,11 @@ module knurl_core(za, zb, e = 0) {
   polyhedron(concat(outer, inner), faces);
 }
 
-// Where the rings stop: ring_margin round the side door's track and each
-// door screw's head seat, and 1 mm short of the door face's seam on the
-// body, which keeps PCTG between the rings and the door seal's channels
+// Where the rings stop: ring_margin round the side door's track
 module ring_keepout() {
   m = ring_margin + side_door_fit + side_door_t;
   translate([hx, sd_y - sd_dy - m, sd_z - sd_dz - m])
-    cube([side_wall + 2, 2 * sd_dy + sd_travel + 2 * m, 2 * (sd_dz + m)]);
-  for (s = door_screws) translate([-ex - 1, s[0], s[1]]) rotate([0, 90, 0])
-    cylinder(d = m3_cbore_d + 2 * ring_margin, h = m3_cbore_h + 2);
-  translate([-hx - eps, -ey - 1, 0]) cube([1 + eps, 2 * ey + 2, total_h]);
+    cube([right_wall + 2, 2 * sd_dy + sd_travel + 2 * m, 2 * (sd_dz + m)]);
 }
 
 // An inset ring's recess in the PCTG: sunk grip_inset with 45° chamfers
@@ -685,7 +710,7 @@ module screw_pilots() {
 }
 
 module side_opening() {
-  translate([hx - 1, sd_y, sd_z]) rotate([0, 90, 0]) linear_extrude(side_wall + 2)
+  translate([hx - 1, sd_y, sd_z]) rotate([0, 90, 0]) linear_extrude(right_wall + 2)
     offset(usb_open_r) square([2 * (sd_oz - usb_open_r), 2 * (sd_oy - usb_open_r)], center = true);
 }
 
@@ -694,7 +719,7 @@ module body() {
   difference() {
     intersection() {
       shell();
-      translate([-hx, -ey - 1, base_t]) cube([ex + hx + 1, 2 * ey + 2, ceiling + seal_w - base_t]);
+      translate([-hx, -ey - 1, base_t]) cube([ex_r + hx + 1, 2 * ey + 2, ceiling + seal_w - base_t]);
     }
     base_key_shapes();
     cavity();
@@ -719,9 +744,9 @@ module body() {
 // and front walls' ends for the door face's lip, and round the tops of the
 // back, front and right walls for the top's
 module seal_blocks() {
-  for (sy = [-1, 1]) translate([-hx - eps, sy > 0 ? hy : -hy - seal_w, base_t])
-    cube([seal_d + eps, seal_w, ceiling + seal_w - base_t]);
-  translate([-hx - eps, -hy - seal_w, base_t]) cube([seal_d + eps, 2 * (hy + seal_w), seal_w]);
+  for (sy = [-1, 1]) translate([-hx - eps, sy > 0 ? hy : -hy - seal_w, seal_floor_z0])
+    cube([seal_d + eps, seal_w, ceiling + seal_w - seal_floor_z0]);
+  translate([-hx - eps, -hy - seal_w, seal_floor_z0]) cube([seal_d + eps, 2 * (hy + seal_w), seal_w]);
   for (sy = [-1, 1]) translate([-hx - eps, sy > 0 ? hy : -hy - seal_w, ceiling])
     cube([2 * hx + seal_w + eps, seal_w, seal_w]);
   translate([hx, -hy - seal_w, ceiling]) cube([seal_w, 2 * (hy + seal_w), seal_w]);
@@ -829,7 +854,7 @@ module side_door() {
       side_door_at(0, sd_x_shut);
       translate([0, 0, -1]) linear_extrude(total_h) outline();
     }
-    for (k = [0, 1]) translate([ex, sd_y + sd_dy - 1.5 - 2 * k, sd_z]) rotate([0, 0, 45])
+    for (k = [0, 1]) translate([ex_r, sd_y + sd_dy - 1.5 - 2 * k, sd_z]) rotate([0, 0, 45])
       cube([0.8, 0.8, 2 * sd_dz - 2], center = true);
   }
 }
@@ -860,7 +885,7 @@ module body_tpu() {
   tpu_base();
   intersection() {
     grip_rings();
-    translate([-hx, -ey - 1, 0]) cube([ex + hx + 1, 2 * ey + 2, ceiling + seal_w]);
+    translate([-hx, -ey - 1, 0]) cube([ex_r + hx + 1, 2 * ey + 2, ceiling + seal_w]);
   }
 }
 
@@ -868,7 +893,7 @@ module body_tpu() {
 module door_foot() {
   intersection() {
     shell();
-    translate([-ex - 1, -ey - 1, 0]) cube([ex - hx + 1, 2 * ey + 2, base_t]);
+    translate([-ex_l - 1, -ey - 1, 0]) cube([ex_l - hx + 1, 2 * ey + 2, base_t]);
   }
 }
 
@@ -882,9 +907,10 @@ module carriage_tpu() {
   difference() {
     intersection() {
       grip_rings(false);
-      translate([-ex - 1, -ey - 1, 0]) cube([ex - hx + 1, 2 * ey + 2, total_h]);
+      translate([-ex_l - 1, -ey - 1, 0]) cube([ex_l - hx + 1, 2 * ey + 2, total_h]);
     }
     for (i = [0:band_n - 1]) if (inset_band(i)) door_knurl(band_z0(i) + knurl_d, band_z1(i) - knurl_d);
+    screw_holes();
   }
 }
 
@@ -894,8 +920,8 @@ module door_knurl(z0, z1) {
   span = 2 * yl + (z1 - z0);
   n = ceil(span / knurl_pitch);
   intersection() {
-    translate([-ex - 1, -yl, z0]) cube([1 + knurl_d + eps, 2 * yl, z1 - z0]);
-    for (dir = [-1, 1], k = [-n:n]) translate([-ex, 0, (z0 + z1) / 2]) rotate([dir * 45, 0, 0])
+    translate([-ex_l - 1, -yl, z0]) cube([1 + knurl_d + eps, 2 * yl, z1 - z0]);
+    for (dir = [-1, 1], k = [-n:n]) translate([-ex_l, 0, (z0 + z1) / 2]) rotate([dir * 45, 0, 0])
       translate([0, k * knurl_pitch, 0]) rotate([0, 0, 45]) cube([s, s, 2 * span], center = true);
   }
 }
@@ -904,7 +930,7 @@ module door_knurl(z0, z1) {
 module tpu_base() {
   intersection() {
     shell();
-    translate([-hx, -ey - 1, 0]) cube([ex + hx + 1, 2 * ey + 2, base_t]);
+    translate([-hx, -ey - 1, 0]) cube([ex_r + hx + 1, 2 * ey + 2, base_t]);
   }
   base_key_shapes();
 }
@@ -1012,8 +1038,8 @@ module carriage() {
       intersection() {
         shell();
         union() {
-          translate([-ex - 1, -ey - 1, base_t]) cube([ex - hx + 1, 2 * ey + 2, total_h]);
-          translate([-ex - 1, -ey - 1, ceiling + seal_w]) cube([2 * ex + 2, 2 * ey + 2, total_h]);
+          translate([-ex_l - 1, -ey - 1, base_t]) cube([ex_l - hx + 1, 2 * ey + 2, total_h]);
+          translate([-ex_l - 1, -ey - 1, ceiling + seal_w]) cube([ex_l + ex_r + 2, 2 * ey + 2, total_h]);
           translate([-hx - 1, -hy, ceiling]) cube([2 * hx + 1, 2 * hy, seal_w + eps]);
         }
       }
@@ -1025,14 +1051,7 @@ module carriage() {
       cylinder(d = sma_hole_d, h = total_h - ceiling + 2);
       translate([0, 0, total_h - ceiling + 1 + washer_proud - washer_t]) cylinder(d = sma_nut_d + 1, h = washer_t + 1);
     }
-    for (s = door_screws) translate([-ex - 1, s[0], s[1]]) rotate([0, 90, 0]) {
-      cylinder(d = m3_clear_d, h = side_wall + 2);
-      cylinder(d = m3_cbore_d, h = 1 + m3_cbore_h);
-    }
-    for (t = top_screws) translate([t[0], t[1], ceiling + seal_w - 1]) {
-      cylinder(d = m3_clear_d, h = top_t + 2);
-      translate([0, 0, 1 + top_t - m3_cbore_h]) cylinder(d = m3_cbore_d, h = m3_cbore_h + 1);
-    }
+    screw_holes();
     grip_cut();
   }
   fins();
@@ -1044,6 +1063,19 @@ module carriage() {
   board_bars(v4_board, dividers[2] + divider_t / 2);
 }
 
+// The screws' clearance holes and counterbores through the door face and
+// the top, through the TPU as well as the PCTG
+module screw_holes() {
+  for (s = door_screws) translate([-ex_l - 1, s[0], s[1]]) rotate([0, 90, 0]) {
+    cylinder(d = m3_clear_d, h = side_wall + 2);
+    cylinder(d = m3_cbore_d, h = 1 + m3_cbore_h);
+  }
+  for (t = top_screws) translate([t[0], t[1], ceiling + seal_w - 1]) {
+    cylinder(d = m3_clear_d, h = top_t + 2);
+    translate([0, 0, 1 + top_t - m3_cbore_h]) cylinder(d = m3_cbore_d, h = m3_cbore_h + 1);
+  }
+}
+
 // The carriage drawn out d to the left of where it sits
 module carriage_out(d = 0) {
   translate([-d, 0, 0]) children();
@@ -1053,15 +1085,15 @@ module carriage_out(d = 0) {
 
 // On its door face
 module carriage_print() {
-  translate([0, 0, ex]) rotate([0, -90, 0]) carriage();
+  translate([0, 0, ex_l]) rotate([0, -90, 0]) carriage();
 }
 
 module carriage_tpu_print() {
-  translate([0, 0, ex]) rotate([0, -90, 0]) carriage_tpu();
+  translate([0, 0, ex_l]) rotate([0, -90, 0]) carriage_tpu();
 }
 
 module carriage_seal_print() {
-  translate([0, 0, ex]) rotate([0, -90, 0]) carriage_seal();
+  translate([0, 0, ex_l]) rotate([0, -90, 0]) carriage_seal();
 }
 
 // ---- reference parts
