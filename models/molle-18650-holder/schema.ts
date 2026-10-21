@@ -14,5 +14,5 @@ export default z.strictObject({
   clip_len: between(10, 55),
   clip_arc: between(20, 80),
   lip_reach: between(0.3, 2.5),
-  drain_d: between(1, 8),
+  cell_floor: between(1, 6),
 });

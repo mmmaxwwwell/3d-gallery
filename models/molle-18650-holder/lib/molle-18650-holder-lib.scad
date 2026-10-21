@@ -17,12 +17,10 @@
 // head. A web fills the grooves between the tubes' backs, so the tubes and
 // blocks are one body with a flat back over the bands.
 //
-// Each tube ends below in a 45 deg cone; the cell seats on the cone's
-// inside, and the cone's tip is left open as a drain. The cones, the bottom
-// block and the space between them are hulled into one solid bottom, its
-// top sloping up into the grooves between the tubes so nothing catches.
-// A slot runs down the middle of each tube's front and on round under the
-// cell's end, past its middle, to push the cell up and out with a finger.
+// Each tube is a plain cylinder standing on a flat floor, and the cell
+// stands on the floor. A slot runs down the middle of each tube's front and
+// on through the floor, past the cell's middle, to push the cell up and out
+// with a finger; water runs out of it too.
 // The cell is held by a lever in the back of its tube: a strip of the wall
 // freed by a slit either side, with a bump at its top end over the cell's
 // top edge, ramped on top so the cell snaps in past it and 45 deg underneath
@@ -32,11 +30,13 @@
 // of whole wall, so a cell thrown in hits the ring, not the bump; above the
 // ring each tube's mouth flares on a round to guide the cell in. Two short
 // crush ribs per tube press the cell back.
-// Every outside edge is rounded: the tubes' rims are half-round and their
-// cones run into them on a fillet, and the blocks are swept with a ball.
+// The tubes, the solid between them and the MOLLE back, and the slots are
+// one horizontal cross-section, rounded in 2D, so every slot edge up the
+// tubes and through the floor is round; the bed edge is chamfered in layer
+// steps. The rims are round, and the blocks are swept with a ball.
 //
-// Print it standing on its bottom: the tubes and slots run straight up, the
-// cones grow at 45 deg, and each block's underside over a band is 45 deg.
+// Print it standing on its bottom: the tubes and slots run straight up, and
+// each block's underside over a band is 45 deg.
 
 include <BOSL2/std.scad>
 include <molle-stick-profile.scad>
@@ -64,7 +64,7 @@ stick_inches = 3;
 // Tube wall, shared between neighbouring cells: 4 perimeters of a 0.4 nozzle
 wall = 1.6;
 
-// Slot down each tube's front and round under the cell, to push it out
+// Slot down each tube's front and through the floor, to push the cell out
 finger_w = 13;
 
 // Retention lever in the back of each tube: how long it is
@@ -76,8 +76,8 @@ clip_arc = 45;
 // How far the lever's bump reaches over the cell's top edge
 lip_reach = 1;
 
-// Drain hole at the tip of each tube's cone
-drain_d = 3;
+// Floor under each cell
+cell_floor = 2;
 // END_PARAMS
 
 // ----- PALS (A-A-55301 Type III webbing, Natick's PALS layout) -----
@@ -106,8 +106,8 @@ stick_pinch_u = max([for (p = molle_stick_outline) if (p[1] < -5 && p[0] < -0.05
 
 // ----- The weave -----
 back_wall    = 1.6;  // behind the stick; the hook's pinch clamps it
-slot_gap     = 0.3;  // stick clearance through its thickness
-slot_side    = 0.4;  // stick clearance across its width
+slot_gap     = 0.5;  // stick clearance through its thickness
+slot_side    = 0.6;  // stick clearance across its width
 webbing_room = 1.8;  // a lifted band's room between stick and tubes
 band_clear   = 0.5;  // each side of a band window
 hook_clear   = 0.5;  // plate top below the hook pocket's top
@@ -115,7 +115,7 @@ stick_floor  = 2;    // the sized stick's tip stops this far above the bottom
 min_tip      = 2;    // stick the bottom block must hold
 block_side   = 2.4;  // block outside the outer slots
 block_r      = 1.5;  // blocks' rounded edges
-fillet_r     = 3;    // where a tube's cone meets its side, outside
+edge_r       = 0.6;  // the cross-section's rounded edges, and the bed chamfer
 // The bottom block's back edge is chamfered this far, so where a stick runs
 // the plate a little past its PALS gap, the edge rides over the next band.
 // The top end needs none: the stick's hook leaf lies behind it.
@@ -125,8 +125,7 @@ rib_w        = 1.6;  // crush rib's width round the pocket
 rib_len      = 20;   // crush ribs run this far up from the cell's bottom
 rib_angle    = 70;   // crush ribs' angle either side of the tube's front
 lip_tip      = 0.6;  // the bump's flat inner face, top to bottom
-finger_chamfer = 1;  // the finger slot's outer edges
-finger_under = 3;    // the finger slot runs this far past the cell's middle underneath
+finger_under = 3;    // the finger slot runs this far past the cell's middle through the floor
 clip_slit    = 0.8;  // the slits either side of the lever
 clip_swing   = 0.5;  // the lever's pocket is this much deeper than the bump needs
 clip_skin    = 0.8;  // between the lever's pocket and the band or stick behind it
@@ -136,6 +135,7 @@ rim_r        = 0.5;  // the rim's outer round
 // The mouth's flare is wider than the wall, so the tube's outside flares
 // out at 45 deg to keep a rim.
 collar       = lead_r + rim_r - wall;
+ridge        = 0.4;  // each mouth's flare stops this far short of the line between two tubes
 // The groove the hook's leaf clicks into: how deep (the back wall is only
 // back_wall thick), and its clearance round the leaf.
 leaf_groove  = 0.8;
@@ -160,18 +160,7 @@ pitch    = 2 * pocket_r + wall;
 cell_xs  = [for (i = [0 : cells - 1]) (i - (cells - 1) / 2) * pitch];
 body_w   = (cells - 1) * pitch + 2 * tube_r;
 
-// A tube's cone: on the bed it is a ring round the drain, and it reaches the
-// tube's full width at cone_h. The pocket's cone is the same cone moved up
-// by the wall's thickness at 45 deg. Both run into the side on arcs about
-// one centre, fillet_r outside and fillet_r - wall inside.
-foot_r   = drain_d / 2 + wall * sqrt(2);
-cone_h   = tube_r - foot_r;
-fillet_c = [tube_r - fillet_r, cone_h + fillet_r * (sqrt(2) - 1)];
-inner_r  = fillet_r - wall;
-// Where the cell's bottom edge sits: on the inner cone, or on its fillet.
-seat_y   = cell_d / 2 <= fillet_c[0] + inner_r * sqrt(2) / 2
-           ? cell_d / 2 - drain_d / 2
-           : fillet_c[1] - sqrt(pow(inner_r, 2) - pow(cell_d / 2 - fillet_c[0], 2));
+seat_y   = cell_floor;   // the cell's bottom
 // The cell's top, and the lip over it: its 45 deg underside passes through
 // the cell's top edge, a flat inner face, a 45 deg ramp up to the rim.
 cell_top = seat_y + cell_len + cell_clear;
@@ -213,13 +202,13 @@ assert(end_over <= end_relief - pals_webbing_t, "the end blocks run too far past
 assert(end_h - tip_y >= min_tip, "bottom block holds too little stick");
 assert(n_sticks >= 1, "too few cells to carry a stick");
 assert(cell_top <= plate_h + eps, "the cells are taller than the plate: take a longer stick");
-assert(foot_r < tube_r, "the drain is wider than the tube");
 assert(clip_len < cell_len - 10, "the lever is nearly as long as the tube");
 assert(ceiling_h >= lead_r + 1, "the ring over the lever is all flare");
 assert(collar >= 0, "the wall is thicker than the mouth's flare");
 assert(clip_arc + 2 * clip_slit / tube_r * 180 / PI < 90, "the lever is wider than the tube's back");
 assert(finger_w < cell_d - 4, "the finger slot is too wide to keep the cell in");
-assert(inner_r > 0, "fillet_r must be more than the wall");
+assert(wall > 2 * edge_r, "the wall is too thin for its rounded edges");
+assert(cell_floor > 3 * 0.2, "the floor is thinner than its bed chamfer");
 assert(back_wall - leaf_groove >= 0.8, "the leaf's groove leaves too little back wall");
 assert(pinch_z > leaf_groove, "the leaf's groove is deeper than the leaf presses");
 assert(rib_squeeze < cell_clear + 1, "crush ribs reach too far into the cell");
@@ -232,52 +221,79 @@ module about_axis(x, profile) {
 
 function arc(c, r, a0, a1, n = 8) = [for (i = [0 : n]) let (a = a0 + (a1 - a0) * i / n) c + r * [cos(a), sin(a)]];
 
-// The tube's wall, (r, y): up the outside, over the half-round rim, down the
-// inside to the drain.
-function tube_outside() = concat(
-    [[foot_r, 0]],
-    arc(fillet_c, fillet_r, -45, 0),
-    [[tube_r, collar_y], [tube_r + collar, collar_y + collar]],
-    arc([tube_r + collar - rim_r, tube_top - rim_r], rim_r, 0, 90, 4));
-
 // The mouth's rounded flare, from the top down into the pocket.
 function mouth() = arc([pocket_r + lead_r, tube_top - lead_r], lead_r, 90, 180, 8);
 
-function tube_profile() = concat(
-    [[drain_d / 2, 0]], tube_outside(), mouth(),
-    arc(fillet_c, inner_r, 0, -45));
-
-module tube(x) {
-    about_axis(x, tube_profile());
+// A tube's top band, (r, y): the outside flaring into the collar, over the
+// rim and down the mouth's flare into the bore.
+module tube_band(x) {
+    about_axis(x, concat([[pocket_r, collar_y - 1], [tube_r, collar_y - 1], [tube_r, collar_y],
+                          [tube_r + collar, collar_y + collar]],
+                         arc([tube_r + collar - rim_r, tube_top - rim_r], rim_r, 0, 90, 4),
+                         mouth()));
 }
 
-// A tube filled solid, and a pocket: the space inside it.
-module tube_solid(x) {
-    about_axis(x, concat([[0, 0]], tube_outside(), [[0, tube_top]]));
+// A 2D cross-section (X, Z drawn as 2D y) stood up and run from y0 for h.
+module extrude_y(y0, h) {
+    translate([0, y0, 0]) rotate([-90, 0, 0]) linear_extrude(h) mirror([0, 1, 0]) children();
 }
 
-module pocket(x) {
-    about_axis(x, concat([[0, -1], [drain_d / 2, -1], [drain_d / 2, 0]], arc(fillet_c, inner_r, -45, 0),
-                         [for (i = [len(mouth()) - 1 : -1 : 0]) mouth()[i]],
-                         [[pocket_r + lead_r, tube_top + 1], [0, tube_top + 1]]));
+// Every corner rounded by r, inside and out.
+module round_2d(r) {
+    offset(r = -r) offset(delta = r) offset(r = r) offset(delta = -r) children();
 }
 
-// The tubes' cones, the bottom block and the space between, hulled: up to a
-// plane that rises at 45 deg from where the tubes reach full width at the
-// front, back into the grooves between them.
-module bottom_fill() {
-    y0 = fillet_c[1];
+// The cross-section's pieces. The tubes and the solid behind them: their
+// hull, with the tubes' backs moved back to the plate's face, cut at the
+// tubes' axes.
+module tubes_2d() {
+    for (x = cell_xs) translate([x, cell_z]) circle(r = tube_r, $fn = 96);
+    intersection() {
+        hull() for (x = cell_xs, dz = [0, front_z - plate_z]) translate([x, cell_z - dz]) circle(r = tube_r, $fn = 96);
+        translate([-body_w, plate_z]) square([2 * body_w, cell_z - plate_z]);
+    }
+}
+
+module pockets_2d() {
+    for (x = cell_xs) translate([x, cell_z]) circle(r = pocket_r, $fn = 96);
+}
+
+// The finger slots, from depth z0 out through the front.
+module slots_2d(z0) {
+    for (x = cell_xs) translate([x - finger_w / 2, z0]) square([finger_w, body_z]);
+}
+
+// The walls: tubes, solid behind, the pockets and the front slots out.
+module wall_2d() {
+    round_2d(edge_r) difference() { tubes_2d(); pockets_2d(); slots_2d(cell_z); }
+}
+
+// The floor: all of it but the slots, which run on past the cells' middles.
+module floor_2d() {
+    round_2d(edge_r) difference() { tubes_2d(); slots_2d(cell_z - finger_under); }
+}
+
+// The tubes, floor and solid between, up to the collar: the floor stepped in
+// at the bed in layers, a chamfer that prints.
+module body() {
+    steps = 3;
+    for (i = [0 : steps - 1])
+        extrude_y(i * edge_r / steps, edge_r / steps + eps)
+            offset(delta = -(edge_r - i * edge_r / steps)) floor_2d();
+    extrude_y(edge_r, cell_floor - edge_r + eps) floor_2d();
+    extrude_y(cell_floor, collar_y - cell_floor + eps) wall_2d();
+}
+
+// Over the collar: each tube's band, the solid behind them to the top, and
+// the slot on up through the rim.
+module body_top() {
     difference() {
-        intersection() {
-            hull() {
-                for (x = cell_xs) tube_solid(x);
-                block(blocks[0], 0);
-            }
-            rotate([90, 0, 90]) translate([0, 0, -body_w])
-                linear_extrude(2 * body_w)
-                    polygon([[-1, -1], [-1, body_z + 1], [y0 - 1, body_z + 1], [y0 + body_z + 1, -1]]);
+        union() {
+            for (x = cell_xs) tube_band(x);
+            extrude_y(collar_y - eps, tube_top - rim_r - collar_y)
+                difference() { tubes_2d(); pockets_2d(); }
         }
-        for (x = cell_xs) pocket(x);
+        for (x = cell_xs) translate([x - finger_w / 2, collar_y - 1, cell_z]) cube([finger_w, tube_top, body_z]);
     }
 }
 
@@ -306,6 +322,23 @@ module lever_bump(x) {
     }
 }
 
+// Tube i's mouth, cut after the tubes are joined so no neighbour's rim or
+// collar stands in it: the bore, and the flare, which stops ridge short of
+// the line between two tubes so neighbouring mouths meet on a ridge.
+module mouth_cut(i) {
+    x = cell_xs[i];
+    y0 = collar_y - 1;
+    about_axis(x, [[0, y0], [pocket_r, y0], [pocket_r, tube_top + 1], [0, tube_top + 1]]);
+    intersection() {
+        about_axis(x, concat([[0, y0], [pocket_r, y0]],
+                             [for (j = [len(mouth()) - 1 : -1 : 0]) mouth()[j]],
+                             [[pocket_r + lead_r, tube_top + 1], [0, tube_top + 1]]));
+        xl = i > 0 ? x - pitch / 2 + ridge : x - tube_r - 2;
+        xr = i < cells - 1 ? x + pitch / 2 - ridge : x + tube_r + 2;
+        translate([xl, y0 - 1, -1]) cube([xr - xl, tube_top, body_z + 2]);
+    }
+}
+
 // The lever's slits, either side and over its end, and its pocket behind
 // it; all of it under the ring.
 module lever_cut(x) {
@@ -316,33 +349,6 @@ module lever_cut(x) {
     back_sector(x, pocket_r - 1, tube_r + clip_pocket, clip_arc / 2, a1, y0, y1);
     back_sector(x, pocket_r - 1, tube_r + clip_pocket, 0, a1, lever_top, y1);
     back_sector(x, tube_r - eps, tube_r + clip_pocket, 0, a1, y0, y1);
-}
-
-// The finger slot, side view (Y, Z): up the front and out of the rim, and
-// under the cell's end to finger_under past its axis, turning up at 45 deg.
-module finger_slot(x) {
-    zo = cell_z + sqrt(pow(tube_r, 2) - pow(finger_w / 2, 2));   // the wall's face at the slot's edge
-    zb = cell_z - finger_under;
-    profile = [[-1, zb], [seat_y - 1, zb], [seat_y - 1 + finger_under, cell_z],
-               [tube_top + 1, cell_z], [tube_top + 1, body_z + 1], [-1, body_z + 1]];
-    rotate([90, 0, 90]) translate([0, 0, x - finger_w / 2]) linear_extrude(finger_w) polygon(profile);
-    // The outer edges chamfered.
-    hull() {
-        translate([x - finger_w / 2, -1, zo - finger_chamfer]) cube([finger_w, tube_top + 2, eps]);
-        translate([x - finger_w / 2 - finger_chamfer, -1, zo]) cube([finger_w + 2 * finger_chamfer, tube_top + 2, body_z]);
-    }
-}
-
-// The grooves between the tubes' backs, filled back to the plate's face,
-// and the tubes' stand-off from it.
-module web() {
-    difference() {
-        intersection() {
-            hull() for (x = cell_xs, dz = [0, front_z - plate_z]) translate([0, 0, -dz]) tube_solid(x);
-            translate([-body_w, -1, plate_z]) cube([2 * body_w, tube_top + 2, cell_z - plate_z]);
-        }
-        for (x = cell_xs) pocket(x);
-    }
 }
 
 // A rib on the pocket's wall, reaching in past the cell.
@@ -411,15 +417,15 @@ module stick_slot(x) {
 module holder() {
     difference() {
         union() {
-            for (x = cell_xs) tube(x);
-            web();
-            bottom_fill();
+            body();
+            body_top();
             for (x = cell_xs) lever_bump(x);
             for (x = cell_xs, s = [-1, 1]) crush_rib(x, s);
             for (k = [0 : len(blocks) - 1]) block(blocks[k], k);
         }
         for (x = stick_xs) { stick_slot(x); leaf_groove(x); }
-        for (x = cell_xs) { finger_slot(x); lever_cut(x); }
+        for (x = cell_xs) lever_cut(x);
+        for (i = [0 : cells - 1]) mouth_cut(i);
     }
 }
 
