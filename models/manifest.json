@@ -4435,49 +4435,46 @@
       "slug": "hc33-lipo-case",
       "devOnly": true,
       "title": "HT-HC33 LiPo Case",
-      "description": "A two-piece case that stands on end, holding a Heltec HT-HC33 (ESP32-S3 + Wi-Fi HaLow), a Heltec WiFi LoRa 32 V4, a 103665 LiPo pouch and a USB-C TP4056 charger board, with two SMA bulkheads through its top end and all three USB-Cs out of its bottom. In the base, the cell and the V4 lie flat side by side against the back, a divider between them, the V4 between corner brackets. The HC33 hangs face-in from the lid on four M2 posts over the cell; the TP4056 hangs upside down from the lid over the V4's lower end, on a pad between corner brackets. Two ribs either side of the cell stop just over it and hold it down. The SMAs sit over the V4's column, past the TP4056. Four M3 cap screws go down through corner towers; a tongue round the base's rim drops into a groove under the lid's. 79 × 80 × 27.1 mm (the body 70 × 71). Cell, V4 and TP4056 details are nominal, not measured. Not yet printed.",
+      "description": "A case that stands on end with everything stacked face to face inside it like a stack of cards: a USB-C TP4056 charger board at the back, then a 103665 LiPo pouch, a Heltec HT-HC33 (ESP32-S3 + Wi-Fi HaLow), and a Heltec WiFi LoRa 32 V4 at the front. Each board slides down into slotted rails on the side walls until its PCB lands on the slot's floor with its USB-C over an opening in the bottom, so all three USB-Cs come out of the bottom; the cell slides down between fins. A cap screws onto the top on four M3 cap screws through corner towers, with a tongue and groove round the rim. Two SMA bulkheads go through the cap at its front-left and back-right corners, and fingers under the cap stop each board and the cell from riding up. 51 × 55 × 84.8 mm (the body 42 × 45.4). Cell, V4 and TP4056 details are nominal, not measured. Not yet printed.",
       "filament": [
         { "material": "PETG", "color": "any" }
       ],
       "previews": [
-        { "file": "assembled.3mf", "format": "3mf", "label": "Assembled, the lid with the HC33 and the TP4056 on it lifted 30 mm off the base", "default": true,
+        { "file": "assembled.3mf", "format": "3mf", "label": "Assembled, the cap lifted 40 mm off the sleeve", "default": true,
           "legend": [
-            { "color": "#3a4250", "label": "Base and lid", "part": "base.stl", "parts": ["base.stl", "lid.stl"] },
-            { "color": "#e8c547", "label": "103665 LiPo (reference)" },
-            { "color": "#7a3fa0", "label": "Heltec V4 (reference)" },
+            { "color": "#3a4250", "label": "Sleeve and cap", "part": "sleeve.stl", "parts": ["sleeve.stl", "cap.stl"] },
             { "color": "#2f6fb0", "label": "TP4056 charger (reference)" },
+            { "color": "#e8c547", "label": "103665 LiPo (reference)" },
             { "color": "#2f8f4e", "label": "HT-HC33 (reference)" },
+            { "color": "#7a3fa0", "label": "Heltec V4 (reference)" },
             { "color": "#c9a227", "label": "SMA bulkheads (reference)" }
           ],
           "components": [
-            { "part": "base.stl", "qty": 1 },
-            { "part": "lid.stl", "qty": 1 }
+            { "part": "sleeve.stl", "qty": 1 },
+            { "part": "cap.stl", "qty": 1 }
           ] },
         { "file": "closed.3mf", "format": "3mf", "label": "Closed",
           "legend": [
-            { "color": "#3a4250", "label": "Base and lid", "part": "base.stl", "parts": ["base.stl", "lid.stl"] },
+            { "color": "#3a4250", "label": "Sleeve and cap", "part": "sleeve.stl", "parts": ["sleeve.stl", "cap.stl"] },
             { "color": "#c9a227", "label": "SMA bulkheads (reference)" }
           ] },
-        { "file": "print.3mf", "format": "3mf", "label": "Print plate: base and lid", "plate": true,
+        { "file": "print.3mf", "format": "3mf", "label": "Print plate: the sleeve standing on its bottom, the cap top face down", "plate": true,
           "legend": [
-            { "color": "#3a4250", "label": "Base and lid", "part": "base.stl", "parts": ["base.stl", "lid.stl"] }
+            { "color": "#3a4250", "label": "Sleeve and cap", "part": "sleeve.stl", "parts": ["sleeve.stl", "cap.stl"] }
           ],
           "components": [
-            { "part": "base.stl", "qty": 1 },
-            { "part": "lid.stl", "qty": 1 }
+            { "part": "sleeve.stl", "qty": 1 },
+            { "part": "cap.stl", "qty": 1 }
           ] }
       ],
       "parts": [
-        { "file": "base.stl", "format": "stl", "label": "Base — back face and walls up to the V4's top, divider between the cell and the V4, V4 brackets, the V4's USB-C opening, indexing tongue" },
-        { "file": "lid.stl", "format": "stl", "label": "Lid — front face and upper walls, HC33 posts, TP4056 pad and brackets, cell hold-down ribs, two USB-C and two SMA holes, counterbored corner towers; prints front face down" }
+        { "file": "sleeve.stl", "format": "stl", "label": "Sleeve — bottom with three USB-C openings, walls, board rails and cell fins, corner screw towers, indexing tongue; prints standing on its bottom" },
+        { "file": "cap.stl", "format": "stl", "label": "Cap — two SMA holes at opposite corners, hold-down fingers, counterbored screw holes, indexing groove; prints top face down" }
       ],
       "hardware": [
-        { "qty": 4, "label": "M3x18 socket cap screw — lid into the base's corner towers",
-          "usedBy": [ { "part": "lid.stl", "each": 4 } ] },
-        { "qty": 4, "label": "M2x5 self-tapping screw — HC33 onto the lid's posts",
-          "usedBy": [ { "part": "lid.stl", "each": 4 } ] },
-        { "qty": 2, "label": "SMA female bulkhead to U.FL pigtail — through the top end wall" },
-        { "qty": 2, "label": "Double-sided foam tape — the cell and the V4 to the base, the TP4056 to its pad" }
+        { "qty": 4, "label": "M3x10 socket cap screw — cap into the sleeve's corner towers",
+          "usedBy": [ { "part": "cap.stl", "each": 4 } ] },
+        { "qty": 2, "label": "SMA female bulkhead to U.FL pigtail — through the cap" }
       ]
     }
   ]

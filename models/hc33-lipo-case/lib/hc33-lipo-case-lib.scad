@@ -1,27 +1,28 @@
 // HT-HC33 LiPo case: a Heltec HT-HC33 (ESP32-S3 + Wi-Fi HaLow), a Heltec
 // WiFi LoRa 32 V4, a 103665 LiPo pouch cell and a USB-C TP4056 charger
-// board in a two-piece screwed case that stands on end, with two SMA
-// bulkheads through its top end and the three USB-Cs out of its bottom.
+// board, stacked face to face like a stack of cards in a case that stands
+// on end. The USB-Cs come out of the bottom, and two SMA bulkheads come
+// out of the top at opposite corners.
 //
-// Two columns side by side, two layers deep:
-// - the base: the back face and the walls up to the taller of the cell and
-//   the V4. The cell lies flat in the +X column; the V4 lies flat in the -X
-//   column between corner brackets, its USB-C through the bottom wall. A
-//   divider runs between them.
-// - the lid: the front face and the rest of the walls. The HC33 hangs from
-//   it on four M2 posts over the cell, face toward the lid, its USB-C
-//   through the bottom wall. The TP4056 hangs upside down over the V4's
-//   lower end, on a pad between corner brackets, its USB-C through the
-//   bottom wall above the V4's. Two ribs either side of the cell column
-//   stop just over the cell and hold it down. The SMAs go through the top
-//   end wall over the V4's column, past the TP4056.
-// M3 cap screws go down through the lid's corner towers into the base's.
-// A tongue round the base's rim drops into a groove under the lid's.
+// Two pieces:
+// - the sleeve: the bottom, the four walls and the screw towers, open at
+//   the top. Each board slides down into a pair of slotted rails, one on
+//   each side wall, until its PCB lands on the slot's floor with its USB-C
+//   over an opening in the bottom. The cell slides down between pairs of
+//   fins onto the bottom.
+// - the cap: the top. Its SMA holes sit over the front-left and back-right
+//   corners. A finger hangs down over each board and the cell and stops
+//   just short of it, so nothing can ride up out of its slot.
+// M3 cap screws go down through the cap into the sleeve's corner towers. A
+// tongue round the sleeve's rim drops into a groove under the cap.
 //
-// Frame: origin at the cavity's centre in plan, z = 0 on the back face. Y
-// runs up the case (+Y the top end, the SMAs; -Y the bottom, the USB-Cs),
-// X across, Z out the front. The base prints as modelled, back face down;
-// the lid prints front face down (`lid_print()`).
+// Stack, back to front: TP4056 (parts to the front), cell, HC33 (top face
+// to the front), V4 (top face, with its screen, to the front).
+//
+// Frame: origin at the cavity's centre in plan, z = 0 on the bottom face.
+// X across, Y through the stack (+Y the front), Z up the case. The sleeve
+// prints as modelled, bottom down; the cap prints top face down
+// (`cap_print()`).
 
 // BEGIN_PARAMS
 // 103665 LiPo pouch, protection board included: thickness, width, length
@@ -33,92 +34,87 @@ cell_l = 65;
 // Clearance round the cell per side
 cell_fit = 0.5;
 
-// Gap between the base's rim and the HC33's underside parts
-hc_head = 1.5;
-
-// Heltec HT-HC33: length, width, PCB thickness, the tallest part under
-// the PCB and over it
+// Heltec HT-HC33: length, width, PCB thickness, the tallest part behind
+// the PCB and in front of it
 hc_l = 60;
 hc_w = 33.5;
 hc_pcb = 1.5;
 hc_under = 3.6;
 hc_over = 3.3;
 
-// HC33 mounting holes: inset from the board's edges, and the M2 pilot in
-// the lid's posts (hole size unmeasured)
-hc_hole_inset = 2;
-hc_pilot_d = 1.7;
-hc_post_d = 4.5;
-
 // How far the HC33's USB-C sticks out past the board's end, and its
-// centre over the PCB's top face
+// centre in front of the PCB's top face
 hc_usb_overhang = 1.54;
-hc_usb_z = 0.3;
+hc_usb_y = 0.3;
 
-// Heltec WiFi LoRa 32 V4: length, width, thickness over its parts; its
-// USB-C's centre over the board's underside and how far it sticks out
-// past the board's end (both unmeasured)
+// Heltec WiFi LoRa 32 V4: length, width, PCB thickness, thickness over
+// its parts, the tallest part behind the PCB; its USB-C's centre in front
+// of the PCB's top face, and how far it sticks out past the board's end
+// (PCB, the split either side of it and the USB-C unmeasured)
 v4_l = 51.7;
 v4_w = 25.4;
+v4_pcb = 1;
 v4_t = 10.7;
-v4_usb_z = 4;
+v4_under = 2.5;
+v4_usb_y = 1.6;
 v4_usb_overhang = 0.5;
 
-// Clearance round the V4 per side
-v4_fit = 0.3;
-
-// Divider between the cell and the V4
-divider_t = 1.6;
-
 // TP4056 USB-C charger board: PCB length and width, PCB thickness, the
-// receptacle's height over the PCB and how far it sticks out past the
-// board's end (unmeasured)
+// solder behind it, the receptacle's height in front of it and how far it
+// sticks out past the board's end (unmeasured)
 tp_l = 28;
 tp_w = 17.5;
 tp_pcb = 1.6;
+tp_back = 0.5;
 tp_usb_h = 3.2;
 tp_usb_overhang = 0.6;
 
-// Pad between the TP4056 and the lid, so a plug's overmold clears the
-// lid's face
-tp_lift = 1;
+// Gap between neighbours in the stack, and in front of the V4
+layer_gap = 1.5;
+front_gap = 0.5;
 
-// Clearance round the TP4056 per side
-tp_fit = 0.3;
+// Board rails: how far each board's edge goes into its slot, the slot's
+// clearance over the PCB's thickness and past its edge, and the rail's
+// wall either side of the slot
+slot_engage = 1.25;
+slot_fit = 0.4;
+slot_side_fit = 0.3;
+rail_wall = 1.2;
 
-// Corner brackets round the V4 and the TP4056: wall, leg, height
-bracket_wall = 1.2;
-bracket_leg = 5;
-bracket_h = 2.5;
+// Fins either side of the cell: thickness, and how far in from the wall
+cell_fin_t = 1.2;
+cell_fin_reach = 3;
 
-// Gap between each USB-C's face and the bottom wall
+// Gap between each USB-C's face and the bottom
 usb_gap = 0.3;
 
-// USB-C openings, sized for a plug's overmold, with 45° chamfered corners
+// USB-C openings through the bottom, sized for a plug's overmold:
+// across, through the stack, corner radius
 usb_open_w = 13;
 usb_open_h = 7;
-usb_open_chamfer = 1.5;
+usb_open_r = 1;
 
-// SMA bulkheads (1/4-36) through the top end wall: the pair's centre
-// across from the V4 column's centre, either side of it by this much, the
-// hole, the inner nut across corners, and how far the connector's back
-// and the pigtail's bend reach in from the wall
-sma_shift = 1.5;
-sma_dx = 7.5;
+// SMA bulkheads (1/4-36) through the cap: the hole, the inner nut across
+// corners, and how far the connector's back and the pigtail's bend reach
+// down from the cap
 sma_hole_d = 6.6;
 sma_nut_d = 9.2;
 sma_behind = 12;
 
-// Walls, back and front
+// Fingers under the cap: width across, gap over what they stop, the
+// least thickness; the cell's pair stand this far either side of the
+// centre, clear of its tabs
+finger_w = 6;
+finger_gap = 0.3;
+finger_t_min = 1.6;
+cell_finger_x = 6.5;
+
+// Walls and bottom, and the cap (the SMAs' panel)
 wall = 2.5;
+cap_t = 5;
 
 // Outside corner radius
 corner_r = 4;
-
-// Hold-down ribs either side of the cell column: thickness, and the gap
-// over the cell
-rib_t = 1.2;
-rib_gap = 0.3;
 
 // M3 cap screws through the corner towers: clearance hole, pilot,
 // counterbore diameter and depth, the plastic round them, and the
@@ -128,10 +124,10 @@ pilot_d = 2.5;
 cbore_d = 6;
 cbore_h = 3.2;
 screw_skin = 1.2;
-screw_len = 18;
+screw_len = 10;
 
-// Indexing tongue round the base's rim: in from the cavity, width,
-// height; the lid's groove clearance per side
+// Indexing tongue round the sleeve's rim: in from the cavity, width,
+// height; the cap's groove clearance per side
 tongue_e = 0.65;
 tongue_w = 1.2;
 tongue_h = 1.5;
@@ -140,46 +136,44 @@ groove_fit = 0.2;
 
 eps = 0.01;
 
-// Across: the V4's column at -X, the divider, the cell's column at +X
-v4_col = v4_w + 2 * v4_fit;
-cell_col = cell_w + 2 * cell_fit;
-hx = (v4_col + divider_t + cell_col) / 2;
-v4_cx = -hx + v4_col / 2;
-div_x0 = -hx + v4_col;
-cell_cx = hx - cell_col / 2;
+hx = cell_w / 2 + cell_fit;
 inner_r = max(corner_r - wall, 0.5);
 
-// Along Y from the bottom wall's inner face. Each board's USB-C face is
-// usb_gap off the wall; its PCB starts the receptacle's overhang further in
-y0 = 0;
-hc_pcb_y0 = y0 + usb_gap + hc_usb_overhang;
-hc_y1 = hc_pcb_y0 + hc_l;
-v4_pcb_y0 = y0 + usb_gap + v4_usb_overhang;
-v4_y1 = v4_pcb_y0 + v4_l;
-tp_pcb_y0 = y0 + usb_gap + tp_usb_overhang;
-tp_y1 = tp_pcb_y0 + tp_l;
-cell_y0 = y0 + cell_fit;
-y1 = max(cell_y0 + cell_l + cell_fit, hc_y1 + 0.5, v4_y1 + v4_fit, tp_y1 + sma_behind + 1);
-// The cavity is centred on the origin
-ys = -(y0 + y1) / 2;
-hy = (y1 - y0) / 2;
+// Through the stack, from the back wall's inner face
+tp_y = 0;
+tp_depth = tp_back + tp_pcb + tp_usb_h;
+cell_y = tp_y + tp_depth + layer_gap;
+cell_depth = cell_t + 2 * cell_fit;
+hc_y = cell_y + cell_depth + layer_gap;
+hc_depth = hc_under + hc_pcb + hc_over;
+v4_y = hc_y + hc_depth + layer_gap;
+v4_over = v4_t - v4_under - v4_pcb;
+depth = v4_y + v4_t + front_gap;
+hy = depth / 2;
+// From the back face onto the frame
+yb = -hy;
 
-// Up from the back face
-cell_top = wall + cell_t;
-split = wall + max(cell_t, v4_t);
-v4_usb_cz = wall + v4_usb_z;
-pcb_bot = split + hc_head + hc_under;
-pcb_top = pcb_bot + hc_pcb;
-hc_usb_cz = pcb_top + hc_usb_z;
-groove_top = split + tongue_h + 0.3;
-ceiling = max(hc_usb_cz + usb_open_h / 2 + 1, pcb_top + hc_over + 1,
-              split + 1 + tp_lift + tp_pcb + tp_usb_h);
-total_h = ceiling + wall;
-// The TP4056 hangs upside down: pad, PCB, then the receptacle under it
-tp_pcb_z1 = ceiling - tp_lift;
-tp_usb_cz = tp_pcb_z1 - tp_pcb - tp_usb_h / 2;
-sma_z = ceiling - sma_nut_d / 2 - 0.3;
-sma_xs = [for (s = [-1, 1]) v4_cx + sma_shift + s * sma_dx];
+// Each board: [width, PCB's back face, PCB thickness, length, USB-C
+// overhang, USB-C centre]
+tp_board = [tp_w, tp_y + tp_back, tp_pcb, tp_l, tp_usb_overhang, tp_y + tp_back + tp_pcb + tp_usb_h / 2];
+hc_board = [hc_w, hc_y + hc_under, hc_pcb, hc_l, hc_usb_overhang, hc_y + hc_under + hc_pcb + hc_usb_y];
+v4_board = [v4_w, v4_y + v4_under, v4_pcb, v4_l, v4_usb_overhang, v4_y + v4_under + v4_pcb + v4_usb_y];
+boards = [tp_board, hc_board, v4_board];
+// Each board's PCB lands on its slot's floor, so the USB-C's face is
+// usb_gap off the bottom
+function board_z0(b) = wall + usb_gap + b[4];
+function board_z1(b) = board_z0(b) + b[3];
+cell_z1 = wall + cell_l;
+
+top = max(cell_z1, max([for (b = boards) board_z1(b)])) + finger_gap;
+// The cavity's top, the sleeve's rim: room for the SMAs' backs over everything
+rim = top + sma_behind;
+total_h = rim + cap_t;
+
+// SMAs over the front-left and back-right corners, the inner nut just
+// clear of the walls
+sma_e = sma_nut_d / 2 + 0.5;
+smas = [[-(hx - sma_e), hy - sma_e], [hx - sma_e, -(hy - sma_e)]];
 
 // Screws on the corners' diagonals, far enough out that the clearance
 // hole clears the side walls' faces and the counterbore the cavity's corner
@@ -187,37 +181,34 @@ screw_d = max(clear_d / 2 + screw_skin,
               ((cbore_d / 2 + 0.8 + inner_r) / sqrt(2)) - inner_r);
 tower_r = cbore_d / 2 + screw_skin;
 screws = [for (sx = [-1, 1], sy = [-1, 1]) [sx * (hx + screw_d), sy * (hy + screw_d)]];
-screw_engage = screw_len - (total_h - split - cbore_h);
+screw_engage = screw_len - (cap_t - cbore_h);
 pilot_depth = screw_engage + 1;
 
-hc_holes = [for (sx = [-1, 1], yy = [hc_pcb_y0 + hc_hole_inset, hc_y1 - hc_hole_inset])
-  [cell_cx + sx * (hc_w / 2 - hc_hole_inset), ys + yy]];
-// Inner faces of the hold-down ribs, from the cell column's centre
-rib_in = cell_col / 2 - 0.2 - rib_t;
+function slot_y0(b) = b[1] - slot_fit / 2;
+function slot_y1(b) = b[1] + b[2] + slot_fit / 2;
+function rail_y0(b) = slot_y0(b) - rail_wall;
+function rail_y1(b) = slot_y1(b) + rail_wall;
 
-assert(hc_w / 2 + 0.3 <= rib_in, "the HC33 runs into the hold-down ribs");
-assert(tp_w / 2 + tp_fit + bracket_wall <= v4_col / 2, "the TP4056's brackets leave the V4's column");
-assert(abs(cell_cx - v4_cx) >= usb_open_w + 2, "the HC33's and the TP4056's openings run together");
-assert(v4_usb_cz - usb_open_h / 2 >= wall + 0.5, "the V4's opening cuts into the back");
-assert(v4_usb_cz + usb_open_h / 2 <= split - 1, "the V4's opening runs up into the base's rim");
-assert(hc_usb_cz - usb_open_h / 2 >= groove_top + 1, "the HC33's opening runs into the lid's groove");
-assert(tp_usb_cz - usb_open_h / 2 >= groove_top + 1, "the TP4056's opening runs into the lid's groove");
-assert(tp_usb_cz + usb_open_h / 2 <= ceiling, "the TP4056's opening runs into the lid's face");
-assert(sma_z - sma_hole_d / 2 >= groove_top + 1, "an SMA's hole runs into the lid's groove");
-assert(sma_z - sma_nut_d / 2 >= split + 0.5, "an SMA's inner nut sits on the V4");
-assert(y1 - sma_behind >= tp_y1 + 1, "the SMAs' backs run into the TP4056");
-assert(sma_xs[1] - sma_xs[0] >= sma_nut_d + 3, "the SMAs' nuts are too close");
-for (x = sma_xs) {
-  assert(x + sma_nut_d / 2 <= cell_cx - rib_in - rib_t - 0.5, "an SMA's nut hits a hold-down rib");
-  assert(x - sma_nut_d / 2 >= -hx + 0.5, "an SMA's nut hits the side wall");
-  // The outer nut sits on the end face, beside the top corner's tower
-  assert(norm([x - screws[1][0], hy + wall + 1 - screws[1][1]]) >= tower_r + sma_nut_d / 2 + 0.3,
-         "an SMA's outer nut hits a screw tower");
-}
-assert(screw_engage >= 6, "the screws barely reach into the base");
-assert(pilot_depth <= split - 1, "the screw's pilot breaks through the back");
-assert(ceiling - pcb_top >= hc_over + 0.5, "the HC33's posts are shorter than its parts");
+for (b = boards) assert(b[0] / 2 + slot_side_fit <= hx, "a board is wider than the cavity");
+// The outermost rails may run into the back and front walls; their slots may not
+assert(slot_y0(tp_board) >= 0, "the TP4056's slot runs into the back wall");
+assert(rail_y1(tp_board) <= cell_y - cell_fin_t, "the TP4056's rail runs into the cell's fins");
+assert(rail_y0(hc_board) >= cell_y + cell_depth + cell_fin_t, "the HC33's rail runs into the cell's fins");
+assert(rail_y1(hc_board) <= rail_y0(v4_board), "the HC33's and the V4's rails run together");
+assert(slot_y1(v4_board) <= depth, "the V4's slot runs into the front wall");
+assert(cell_fin_t <= layer_gap, "the cell's fins run into its neighbours");
+// Openings through the bottom keep a web between them
+for (i = [0:len(boards) - 2])
+  assert(boards[i + 1][5] - boards[i][5] >= usb_open_h + 1.2, "two USB-C openings run together");
+assert(boards[0][5] - usb_open_h / 2 >= -wall + 1, "the TP4056's opening breaks out of the back");
+assert(boards[2][5] + usb_open_h / 2 <= depth + wall - 1, "the V4's opening breaks out of the front");
+assert(cell_finger_x + finger_w / 2 + 0.5 <= hx - sma_e - 6.35 / 2, "the cell's fingers hit an SMA's back");
+// The outer nuts sit on the cap beside the corner towers
+for (p = smas, q = screws) assert(norm(p - q) >= tower_r + sma_nut_d / 2 + 0.3, "an SMA's outer nut hits a screw tower");
+assert(screw_engage >= 6, "the screws barely reach into the sleeve");
+assert(cap_t - cbore_h >= 1.5, "too little cap under the screw heads");
 assert(tongue_e + tongue_w + groove_fit + 0.4 <= wall, "the groove breaks out of the wall");
+assert(tongue_h + 0.3 <= cap_t - 1.2, "the groove runs up through the cap");
 
 // Footprint: the rounded body and the four screw towers
 module outline() {
@@ -238,115 +229,97 @@ module tongue_plan(grow = 0) {
   }
 }
 
-// USB-C opening through the bottom wall, centred at (x, z)
-module usb_opening(x, z) {
-  c = usb_open_chamfer;
-  w = usb_open_w / 2;
-  h = usb_open_h / 2;
-  translate([x, -hy - wall / 2, z]) rotate([90, 0, 0]) linear_extrude(wall + 2, center = true)
-    polygon([[-w + c, -h], [w - c, -h], [w, -h + c], [w, h - c], [w - c, h], [-w + c, h], [-w, h - c], [-w, -h + c]]);
-}
+// ---- sleeve
 
-// Corner brackets round a board w wide whose PCB runs ya..yb (from the
-// bottom wall), centred on x. The pair at the USB end stand back from the
-// end so they clear the receptacle's corners.
-module board_brackets(x, w, ya, yb, fit, h) {
-  gw = w / 2 + fit;
-  translate([x, 0, 0]) for (sx = [-1, 1]) scale([sx, 1, 1]) {
-    translate([gw, ys + ya + 2, 0]) cube([bracket_wall, bracket_leg, h]);
-    translate([gw - bracket_leg, ys + yb + fit, 0]) cube([bracket_leg + bracket_wall, bracket_wall, h]);
-    translate([gw, ys + yb + fit - bracket_leg, 0]) cube([bracket_wall, bracket_leg, h]);
+// A board's rail on each side wall: a block from the wall to past the
+// board's edge, slotted for the PCB from its floor up.
+module rails(b) {
+  for (sx = [-1, 1]) scale([sx, 1, 1]) difference() {
+    translate([b[0] / 2 - slot_engage, yb + rail_y0(b), wall - eps])
+      cube([hx - b[0] / 2 + slot_engage + eps, rail_y1(b) - rail_y0(b), board_z1(b) - wall + eps]);
+    translate([b[0] / 2 - slot_engage - 1, yb + slot_y0(b), board_z0(b)])
+      cube([slot_engage + 1 + slot_side_fit, slot_y1(b) - slot_y0(b), b[3] + 1]);
   }
 }
 
-// ---- base
+module cell_fins() {
+  for (sx = [-1, 1], y = [cell_y - cell_fin_t, cell_y + cell_depth]) scale([sx, 1, 1])
+    translate([hx - cell_fin_reach, yb + y, wall - eps]) cube([cell_fin_reach + eps, cell_fin_t, cell_l + eps]);
+}
 
-module base() {
+module sleeve() {
   difference() {
     union() {
-      linear_extrude(split) outline();
-      translate([0, 0, split - eps]) linear_extrude(tongue_h + eps) tongue_plan();
+      linear_extrude(rim) outline();
+      translate([0, 0, rim - eps]) linear_extrude(tongue_h + eps) tongue_plan();
     }
-    translate([0, 0, wall]) linear_extrude(split) cavity();
-    for (p = screws) translate([p[0], p[1], split - pilot_depth]) cylinder(d = pilot_d, h = pilot_depth + 1);
-    usb_opening(v4_cx, v4_usb_cz);
+    translate([0, 0, wall]) linear_extrude(rim) cavity();
+    for (p = screws) translate([p[0], p[1], rim - pilot_depth]) cylinder(d = pilot_d, h = pilot_depth + 1);
+    for (b = boards) translate([0, yb + b[5], -1]) linear_extrude(wall + 2)
+      offset(usb_open_r) square([usb_open_w - 2 * usb_open_r, usb_open_h - 2 * usb_open_r], center = true);
   }
-  translate([div_x0, -hy - eps, wall - eps]) cube([divider_t, 2 * hy + 2 * eps, split - wall + eps]);
-  translate([0, 0, wall - eps]) board_brackets(v4_cx, v4_w, v4_pcb_y0, v4_y1, v4_fit, bracket_h + eps);
+  for (b = boards) rails(b);
+  cell_fins();
 }
 
-// ---- lid, modelled in place
+// ---- cap, modelled in place
 
-module lid() {
+module cap() {
   difference() {
     union() {
-      difference() {
-        translate([0, 0, split]) linear_extrude(total_h - split) outline();
-        translate([0, 0, split - 1]) linear_extrude(ceiling - split + 1) cavity();
-      }
-      for (sx = [-1, 1]) translate([cell_cx + sx * (rib_in + rib_t / 2) - rib_t / 2, -hy + inner_r, cell_top + rib_gap])
-        cube([rib_t, 2 * (hy - inner_r), ceiling - cell_top - rib_gap + eps]);
-      for (p = hc_holes) translate([p[0], p[1], pcb_top]) cylinder(d = hc_post_d, h = ceiling - pcb_top + eps);
-      translate([v4_cx - tp_w / 2 - tp_fit, -hy - eps, tp_pcb_z1])
-        cube([tp_w + 2 * tp_fit, tp_y1 - y0 + tp_fit + eps, tp_lift + eps]);
-      translate([0, 0, tp_pcb_z1 - bracket_h]) board_brackets(v4_cx, tp_w, tp_pcb_y0, tp_y1, tp_fit, bracket_h + eps);
+      translate([0, 0, rim]) linear_extrude(cap_t) outline();
+      for (b = boards) let(t = max(b[2], finger_t_min))
+        translate([-finger_w / 2, yb + b[1] + b[2] / 2 - t / 2, board_z1(b) + finger_gap])
+          cube([finger_w, t, rim - board_z1(b) - finger_gap + eps]);
+      for (sx = [-1, 1])
+        translate([sx * cell_finger_x - finger_w / 2, yb + cell_y + cell_fit + 1, cell_z1 + finger_gap])
+          cube([finger_w, cell_t - 2, rim - cell_z1 - finger_gap + eps]);
     }
-    translate([0, 0, split - 1]) linear_extrude(groove_top - split + 1) tongue_plan(groove_fit);
-    for (p = screws) translate([p[0], p[1], 0]) {
-      cylinder(d = clear_d, h = total_h + 1);
-      translate([0, 0, total_h - cbore_h]) cylinder(d = cbore_d, h = cbore_h + 1);
+    translate([0, 0, rim - 1]) linear_extrude(tongue_h + 0.3 + 1) tongue_plan(groove_fit);
+    for (p = screws) translate([p[0], p[1], rim - 1]) {
+      cylinder(d = clear_d, h = cap_t + 2);
+      translate([0, 0, cap_t + 1 - cbore_h]) cylinder(d = cbore_d, h = cbore_h + 1);
     }
-    for (p = hc_holes) translate([p[0], p[1], pcb_top - 1]) cylinder(d = hc_pilot_d, h = ceiling - pcb_top);
-    usb_opening(cell_cx, hc_usb_cz);
-    usb_opening(v4_cx, tp_usb_cz);
-    for (x = sma_xs) translate([x, hy + wall / 2, sma_z]) rotate([90, 0, 0])
-      cylinder(d = sma_hole_d, h = wall + 2, center = true);
+    for (p = smas) translate([p[0], p[1], rim - 1]) cylinder(d = sma_hole_d, h = cap_t + 2);
   }
 }
 
-module lid_in_place(lift = 0) {
-  translate([0, 0, lift]) lid();
+module cap_in_place(lift = 0) {
+  translate([0, 0, lift]) cap();
 }
 
-// Front face down, so the counterbores' floors are short bridges and the
-// ribs, posts and brackets stand up off it.
-module lid_print() {
-  translate([0, 0, total_h]) mirror([0, 0, 1]) lid();
+// Top face down, so the counterbores' floors are short bridges and the
+// fingers stand up off it.
+module cap_print() {
+  translate([0, 0, total_h]) mirror([0, 0, 1]) cap();
 }
 
 // ---- reference parts
 
 module ref_cell() {
-  translate([cell_cx - cell_w / 2, ys + cell_y0, wall]) cube([cell_w, cell_l, cell_t]);
+  translate([-cell_w / 2, yb + cell_y + cell_fit, wall]) cube([cell_w, cell_t, cell_l]);
 }
 
-// A block of its full thickness, and its USB-C
-module ref_v4() {
-  translate([v4_cx - v4_w / 2, ys + v4_pcb_y0, wall]) cube([v4_w, v4_l, v4_t]);
-  translate([v4_cx - 4.5, ys + y0 + usb_gap, v4_usb_cz - 1.6]) cube([9, v4_usb_overhang + 7, 3.2]);
+// A board as its PCB, its parts as blocks either side, clear of the
+// edges the rails hold, and its USB-C. back/front: the tallest parts
+// behind and in front of the PCB
+module ref_board(b, back, front) {
+  z0 = board_z0(b);
+  e = slot_engage + 1;
+  translate([-b[0] / 2, yb + b[1], z0]) cube([b[0], b[2], b[3]]);
+  if (back > 0) translate([-b[0] / 2 + e, yb + b[1] - back, z0 + 3]) cube([b[0] - 2 * e, back, b[3] - 6]);
+  translate([-b[0] / 2 + e, yb + b[1] + b[2], z0 + 3]) cube([b[0] - 2 * e, front, b[3] - 6]);
+  translate([-4.5, yb + b[5] - 1.6, wall + usb_gap]) cube([9, 3.2, b[4] + 7]);
 }
 
-// Upside down under the lid
-module ref_tp(lift = 0) {
-  translate([0, 0, lift]) {
-    translate([v4_cx - tp_w / 2, ys + tp_pcb_y0, tp_pcb_z1 - tp_pcb]) cube([tp_w, tp_l, tp_pcb]);
-    translate([v4_cx - 4.5, ys + y0 + usb_gap, tp_pcb_z1 - tp_pcb - tp_usb_h]) cube([9, 7.5, tp_usb_h]);
-  }
-}
-
-// The PCB, its parts as blocks either side clear of the holes, and the USB-C
-module ref_hc(lift = 0) {
-  translate([cell_cx, 0, lift]) {
-    translate([-hc_w / 2, ys + hc_pcb_y0, pcb_bot]) cube([hc_w, hc_l, hc_pcb]);
-    translate([-hc_w / 2 + 5, ys + hc_pcb_y0 + 8, pcb_bot - hc_under]) cube([hc_w - 10, hc_l - 12, hc_under]);
-    translate([-hc_w / 2 + 5, ys + hc_pcb_y0 + 8, pcb_top]) cube([hc_w - 10, hc_l - 12, hc_over]);
-    translate([-4.5, ys + y0 + usb_gap, hc_usb_cz - 1.6]) cube([9, 7.5, 3.2]);
-  }
-}
+module ref_tp() { ref_board(tp_board, 0, tp_usb_h); }
+module ref_hc() { ref_board(hc_board, hc_under, hc_over); }
+module ref_v4() { ref_board(v4_board, v4_under, v4_over); }
 
 module ref_sma(lift = 0) {
-  for (x = sma_xs) translate([x, hy, sma_z + lift]) rotate([-90, 0, 0]) {
-    translate([0, 0, -(sma_behind - 2)]) cylinder(d = 6.35, h = sma_behind - 2 + wall + 8);
-    translate([0, 0, wall]) cylinder(d = sma_nut_d, h = 2, $fn = 6);
+  for (p = smas) translate([p[0], p[1], rim + lift]) {
+    translate([0, 0, -(sma_behind - 2)]) cylinder(d = 6.35, h = sma_behind - 2 + cap_t + 8);
+    translate([0, 0, -2]) cylinder(d = sma_nut_d, h = 2, $fn = 6);
+    translate([0, 0, cap_t]) cylinder(d = sma_nut_d, h = 2, $fn = 6);
   }
 }
