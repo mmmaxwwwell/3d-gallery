@@ -74,6 +74,9 @@ import antennaMountsLib from "../../../models/antenna-mounts/lib/antenna-mounts-
 import antennaMountsAssembled from "../../../models/antenna-mounts/previews/assembled.scad?raw";
 import antennaMountsOnMolle from "../../../models/antenna-mounts/previews/on-molle.scad?raw";
 import antennaMountsPlate from "../../../models/antenna-mounts/previews/plate.scad?raw";
+import molle18650HolderLib from "../../../models/molle-18650-holder/lib/molle-18650-holder-lib.scad?raw";
+import molle18650HolderAssembled from "../../../models/molle-18650-holder/previews/assembled.scad?raw";
+import molle18650HolderPlate from "../../../models/molle-18650-holder/previews/plate.scad?raw";
 
 // Strip include lines from a .scad source (for WASM concatenation with lib)
 function stripIncludes(source: string): string {
@@ -242,6 +245,13 @@ export const CUSTOMIZABLE_SOURCES: Record<string, { lib: string; previews: Recor
       assembled: stripIncludes(antennaMountsAssembled),
       "on-molle": stripIncludes(antennaMountsOnMolle),
       plate: stripIncludes(antennaMountsPlate),
+    },
+  },
+  "molle-18650-holder": {
+    lib: molle18650HolderLib,
+    previews: {
+      assembled: stripIncludes(molle18650HolderAssembled),
+      plate: stripIncludes(molle18650HolderPlate),
     },
   },
 };

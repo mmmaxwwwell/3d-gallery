@@ -4480,6 +4480,43 @@
         { "qty": 1, "label": "1.75 mm filament, 45 mm — the hinge pin" },
         { "qty": 2, "label": "SMA female bulkhead to U.FL pigtail — through the top" }
       ]
+    },
+    {
+      "slug": "molle-18650-holder",
+      "devOnly": true,
+      "customizable": true,
+      "title": "MOLLE 18650 Holder",
+      "description": "Four 18650 cells standing upright side by side in one printed piece that mounts straight onto PALS webbing with two of BigFootPL's 4\" Molle sticks (in the Library), like a MOLLE pouch: nothing to screw together. The back is a stick weave: a block in each PALS gap, a slot up through each block for a stick, and only the plate across the bands, so each stick runs block, band, block, band. Its tip rests on a floor in the bottom block and its hook snaps over the top block's back wall. With no bolt grid in the way, the blocks fill the PALS gaps exactly. The 4\" stick spans two bands, two columns across. The cells drop in from the top, flush with it, and stand on a floor. A 45\u00b0 bevel down the top front opens each pocket so you can grip a cell, and below the cells the front tapers at 45\u00b0 to the plate. Two crush ribs per pocket hold each cell; a drain hole under each runs out through the taper. 86 \u00d7 104.5 \u00d7 30.7 mm. Prints front face down, no supports. Cell count, cell size and stick length are customizable. Not yet printed.",
+      "filament": [
+        { "material": "PETG", "color": "any" }
+      ],
+      "previews": [
+        { "file": "assembled.3mf", "format": "3mf", "label": "On two PALS bands, cells in, sticks woven through", "default": true, "module": "assembled",
+          "legend": [
+            { "color": "#3a4250", "label": "Holder", "part": "holder.stl" },
+            { "color": "#2f6fb0", "label": "18650 cells (reference)" },
+            { "color": "#2b2b2b", "label": "4\" Molle sticks (reference)" },
+            { "color": "#6b7a3a", "label": "PALS webbing (reference)" }
+          ],
+          "components": [
+            { "part": "holder.stl", "qty": 1 }
+          ] },
+        { "file": "plate.3mf", "format": "3mf", "label": "Print plate: front face down", "plate": true, "module": "plate",
+          "legend": [
+            { "color": "#3a4250", "label": "Holder", "part": "holder.stl" }
+          ],
+          "components": [
+            { "part": "holder.stl", "qty": 1 }
+          ] }
+      ],
+      "parts": [
+        { "file": "holder.stl", "format": "stl", "label": "Holder — four cell pockets, stick weave on the back", "module": "holder" }
+      ],
+      "hardware": [
+        { "qty": 2, "label": "4\" Molle stick — BigFootPL's, printed from the Library; weaves the holder onto the webbing",
+          "source": { "url": "https://www.printables.com/model/411201-molle-stick", "vendor": "Printables" } },
+        { "qty": 4, "label": "18650 cell" }
+      ]
     }
   ]
 }
