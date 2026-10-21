@@ -14,3 +14,4 @@ color("#e8c547") carriage_out(55) ref_cell();
 color("#2f8f4e") carriage_out(55) ref_hc();
 color("#7a3fa0") carriage_out(55) ref_v4();
 color("#c9a227") carriage_out(55) ref_sma();
+color("#f0f0f0") carriage_out(55) ref_ties();

@@ -127,6 +127,20 @@ bottom_engage = 0.9;
 // How far each roof over the cell's top end reaches in from its side
 cell_roof_reach = 6;
 
+// Zip ties hold everything into its cradle on the carriage before it goes
+// in: the tie's width and thickness, the clearance round it; how far in
+// from each end of the cell its two ties go; how far up the V4 its tie
+// goes (below the OLED, where the parts either side are low) and how tall
+// those parts are there; how deep the grooves in the fins are where a tie
+// runs past a fin
+tie_w = 2.5;
+tie_t = 1.1;
+tie_fit = 0.3;
+cell_tie_in = 9;
+v4_tie_up = 9;
+v4_tie_parts = 1.3;
+tie_groove = 0.6;
+
 // Gap between each USB-C's face and the wall it comes through
 usb_gap = 0.3;
 
@@ -283,7 +297,7 @@ exw = hx + (side_wall + right_wall) / 2;
 
 // Through the stack, from the back wall's inner face. The TP4056 sits far
 // enough off the back wall for its holders' rail_wall behind its slot.
-tp_y = slide_fit + rail_wall + slot_fit / 2 - tp_back;
+tp_y = max(slide_fit + rail_wall + slot_fit / 2 - tp_back, slide_fit + tie_t + tie_fit);
 tp_depth = tp_back + tp_pcb + tp_usb_h;
 hc_y = tp_y + tp_depth + layer_gap;
 hc_depth = hc_under + hc_pcb + hc_over;
@@ -320,6 +334,11 @@ tp_usb_cy = tp_pcb_y + tp_pcb + tp_usb_h / 2;
 tp_usb_cz = tp_z0 + tp_w / 2;
 
 cell_z1 = floor_z + cell_l;
+
+// The ties: across each board at a height, [board, z, parts behind, parts
+// in front]; the cell's at two x; the TP4056's at its middle
+cell_ties = [-cell_w / 2 + cell_tie_in, cell_w / 2 - cell_tie_in];
+tp_tie_x = tp_x0 + tp_l / 2;
 
 tallest = max(cell_z1, tp_z1, max([for (b = boards) board_z1(b)]));
 // The fins stop at the roofs; above them the wires cross between chambers
@@ -417,6 +436,16 @@ function band_z1(i) = bands[i][1];
 function band_of(z) = [for (i = [0:band_n - 1]) if (z >= bands[i][0] && z < bands[i][1]) i][0];
 function inset_band(i) = i != undef && bands[i][2];
 
+board_ties = [
+  [hc_board, max(board_z0(hc_board) + hc_l / 2, tp_divider_z1 + tie_w), hc_under, hc_over],
+  [v4_board, board_z0(v4_board) + v4_tie_up, v4_tie_parts, v4_tie_parts]];
+// How far a board's tie sinks into the door face, where its edge leaves
+// too little room for the tie and a sliver of rib
+function tie_sink(b) = let(short = (-hx + tie_t + tie_fit) - (-b[0] / 2 - slot_side_fit - 0.3)) short > 0 ? short + 0.2 : 0;
+// A board's tie's span across the stack
+function tie_y0(t) = t[0][1] - t[2] - tie_t - tie_fit;
+function tie_y1(t) = t[0][1] + t[0][2] + t[3] + tie_t + tie_fit;
+
 // The door-face screws, [y, z]: up each wall's end, evenly from the bottom
 // corner to the top one (as high as the pilot stays in the wall), and
 // across the bottom between them into the floor's end, under its seal
@@ -500,6 +529,16 @@ assert(end_wall - grip_inset - screw_in - m3_pilot_d / 2 >= 0.8, "the screws run
 assert(screw_y + m3_cbore_d / 2 <= lead_y, "the door screws' heads run off the flat of the door face");
 assert(top_x1 - top_x0 >= 10 * (top_screws_per_wall - 1), "the top screws are crowded");
 assert(top_t >= m3_cbore_h + 1.2, "the top is too thin for the screws' counterbores");
+// The ties: each board's passes between the door face and its edge, and
+// round its free right end inside the cavity
+for (t = board_ties) {
+  assert(tie_sink(t[0]) <= side_wall - grip_inset - 2, "a board's tie sinks too far into the door face");
+  assert(t[0][0] / 2 + tie_t + tie_fit <= hx, "a board's tie has no room round its right end");
+}
+assert(tie_t <= floor_channel_d, "the cell's ties don't fit under it in the floor plate");
+for (x = cell_ties) for (rx = [-hx, hx - slide_fit - cell_roof_reach])
+  assert(abs(x - (rx + cell_roof_reach / 2)) >= cell_roof_reach / 2 + tie_w / 2 + tie_fit, "a cell tie runs under a roof");
+assert(tp_z0 - floor_z >= tie_t + tie_fit, "the TP4056's tie doesn't fit under it");
 assert(door_engage >= 6 && top_engage >= 6, "the screws barely reach into the walls");
 // The door screws' heads stay on the door face's flat, off its rounded
 // top edge, and have room between them; the right row's pilots stay in the
@@ -794,7 +833,11 @@ module body() {
     side_opening();
     grip_cut();
   }
-  for (b = boards) right_rail(b);
+  difference() {
+    for (b = boards) right_rail(b);
+    // where each board's tie wraps its right end
+    for (t = board_ties) translate([0, -ey, t[1] - tie_w / 2 - tie_fit]) cube([hx + 1, 2 * ey, tie_w + 2 * tie_fit]);
+  }
   tp_right_rails();
   side_door_printed();
 }
@@ -1126,14 +1169,71 @@ module carriage() {
     }
     screw_holes();
     grip_cut();
+    for (t = board_ties) if (tie_sink(t[0]) > 0)
+      translate([-hx - tie_sink(t[0]) - eps, yb + tie_y0(t), t[1] - tie_w / 2 - tie_fit])
+        cube([tie_sink(t[0]) + 2 * eps, tie_y1(t) - tie_y0(t), tie_w + 2 * tie_fit]);
   }
-  fins();
-  cell_cradle();
-  tp_bars();
-  left_rib(tp_b, tp_x0, tp_z0, tp_z1);
-  for (b = boards) left_rib(b, -b[0] / 2, board_z0(b), board_z1(b));
-  board_bars(hc_board, dividers[1] - divider_t / 2);
-  board_bars(v4_board, dividers[2] + divider_t / 2);
+  difference() {
+    union() {
+      fins();
+      cell_cradle();
+      tp_bars();
+      left_rib(tp_b, tp_x0, tp_z0, tp_z1);
+      for (b = boards) left_rib(b, -b[0] / 2, board_z0(b), board_z1(b));
+      board_bars(hc_board, dividers[1] - divider_t / 2);
+      board_bars(v4_board, dividers[2] + divider_t / 2);
+    }
+    tie_channels();
+  }
+}
+
+// ---- zip ties
+
+// Where the ties pass through the carriage's cradles:
+// - each board's: a slot through its rib against the door face, and a
+//   groove in the fin in front of it;
+// - the cell's two: a slot across its floor plate and a groove up each fin
+//   either side of it;
+// - the TP4056's: gaps in its two bars.
+module tie_channels() {
+  w = tie_w + 2 * tie_fit;
+  for (t = board_ties) translate([-hx - 1, -ey, t[1] - w / 2]) cube([1 - tie_sink(t[0]) + tie_t + tie_fit, 2 * ey, w]);
+  // the HC33's groove in the fin in front of it
+  let(t = board_ties[0]) translate([-hx - 1, yb + dividers[1] - divider_t / 2 - eps, t[1] - w / 2])
+    cube([2 * hx + 2, tie_groove + eps, w]);
+  for (x = cell_ties) {
+    translate([x - w / 2, yb + dividers[1] - divider_t / 2 - 1, fin_z0 - 1]) cube([w, dividers[2] - dividers[1] + divider_t + 2, floor_z - fin_z0 + 1 + eps]);
+    for (y = [dividers[1] + divider_t / 2 - tie_groove, dividers[2] - divider_t / 2 - eps])
+      translate([x - w / 2, yb + y, fin_z0 - 1]) cube([w, tie_groove + eps, divider_z1 + 1]);
+  }
+  translate([tp_tie_x - w / 2, yb - 1, floor_z]) cube([w, dividers[0] + 1 - divider_t / 2, tp_z1 + roof_fit + roof_t - floor_z + 1]);
+}
+
+// The ties themselves, done up, for checking and the previews: a band
+// tie_t thick round each thing it holds
+module tie_loop_xy(x0, x1, y0, y1, z) {
+  translate([0, 0, z - tie_w / 2]) linear_extrude(tie_w) difference() {
+    translate([x0 - tie_t, y0 - tie_t]) square([x1 - x0 + 2 * tie_t, y1 - y0 + 2 * tie_t]);
+    translate([x0, y0]) square([x1 - x0, y1 - y0]);
+  }
+}
+
+module tie_loop_yz(x, y0, y1, z0, z1) {
+  translate([x - tie_w / 2, 0, 0]) rotate([90, 0, 90]) linear_extrude(tie_w) difference() {
+    translate([y0 - tie_t, z0 - tie_t]) square([y1 - y0 + 2 * tie_t, z1 - z0 + 2 * tie_t]);
+    translate([y0, z0]) square([y1 - y0, z1 - z0]);
+  }
+}
+
+module ref_ties() {
+  // the boards': round the board's parts, through the rib, round its end
+  for (t = board_ties) let(b = t[0])
+    tie_loop_xy(-hx - tie_sink(b) + 0.05 + tie_t, b[0] / 2 + 0.05, yb + b[1] - t[2] - 0.05, yb + b[1] + b[2] + t[3] + 0.05, t[1]);
+  // the cell's: under it in the plate, up its faces, over its top
+  for (x = cell_ties)
+    tie_loop_yz(x, yb + cell_y + cell_fit - 0.05, yb + cell_y + cell_fit + cell_t + 0.05, floor_z, cell_z1 + 0.05);
+  // the TP4056's: round its PCB and the parts in front of it
+  tie_loop_yz(tp_tie_x, yb + tp_pcb_y - tp_back - 0.05, yb + tp_pcb_y + tp_pcb + 1.5, tp_z0 - 0.05, tp_z1 + 0.05);
 }
 
 // The screws' clearance holes and counterbores through the door face and

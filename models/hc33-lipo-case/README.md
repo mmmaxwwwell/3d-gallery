@@ -8,35 +8,39 @@ A sealed case that stands on end, with everything stacked face to face inside it
 
 The bottom is flat: the HC33 and V4 are flashed over the air. The TP4056's USB-C comes out of the right side. Two SMA bulkheads come out of the top at opposite corners: front-left and back-right.
 
-54.6 × 71.1 × 95.8 mm. Not printed yet.
+52.3 × 63.3 × 95.7 mm. Not printed yet.
 
 ## Pieces
 
 | Piece | Material | Prints |
 |---|---|---|
-| Body | black PCTG with the side door printed in its track (`body.stl`); orange TPU 75A base and grip rings (`body-tpu.stl`); black TPU Air seal channels and side-door gasket (`body-seal.stl`) | standing on its bottom |
-| Carriage | black PCTG (`carriage.stl`); orange TPU 75A grip rings and the base's strip under the door face (`carriage-tpu.stl`); black TPU Air washers for the SMAs (`carriage-seal.stl`) | on its door face |
+| Body | black PCTG core with the side door printed in its track (`body.stl`); orange TPU 75A knurled rings (`body-tpu.stl`); black TPU Air base, smooth skin, seal channels and side-door gasket (`body-seal.stl`) | standing on its bottom |
+| Carriage | black PCTG core (`carriage.stl`); orange TPU 75A knurled rings (`carriage-tpu.stl`); black TPU Air foot, smooth skin, top skin and SMA washers (`carriage-seal.stl`) | on its door face |
 
 Both go on one Snapmaker U1 bed, `print.3mf`, every TPU printed in place: TPU Air from head 1, PCTG from head 3, TPU 75A from head 4 (the plate pins the colours to those heads).
 
 - **Carriage.** One L-shaped piece: the top, with the SMA holes, and the left face, the door face. Everything inside hangs on it, so the whole stack comes out together.
-- **Body.** The bottom (9.8 mm, for the door face's bottom screws under its seal), the back and front walls (13.5 mm), and the right wall (11.6 mm), all thick for the screws. It is open at the top and on the left, and the carriage slides in from the left.
+- **Body.** The bottom (9.8 mm, for the door face's bottom screws under its seal), and the back, front and right walls (9.3 mm, of which 2 mm is the skin). It is open at the top and on the left, and the carriage slides in from the left.
 
-Seen from the top, the case is a rounded rectangle (10 mm corners). The left and right faces run into the corners at 45°, and the top edge is rounded (4 mm) with the same 45° lead.
+Seen from the top, the case is a rectangle with flat sides and tight 2 mm corners (with a 45° lead-in on the left and right faces); the top edge is rounded 1.5 mm. The walls are as slim as the screws allow: 0.85 mm of PCTG each side of each pilot, then the skin, with the flats running out past every screw head.
 
-## Grip and base
+## Skin
 
-- **Rings.** Rings run round the case, PCTG and TPU in turn: a short TPU ring (10.4 mm) from the bottom, on the base; five 14 mm rings from PCTG to PCTG; and a short TPU ring under the top. The rings are 14 mm, not 15, so both short rings fit. The knurl runs right up to the screw heads and the door face's seam. Each TPU ring fills a recess sunk 2 mm into the PCTG with 45° chamfers top and bottom. Its outside is flush with the PCTG rings and knurled 0.8 mm deep:
-  - round the body, diamond pyramids 2 mm apart at ±45°;
-  - on the door face, 90° V-grooves at ±45°, 2 mm apart. The door face is the carriage's print bed, and V-groove walls print at 45° there where pyramids wouldn't;
-  - round the corners and the door face's 45° lead-ins, the body's diamond knurl carries on unbroken. As the carriage prints on its door face, some facets there face down past 45°, so expect them a little rough.
-  - The rings stop 1.5 mm short of the side door's track only.
-- **Base.** 1.6 mm of orange TPU under the whole case, flat; the bottom TPU ring stands on it. The strip under the door face prints with the carriage; the rest with the body. Twelve keys rise 1.5 mm from it into the body's walls, flaring 0.4 mm, so the PCTG printed over them holds them as well as the bond does.
+The outside is a 2 mm TPU skin printed in place over a PCTG core, except round the side door's housing, which is bare PCTG.
+- **Rings.** Orange TPU 75A grip rings and smooth black TPU Air rings, 14 mm each, run round the case in turn, with a short orange ring (10.4 mm) at the bottom and another under the top. The rings are 14 mm, not 15, so both short rings fit.
+- **Knurl.** The orange rings carry a diamond knurl: 90° V-grooves at ±45°, 2 mm apart and 0.8 mm deep, leaving small flat diamonds. It is one surface all the way round, body and carriage alike, on a grid that puts every groove exactly, so it meets itself without a seam. On the door face, the carriage's print bed, the groove walls print at 45°.
+- **Top.** The top's outer 2 mm is TPU Air.
+- **Base.** 1.5 mm of TPU Air under the whole case. The strip under the door face prints with the carriage; the rest with the body. Twelve keys rise 1.5 mm from it into the body's walls, flaring 0.4 mm, so the PCTG printed over them holds them as well as the bond does.
+- **Screws.** The counterbores go through the skin into the PCTG (3.2 deep through 2 of TPU), so the heads seat on PCTG.
 
 ## How it goes together
 
 - **Chambers.** The carriage's 1.2 mm fins run between the layers, from the floor up to just over the tallest part. The 10 mm under the top is open across all four chambers: that's where the wires and the SMA pigtails cross. The fin between the TP4056 and the HC33 stops just over the TP4056 (23.5 mm up), so the HC33's chamber takes in the space above the charger, where its antenna goes.
-- **HC33 and V4.** Each board is held on all four edges, snug: 0.2 mm over the PCB's thickness, 0.15 mm over its top edge.
+- **Zip ties do the holding.** Each thing drops into its cradle on the carriage and is zip-tied in before the carriage goes into the body; the body's rails are a second hold, not the first. Ties are 2.5 mm wide and about 1 mm thick, with 0.3 mm of room round them.
+  - The cell: two ties, 9 mm in from each end. Each runs under the cell through a slot in its floor plate, up both faces in grooves in the fins either side, and over the top between the end roofs. The slots and grooves stop the ties sliding, which is what keeps the cell in.
+  - The HC33 and the V4: one tie each, round the board and through a slot in its door-face rib, so the tie also wraps that rib. It passes round the board's free right end, where the body's rail is notched for it. The V4's sits 9 mm up its board, under the OLED, where the parts either side are low. The HC33's sits above the short fin behind it, with a shallow groove in the fin in front. The HC33 is so wide that its tie sinks 0.35 mm into a pocket in the door face's inner side.
+  - The TP4056: one tie round its middle, through gaps in its two bars and behind it (the stack sits 0.6 mm further forward for the room).
+- **HC33 and V4.** Each board sits in a cradle on all four edges, snug: 0.2 mm over the PCB's thickness, 0.15 mm over its top edge.
   - Its left edge sits in a slotted rib on the door face. With the carriage in, its right edge sits in a slotted rail on the body's right wall. The V4's corners are chamfered (3.81 mm at the top, 2.16 mm at the USB-C end), and those slots' floors and roofs follow the chamfers, so its corners are held too. That works because a board only ever passes a slot moving one way.
   - A slotted bar off the next fin runs along its top edge. The V4's is split for 6 mm over the LoRa IPEX on its nose.
   - Slotted bars under its bottom edge carry it either side of the USB-C, from 0.5 mm off the receptacle. They reach only 0.9 mm up the board's faces, clear of the V4's buttons and connectors.
@@ -63,7 +67,7 @@ Seen from the top, the case is a rounded rectangle (10 mm corners). The left and
 
 1. Break the side door's ties by sliding it shut and open once.
 2. Fit the SMA bulkheads through the top, nuts inside, the outer nuts on their TPU washers. The top is 7.4 mm thick there, so they need long-thread bulkheads.
-3. Slide each piece onto the carriage from the right, toward the door face: the TP4056 between its bars, the HC33 and V4 along their bars into their ribs, the cell between its fins. A dab of foam tape keeps the cell from sliding back out before the carriage goes in.
+3. Slide each piece onto the carriage from the right, toward the door face: the TP4056 between its bars, the HC33 and V4 along their bars into their ribs, the cell between its fins. Zip-tie each in: one round each board, two round the cell, each through its slots and grooves.
 4. Wire the cell to the TP4056 and to the boards' battery inputs, over the fins, and plug the pigtails in: the back-right SMA to the HC33, the front-left one to the V4.
 5. Slide the carriage into the body from the left until the door face meets it. Each board's right edge goes into its rail as it does, and the top's back and front lips run along their seal grooves; push firmly at the end so the door face's and the right lip's seals seat.
 6. Put in the twenty-six M3x10 SHCS: the seventeen through the door face first, working round it, then the nine through the top.
@@ -80,5 +84,6 @@ Seen from the top, the case is a rounded rectangle (10 mm corners). The left and
   Not yet checked against a board in hand. The STEP model has no OLED, so the 5.54 comes from the drawing's 15.6 overall height with headers. The IPEX's place on the nose is read off the drawing (`v4_ipex_gap`). Pin headers aren't allowed for.
 - **The TP4056 board.** Taken as 28 × 17.5, 1.6 thick, a 9 × 3.2 receptacle sticking out 0.6 (`tp_*`). Boards vary.
 - **The seals.** The squish (0.15 a side on the lips, 0.3 on the side door's gasket and the SMA washers) is a first guess for TPU Air, untested. The top's back and front lips drag through their grooves for the whole slide.
+- **The HC33's parts** where its tie crosses (`hc_under`, `hc_over` envelopes assumed).
 - **The HC33's USB-C height** over its PCB (`hc_usb_y`), as in the other HC33 case.
 - **Board edges.** The side and top slots assume each board's outer 1.25 mm is clear of parts, and the bottom bars its outer 0.9 mm. True for the V4 by its model except the IPEX, which its top bar is split round; unknown for the HC33.
