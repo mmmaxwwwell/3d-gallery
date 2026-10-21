@@ -4302,44 +4302,76 @@
       "slug": "solar-node",
       "devOnly": true,
       "title": "Solar LoRa Node",
-      "description": "A slim sealed box under a 240 × 168 mm solar panel salvaged from a solar LED lamp. The panel drops into a pocket in the frame onto a bead of construction adhesive; a bezel screwed over its border squeezes the bead to 1 mm and leaves the panel flush. The frame and bezel then come off the tray as one, on a ring of 24 M3 cap screws that run outside a TPU gasket: the tray's tongue squeezes the gasket's slot from the sides. Inside, at the top end, the 10 Ah LP1260110 LiPo pouch lies flat on the floor with its long side across the box, centred, and a carrier plate screwed onto four posts over it holds the Heltec V3, a TP4056 charger and a 5 V buck-boost, each placed by corner brackets. An N bulkhead goes through the end wall for the antenna. 263 × 191 × 40.5 mm, so it needs a 270 mm bed. The panel's thickness and the buck-boost's size are guesses. Not yet printed.",
+      "description": "A slim sealed box under a 240 × 168 mm solar panel salvaged from a solar LED lamp, that winches itself up on two cables. The panel drops into a pocket in the frame onto a bead of construction adhesive; a bezel screwed over its border squeezes the bead to 1 mm and leaves the panel flush. The frame and bezel come off the tray as one, on a ring of 24 M3 cap screws outside a TPU gasket that the tray's tongue squeezes from the sides. At the top end, the 10 Ah LP1260110 LiPo pouch lies across the box, centred, under a carrier plate holding the Heltec V3, a TP4056 charger and a 5 V buck-boost; at the bottom end lies a Heltec HT-HC33. An N bulkhead and an SMA bulkhead stand out of opposite ends on the centre line. Under the tray, a deck carries two thin 156 mm spools of 1/32\" stainless cable, 100 ft each, one above the other, overlapping in the middle and sticking out past each end. Each turns on a 608 skateboard bearing and is driven at 8.5:1 by a pinion on the teeth round its edge, from a JGY-370 worm gearmotor inside the box whose shaft comes down through a TPU lip seal. The two trains mirror each other, so the spools turn opposite ways to reel in. 263 × 191 × 67 mm, so it needs a 270 mm bed. The panel's thickness, the buck-boost's size and the motor's dimensions are guesses. Not yet printed.",
       "filament": [
-        { "material": "PETG", "color": "any", "note": "Tray, carrier plate, frame and bezel", "parts": ["tray.stl", "shelf.stl", "frame.stl", "bezel.stl"] },
-        { "material": "TPU 85A", "color": "any", "note": "Lid gasket", "parts": ["gasket.stl"] }
+        { "material": "PETG", "color": "any", "note": "Tray, carrier plate, frame, bezel, winch deck, spools, pinions and spacers", "parts": ["tray.stl", "shelf.stl", "frame.stl", "bezel.stl", "deck.stl", "spool-body.stl", "spool-cap.stl", "pinion-upper.stl", "pinion-lower.stl", "spacer-upper.stl", "spacer-lower.stl"] },
+        { "material": "TPU 85A", "color": "any", "note": "Lid gasket and the two shaft seals", "parts": ["gasket.stl", "shaft-seal.stl"] }
       ],
       "previews": [
-        { "file": "assembled.3mf", "format": "3mf", "label": "Assembled, the frame with its panel and bezel lifted 40 mm off the tray", "default": true,
+        { "file": "assembled.3mf", "format": "3mf", "label": "Assembled, the frame with its panel and bezel lifted 40 mm off the tray, the winch deck under it", "default": true,
           "legend": [
             { "color": "#3d4a3a", "label": "Tray and bezel", "part": "tray.stl", "parts": ["tray.stl", "bezel.stl"] },
             { "color": "#5f7a5a", "label": "Carrier plate", "part": "shelf.stl" },
             { "color": "#c08a3e", "label": "Frame", "part": "frame.stl" },
-            { "color": "#e07b39", "label": "Gasket (TPU)", "part": "gasket.stl" },
+            { "color": "#e07b39", "label": "Gasket and shaft seals (TPU)", "part": "gasket.stl", "parts": ["gasket.stl", "shaft-seal.stl"] },
+            { "color": "#4a6a8a", "label": "Winch deck", "part": "deck.stl" },
+            { "color": "#d0d0d0", "label": "Spools", "part": "spool-body.stl", "parts": ["spool-body.stl", "spool-cap.stl"] },
+            { "color": "#b8862e", "label": "Pinions", "part": "pinion-upper.stl", "parts": ["pinion-upper.stl", "pinion-lower.stl"] },
+            { "color": "#708090", "label": "JGY-370 gearmotors (reference)" },
+            { "color": "#555555", "label": "608 bearings (reference) and spacers", "part": "spacer-upper.stl", "parts": ["spacer-upper.stl", "spacer-lower.stl"] },
+            { "color": "#8a8f94", "label": "Stainless cable, 100 ft per spool (reference)" },
             { "color": "#1b2a4a", "label": "Solar panel (reference)" },
             { "color": "#d9d9d9", "label": "Construction adhesive bead (reference)" },
             { "color": "#e8c547", "label": "LP1260110 LiPo pouch (reference)" },
-            { "color": "#7a3fb0", "label": "Heltec V3, TP4056 and buck-boost (reference)" },
-            { "color": "#c9a227", "label": "N bulkhead (reference)" }
+            { "color": "#7a3fb0", "label": "Heltec V3, TP4056, buck-boost and HT-HC33 (reference)" },
+            { "color": "#c9a227", "label": "N and SMA bulkheads (reference)" }
           ],
           "components": [
             { "part": "tray.stl", "qty": 1 },
             { "part": "shelf.stl", "qty": 1 },
             { "part": "frame.stl", "qty": 1 },
             { "part": "bezel.stl", "qty": 1 },
-            { "part": "gasket.stl", "qty": 1 }
+            { "part": "gasket.stl", "qty": 1 },
+            { "part": "deck.stl", "qty": 1 },
+            { "part": "spool-body.stl", "qty": 2 },
+            { "part": "spool-cap.stl", "qty": 2 },
+            { "part": "pinion-upper.stl", "qty": 1 },
+            { "part": "pinion-lower.stl", "qty": 1 },
+            { "part": "spacer-upper.stl", "qty": 1 },
+            { "part": "spacer-lower.stl", "qty": 1 },
+            { "part": "shaft-seal.stl", "qty": 2 }
           ] }
       ],
       "parts": [
-        { "file": "tray.stl", "format": "stl", "label": "Tray — floor, walls, screw columns, seal tongue, bulkhead hole, battery brackets and plate posts" },
+        { "file": "tray.stl", "format": "stl", "label": "Tray — floor, walls, screw columns, seal tongue, N and SMA holes, motor seats with shaft-seal pockets, part brackets, plate posts" },
         { "file": "shelf.stl", "format": "stl", "label": "Carrier plate — over the battery, holds the Heltec, charger and buck-boost" },
         { "file": "frame.stl", "format": "stl", "label": "Frame — panel pocket and glue ledge, gasket groove underneath" },
         { "file": "bezel.stl", "format": "stl", "label": "Bezel — clamps the panel's border" },
-        { "file": "gasket.stl", "format": "stl", "label": "Gasket — TPU 85A U-section, slot up as printed" }
+        { "file": "gasket.stl", "format": "stl", "label": "Gasket — TPU 85A U-section, slot up as printed" },
+        { "file": "deck.stl", "format": "stl", "label": "Winch deck — hangs under the tray, posts for both spools, pins under the pinions" },
+        { "file": "spool-body.stl", "format": "stl", "label": "Spool body — gear teeth round its edge, 608 bearing pressed in from below (2)" },
+        { "file": "spool-cap.stl", "format": "stl", "label": "Spool cap — core ring and top flange, flange down as printed (2)" },
+        { "file": "pinion-upper.stl", "format": "stl", "label": "Pinion for the upper spool" },
+        { "file": "pinion-lower.stl", "format": "stl", "label": "Pinion for the lower spool, long hub" },
+        { "file": "spacer-upper.stl", "format": "stl", "label": "Spacer — upper spool's bearing up to the tray" },
+        { "file": "spacer-lower.stl", "format": "stl", "label": "Spacer — lower spool's bearing up to the tray" },
+        { "file": "shaft-seal.stl", "format": "stl", "label": "Shaft seal — TPU 85A lip ring round each pinion hub (2)" }
       ],
       "hardware": [
         { "qty": 24, "label": "M3x16 socket cap screw — bezel and frame down into the tray",
           "usedBy": [ { "part": "bezel.stl", "each": 24 } ] },
         { "qty": 4, "label": "M3x8 socket cap screw — the carrier plate onto its posts",
           "usedBy": [ { "part": "shelf.stl", "each": 4 } ] },
+        { "qty": 16, "label": "M3x30 socket cap screw — the winch deck up into the tray's long-side columns",
+          "usedBy": [ { "part": "deck.stl", "each": 16 } ] },
+        { "qty": 12, "label": "M3x6 socket cap screw — each spool's cap onto its body",
+          "usedBy": [ { "part": "spool-body.stl", "each": 6 } ] },
+        { "qty": 2, "label": "608 skateboard bearing — one in each spool's hub",
+          "usedBy": [ { "part": "spool-body.stl", "each": 1 } ] },
+        { "qty": 2, "label": "JGY-370 worm gearmotor, 6 mm D-shaft — one per spool (as in meshtastic-drybag-node)" },
+        { "qty": 2, "label": "1/32\" stainless steel cable, 100 ft — one per spool" },
+        { "qty": 1, "label": "Heltec HT-HC33 — at the bottom end, on the floor" },
+        { "qty": 1, "label": "SMA female bulkhead to U.FL pigtail and SMA antenna — through the bottom end wall" },
         { "qty": 1, "label": "N female bulkhead to IPEX pigtail — antenna through the end wall" },
         { "qty": 1, "label": "Construction adhesive — a bead on the frame's ledge under the panel" },
         { "qty": 4, "label": "Double-sided foam tape — the battery to the floor, the boards to the carrier plate" }

@@ -1,6 +1,6 @@
 # Solar LoRa Node
 
-A slim sealed box under a 240 × 168 mm solar panel salvaged from a Home Depot solar LED lamp, holding a Heltec V3 LoRa node, its battery and its solar charging.
+A sealed box under a 240 × 168 mm solar panel salvaged from a Home Depot solar LED lamp. It holds a Heltec V3 LoRa node, a Heltec HT-HC33 HaLow board, a battery and solar charging, and it winches itself up on two stainless cables.
 
 ## Pieces
 
@@ -11,8 +11,14 @@ A slim sealed box under a 240 × 168 mm solar panel salvaged from a Home Depot s
 | Frame | PETG | bottom down (groove on the bed) |
 | Bezel | PETG | bottom down |
 | Gasket | TPU 85A | floor down, slot up |
+| Winch deck | PETG | plate down |
+| Spool body ×2 | PETG | gear down |
+| Spool cap ×2 | PETG | flange down |
+| Pinion, upper and lower | PETG | teeth down |
+| Spacer, upper and lower | PETG | on end |
+| Shaft seal ×2 | TPU 85A | flat |
 
-The footprint is 263 × 191 mm, so it needs a 270 mm bed (Q2, U1). Height assembled is 40.5 mm. The battery, with the carrier plate and the Heltec over it, sets the inside height.
+The footprint is 263 × 191 mm, so it needs a 270 mm bed (Q2, U1). Height assembled is 67 mm: the 40.5 mm box plus the 26.4 mm winch deck under it. The battery, with the carrier plate and the Heltec over it, sets the box's inside height.
 
 ## Assembly
 
@@ -20,6 +26,26 @@ The footprint is 263 × 191 mm, so it needs a 270 mm bed (Q2, U1). Height assemb
 2. Run a bead of construction adhesive round the frame's ledge. Lay the panel in, with its leads down through the opening.
 3. Put the bezel on and drive the 24 M3x16 screws through bezel and frame. Do this on the tray, with the gasket in the frame's groove, so the screws thread into the tray's columns. The bezel squeezes the bead to 1 mm. Leave it to cure.
 4. To open the box later, undo the 24 screws and lift the frame, panel and bezel off together.
+
+Before step 2, fit the rest of the inside:
+- Lay the HT-HC33 between its brackets at the −X end, and fit its SMA bulkhead through the −X end wall, nut inside. The N and SMA come out of opposite ends on the centre line, at the same height.
+- Fit each motor:
+  1. Press a shaft seal into the pocket in its seat.
+  2. From below, push the pinion's hub up through the seal.
+  3. Set the motor on its seat over the pinion, with its D-shaft in the pinion's bore (glue it), and tape it between its brackets.
+
+## Winch
+
+- **The spools:** two 156 mm spools, each holding 100 ft of 1/32" stainless cable in a 3 mm channel, lie one above the other under the tray. The upper one is toward −X and the lower one toward +X. They overlap by 29 mm in the middle, and each sticks 10 mm out past its end of the box, where its cable comes off.
+- **The drive:** each spool turns on a 608 bearing on a post from the deck. A pinion drives the teeth round its lower flange at 8.5:1, from a JGY-370 worm gearmotor lying inside the box with its shaft down through the floor. The worm holds the load when the motor stops.
+- **Direction:** the two drives are mirror images through the box's centre, so the spools turn opposite ways to reel in. Wind each cable on the same way as seen from its own end.
+- **Assembly:**
+  1. Press a bearing into each spool body from below.
+  2. Screw on the cap with 6 M3x6.
+  3. Thread the cable's end through the hole in the core and stop it inside.
+  4. Drop the spools onto their posts, with the long spacer on the lower spool and the short one on the upper.
+  5. Lift the deck up under the tray, so its pins go into the pinions, and screw it into the long-side columns with 16 M3x30.
+- **Overlap limit:** the overlap stops at 29 mm because the lower spool's pinion has to pass outside the upper spool to reach it. Its motor is boxed in by the battery stack on one side and the frame's ledge on the other.
 
 The battery and plate sit at the +X end, the same end as the antenna. Mount the box with that end at the top.
 
@@ -33,4 +59,6 @@ If the cell goes on the Heltec's own battery connector, the Heltec's charger als
 
 - Panel thickness (`panel_t`, 3 mm assumed).
 - The buck-boost board's size.
+- The JGY-370's size and where its shaft is (`mot_*`, copied unmeasured from meshtastic-drybag-node).
+- The motor needs enough torque for the node's weight on a ~55 mm cable radius through 8.5:1. This is unchecked.
 - How far the panel's cells come to its edge. The bezel covers 4 mm of the border (`bezel_overlap`).
