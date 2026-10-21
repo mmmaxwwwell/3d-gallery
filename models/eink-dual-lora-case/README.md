@@ -5,7 +5,7 @@ A handheld case shaped after the Meshnology N37. It has a rounded body with a wi
 ## What goes in
 
 - 2.13" e-paper HAT (Waveshare-style, 65 × 30.2 mm), behind the window on the left.
-- Seeed XIAO nRF52840 Sense, facing the front at the top right. Its microphone hears through a small port; its USB-C comes out the right side.
+- Seeed XIAO nRF54L15 Sense, facing the front at the top right. Its microphone hears through a small port; its USB-C comes out the right side.
 - Pin holes over the XIAO's program and reset buttons, for a paperclip.
 - A swipe sensor below the XIAO, where the N37 has its joystick: a [PMW3610 breakout](https://lectronz.com/products/pmw3610-breakout-board) (31.5 × 23.5 mm, a low-power laser mouse sensor on SPI). Swipe a finger across the round window, a 12 mm clear disc sealed into the front. The board screws to two posts with M3x6 screws, regulator end to the left.
 - Two smaller waterproof buttons right of the swipe window, on 6 × 6 mm SMD tact switches (legs lying flat), held in by the sensor board.

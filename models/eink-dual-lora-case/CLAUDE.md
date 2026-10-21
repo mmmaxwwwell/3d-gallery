@@ -7,7 +7,7 @@ A handheld case in the Meshnology N37's shape for the user's own build. It holds
 - "i like the look and feel of the current meshology n37 … take inspiration from their design, but make it better". Their name for it is "meshology"; the maker is Meshnology. The N37 is a Wio Tracker L1 in a clamshell case: 66 × 24 × 78 body (from their dimension photo), a GPS "wing" at the top left reaching 110 mm overall, an SMA bump at the top right, a screen window over a framed lower front panel. Don't copy their branding.
 - "the example blank is like 3mm to short … start with that shape but add 3mm". Once the HAT went portrait, the 3 mm went into the height: the 65 mm board plus its ~1.2 mm ribbon fold needs 81 mm.
 - The e-ink is a LAFVIN 2.13" e-Paper HAT (Waveshare clone, 65 × 30.2 board; the user sent a photo). "have the hat be vertical on the left side on the front".
-- XIAO nRF52840 **Sense** (IMU + mic), no pins, hand-wired. It "goes above where the buttons are on the existing N37s": the right column, above the N37's joystick spot. Its mic needs the port.
+- XIAO **Sense** (IMU + mic), no pins, hand-wired. On 2026-10-20 the user said it's the nRF54L15 ("i'm using the nrf4515l or something"), not the nRF52840 first assumed. It's the same XIAO footprint, so the case is unchanged; the mic and button positions were guesses either way. It "goes above where the buttons are on the existing N37s": the right column, above the N37's joystick spot. Its mic needs the port.
 - Two SX1262 radios. Their module isn't named; XIAO-size boards (21 × 17.8) are assumed.
 - Two side buttons are **sealed box switches, 12.5 × 12.8 × 15.3, 4 mm throw, two leads**. They need "a multi material waterproof button". They go "on the left side behind the screen".
 - I2C speaker module: speaker box 15.2 × 28 × 31, "facing the front in the bottom right hand corner"; amp board 22.5 × 38.6 wired to the XIAO.
@@ -20,7 +20,7 @@ A handheld case in the Meshnology N37's shape for the user's own build. It holds
   - "i really liked how the other module had that angled part around with the rounded edges everywhere" (the L1 holster's band), then "beveled more";
   - "more screw holes", from the user's stock of M3 SHCS in many lengths.
 - "a usb mouse sensor we detect swipes with instead of a dpad", then "you find the swipe sensor man go".
-  - I picked a **PMW3610 breakout**: Trent Rand's ($25, Lectronz), the same 31.5 × 23.5 board as siderakb's open design. It's PixArt's low-power laser mouse sensor on an LM18-LSI lens, SPI at 3.3 V, with a ZMK driver for the nRF52840.
+  - I picked a **PMW3610 breakout**: Trent Rand's ($25, Lectronz), the same 31.5 × 23.5 board as siderakb's open design. It's PixArt's low-power laser mouse sensor on an LM18-LSI lens, SPI at 3.3 V, with a ZMK driver for the nRF52840 (none checked for the nRF54L15).
   - Rejected: BlackBerry optical trackpads (many variants and pinouts, flex pads, 2.85 V) and the Parallax OFN module (out of stock).
   - Geometry from siderakb's KiCad file: M3 holes 3 in from each edge, sensor 2.99 off-centre along the long side.
   - From PixArt's datasheet, measured from the tracking surface: lens underside 2.4, board underside 5.8 (7.4 to its top), sensor top 9.05.
@@ -91,6 +91,24 @@ The lib lays out with X right as seen from the front, Y up, Z from the front fac
   - Front cradles: 1.6 mm² in the leg notches.
   - Midframe and side cradles: none.
 - **Plate 1** fits a 220 bed at about 214 × 169 with no piece over another.
+
+## Pin budget (unresolved)
+
+The XIAO nRF54L15 brings out 16 GPIO (D0–D15, some on back pads; Seeed wiki). A rough count of what the build needs:
+
+| Function | Pins |
+|---|---|
+| Shared SPI | 3 |
+| E-paper (CS, DC, RST, BUSY) | 4 |
+| Radios (CS, DIO1, BUSY each; one shared RST) | 7 |
+| PMW3610 (CS, MOTION) | 2 |
+| GPS UART | 2 |
+| Speaker (I2S) | 3 |
+| Motor | 1 |
+| Buttons | 4 |
+| **Total** | **about 26** |
+
+Moving the slow lines (buttons, e-paper RST/BUSY, radio RST, motor) to an I2C expander, plus the 2 I2C pins, still leaves about 20. It's undecided. MeshCore didn't run on the nRF54 family when this was checked (in the drybag parts conversation).
 
 ## Unmeasured / guesses
 

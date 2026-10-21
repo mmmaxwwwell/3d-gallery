@@ -4291,7 +4291,7 @@
         { "qty": 1, "label": "5 Ah LiPo up to 60 × 40 × 20 mm, e.g. two 104060 (2.5 Ah) cells in parallel — the battery bay" },
         { "qty": 2, "label": "SMA female bulkhead jack with IPEX pigtail — one per radio" },
         { "qty": 1, "label": "Clear disc, 12 mm × 1 mm (acrylic or glass) — the swipe window, sealed in with clear silicone" },
-        { "qty": 1, "label": "Seeed XIAO nRF52840 Sense" },
+        { "qty": 1, "label": "Seeed XIAO nRF54L15 Sense" },
         { "qty": 2, "label": "SX1262 board, XIAO size" },
         { "qty": 1, "label": "2.13\" e-paper HAT (Waveshare clone)" },
         { "qty": 1, "label": "Speaker, 28 × 31 × 15.2 mm, and its I2C amp board (22.5 × 38.6 mm)" },
