@@ -192,6 +192,11 @@ side_door_wedge = 3;
 side_door_fit = 0.3;
 side_door_tie_w = 0.8;
 side_door_ties = 3;
+// The ridge you push it by: how far it stands proud of the door, its width
+// and its distance in from the door's front end
+side_door_grip_h = 1.5;
+side_door_grip_w = 2.4;
+side_door_grip_in = 2;
 
 // The TPU base under the whole case, printed in place under the body on
 // the U1: its thickness; the keys it carries up into the body's walls
@@ -506,6 +511,7 @@ assert(seal_d + 0.5 <= right_wall - grip_inset, "the top seal's channel cuts thr
 assert(sd_z - sd_dz - side_door_t - side_door_fit >= base_t + 0.8, "the side door's track runs into the base");
 assert(sd_floor - 1 >= hx + wall_groove_d + 1, "the side door's gasket groove leaves too little right wall");
 assert(sd_y + sd_travel + sd_dy + side_door_fit <= lead_y, "the side door's track runs off the right face");
+assert(sd_dz - 1 - side_door_grip_h >= 3, "the side door's grip ridge is too short to push");
 // The bars under the boards stay clear of the USB-Cs
 assert(usbc_w / 2 + 0.5 <= v4_w / 2 - v4_foot, "the V4's bottom bars have no edge to sit under");
 
@@ -846,17 +852,20 @@ module side_gasket(cut) {
     }
 }
 
-// The door, shut: trimmed to the case's outline at its back end, with two
-// finger grooves at its front end
+// The door, shut: trimmed to the case's outline at its back end, with a
+// ridge standing out near its front end to push and pull it by. The ridge
+// stays inside the door's outer face's height, clear of the track's lips,
+// and its ends run 45° into the door so it prints standing up.
 module side_door() {
-  difference() {
-    intersection() {
-      side_door_at(0, sd_x_shut);
-      translate([0, 0, -1]) linear_extrude(total_h) outline();
-    }
-    for (k = [0, 1]) translate([ex_r, sd_y + sd_dy - 1.5 - 2 * k, sd_z]) rotate([0, 0, 45])
-      cube([0.8, 0.8, 2 * sd_dz - 2], center = true);
+  intersection() {
+    side_door_at(0, sd_x_shut);
+    translate([0, 0, -1]) linear_extrude(total_h) outline();
   }
+  h = side_door_grip_h;
+  zh = sd_dz - 1;
+  translate([0, sd_y + sd_dy - side_door_grip_in - side_door_grip_w, 0]) rotate([90, 0, 0]) mirror([0, 0, 1])
+    linear_extrude(side_door_grip_w)
+      polygon([[ex_r - eps, sd_z - zh], [ex_r + h, sd_z - zh + h], [ex_r + h, sd_z + zh - h], [ex_r - eps, sd_z + zh]]);
 }
 
 // As it prints: open, clear of the gasket, held by break-off ties under

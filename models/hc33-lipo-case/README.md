@@ -57,7 +57,7 @@ Seen from the top, the case is a rounded rectangle (10 mm corners). The left and
 - **Screws.** They all sit outside the seal line, so they need no washers. The seventeen round the door face press its lips into their channels; the right edge's three hold the top's right lip down.
 - **SMAs.** A TPU Air washer sits under each SMA's outer nut, 0.3 mm proud of its seat.
 - **Bottom.** No openings.
-- **Side port.** A PCTG door slides along a dovetail track in the right face. It prints in the track, open, held by three small ties under its lower edge: slide it once to break them. Slid shut toward the back, the track wedges it 0.6 mm inward over the last 3 mm, onto a TPU Air gasket round the opening that stands 0.6 proud, squeezing it 0.3. Two finger grooves at its front end.
+- **Side port.** A PCTG door slides along a dovetail track in the right face. It prints in the track, open, held by three small ties under its lower edge: slide it once to break them. Slid shut toward the back, the track wedges it 0.6 mm inward over the last 3 mm, onto a TPU Air gasket round the opening that stands 0.6 proud, squeezing it 0.3. A ridge 1.5 mm proud near its front end is what you push it shut and pull it open by.
 
 ## Assembly
 
