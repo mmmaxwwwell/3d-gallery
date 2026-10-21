@@ -17,8 +17,9 @@ A sealed box under a salvaged 240 × 168 mm solar panel. devOnly, unprinted.
 
 - **Box below the panel.** Since the panel is glued in, the box opens by lifting the whole frame (panel and bezel with it) off the tray. One ring of M3 cap screws runs through bezel and frame into the tray, so the bezel never has to come off.
 - **Seal.** A U-section TPU 85A gasket sits in a groove under the frame. The tray's tongue is wider than the gasket's slot and squeezes it from the sides. The screws are outside the seal (memory: seal-screws-through-tpu-failed).
-- **N bulkhead.** It goes through the +X end wall, between two screw columns. The box depth is set by its 24 mm body: `n_z + n_body_d/2 <= tray_h`. Putting it in the floor would make the box about 9 mm thinner.
-- **Parts on the floor.** Each part sits between corner brackets and is held with foam tape. There are no straps or ties through the floor.
+- **N bulkhead.** It goes through the +X end wall, between two screw columns. Its 24 mm body needs `tray_inside_h` ≥ 24.5. The stack needs 26: battery, 0.5 gap, 2 mm shelf, the Heltec's 10.2, then 1 mm under the frame's ledge.
+- **Everything along the −Y wall (user, 2026-10-21: "pouch low and all chips low").** I read "bottom" as the −Y edge, which is the low edge in the viewer and once the panel is tilted. The pouch lies flat on the floor there. A separate shelf on four posts over it carries the Heltec, the TP4056 and the buck-boost. The shelf screws down with 4 M3x8 into counterbored bosses. `stack_x` slides the stack along X; it now sits at the bulkhead end.
+- **Corner brackets, foam tape.** Each part sits between corner brackets and is held with foam tape. There are no straps or ties through the floor.
 - **No mount and no vent.** The user hasn't said how it hangs.
 
 ## Frame
@@ -37,3 +38,4 @@ A sealed box under a salvaged 240 × 168 mm solar panel. devOnly, unprinted.
 
 - The pieces' rigid parts don't intersect.
 - gasket ∩ tray ≈ 606 mm³, which is the tongue's side squeeze. Re-check this if the seal changes.
+- The shelf meets the posts and the boards meet the shelf face to face only. The battery, boards and shelf clear the tray, the frame and the bulkhead.
