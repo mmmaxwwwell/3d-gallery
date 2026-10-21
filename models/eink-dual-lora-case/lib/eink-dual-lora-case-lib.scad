@@ -658,3 +658,7 @@ module front_cover_part() { mirror([1, 0, 0]) front_cover(); }
 module tub_part() { mirror([1, 0, 0]) tub_print(); }
 module midframe_part() { mirror([1, 0, 0]) midframe_print(); }
 module cradle_part() { cradle_print(); }
+
+// Stands a layout-frame model up for the previews: Y up becomes Z up, the
+// front faces -Y, and X is mirrored the right way round (see the header).
+module upright() { translate([0, 0, top]) rotate([90, 0, 180]) mirror([1, 0, 0]) children(); }

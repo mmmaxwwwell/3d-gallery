@@ -15,7 +15,7 @@ A handheld case in the Meshnology N37's shape for the user's own build: a 2.13" 
 
 ## Frame (read this first)
 
-The lib lays out with X right as seen from the front, Y up, Z from the front face (0) to the back (`case_t`). With Z running away from a viewer in front, that frame is a **mirror image**: the first renders came out with the wing top-right. Every `*_part` module and every preview mirrors X once. So in the lib, `-x` is the user's left (display, buttons) and `+x` the right (XIAO, sensor, speaker). Keep new geometry in the layout frame and let the mirror do the rest. For a true front view, render with `--camera=0,15,0,0,180,0,300` on a `mirror([1,0,0])` wrapper.
+The lib lays out with X right as seen from the front, Y up, Z from the front face (0) to the back (`case_t`). With Z running away from a viewer in front, that frame is a **mirror image**: the first renders came out with the wing top-right. Every `*_part` module mirrors X once. The assembled preview goes through `upright()`, which mirrors X and stands the device up (Y up becomes Z up, front toward -Y, which is what the gallery's camera faces). So in the lib, `-x` is the user's left (display, buttons) and `+x` the right (XIAO, sensor, speaker). Keep new geometry in the layout frame and let the mirror do the rest. For a true front view, render with `--camera=0,15,0,0,180,0,300` on a `mirror([1,0,0])` wrapper.
 
 ## Parts and assembly
 
