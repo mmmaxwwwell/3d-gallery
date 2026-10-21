@@ -18,11 +18,9 @@ It hangs with a long side down. The panel faces out, and the winch is behind it.
 | Spool cap ×2 | PETG | flange down |
 | Pinion ×2 | PETG | teeth down |
 | Spacer ×2 | PETG | on end |
-| Corner roller ×4 | PETG | on end |
-| Horn roller ×4 | PETG | on end |
 | Shaft seal ×2 | TPU 85A | flat |
 
-The footprint is 263 × 191 mm, plus the horns: the deck prints 263 × 208, so it needs a 270 mm bed (Q2, U1). Height assembled is 62 mm: the 40.5 mm box plus the 21.2 mm winch deck behind it.
+The footprint is 263 × 191 mm, plus the horns: the deck prints 263 × 222, so it needs a 270 mm bed (Q2, U1). Height assembled is 62 mm: the 40.5 mm box plus the 21.2 mm winch deck behind it.
 
 ## Inside
 
@@ -58,18 +56,20 @@ The N (for the V3) and the SMA (for the HC33) point down out of the bottom wall,
   - a pinion drives the teeth round each spool's lower flange at 6.2:1, from a JGY-370 worm gearmotor standing inside the box, shaft down through the floor;
   - the worm holds the load when the motor stops.
 - **Direction:** the two drives are mirror images, so the spools turn opposite ways to reel in.
-- **Cable exit:** each cable leaves through its top corner, 224 mm from the other, as far apart as the box allows.
-  1. It runs up between two upright rollers on the deck, midway between the last two screw columns.
-  2. It climbs forward past the top edge into a horn: two cheeks standing out past the edge with a bridge across their top.
-  3. It leaves straight up through the horn's throat. The throat is a 1.5 mm gap between two horizontal rollers, 13 mm in front of the tray's underside.
+- **Cable exit:** the cable runs only on stainless 608 skateboard bearings, four per corner. Each cable leaves its top corner, 218 mm from the other.
+  1. Past its spool, it turns straight up on an upright **guide bearing** standing on the deck, outboard of the cable.
+  2. It rides over an **edge bearing** lying across just past the tray's top edge. The edge bearing's top sits half a millimetre under the tray, so the cable never touches the tray's corner. It hangs through a slot in the deck.
+  3. It climbs forward into a **horn**: two cheeks standing out past the edge, with a bridge across their top.
+  4. It leaves straight up through the horn's **throat**: a 1.5 mm gap between two more bearings, 13 mm in front of the tray's underside.
+- **Keeping the cable on the races:** the horn's bearings turn on M8x25 bolts, clamped by their inner races between bosses on the cheeks. Each cheek is 0.5 mm from its bearing's outer race, which is less than the cable is thick, so the cable can't walk off a race. The guide bearing has the tray 0.7 mm above it and a pad 0.5 mm below.
 - **Why the horns:** the throat is at the estimated depth of the node's centre of mass, which moves between 12 and 15 mm in front of the tray's underside as the spools fill. So the node hangs upright. Leaving at the deck, 8 mm behind the tray, it tipped back about 12°. To trim the hang after weighing a built one, change `hang_z`.
 - **Assembly:**
   1. Press a bearing into each spool body from below.
   2. Screw on the cap with 6 M3x6.
   3. Thread the cable's end through the hole in the core and stop it inside.
   4. Wind each spool, then drop it onto its post with a spacer on top.
-  5. Slip the rollers onto the corner pins, and lead each cable up between its corner's pair.
-  6. Thread each cable forward into its horn, between the two throat positions. Fit the horn rollers on M3x20s, head in the outer cheek's counterbore, nut in the inner cheek's pocket.
+  5. Drop a 608 onto each corner's guide post.
+  6. Lead each cable round the inboard side of its guide bearing. Then fit the horn's three bearings on M8x25 bolts, so the cable goes over the edge bearing, over the rear throat bearing and under the front one.
   7. Lift the deck up under the tray. The spool pins go into their sockets and the pinion pins go into the pinions.
   8. Screw the deck into the long-side columns with 18 M3x25.
 

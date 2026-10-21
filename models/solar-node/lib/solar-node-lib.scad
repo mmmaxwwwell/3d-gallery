@@ -29,7 +29,11 @@
 // teeth round its lower flange, driven by a pinion on a JGY-370 worm
 // gearmotor lying inside the box, output shaft down through a TPU lip seal
 // on the pinion's hub. The two trains mirror each other, so the spools turn
-// opposite ways to reel in. Each cable leaves through a two-roller throat at
+// opposite ways to reel in. The cable runs only on stainless 608s: past
+// each spool it turns on an upright guide bearing, rides over one lying
+// past the tray's top edge, and leaves through a throat between two more in
+// a horn standing out past that edge, at the depth of the node's centre of
+// mass so it hangs upright. Each throat sits at
 // its top corner, as far apart as the box allows.
 //
 // Frame: X along the panel, Y across, Z up, origin at the middle of the
@@ -198,27 +202,27 @@ deck_screw_l = 25;
 deck_band = 12;
 deck_bar = 20;
 
-// Corner rollers: each cable leaves through a throat between two rollers
-// at its top corner. Roller and pin diameters, the throat's width, and how
-// far in from the top edge the rollers stand
-roller_d = 10;
-roller_pin_d = 5;
-roller_throat = 3;
-roller_in = 8;
+// The cable runs on stainless 608s (`brg_*`) from the spool to where it
+// leaves. Its x past the spool (the throat's), and how far up the upright
+// guide bearing that turns it stands
+throat_x = 109;
+guide_y = 68;
 
-// Horns: past each corner's rollers the cable climbs forward to a throat
-// between two horizontal rollers standing out past the top edge, at the
-// depth of the node's centre of mass, so it hangs upright. That depth
-// (estimated 12-15 mm in front of the tray's underside, depending on how
-// much cable is wound on), how far out past the edge the throat is, the
-// throat's gap, the rollers' diameter, the room between the cheeks, and the
-// cheeks' and bridge's thickness. The rollers turn on M3x20s with nuts.
+// Then over an edge bearing lying across just past the tray's top edge
+// (its top a little under the tray's underside), and up into a horn: a
+// throat between two more bearings standing out past the edge, at the depth
+// of the node's centre of mass, so it hangs upright. How far in from the
+// outer edge the edge bearing's axle is, that depth (estimated 12-15 mm in
+// front of the tray's underside, depending on how much cable is wound on),
+// the throat's gap, the cheeks' thickness, the gap between a cheek and a
+// bearing's outer race (under the cable's diameter, so it can't walk off
+// the race), and the bridge's thickness. The horn bearings turn on M8x25 hex
+// bolts with nylocs.
+edge_y_in = 2.5;
 hang_z = 13;
-horn_out = 10;
 horn_gap = 1.5;
-horn_roller_d = 8;
-horn_w = 12;
-cheek_t = 5;
+cheek_t = 4;
+race_gap = 0.5;
 horn_wall = 3;
 
 // JGY-370 worm gearmotor (as in meshtastic-drybag-node, unmeasured): lying
@@ -339,7 +343,7 @@ module tray() {
       for (k = [0, 1]) motor_seat(k);
     }
     for (k = [0, 1]) motor_seat_cut(k);
-    for (c = spool_c) translate([c[0], c[1], -1]) cylinder(d = brg_bore + 0.3, h = pin_socket + 1, $fn = 32);
+    for (c = concat(spool_c, [guide_c, [-guide_c[0], guide_c[1]]])) translate([c[0], c[1], -1]) cylinder(d = brg_bore + 0.3, h = pin_socket + 1, $fn = 32);
     for (p = screws) if (abs(p[1]) > lane_y - 1) translate([p[0], p[1], -1]) cylinder(d = pilot_d, h = deck_pilot + 1);
     translate([ant_x, bottom_wall_y, n_z]) rotate(90) teardrop_x(n_hole_d, tray_wall + 2);
     translate([-ant_x, bottom_wall_y, n_z]) rotate(90) teardrop_x(sma_hole, tray_wall + 2);
@@ -480,21 +484,24 @@ pinion_th = [for (k = [0, 1]) let(d = pinion_c[k] - spool_c[k]) atan2(d[1], d[0]
 pinion_psi = [for (k = [0, 1]) mesh_phase(0, spool_z, pinion_z, pinion_th[k])];
 mot_face_z = tray_floor + seat_h;
 
-// Corner rollers: each throat midway between the two outermost long-side
-// columns at the top, roller_in down from the edge.
-throat_x = lane_x - pitch_x / 2;
-roller_y = outer_w / 2 - roller_in;
-roller_cs = [for (s = [-1, 1], t = [-1, 1]) [s * throat_x + t * (roller_d + roller_throat) / 2, roller_y]];
-
-// Horn (right corner; the left is its mirror): the throat's y, its two
-// rollers' centres [y, z], each cheek's x, and the horn's extent.
-horn_y = outer_w / 2 + horn_out;
-horn_rollers = [for (t = [-1, 1]) [horn_y, hang_z + t * (horn_gap + horn_roller_d) / 2]];
+// The cable's guides, right corner (the left mirrors it): the upright guide
+// bearing beside the cable, outboard; the edge bearing [y, z] under it; the
+// horn's two throat bearings [y, z], the rear as close to the edge bearing as
+// they'll go; each cheek's x, and the horn's extent.
+guide_c = [throat_x + cable_d / 2 + brg_od / 2, guide_y];
+guide_z0 = -0.7 - brg_w;
+edge_c = [outer_w / 2 - edge_y_in, -0.5 - brg_od / 2];
+throat_rear_z = hang_z - horn_gap / 2 - brg_od / 2;
+horn_y = edge_c[0] + sqrt(pow(brg_od + 1, 2) - pow(throat_rear_z - edge_c[1], 2));
+horn_cs = [[horn_y, throat_rear_z], [horn_y, hang_z + horn_gap / 2 + brg_od / 2]];
+horn_w = brg_w + 2 * race_gap;
 cheek_x = [for (t = [-1, 1]) throat_x + t * (horn_w + cheek_t) / 2];
-horn_y0 = roller_y + roller_d / 2 + 1;
+horn_y0 = edge_c[0] - brg_od / 2 - 1;
 horn_y_up = outer_w / 2 + 1;
-horn_y1 = horn_y + horn_roller_d / 2 + horn_wall;
-horn_z1 = hang_z + horn_gap / 2 + horn_roller_d + horn_wall;
+horn_y1 = horn_y + brg_od / 2 + horn_wall;
+horn_z1 = horn_cs[1][1] + brg_od / 2 + horn_wall;
+// The deck's slot the edge bearing hangs through
+edge_slot = [edge_c[0] - brg_od / 2 - 1, edge_c[0] + brg_od / 2 + 1];
 
 // M3s up through the deck's band into the long-side columns
 deck_pilot = 8;
@@ -506,10 +513,14 @@ assert(abs(pin_x - spool_x) < mesh_d, "the pinion can't reach its spool");
 assert(pin_x - mot_w / 2 - bracket_out - 1 > shelf_l / 2, "a motor runs into the battery stack");
 assert(pin_y - mot_shaft_in - bracket_out > -(outer_w / 2 - opening_e - 1), "a motor runs under the frame's ledge");
 assert(pin_y + mot_len - mot_shaft_in + bracket_out < outer_w / 2 - opening_e - 1, "a motor runs under the frame's ledge");
-for (c = roller_cs, k = [0, 1]) assert(norm(c - spool_c[k]) >= spool_tip + roller_d / 2 + spin_gap, "a roller runs into a spool");
-for (c = roller_cs, p = screws) assert(norm(c - p) >= roller_d / 2 + column_d / 2 + 1, "a roller runs into a screw column");
-assert(abs(throat_x) + (roller_d + roller_throat) / 2 + roller_d / 2 < outer_l / 2 - 2, "a roller sticks out past the end");
-assert(mot_face_z + mot_h + 1 <= tray_h + ledge_t + glue_gap, "a motor hits the panel");
+assert(norm(guide_c - spool_c[1]) >= spool_tip + brg_od / 2 + spin_gap, "the guide bearing runs into a spool");
+for (p = deck_screws) assert(norm(guide_c - p) >= brg_od / 2 + column_d / 2 + 1, "the guide bearing runs into a deck pillar");
+assert(guide_c[0] + brg_od / 2 <= outer_l / 2, "the guide bearing sticks out past the end");
+assert(guide_c[1] + brg_od / 2 + 1 <= horn_y0, "the guide bearing runs into the horn");
+assert(guide_z0 - 0.5 > deck_z1 + 1, "no room under the guide bearing");
+assert(edge_c[0] > outer_w / 2 - tray_inset, "the edge bearing's top isn't past the tray");
+for (p = deck_screws, x = cheek_x) assert(p[1] < 0 || abs(abs(p[0]) - x) >= cheek_t / 2 + column_d / 2 + 0.5 || abs(p[1]) + column_d / 2 < horn_y0, "a cheek runs into a deck pillar");
+for (x = cheek_x) assert(abs(x) + cheek_t / 2 < outer_l / 2, "a horn sticks out past the end");
 assert(outer_w / 2 - deck_band - spool_tip - spool_y > spin_gap, "spools run into the deck screws' band");
 assert(shaft_len > mot_face_z + spin_gap, "the motor shaft doesn't reach below the floor");
 assert(pitch_r(pinion_z) - 1.25 * gear_m > pinion_pin_d / 2 + 1.5, "pinion too small for its pin");
@@ -639,9 +650,10 @@ module motor_seat_cut(k) {
 }
 
 // Deck behind the tray, printed plate down: an edge band, a bar under each
-// spool's post and each pinion's pin, pads under the corner rollers, the
+// spool's post and each pinion's pin, pads under the guide bearings, the
 // posts (a shoulder for the bearing's inner race, then its 8 mm pin up into
-// a socket under the tray), the pinions' pins, the rollers' pins, and
+// a socket under the tray), the pinions' pins, the guide bearings' posts,
+// the horns, and
 // pillars up to the long-side columns.
 module deck_plan() {
   difference() {
@@ -652,16 +664,19 @@ module deck_plan() {
     plan(0);
     for (x = [-spool_x, spool_x, -pin_x, pin_x]) translate([x - deck_bar / 2, -outer_w / 2]) square([deck_bar, outer_w]);
   }
-  for (s = [-1, 1]) hull() for (c = roller_cs) if (sign(c[0]) == s) translate(c) circle(d = roller_d + 4);
-  for (s = [-1, 1]) scale([s, 1]) translate([cheek_x[0] - cheek_t / 2, outer_w / 2 - deck_band]) square([horn_w + 2 * cheek_t, horn_y1 - outer_w / 2 + deck_band]);
+  for (s = [-1, 1]) scale([s, 1]) {
+    translate(guide_c) circle(d = brg_od + 4);
+    translate([guide_c[0], guide_c[1] - brg_od / 2 - 2]) square([outer_l / 2 - guide_c[0] - 1, outer_w / 2 - guide_c[1] + brg_od / 2]);
+    translate([cheek_x[0] - cheek_t / 2, outer_w / 2 - deck_band]) square([horn_w + 2 * cheek_t, horn_y1 - outer_w / 2 + deck_band]);
+  }
 }
 
 // A horn's cheeks and bridge, in the deck's frame (z from the deck's
 // underside), right corner. Each cheek is under the tray only below its
-// underside; past the top edge it stands up to the bridge. The rollers'
-// screws: head counterbored in the outer cheek, nut in the inner.
+// underside; past the top edge it stands up to the bridge. The three
+// bearings' bolt holes, with a boss round each on the cheeks' inner faces
+// that clamps the inner race and keeps the outer race off the cheek.
 module horn() {
-  z1 = -deck_z0;
   difference() {
     union() {
       for (x = cheek_x) translate([x - cheek_t / 2, 0, 0]) rotate([90, 0, 90]) linear_extrude(cheek_t) {
@@ -669,11 +684,11 @@ module horn() {
         translate([horn_y_up, 0]) square([horn_y1 - horn_y_up, horn_z1 - deck_z0]);
       }
       translate([cheek_x[0], horn_y_up, horn_z1 - deck_z0 - horn_wall]) cube([cheek_x[1] - cheek_x[0], horn_y1 - horn_y_up, horn_wall]);
+      for (c = concat([edge_c], horn_cs)) translate([throat_x, c[0], c[1] - deck_z0]) rotate([0, 90, 0]) cylinder(d = brg_shoulder_d, h = horn_w + 0.01, center = true, $fn = 32);
     }
-    for (r = horn_rollers) translate([throat_x, r[0], r[1] - deck_z0]) {
-      teardrop_x(clear_d, horn_w + 2 * cheek_t + 2);
-      translate([cheek_x[1] + cheek_t / 2 - cbore_h / 2 + 0.5 - throat_x, 0, 0]) teardrop_x(cbore_d, cbore_h + 1);
-      translate([cheek_x[0] - cheek_t / 2 + 1.25 - throat_x, 0, 0]) rotate([0, 90, 0]) cylinder(d = 5.5 / cos(30) + 0.3, h = 2.6, center = true, $fn = 6);
+    for (c = concat([edge_c], horn_cs)) translate([throat_x, c[0], c[1] - deck_z0]) {
+      teardrop_x(8.4, horn_w + 2 * cheek_t + 2);
+      rotate([0, 90, 0]) cylinder(d = brg_od + 2 * race_gap, h = brg_w, center = true, $fn = 64);
     }
   }
 }
@@ -691,12 +706,18 @@ module deck() {
         cylinder(d = pinion_post_d, h = z_s0 - 0.5 - deck_z1 + eps, $fn = 32);
         cylinder(d = pinion_pin_d, h = z_s0 - deck_z1 + pinion_pin_len, $fn = 32);
       }
-      for (c = roller_cs) translate([c[0], c[1], deck_t - eps]) {
-        cylinder(d = roller_pin_d + 2, h = 0.5 + eps, $fn = 32);
-        cylinder(d = roller_pin_d, h = -deck_z1 - 0.3, $fn = 32);
+      // Guide bearings: a pad filling under each to half a millimetre from
+      // its outer race, a shoulder for the inner race, the pin up into a
+      // socket under the tray
+      for (m = [0, 1]) mirror([m, 0, 0]) translate([guide_c[0], guide_c[1], deck_t - eps]) {
+        cylinder(d = brg_od - 1, h = guide_z0 - 0.5 - deck_z1 + eps, $fn = 64);
+        cylinder(d = brg_shoulder_d, h = guide_z0 - deck_z1 + eps, $fn = 48);
+        cylinder(d = brg_bore - 0.15, h = pin_socket - 0.3 - deck_z1, $fn = 32);
       }
       for (m = [0, 1]) mirror([m, 0, 0]) horn();
     }
+    // The slot each edge bearing hangs through
+    for (m = [0, 1]) mirror([m, 0, 0]) translate([cheek_x[0] + cheek_t / 2, edge_slot[0], -1]) cube([horn_w, edge_slot[1] - edge_slot[0], deck_t + 2]);
     for (p = deck_screws) translate([p[0], p[1], 0]) {
       translate([0, 0, -1]) cylinder(d = clear_d, h = deck_t - deck_z0 + 2);
       translate([0, 0, -1]) cylinder(d = cbore_d, h = 1 + cbore_h);
@@ -721,55 +742,36 @@ module spacer_in_place(k) {
   translate([spool_c[k][0], spool_c[k][1], z_s0 + brg_w]) spacer();
 }
 
-// Corner roller: a sleeve on the deck's pin, riding on its 0.5 mm washer
-// ring, held on by the tray above.
-roller_h = -deck_z1 - 1;
-module roller() {
-  difference() {
-    cylinder(d = roller_d, h = roller_h, $fn = 48);
-    translate([0, 0, -1]) cylinder(d = roller_pin_d + 0.5, h = roller_h + 2, $fn = 32);
-  }
-}
-
-module rollers_in_place() {
-  for (c = roller_cs) translate([c[0], c[1], deck_z1 + 0.5]) roller();
-}
-
-// Horn roller: a sleeve on its M3 between the cheeks.
-module horn_roller() {
-  difference() {
-    cylinder(d = horn_roller_d, h = horn_w - 1, $fn = 48);
-    translate([0, 0, -1]) cylinder(d = clear_d + 0.2, h = horn_w + 1, $fn = 32);
-  }
-}
-
-module horn_rollers_in_place() {
-  for (m = [0, 1], r = horn_rollers) mirror([m, 0, 0]) translate([throat_x - (horn_w - 1) / 2, r[0], r[1]]) rotate([0, 90, 0]) horn_roller();
-}
-
-// The cable's run from a corner's rollers up through its horn's throat
-// (reference, straightened): from the spool's channel depth to just short
-// of the throat at hang_z, then straight up through it. The real cable bends
-// over the rear horn roller and under the front one on the way.
+// The cable's run (reference, straightened): from the guide bearing's
+// inner side at the spool channel's depth, over the edge bearing, onto the
+// rear throat bearing at its tangent, over it and up through the throat.
 module ref_cable_runs() {
   z0 = z_s0 + spool_gear_w + bay_w / 2;
-  y1 = horn_y - horn_roller_d / 2 - 1;
+  rr = brg_od / 2 + cable_d / 2;
+  p = [edge_c[0], edge_c[1] + rr];
+  c = horn_cs[0];
+  d = norm(c - p);
+  a = atan2(c[1] - p[1], c[0] - p[0]) + asin(rr / d);
+  t = c + rr * [-sin(a), cos(a)];
+  top = [c[0], c[1] + rr];
+  path = [[guide_y, z0], p, t, top, [horn_y + 40, top[1]]];
+  for (m = [0, 1]) mirror([m, 0, 0]) for (i = [0 : len(path) - 2]) hull() for (q = [path[i], path[i + 1]])
+    translate([throat_x, q[0], q[1]]) sphere(d = cable_d, $fn = 8);
+}
+
+module ref_guide_bearings() {
   for (m = [0, 1]) mirror([m, 0, 0]) {
-    hull() {
-      translate([throat_x, roller_y, z0]) sphere(d = cable_d, $fn = 8);
-      translate([throat_x, y1, hang_z]) sphere(d = cable_d, $fn = 8);
-    }
-    hull() {
-      translate([throat_x, y1, hang_z]) sphere(d = cable_d, $fn = 8);
-      translate([throat_x, horn_y + 40, hang_z]) sphere(d = cable_d, $fn = 8);
-    }
+    translate([guide_c[0], guide_c[1], guide_z0]) bearing_608();
+    for (c = concat([edge_c], horn_cs)) translate([throat_x - brg_w / 2, c[0], c[1]]) rotate([0, 90, 0]) bearing_608();
   }
 }
 
-assert(horn_y0 >= roller_y + roller_d / 2 + 0.5, "a horn runs into its corner's rollers");
-assert(horn_y - horn_roller_d / 2 > horn_y_up, "a horn roller sits over the box");
-for (p = deck_screws, x = cheek_x) assert(abs(abs(p[0]) - x) >= cheek_t / 2 + column_d / 2 + 0.5 || abs(p[1]) + column_d / 2 < horn_y0 - 0.5 || p[1] < 0, "a cheek runs into a deck pillar");
-assert(cheek_x[1] + cheek_t / 2 < outer_l / 2, "a horn sticks out past the end");
+module bearing_608() {
+  difference() {
+    cylinder(d = brg_od, h = brg_w, $fn = 48);
+    translate([0, 0, -1]) cylinder(d = brg_bore, h = brg_w + 2, $fn = 32);
+  }
+}
 
 // How deep each spool's pin goes into the tray's underside
 pin_socket = 1.5;
