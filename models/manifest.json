@@ -4441,7 +4441,7 @@
       "slug": "hc33-lipo-case",
       "devOnly": true,
       "title": "HT-HC33 LiPo Case",
-      "description": "A case that stands on end with everything stacked face to face inside it like a stack of cards: a USB-C TP4056 charger board at the back, then a 103665 LiPo pouch, a Heltec HT-HC33 (ESP32-S3 + Wi-Fi HaLow), and a Heltec WiFi LoRa 32 V4 at the front. The left side is a door hinged along its bottom edge on a 1.75 mm filament pin and held shut by one M3 cap screw near the top; open it and everything slides out to the left. Each board's right edge sits in a slotted rail on the right wall and its left edge in a slotted rib on the door, roofed so nothing rides up; the HC33's and V4's slots have floors that put their USB-Cs over openings in the bottom. The TP4056 lies with its USB-C through the right wall. Two SMA bulkheads go through the top at the front-left and back-right corners. Seen from the top it is a rounded rectangle, and grip scoops 15 mm long sit at the corners of the front and back faces, alternating corners up the case. 49 × 48.4 × 82.5 mm. Cell, V4 and TP4056 details are nominal, not measured. Not yet printed.",
+      "description": "A case that stands on end with everything stacked face to face inside it like a stack of cards, each in a chamber of its own: a USB-C TP4056 charger board at the back, then a Heltec HT-HC33 (ESP32-S3 + Wi-Fi HaLow), a 103665 LiPo pouch, and a Heltec WiFi LoRa 32 V4 at the front. Dividers run between them up to just over the tallest part; the space under the top is open across them for the wires. The left side is a door hinged along its bottom edge on a 1.75 mm filament pin and held shut by a pair of 8 × 3 mm disc magnets, with a fingernail groove across its top to pull it open, so it opens without tools; open it and everything slides out to the left. Each board's right edge sits in a slotted rail on the right wall and its left edge in a slotted rib on the door, roofed so nothing rides up; the HC33's and V4's slots have floors that put their USB-Cs over openings in the bottom. The TP4056 lies with its USB-C through the right wall. Two SMA bulkheads go through the top at the front-left and back-right corners. Seen from the top it is a rounded rectangle, the top edge is rounded, and the front and back faces carry 15 mm bands, diamond knurled and plain in turn, all the way up. 49 × 51.1 × 82.5 mm. Cell, V4 and TP4056 details are nominal, not measured. Not yet printed.",
       "filament": [
         { "material": "PETG", "color": "any" }
       ],
@@ -4474,12 +4474,12 @@
           ] }
       ],
       "parts": [
-        { "file": "body.stl", "format": "stl", "label": "Body — bottom with two USB-C openings, top with two SMA holes, back, front and right walls, the TP4056's side opening, board rails and cell fins on the right wall, latch boss, hinge knuckles, grip scoops; prints on its right face" },
-        { "file": "door.stl", "format": "stl", "label": "Door — the left wall, board ribs and cell fins, hinge knuckles, counterbored latch hole; prints on its outer face" }
+        { "file": "body.stl", "format": "stl", "label": "Body — bottom with two USB-C openings, rounded top with two SMA holes, back, front and right walls, the TP4056's side opening, board rails, dividers, cell roof, magnet boss, hinge knuckles, knurled grip bands; prints on its right face" },
+        { "file": "door.stl", "format": "stl", "label": "Door — the left wall, board ribs and cell roof, hinge knuckles, magnet pocket, fingernail groove; prints on its outer face" }
       ],
       "hardware": [
-        { "qty": 1, "label": "M3x10 socket cap screw — holds the door shut",
-          "usedBy": [ { "part": "door.stl", "each": 1 } ] },
+        { "qty": 2, "label": "8 × 3 mm disc magnet — holds the door shut, one in the door and one in the body (opposite poles facing)",
+          "usedBy": [ { "part": "door.stl", "each": 1 }, { "part": "body.stl", "each": 1 } ] },
         { "qty": 1, "label": "1.75 mm filament, 45 mm — the hinge pin" },
         { "qty": 2, "label": "SMA female bulkhead to U.FL pigtail — through the top" }
       ]

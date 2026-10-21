@@ -4,27 +4,32 @@
 // on end. The HC33's and V4's USB-Cs come out of the bottom, the TP4056's
 // out of the right side, and two SMA bulkheads out of the top at opposite
 // corners. The left side is a door, hinged along its bottom edge, so the
-// whole stack is open from the side.
+// whole stack is open from the side. Dividers keep each piece in a
+// chamber of its own; the space under the top is open across them for
+// the wires.
 //
 // Two pieces:
 // - the body: bottom, top, back, front and right walls. Each board's right
 //   edge sits in a slot in a rail on the right wall, closed top and bottom,
 //   and the HC33's and V4's slots have floors that put the USB-C over its
-//   opening. The cell's right end sits between fins under a roof.
+//   opening. Dividers run between the layers, and a roof stops the cell's
+//   right end riding up.
 // - the door: the left wall. Ribs on its inside hold each board's left
-//   edge in a slot with a roof over it, and fins and a roof hold the
-//   cell's left end. It swings down on a hinge along the bottom edge
-//   (knuckles round a 1.75 mm filament pin) and an M3 cap screw near the
-//   top holds it shut.
+//   edge in a slot with a roof over it, and a roof stops the cell's left
+//   end. It swings down on a hinge along the bottom edge (knuckles round a
+//   1.75 mm filament pin). A pair of disc magnets near the top holds it
+//   shut, and a groove across its top takes a fingernail to pull it open.
 // With the door open, everything slides out to the left.
 //
 // Stack, back to front: TP4056 (parts to the front, its USB-C end to the
-// right), cell, HC33 (top face to the front), V4 (top face, with its
+// right), HC33 (top face to the front), cell, V4 (top face, with its
 // screen, to the front).
 //
 // Seen from the top the outline is a rounded rectangle whose left and
 // right faces lead into the corners at 45°, so each piece prints on that
-// face with no overhang past 45°.
+// face with no overhang past 45°. The top edge is rounded the same way.
+// The front and back faces carry 15 mm bands, diamond knurled and plain in
+// turn, all the way up.
 //
 // Frame: origin at the cavity's centre in plan, z = 0 on the bottom face.
 // X across (the door at -X), Y through the stack (+Y the front), Z up the
@@ -78,9 +83,13 @@ tp_usb_h = 3.2;
 tp_usb_w = 9;
 tp_usb_overhang = 0.6;
 
-// Gap between neighbours in the stack, and in front of the V4
-layer_gap = 1.5;
+// Gap between neighbours in the stack (a divider runs down the middle of
+// each), and in front of the V4
+layer_gap = 2.4;
 front_gap = 0.5;
+
+// Dividers between the layers
+divider_t = 1.2;
 
 // Board slots: how far each board's edge goes into its slot, the slot's
 // clearance over the PCB's thickness and past its edge, the rail's wall
@@ -93,10 +102,9 @@ rail_wall = 1.2;
 roof_fit = 0.3;
 roof_t = 1.5;
 
-// Fins either side of the cell's ends: thickness, and how far in from the
-// right wall and the door
-cell_fin_t = 1.2;
-cell_fin_reach = 3;
+// How far the roofs over the cell's ends reach in from the right wall
+// and the door
+cell_roof_reach = 3;
 
 // Gap between each USB-C's face and the wall it comes through
 usb_gap = 0.3;
@@ -107,9 +115,11 @@ usb_open_w = 13;
 usb_open_h = 7;
 usb_open_r = 1;
 
-// SMA bulkheads (1/4-36) through the top: the hole, the inner nut across
-// corners, and how far the connector's back and the pigtail's bend reach
-// down from the top
+// SMA bulkheads (1/4-36) through the top: in from the cavity's back and
+// front walls (far enough that the outer nut sits on the flat of the
+// top), the hole, the inner nut across corners, and how far the
+// connector's back and the pigtail's bend reach down from the top
+sma_in_y = 5.6;
 sma_hole_d = 6.6;
 sma_nut_d = 9.2;
 sma_behind = 12;
@@ -121,8 +131,9 @@ end_wall = 4;
 bottom_t = 2.5;
 top_t = 3;
 
-// Corner radius seen from the top
+// Corner radius seen from the top, and the top edge's radius
 profile_r = 10;
+top_r = 4;
 
 // Gap between the door and the body
 door_fit = 0.2;
@@ -137,25 +148,26 @@ knuckles = 5;
 knuckle_gap = 0.4;
 hinge_clear = 0.3;
 
-// Door latch: an M3 cap screw through the door near the top into a boss
-// under the top: clearance hole, pilot, counterbore diameter and depth,
-// the boss's radius, and the screw's length under the head
-clear_d = 3.4;
-pilot_d = 2.5;
-cbore_d = 6;
-cbore_h = 3.2;
-latch_r = 3.5;
-screw_len = 10;
+// Door magnets: one disc in the door and one in a boss under the top,
+// face to face: diameter, thickness, the pocket's clearance, the boss's
+// wall round it and behind it
+magnet_d = 8;
+magnet_h = 3;
+magnet_fit = 0.2;
+magnet_wall = 0.8;
 
-// Grip indents on the front and back faces at the corners, alternating
-// corners from one level to the next: length up the case, depth, the
-// radius of the scoop, the gap between levels, and the plain band at the
-// top and bottom
-indent_l = 15;
-indent_d = 1.5;
-indent_r = 8;
-indent_gap = 3;
-indent_margin = 4;
+// Fingernail groove across the door's outer face near the top: depth
+// (a 90° V), and its centre below the top
+pull_d = 1.5;
+pull_z = 8;
+
+// Grip bands on the front and back faces: height, the knurl's pitch and
+// depth (90° V-grooves at ±45°), and the plain margin at the bottom and
+// under the top edge
+band_h = 15;
+knurl_pitch = 2;
+knurl_d = 0.8;
+band_margin = 2;
 // END_PARAMS
 
 eps = 0.01;
@@ -166,17 +178,19 @@ ex = hx + side_wall;
 // Through the stack, from the back wall's inner face
 tp_y = 0;
 tp_depth = tp_back + tp_pcb + tp_usb_h;
-cell_y = tp_y + tp_depth + layer_gap;
-cell_depth = cell_t + 2 * cell_fit;
-hc_y = cell_y + cell_depth + layer_gap;
+hc_y = tp_y + tp_depth + layer_gap;
 hc_depth = hc_under + hc_pcb + hc_over;
-v4_y = hc_y + hc_depth + layer_gap;
+cell_y = hc_y + hc_depth + layer_gap;
+cell_depth = cell_t + 2 * cell_fit;
+v4_y = cell_y + cell_depth + layer_gap;
 v4_over = v4_t - v4_under - v4_pcb;
 depth = v4_y + v4_t + front_gap;
 hy = depth / 2;
 ey = hy + end_wall;
 // From the back face onto the frame
 yb = -hy;
+// Dividers, centred in the gaps: TP4056 | HC33 | cell | V4
+dividers = [hc_y - layer_gap / 2, cell_y - layer_gap / 2, v4_y - layer_gap / 2];
 
 // HC33 and V4: [width, PCB's back face, PCB thickness, length, USB-C
 // overhang, USB-C centre]. Each PCB lands on its slot's floor, so the
@@ -198,8 +212,14 @@ tp_usb_cz = bottom_t + tp_w / 2;
 cell_z1 = bottom_t + cell_l;
 
 tallest = max(cell_z1, tp_z1, max([for (b = boards) board_z1(b)]));
-ceiling = max(tallest + sma_behind, tallest + roof_fit + roof_t + 0.5);
+// The dividers stop at the roofs; above them the wires cross between
+// chambers
+divider_z1 = tallest + roof_fit + roof_t;
+ceiling = max(tallest + sma_behind, divider_z1 + 0.5);
 total_h = ceiling + top_t;
+// The top edge: a 45° lead from the sides onto a top_r arc
+top_lead = (sqrt(2) - 1) / sqrt(2) * top_r;
+top_z0 = total_h - top_r + top_r / sqrt(2) - top_lead;
 
 // Outline: corner arcs about (±arc_x, ±arc_y), and 45° lead-ins from the
 // arcs onto the left and right faces
@@ -210,7 +230,7 @@ lead_y = arc_y + (sqrt(2) - 1) * profile_r;
 // SMAs over the front-left and back-right corners, the inner nut just
 // clear of the walls
 sma_e = sma_nut_d / 2 + 0.5;
-smas = [[-(hx - sma_e), hy - sma_e], [hx - sma_e, -(hy - sma_e)]];
+smas = [[-(hx - sma_e), hy - sma_in_y], [hx - sma_e, -(hy - sma_in_y)]];
 
 // Hinge axis along Y at the door's bottom edge. The knuckles' radius keeps
 // them out of the cavity.
@@ -221,16 +241,17 @@ function knuckle_y0(i) = -ey + i * knuckle_l;
 // Even knuckles are the body's, odd ones the door's
 function body_knuckle(i) = i % 2 == 0;
 
-// Door latch, centred across the stack, under the top
-latch_z = ceiling - latch_r;
-latch_engage = screw_len - (side_wall - door_fit - cbore_h);
-latch_len = latch_engage + 2;
+// Door magnets, centred across the stack, under the top
+magnet_r = (magnet_d + magnet_fit) / 2;
+magnet_boss_r = magnet_r + magnet_wall;
+magnet_z = ceiling - magnet_boss_r;
+magnet_len = magnet_h + magnet_fit + magnet_wall;
 
-// Indent levels, centred up the case
-indent_pitch = indent_l + indent_gap;
-indent_n = floor((total_h - 2 * indent_margin + indent_gap) / indent_pitch);
-function indent_z(i) = total_h / 2 + (i - (indent_n - 1) / 2) * indent_pitch;
-function indent_corners(i) = i % 2 == 0 ? [[-1, 1], [1, -1]] : [[1, 1], [-1, -1]];
+// Grip bands from the bottom up; the even ones are knurled
+band_top = top_z0 - band_margin;
+band_n = ceil((band_top - band_margin) / band_h);
+function band_z0(i) = band_margin + i * band_h;
+function band_z1(i) = min(band_margin + (i + 1) * band_h, band_top);
 
 function slot_y0(b) = b[1] - slot_fit / 2;
 function slot_y1(b) = b[1] + b[2] + slot_fit / 2;
@@ -240,11 +261,12 @@ tp_b = [0, tp_pcb_y, tp_pcb];
 
 for (b = boards) assert(b[0] / 2 + slot_side_fit <= hx, "a board is wider than the cavity");
 assert(slot_y0(tp_b) >= 0, "the TP4056's slot runs into the back wall");
-assert(rail_y1(tp_b) <= cell_y - cell_fin_t, "the TP4056's rails run into the cell's fins");
-assert(rail_y0(hc_board) >= cell_y + cell_depth + cell_fin_t, "the HC33's rails run into the cell's fins");
-assert(rail_y1(hc_board) <= rail_y0(v4_board), "the HC33's and the V4's rails run together");
+assert(rail_y1(tp_b) <= dividers[0] - divider_t / 2, "the TP4056's rails run into a divider");
+assert(rail_y0(hc_board) >= dividers[0] + divider_t / 2, "the HC33's rails run into a divider");
+assert(rail_y1(hc_board) <= dividers[1] - divider_t / 2, "the HC33's rails run into a divider");
+assert(rail_y0(v4_board) >= dividers[2] + divider_t / 2, "the V4's rails run into a divider");
 assert(slot_y1(v4_board) <= depth, "the V4's slot runs into the front wall");
-assert(cell_fin_t <= layer_gap, "the cell's fins run into its neighbours");
+assert(divider_t + 0.6 <= layer_gap, "the dividers leave their neighbours no room");
 assert(v4_board[5] - hc_board[5] >= usb_open_h + 1.2, "the two bottom USB-C openings run together");
 assert(tp_x0 - slot_side_fit - rail_wall >= -hx + 2, "the TP4056 doesn't fit across");
 assert(tp_usb_cy - usb_open_h / 2 >= -1, "the TP4056's opening runs into the back wall");
@@ -254,9 +276,17 @@ assert(hinge_r - (pin_d + pin_loose) / 2 >= 1.2, "too little knuckle round the p
 assert(lead_y >= arc_y && arc_x > 0 && arc_y > 0, "the corner radius is too big for the outline");
 // The cavity's corner keeps a wall
 assert(profile_r - norm([profile_r - side_wall, profile_r - end_wall]) >= 2, "the corners are too thin");
-assert(latch_engage >= 6, "the latch screw barely reaches into its boss");
-for (p = smas) assert(abs(p[1]) - sma_nut_d / 2 >= latch_r + 0.5, "an SMA's nut hits the latch boss");
-assert(indent_n >= 1, "no room for the grip indents");
+for (p = smas) {
+  assert(abs(p[1]) - sma_nut_d / 2 >= magnet_boss_r + 0.5, "an SMA's nut hits the magnet boss");
+  assert(abs(p[1]) + sma_nut_d / 2 <= hy - 0.3, "an SMA's inner nut hits the back or front wall");
+  // The outer nut sits on the flat of the top: inside the outline inset by top_r
+  assert(norm([max(abs(p[0]) - arc_x, 0), max(abs(p[1]) - arc_y, 0)]) + sma_nut_d / 2 <= profile_r - top_r,
+         "an SMA's outer nut runs onto the rounded top edge");
+}
+assert(magnet_z - magnet_boss_r >= divider_z1 + 0.3, "the magnet boss hangs into the chambers");
+assert(magnet_h + magnet_fit + 1 <= side_wall - door_fit, "the door is too thin for its magnet");
+assert(top_r < profile_r, "the top edge's radius is bigger than the corners'");
+assert(total_h - pull_z + pull_d <= top_z0, "the pull groove runs into the top edge");
 
 // ---- outline and cavity
 
@@ -269,8 +299,25 @@ module outline() {
   }
 }
 
+// The outline inset by e, at height z
+module slice(e, z) {
+  translate([0, 0, z]) linear_extrude(eps) offset(delta = -e) outline();
+}
+
+// The outline extruded, its top edge a 45° lead onto a top_r arc
 module shell(z0 = 0, z1 = total_h) {
-  translate([0, 0, z0]) linear_extrude(z1 - z0) outline();
+  steps = 8;
+  intersection() {
+    union() {
+      translate([0, 0, -1]) linear_extrude(top_z0 + 1) outline();
+      hull() {
+        slice(0, top_z0 - eps);
+        for (i = [0:steps]) let(a = 45 + 45 * i / steps)
+          slice(top_r * (1 - cos(a)), total_h - top_r + top_r * sin(a) - (i == steps ? eps : 0));
+      }
+    }
+    translate([-ex - 1, -ey - 1, z0]) cube([2 * ex + 2, 2 * ey + 2, z1 - z0]);
+  }
 }
 
 module cavity() {
@@ -343,21 +390,59 @@ module tp_right_rails() {
   }
 }
 
-// Fins either side of the cell's end and a roof over it, reaching in from
-// x0 to x1
-module cell_end(x0, x1, z0) {
-  for (y = [cell_y - cell_fin_t, cell_y + cell_depth])
-    translate([x0, yb + y, z0]) cube([x1 - x0, cell_fin_t, cell_z1 + roof_fit + roof_t - z0]);
+// A roof over the cell's end, reaching in from x0 to x1
+module cell_roof(x0, x1) {
   translate([x0, yb + cell_y - eps, cell_z1 + roof_fit]) cube([x1 - x0, cell_depth + 2 * eps, roof_t]);
 }
 
+module dividers() {
+  for (y = dividers) translate([-hx, yb + y - divider_t / 2, bottom_t - eps])
+    cube([2 * hx + eps, divider_t, divider_z1 - bottom_t + eps]);
+}
+
 // Under the top, its far end 45° up to the top so it prints
-module latch_boss() {
+module magnet_boss() {
   x0 = -hx;
-  hull() {
-    translate([x0, 0, latch_z]) rotate([0, 90, 0]) cylinder(r = latch_r, h = latch_len);
-    translate([x0, -latch_r, ceiling - eps]) cube([latch_len + 2 * latch_r, 2 * latch_r, eps]);
+  difference() {
+    hull() {
+      translate([x0, 0, magnet_z]) rotate([0, 90, 0]) cylinder(r = magnet_boss_r, h = magnet_len);
+      translate([x0, -magnet_boss_r, ceiling - eps]) cube([magnet_len + 2 * magnet_boss_r, 2 * magnet_boss_r, eps]);
+    }
+    magnet_pocket(x0, 1);
   }
+}
+
+// A magnet's pocket in the face at x, going into the piece in direction s
+module magnet_pocket(x, s) {
+  translate([x - s * 1, 0, magnet_z]) rotate([0, s * 90, 0]) cylinder(r = magnet_r, h = magnet_h + magnet_fit + 1);
+}
+
+// The band's outline on the face: its ends lead in at 45°, so no groove
+// ends in a face that prints facing down
+module band_region(z0, z1) {
+  h = z1 - z0;
+  e = min(h / 2, arc_x);
+  polygon([[-arc_x + e, z0], [arc_x - e, z0], [arc_x, z0 + e], [arc_x, z1 - e], [arc_x - e, z1],
+           [-arc_x + e, z1], [-arc_x, z1 - e], [-arc_x, z0 + e]]);
+}
+
+module knurl() {
+  for (i = [0:band_n - 1]) if (i % 2 == 0) let(z0 = band_z0(i), z1 = band_z1(i)) if (z1 - z0 > 2)
+    for (sy = [-1, 1]) intersection() {
+      translate([0, sy * ey, 0]) rotate([90, 0, 0]) linear_extrude(2 * knurl_d + 2, center = true) band_region(z0, z1);
+      translate([0, sy * ey, 0]) for (dir = [-1, 1]) knurl_v(z0, z1, dir);
+    }
+}
+
+// Grooves at 45° (dir ±1) across the face at y = 0, a 90° V knurl_d deep each
+module knurl_v(z0, z1, dir) {
+  w = 2 * arc_x;
+  span = w + (z1 - z0);
+  n = ceil(span / (knurl_pitch * sqrt(2)));
+  zc = (z0 + z1) / 2;
+  s = knurl_d * sqrt(2);
+  for (i = [-n:n]) translate([0, 0, zc]) rotate([0, dir * 45, 0]) translate([i * knurl_pitch, 0, 0])
+    rotate([0, 0, 45]) cube([s, s, 2 * span], center = true);
 }
 
 module bottom_opening(y) {
@@ -368,15 +453,6 @@ module bottom_opening(y) {
     offset(usb_open_r) square([2 * (w - usb_open_r), 2 * (h - usb_open_r)], center = true);
     translate([-w - h, 0]) circle(r = 0.1);
   }
-}
-
-module indents() {
-  for (i = [0:indent_n - 1], c = indent_corners(i)) let(z = indent_z(i))
-    translate([c[0] * arc_x, c[1] * (ey + indent_r - indent_d), 0]) hull() {
-      translate([0, 0, z - indent_l / 2]) cylinder(r = indent_r - indent_d, h = eps, $fn = 64);
-      translate([0, 0, z - indent_l / 2 + indent_d]) cylinder(r = indent_r, h = indent_l - 2 * indent_d, $fn = 64);
-      translate([0, 0, z + indent_l / 2 - eps]) cylinder(r = indent_r - indent_d, h = eps, $fn = 64);
-    }
 }
 
 module body() {
@@ -400,16 +476,13 @@ module body() {
     translate([hx - 1, yb + tp_usb_cy, tp_usb_cz]) rotate([0, 90, 0]) linear_extrude(side_wall + 2)
       offset(usb_open_r) square([usb_open_w - 2 * usb_open_r, usb_open_h - 2 * usb_open_r], center = true);
     for (p = smas) translate([p[0], p[1], ceiling - 1]) cylinder(d = sma_hole_d, h = top_t + 2);
-    translate([-hx - 1, 0, latch_z]) rotate([0, 90, 0]) cylinder(d = pilot_d, h = latch_engage + 2);
-    indents();
+    knurl();
   }
   for (b = boards) right_rail(b);
   tp_right_rails();
-  cell_end(hx - cell_fin_reach, hx + eps, bottom_t - eps);
-  difference() {
-    latch_boss();
-    translate([-hx - 1, 0, latch_z]) rotate([0, 90, 0]) cylinder(d = pilot_d, h = latch_engage + 2);
-  }
+  dividers();
+  cell_roof(hx - cell_roof_reach, hx + eps);
+  magnet_boss();
 }
 
 // ---- door, modelled closed
@@ -448,15 +521,14 @@ module door() {
         translate([(hinge_r + hinge_clear) * sqrt(2), 0]) circle(r = 0.1);
       }
     pin_hole(pin_d + pin_loose);
-    translate([-ex - 1, 0, latch_z]) rotate([0, 90, 0]) {
-      cylinder(d = clear_d, h = side_wall + 2);
-      cylinder(d = cbore_d, h = cbore_h + 1);
-    }
-    indents();
+    magnet_pocket(-hx - door_fit, -1);
+    // fingernail groove across the outer face, a 90° V
+    translate([-ex, 0, total_h - pull_z]) rotate([90, 0, 0]) rotate(45)
+      cube([pull_d * sqrt(2), pull_d * sqrt(2), 2 * ey + 2], center = true);
   }
   for (b = boards) door_rib(b, -b[0] / 2, board_z0(b), board_z1(b));
   door_rib(tp_b, tp_x0, bottom_t + 0.3, tp_z1);
-  cell_end(-hx - door_fit - eps, -hx + cell_fin_reach, bottom_t + 0.3);
+  cell_roof(-hx - door_fit - eps, -hx + cell_roof_reach);
 }
 
 // Swung open by a degrees about the hinge
