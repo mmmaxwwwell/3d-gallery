@@ -153,8 +153,8 @@ sma_behind = 12;
 // channel, under the fins' channels); the top (the SMAs' plate, over the
 // top seal)
 side_wall = 6;
-right_wall = 11.6;
-end_wall = 13.5;
+right_wall = 9.3;
+end_wall = 9.3;
 bottom_t = 9.8;
 top_t = 5;
 
@@ -209,9 +209,10 @@ key_h = 1.5;
 key_flare = 0.4;
 key_pitch = 10;
 
-// Corner radius seen from the top, and the top edge's radius
-profile_r = 10;
-top_r = 4;
+// Corner radius seen from the top, and the top edge's radius: small, so
+// the faces stay flat out to the screws' heads
+profile_r = 2;
+top_r = 1.5;
 
 // Clearance where the carriage slides along the body
 slide_fit = 0.2;
@@ -341,6 +342,15 @@ arc_x = exw - profile_r;
 arc_y = ey - profile_r;
 lead_y = arc_y + (sqrt(2) - 1) * profile_r;
 
+// Whether a disc of radius rad centred at (x, y) sits on the flat of the
+// top: inside the outline, its corners and lead-ins, inset by top_r + rad
+function on_top_flat(x, y, rad) = let(xr = abs(x - xo), yr = abs(y), d = top_r + rad, rp = max(profile_r - d, 0),
+                                      cx = exw - d - rp, cy = ey - d - rp)
+  norm([max(xr - cx, 0), max(yr - cy, 0)]) <= rp + 1e-6 && xr + yr <= exw + lead_y - d * sqrt(2) + 1e-6;
+// The farthest x right of xo a disc of radius rad at y can go on the flat
+function top_flat_x(y, rad) = let(yr = abs(y), d = top_r + rad, rp = max(profile_r - d, 0), cx = exw - d - rp, cy = ey - d - rp)
+  xo + min(yr <= cy ? cx + rp : cx + sqrt(max(rp * rp - pow(yr - cy, 2), 0)), exw + lead_y - d * sqrt(2) - yr);
+
 // SMAs over the front-left and back-right corners, the inner nut just
 // clear of the walls
 sma_e = sma_nut_d / 2 + 0.5;
@@ -419,7 +429,7 @@ door_screws = concat(
 // of the door screws at the left to the rounded corner at the right; and
 // down the right wall's top between those, evenly
 top_x0 = -hx + door_engage + 4;
-top_x1 = xo + arc_x + sqrt(pow(profile_r - top_r - m3_cbore_d / 2 - 0.2, 2) - pow(max(screw_y - arc_y, 0), 2));
+top_x1 = top_flat_x(screw_y, m3_cbore_d / 2 + 0.2);
 top_screws = concat(
   [for (sy = [-1, 1], k = [0:top_screws_per_wall - 1])
      [top_x0 + (top_x1 - top_x0) * k / (top_screws_per_wall - 1), sy * screw_y]],
@@ -469,8 +479,8 @@ assert(floor_channel_d <= bottom_t - 1, "the floor's channels leave too little f
 assert((end_wall - key_d - 2 * key_flare) / 2 >= 1 && 3.5 - key_d / 2 - key_flare >= 1 - eps,
        "the base's keys leave the walls too thin");
 assert(lead_y >= arc_y && arc_x > 0 && arc_y > 0, "the corner radius is too big for the outline");
-// The cavity's corner keeps a wall behind an inset ring's knurl
-assert(profile_r - norm([profile_r - side_wall, profile_r - end_wall]) - grip_inset >= 1.2, "the corners are too thin");
+// The corners keep their walls' thickness: the radius is under them
+assert(profile_r <= min(side_wall, end_wall, right_wall), "the corners are too thin");
 assert(end_wall - grip_inset >= 1.2, "the back and front walls are too thin behind the grip");
 assert(knurl_d < grip_inset, "the knurl cuts through the TPU rings");
 assert(right_wall - grip_inset - wall_groove_d >= 1.2, "the right wall is too thin behind the grip");
@@ -480,9 +490,7 @@ assert(nib_l + slide_fit <= right_wall - 2, "the hook's groove cuts through the 
 assert(hook_gusset_l >= hook_h, "the hook's gussets would print past 45°");
 for (p = smas) {
   assert(abs(p[1]) + sma_nut_d / 2 <= hy - 0.3, "an SMA's inner nut hits the back or front wall");
-  // The outer nut sits on the flat of the top: inside the outline inset by top_r
-  assert(norm([max(abs(p[0] - xo) - arc_x, 0), max(abs(p[1]) - arc_y, 0)]) + sma_nut_d / 2 <= profile_r - top_r,
-         "an SMA's outer nut runs onto the rounded top edge");
+  assert(on_top_flat(p[0], p[1], sma_nut_d / 2), "an SMA's outer nut runs onto the rounded top edge");
 }
 assert(top_r < profile_r, "the top edge's radius is bigger than the corners'");
 // The screws: in the walls, outside the seal channels and clear of the
@@ -500,7 +508,7 @@ assert(door_z_high + m3_cbore_d / 2 <= top_z0 - 0.3, "the top door screws' heads
 assert((door_z_high - door_z_low) / (door_screws_per_side - 1) >= m3_cbore_d + 1, "the door screws up the sides are crowded");
 assert(2 * screw_y / (door_screws_bottom + 1) >= m3_cbore_d + 1, "the door screws across the bottom are crowded");
 assert(right_wall - grip_inset - screw_in - m3_pilot_d / 2 >= 0.8, "the top's right screws run into the grip rings");
-assert(hx + screw_in + m3_cbore_d / 2 <= ex_r - top_r, "the top's right screws' heads run onto the rounded top edge");
+for (t = top_screws) assert(on_top_flat(t[0], t[1], m3_cbore_d / 2 + 0.2), "a top screw's head runs onto the rounded top edge");
 assert(2 * screw_y / (top_screws_right + 1) >= m3_cbore_d + 1, "the top's right screws are crowded");
 // The top screws' pilots stay clear of the door screws' pilots
 assert(top_x0 - m3_pilot_d / 2 >= -hx + door_engage + 1 + 1.5, "the top and door screws meet");
@@ -572,7 +580,7 @@ function arc_pts(cx, cy, r, a0, n) = [for (i = [0:n]) [cx + r * cos(a0 + 45 * i 
 // The outline inset by e as points, counter-clockwise from the middle of
 // the right face. Every inset gives the same points at the same places
 // along their segments, so one inset's points map onto another's.
-function outline_pts(e, n = 12) = let(r = profile_r - e, x = exw - e, ly = arc_y + r * (sqrt(2) - 1))
+function outline_pts(e, n = 12) = let(r = max(profile_r - e, 0.05), x = exw - e, ly = arc_y + r * (sqrt(2) - 1))
   [for (p = concat([[x, 0], [x, ly]], arc_pts(arc_x, arc_y, r, 45, n), arc_pts(-arc_x, arc_y, r, 90, n),
                    [[-x, ly], [-x, -ly]], arc_pts(-arc_x, -arc_y, r, 225, n), arc_pts(arc_x, -arc_y, r, 270, n),
                    [[x, -ly], [x, 0]])) [p[0] + xo, p[1]]];
@@ -658,8 +666,8 @@ module shell_inset(e) {
     translate([0, 0, -1]) linear_extrude(top_z0 + 1) offset(delta = -e) outline();
     hull() {
       slice(e, top_z0 - eps);
-      for (i = [0:steps]) let(a = 45 + 45 * i / steps)
-        slice(top_r - (top_r - e) * cos(a), total_h - top_r + (top_r - e) * sin(a) - (i == steps ? eps : 0));
+      for (i = [0:steps]) let(a = 45 + 45 * i / steps, rr = max(top_r - e, 0.05))
+        slice(top_r - rr * cos(a), total_h - top_r + rr * sin(a) - (top_r - rr) - (i == steps ? eps : 0));
     }
   }
 }
