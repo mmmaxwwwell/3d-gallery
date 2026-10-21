@@ -9,6 +9,8 @@ import { buildViews, type ManifestPart, type ModelBuild } from '@3d-gallery/mode
 // that package here would drag three.js and a web worker into the Vite config.
 // @ts-expect-error — plain-JS build script, no types.
 import { embedUrl } from '../../scripts/embed-source-url.mjs';
+// @ts-expect-error — plain-JS build script, no types.
+import { buildIndex, servedFiles, LIBRARY_URL_DIR } from '../../scripts/library.mjs';
 import { copyPrintToolkitAssets } from '@3d-gallery/print-toolkit/vite-plugin';
 import { createMcpMiddleware } from '@3d-gallery/orca-bridge/mcp';
 import { galleryImportRecords, resolveOrcaPaths } from '@3d-gallery/orca-bridge';
@@ -39,7 +41,7 @@ const SITE_URL = 'https://mmmaxwwwell.github.io/3d-gallery/';
 const BASE = '/3d-gallery/';
 const ARTIFACT_BASE = `${BASE}a/`;
 /** Page directories under the base; '' is Home. `models/` is taken: that's where artifacts live. */
-const PAGES = ['', 'gallery', 'project', 'printers', 'operator', 'settings'];
+const PAGES = ['', 'gallery', 'project', 'printers', 'operator', 'settings', 'library'];
 
 /**
  * Serves models straight out of the artifact forge in dev.
@@ -230,6 +232,52 @@ function galleryModelsPlugin(): Plugin {
 }
 
 /**
+ * The library (`library/` at the repo root, see `scripts/library.mjs`) at
+ * `library-files/`: read from disk per request in dev, so an import shows up
+ * on the next load, and emitted into the bundle on a build. A library that
+ * fails its checks (a file not matching its sha256) fails the build.
+ */
+function libraryPlugin(): Plugin {
+  const PREFIX = `${BASE}${LIBRARY_URL_DIR}/`;
+  return {
+    name: 'gallery-library',
+    enforce: 'pre',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const path = (req.url ?? '').split('?')[0];
+        const rel = path.startsWith(PREFIX) ? path.slice(PREFIX.length) : path.startsWith(`/${LIBRARY_URL_DIR}/`) ? path.slice(LIBRARY_URL_DIR.length + 2) : null;
+        if (rel === null) return next();
+        try {
+          if (rel === 'index.json') {
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Cache-Control', 'no-store');
+            return res.end(JSON.stringify(buildIndex()));
+          }
+          const file = (servedFiles() as { path: string; abs: string }[]).find((f) => f.path === rel);
+          if (!file) {
+            res.statusCode = 404;
+            return res.end();
+          }
+          res.setHeader('Content-Type', file.path.endsWith('.3mf') ? 'model/3mf' : 'model/stl');
+          return res.end(readFileSync(file.abs));
+        } catch (err) {
+          server.config.logger.error(`[gallery-library] ${(err as Error).message}`);
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'text/plain');
+          res.end((err as Error).message);
+        }
+      });
+    },
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: `${LIBRARY_URL_DIR}/index.json`, source: JSON.stringify(buildIndex()) });
+      for (const f of servedFiles() as { path: string; abs: string }[]) {
+        this.emitFile({ type: 'asset', fileName: `${LIBRARY_URL_DIR}/${f.path}`, source: readFileSync(f.abs) });
+      }
+    },
+  };
+}
+
+/**
  * `/3d-gallery/printers` → `/3d-gallery/printers/`, as Pages does. Without it
  * the dev server's HTML fallback answers a slashless page URL with Home, and
  * the page's relative URLs would resolve one directory up anyway.
@@ -332,6 +380,7 @@ export default defineConfig({
   plugins: [
     pageSlashPlugin(),
     galleryModelsPlugin(),
+    libraryPlugin(),
     orcaMcpPlugin(),
     ...(toolkitAssetsPresent ? [copyPrintToolkitAssets({ dest: 'wasm' })] : []),
     VitePWA({
@@ -365,6 +414,7 @@ export default defineConfig({
           // published model looked missing until a hard refresh.
           'models/manifest.json',
           'models/print-estimates.json',
+          'library-files/index.json',
           // Content-addressed artifact tree emitted by scripts/build-models.mjs.
           // Immutable and fetched on demand; precaching it would ship every
           // model twice.
@@ -382,7 +432,7 @@ export default defineConfig({
         // Fresh when online, the last copy seen when offline.
         runtimeCaching: [
           {
-            urlPattern: /\/models\/(manifest|print-estimates)\.json$/,
+            urlPattern: /\/(models\/(manifest|print-estimates)|library-files\/index)\.json$/,
             handler: 'NetworkFirst',
             options: { cacheName: 'model-index', networkTimeoutSeconds: 4 },
           },

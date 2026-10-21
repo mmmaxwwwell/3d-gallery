@@ -36,6 +36,8 @@ notes, hardware and print times.
   out for the bed. Otherwise **Add to project** (➕) puts the part you're
   looking at onto the open project. Either way, **Open project →** takes
   you to it.
+- **Library** (📚, under the model list) holds files made somewhere else.
+  See [The library](#the-library).
 
 ### Project
 
@@ -183,6 +185,20 @@ Good to know:
 - **Plain HTTP on your network.** Browsers won't let a secure (`https://`)
   page talk to a printer over `http://`. To control printers, open the app
   over `http://` on your network, or use the Android app.
+
+## The library
+
+The Library page holds printable files from other sites, kept the way they
+were downloaded. Search matches titles, tags, authors, licences, file names
+and the description. Each item shows where it came from, who made it, its
+licence, and every version imported: pick a version and a file to see it in
+3D, or download it.
+
+Items are added from a checkout of the gallery:
+`node scripts/import-library.mjs <Printables link>`. Running it again on the
+same link adds a new version only if the files changed. Only files whose
+licence allows sharing them (Creative Commons, GPL and the like) can come
+in, since the gallery republishes them.
 
 ## Your assistant
 

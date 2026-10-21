@@ -131,7 +131,8 @@ body.sidebar-open #sidebar-backdrop {
   border-top: 1px solid #2d3340;
 }
 
-#plates-btn {
+#plates-btn,
+#library-btn {
   text-decoration: none;
   display: flex;
   align-items: center;
@@ -150,7 +151,8 @@ body.sidebar-open #sidebar-backdrop {
   cursor: pointer;
 }
 
-#plates-btn:hover {
+#plates-btn:hover,
+#library-btn:hover {
   background: #2e3648;
   color: #e0e4ea;
 }
@@ -1601,11 +1603,13 @@ html, body {
   border-top-color: var(--rw-border);
 }
 
-#plates-btn {
+#plates-btn,
+#library-btn {
   color: var(--rw-cyan);
 }
 
-#plates-btn:hover {
+#plates-btn:hover,
+#library-btn:hover {
   background: rgba(0, 234, 255, 0.08);
   color: var(--rw-cyan);
   border-color: var(--rw-cyan-dim);

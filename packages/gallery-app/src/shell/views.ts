@@ -9,8 +9,12 @@
 
 export type ViewId = 'home' | 'models' | 'project' | 'printers' | 'operator';
 
-/** Settings is a page but not a tab; it's reached from Home and the rail's gear. */
-export type PageId = ViewId | 'settings';
+/**
+ * Pages that aren't tabs. Settings is reached from Home and the rail's gear,
+ * the Library from the Models list.
+ */
+export type SidePageId = 'settings' | 'library';
+export type PageId = ViewId | SidePageId;
 
 export interface View {
   id: ViewId;
@@ -32,6 +36,16 @@ export const VIEWS: readonly View[] = [
 ];
 
 export const SETTINGS_PATH = 'settings/';
+export const LIBRARY_PATH = 'library/';
+
+export const SIDE_PAGES: Record<SidePageId, { label: string; path: string }> = {
+  settings: { label: 'Settings', path: SETTINGS_PATH },
+  library: { label: 'Library', path: LIBRARY_PATH },
+};
+
+export function isSidePage(id: PageId): id is SidePageId {
+  return id in SIDE_PAGES;
+}
 
 const BASE = import.meta.env.BASE_URL;
 

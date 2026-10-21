@@ -14,7 +14,7 @@ import {
   EVENT_CALL, EVENT_HELLO, EVENT_REPLY,
   type ActionInfo, type TabCall, type TabHello, type TabReply,
 } from '@3d-gallery/agent-bridge/protocol';
-import { viewById, viewHref, SETTINGS_PATH, type PageId, type ViewId } from '../shell/views.js';
+import { isSidePage, viewById, viewHref, SIDE_PAGES, type PageId, type ViewId } from '../shell/views.js';
 import { lastOpen } from '../shell/last-open.js';
 import { capture, click, fill, hold, press, settle, withDialogs, type DialogRecord } from './act.js';
 import { registeredView, type AgentAction } from './registry.js';
@@ -64,7 +64,7 @@ function str(v: unknown): string | undefined {
 
 function navigateTarget(args: Record<string, unknown>): string {
   const view = str(args['view']);
-  if (view === 'settings') return BASE + SETTINGS_PATH;
+  if (view && isSidePage(view as PageId)) return BASE + SIDE_PAGES[view as keyof typeof SIDE_PAGES].path;
   if (view) return viewHref(view as ViewId, lastOpen(view as ViewId));
   const path = str(args['path'])!;
   if (/^https?:/.test(path)) throw new Error('Give a path under the gallery, not a full URL.');
@@ -199,5 +199,5 @@ export function startAgentBridge(view: PageId): void {
 }
 
 function viewLabel(view: PageId): string {
-  return view === 'settings' ? 'Settings' : viewById(view).label;
+  return isSidePage(view) ? SIDE_PAGES[view].label : viewById(view).label;
 }

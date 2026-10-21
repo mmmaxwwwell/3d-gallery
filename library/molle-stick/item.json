@@ -1,0 +1,72 @@
+{
+  "slug": "molle-stick",
+  "title": "Molle stick",
+  "summary": "Quick release molle attachement sticks",
+  "source": {
+    "site": "Printables",
+    "url": "https://www.printables.com/model/411201-molle-stick",
+    "id": "411201"
+  },
+  "author": {
+    "name": "BigFootPL",
+    "url": "https://www.printables.com/@BigFootPL"
+  },
+  "license": {
+    "name": "Creative Commons — Attribution",
+    "id": "CC-BY"
+  },
+  "tags": [
+    "quick",
+    "molle",
+    "webbing",
+    "medic",
+    "firstaid",
+    "ifak"
+  ],
+  "category": "Outdoor Sports",
+  "published": "2023-02-27T21:21:20.561260+00:00",
+  "checked": "2026-10-21",
+  "versions": [
+    {
+      "id": "2023-03-30",
+      "imported": "2026-10-21",
+      "files": [
+        {
+          "file": "mollestick_3in.stl",
+          "sha256": "8aaeaf8f220c1ae25506d075d55925596477a2f5f80c68742ca06d14dc59e230",
+          "size": 440984,
+          "sourceId": "1904704",
+          "sourceDate": "2023-03-30T10:49:23.780337+00:00"
+        },
+        {
+          "file": "mollestick_4in.stl",
+          "sha256": "ad405c8eda55b002e732d54161bffbcb8973efcc3c2750191d957c9ca0771662",
+          "size": 444784,
+          "sourceId": "1787138",
+          "sourceDate": "2023-02-27T21:14:52.864770+00:00"
+        },
+        {
+          "file": "mollestick_5in.stl",
+          "sha256": "570e800a70185ec024c98d94fd56a885617c45263fdeef92096aa7f5805f4d07",
+          "size": 451484,
+          "sourceId": "1904705",
+          "sourceDate": "2023-03-30T10:49:24.025814+00:00"
+        },
+        {
+          "file": "mollestick_6in.stl",
+          "sha256": "bc3082126bddf0a77f82b8c81cc31f9a45e30829e92c2ea2c128af073e24ef1e",
+          "size": 450984,
+          "sourceId": "1904703",
+          "sourceDate": "2023-03-30T10:49:23.768024+00:00"
+        },
+        {
+          "file": "mollestick_7in.stl",
+          "sha256": "048e073dad29c28224e874bb9b0897e6b9cc126a2422e8d6def0f8b1d6c902a2",
+          "size": 437584,
+          "sourceId": "1904702",
+          "sourceDate": "2023-03-30T10:49:23.451873+00:00"
+        }
+      ]
+    }
+  ]
+}

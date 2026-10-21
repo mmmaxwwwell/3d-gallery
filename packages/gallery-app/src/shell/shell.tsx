@@ -3,7 +3,7 @@
 import { render } from 'preact';
 import { NavBar } from './NavBar.js';
 import { recordLastOpen } from './last-open.js';
-import { viewById, type PageId } from './views.js';
+import { isSidePage, viewById, type PageId } from './views.js';
 import { remoteWanted } from '../agent/remote.js';
 import { dropOldRenderCache } from './stale-storage.js';
 import './shell.css';
@@ -25,7 +25,7 @@ export function mountShell(root: HTMLElement, viewId: PageId): void {
   // once they've connected it. Otherwise it isn't even loaded.
   if (import.meta.hot || remoteWanted()) void import('../agent/bridge.js').then((m) => m.startAgentBridge(viewId));
 
-  if (viewId === 'settings' || !viewById(viewId).resumes) return;
+  if (isSidePage(viewId) || !viewById(viewId).resumes) return;
   const remember = () => recordLastOpen(viewId, location.pathname + location.search);
   remember();
   // Views route with pushState, which fires nothing, so the URL is read again

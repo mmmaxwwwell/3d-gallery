@@ -20,6 +20,7 @@ const PAGES = [
   { path: 'printers/', view: 'printers' },
   { path: 'operator/', view: 'operator' },
   { path: 'settings/', view: 'settings' },
+  { path: 'library/', view: 'library' },
 ] as const;
 
 function tab(page: Page, label: string) {
@@ -41,7 +42,7 @@ for (const { path, view } of PAGES) {
     await page.goto(path);
     await expect(page.locator('.shell-nav')).toBeVisible();
     await expect(page.locator('html')).toHaveAttribute('data-shell-view', view);
-    if (view !== 'settings') {
+    if (view !== 'settings' && view !== 'library') {
       await expect(page.locator(`.shell-tab[data-view="${view}"]`)).toHaveAttribute('aria-current', 'page');
     }
     await expect(page.locator('.shell-tab')).toHaveCount(5);

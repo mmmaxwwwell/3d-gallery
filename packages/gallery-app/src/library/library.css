@@ -1,0 +1,263 @@
+/* SPDX-License-Identifier: MIT */
+/* The Library page. Two panes from 900 px (list | item); below that the list
+   or the open item, one at a time. */
+
+.lib-page {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: calc(100dvh - var(--shell-bottom));
+}
+
+@media (min-width: 900px) {
+  .lib-page {
+    grid-template-columns: 300px 1fr;
+  }
+}
+
+.lib-list-pane {
+  padding: 16px;
+  border-right: 1px solid var(--shell-border);
+}
+
+.lib-list-pane h1 {
+  margin: 0 0 12px;
+  font-size: 22px;
+}
+
+.lib-search {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  font: inherit;
+  color: var(--shell-text);
+  background: var(--shell-surface);
+  border: 1px solid var(--shell-border);
+  border-radius: 8px;
+}
+
+.lib-search:focus-visible,
+.lib-page button:focus-visible,
+.lib-page a:focus-visible,
+.lib-page select:focus-visible {
+  outline: 2px solid var(--shell-focus);
+  outline-offset: 2px;
+}
+
+.lib-count {
+  margin: 8px 0;
+}
+
+.lib-muted {
+  color: var(--shell-text-muted);
+  font-size: 13px;
+}
+
+.lib-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lib-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 44px;
+  padding: 10px 12px;
+  margin-bottom: 4px;
+  color: var(--shell-text);
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: 8px;
+}
+
+.lib-item:hover {
+  background: var(--shell-surface);
+}
+
+.lib-item.is-open {
+  border-color: var(--shell-accent);
+  background: var(--shell-accent-wash);
+}
+
+.lib-item-title {
+  font-weight: 600;
+}
+
+.lib-main {
+  min-width: 0;
+  padding: 16px;
+}
+
+.lib-empty {
+  padding: 16px;
+  color: var(--shell-text-muted);
+}
+
+.lib-back {
+  display: none;
+  min-height: 44px;
+  padding: 0 12px;
+  margin-bottom: 8px;
+  font: inherit;
+  color: var(--shell-link);
+  background: none;
+  border: 1px solid var(--shell-border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+@media (max-width: 899px) {
+  .lib-page.has-open .lib-list-pane {
+    display: none;
+  }
+
+  .lib-page:not(.has-open) .lib-main {
+    display: none;
+  }
+
+  .lib-back {
+    display: inline-block;
+  }
+}
+
+.lib-detail-head h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.lib-summary {
+  margin: 4px 0 12px;
+  color: var(--shell-text-muted);
+}
+
+.lib-viewer {
+  position: relative;
+  height: min(55vh, 480px);
+  border: 1px solid var(--shell-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.lib-viewer-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.lib-viewer-note {
+  position: absolute;
+  left: 12px;
+  bottom: 8px;
+  margin: 0;
+  color: var(--shell-text-muted);
+}
+
+.lib-files,
+.lib-source,
+.lib-readme {
+  margin-top: 16px;
+}
+
+.lib-files-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.lib-files-head select {
+  min-height: 36px;
+  font: inherit;
+  color: var(--shell-text);
+  background: var(--shell-surface);
+  border: 1px solid var(--shell-border);
+  border-radius: 6px;
+}
+
+.lib-file-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+
+.lib-file-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--shell-border);
+}
+
+.lib-file-pick {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 8px;
+  overflow-wrap: anywhere;
+  font: inherit;
+  text-align: left;
+  color: var(--shell-text);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.lib-file-list li.is-current .lib-file-pick {
+  font-weight: 600;
+  color: var(--shell-accent-text);
+}
+
+.lib-download {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  color: var(--shell-link);
+  text-decoration: none;
+}
+
+.lib-source dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 12px;
+  margin: 0;
+}
+
+.lib-source dt {
+  color: var(--shell-text-muted);
+}
+
+.lib-source dd {
+  margin: 0;
+}
+
+.lib-page a {
+  color: var(--shell-link);
+}
+
+.lib-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+
+.lib-tags button {
+  min-height: 32px;
+  padding: 0 10px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--shell-text);
+  background: var(--shell-surface);
+  border: 1px solid var(--shell-border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.lib-readme {
+  max-width: 70ch;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}

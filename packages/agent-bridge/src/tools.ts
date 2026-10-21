@@ -309,7 +309,7 @@ export function createBridgeTools(options: BridgeToolOptions): BridgeTool[] {
         type: 'object',
         properties: {
           ...TAB_ARG,
-          view: { type: 'string', enum: ['home', 'models', 'project', 'printers', 'operator', 'settings'] },
+          view: { type: 'string', enum: ['home', 'models', 'project', 'printers', 'operator', 'settings', 'library'] },
           path: { type: 'string' },
           back: { type: 'boolean' },
         },
