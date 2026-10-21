@@ -408,6 +408,11 @@ export default defineConfig({
           'models/folding-panel-divider/strip.stl',
           'models/spool-drybox/wall-*.stl',
           'models/lattice-mast/segment-*.stl',
+          'models/lattice-mast/assembled.3mf',
+          'models/molle-18650-holder/holder.stl',
+          'models/meshology-l1-holster/*/holster.stl',
+          'models/hc33-lipo-case/carriage-tpu.stl',
+          'models/hc33-lipo-case/body-tpu.stl',
           // The model list is fetched network-first (runtimeCaching below).
           // Precached, it would show the previous deploy's list until the new
           // worker finished downloading every changed model, so a newly
