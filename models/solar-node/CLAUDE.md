@@ -17,35 +17,38 @@ A sealed box under a salvaged 240 × 168 mm solar panel. devOnly, unprinted.
 
 - **Box below the panel.** Since the panel is glued in, the box opens by lifting the whole frame (panel and bezel with it) off the tray. One ring of M3 cap screws runs through bezel and frame into the tray, so the bezel never has to come off.
 - **Seal.** A U-section TPU 85A gasket sits in a groove under the frame. The tray's tongue is wider than the gasket's slot and squeezes it from the sides. The screws are outside the seal (memory: seal-screws-through-tpu-failed).
-- **N bulkhead.** It goes through the +X end wall, between two screw columns. Its 24 mm body needs `tray_inside_h` ≥ 24.5. The stack needs 26: battery, 0.5 gap, 2 mm plate, the Heltec's 10.2, then 1 mm under the frame's ledge.
-- **Stack at the +X end** (user, 2026-10-21): "the long side of the battery needs to be in the center of the short side of the box, and the electronics need to be on the carrier plate on top of the battery again".
-  - The pouch's long axis runs across the box (along Y), centred.
-  - The carrier plate (`shelf()`) screws down onto four posts over the pouch.
-  - The Heltec is along the plate's edge nearest the bulkhead; the charger and buck-boost are along the other edge.
-  - `stack_x` puts the stack as near +X as the bulkhead's back allows.
-  - The stack is laid out in its own u/v frame, which `at_stack()` places. u is along the battery (global +Y); +v points away from the bulkhead (global −X).
-  - My reading: "top" (from the user's earlier "horizontal and at the top") is the +X end, where the antenna is.
-- **HT-HC33 and SMA** (user, 2026-10-21: "add a ht-hc33 board and sma mounted antenna to the bottom, space the antennas evenly").
-  - "Bottom" is the −X end, opposite the top end that has the stack and the N.
-  - The board lies flat on the floor, centred, 14 mm from the −X wall for the pigtail.
-  - The SMA goes through the −X wall at y = 0, `n_z` high, so the two antennas mirror each other end to end.
+- **Height.** The N's 24 mm body needs `tray_inside_h` ≥ 24.5. The stack needs 26: battery, 0.5 gap, 2 mm plate, a board's 10.2, then 1 mm under the frame's ledge.
+- **Orientation** (user, 2026-10-21: "lets rotate this 90 degrees, put the antenna facing downwards along the long faces").
+  - It hangs with a long side down: +Y is up, the panel faces out (+Z), and the winch is behind it (−Z).
+  - "Top" and "bottom" in earlier notes meant ±X ends. Since this change they mean ±Y.
+- **Electronics** (user: "move all the eelectronics evenly balanced to the bottom hear the antennas").
+  - The pouch lies along X, centred, its stack's lower edge just above the bulkheads' backs (`stack_y`).
+  - The carrier plate (`shelf()`, u = X, v = Y via `at_stack()`) is wider than the pouch, to take two rows:
+    - row A, toward the bottom: the HC33 (on the SMA's side) and the TP4056;
+    - row B: the buck-boost and the V3 (on the N's side).
+  - The HC33 moved onto the plate.
+- **Antennas.** The N is at +`ant_x`, the SMA at −`ant_x`, both down through the bottom wall.
+  - Each sits midway between two long-side screw columns, at the midpoint nearest a third of the way along. That's 48 mm with `screw_pitch` 32: 28 bezel screws and 18 deck screws.
+  - The N body's 24 mm needs half a pitch clear of each column.
 - **Winch** (user, 2026-10-21).
-  - The user's words: two gearmotors ("the same gear motors" as the other build: JGY-370 from meshtastic-drybag-node), two semi-internal spools of 100 ft of 1/32" stainless, "bigger and thinner", overlapping, "driven by a gear on the edge", skateboard (608) bearings, the overlapping pair spinning opposite ways.
-  - The user later asked: "can't we have the two spools like exactly overlapping?". So the spools are coaxial at the box's centre: U (k = 0) above, L (k = 1) below, both 106 teeth. The earlier offset pair overlapped only 29 mm.
-  - Each pinion sits at `mesh_d` from the axis, 9 mm outside the pitch circle while the teeth reach only 1.5 past it. So L's pinion hub (10) and U's pinion post (12) clear the other spool's teeth. Each spool's teeth are on its lower flange, so nothing else sits at that radius.
-  - The motors lie along X on the −X side, gearbox toward −X, one each side of the HC33. They are as near the long walls as the frame's ledge allows, since their tops are 3 mm above `tray_h`.
-  - Bearings: both 608s are on the deck's one centre pin. L sits on the shoulder, with a spacer between the bearings and one above U. The pin's top goes into a 1.5 mm socket under the tray.
-  - The spools sit entirely under the box; the cable comes off between the deck's pillars. "Semi-internal" is still open.
-  - Opposite spin comes from winding the cables on opposite hands; the motors are independent.
-  - Capacity counts whole turns and layers (`wraps`, `layers()`) and solves the largest core that holds `cable_len × wind_margin`. My first version assumed 0.9 packing on a 3.78-cable-wide channel and held only about 85 ft.
-  - The deck hangs from the tray's long-side screw columns. It has pilots from below and is `deck_band` wide on the edges, with bars under the centre post and the pinions.
-- **Rejected layouts:** everything along −Y on a shelf; everything in one flat row along +Y; offset spools overlapping 29 mm.
+  - The first brief: two gearmotors ("the same gear motors" as the other build: JGY-370 from meshtastic-drybag-node), two semi-internal spools of 1/32" stainless, "bigger and thinner", overlapping, "driven by a gear on the edge", skateboard (608) bearings, the overlapping pair spinning opposite ways.
+  - Then 200 ft each, and "move the spools to not on top of each other anymore, and have rollers set up in the corner to have the cables exit as far apart as possible".
+  - Spools sit side by side at (±`spool_x`, `spool_y`), as high as the deck's band allows, with 74 teeth. Each holds 200 ft in an 8 mm channel (10 wraps). The capacity count is whole wraps × whole layers; the core is solved for `cable_len × wind_margin`.
+  - Each pinion is below its spool on the outer side. Each motor stands along Y with its gearbox toward −Y, as far out as the frame's ledge allows (its top is 3 mm above `tray_h`). The two trains mirror through x = 0, so the spools turn opposite ways.
+  - **Rollers.** Two plain sleeves at each top corner, on deck pins, with a `roller_throat` gap between them. They're centred midway between the two outermost long-side columns (`throat_x`), so the cable leaves upward between those columns. The tray's underside keeps the sleeves on.
+  - **Superseded history:** a coaxial stack ("exactly overlapping"), and before that an offset pair overlapping 29 mm. My first capacity formula held only about 85 ft of a claimed 100.
+  - **Deck.** It hangs from the tray's long-side columns on M3x25, with pilots from below. It has `deck_band` edges, bars under the posts and pinions, and pads under the rollers.
+- **Rejected layouts:**
+  - everything along −Y on a shelf;
+  - everything in one flat row along +Y;
+  - the stack at the +X end with the HC33 at −X (before the rotation);
+  - offset and then coaxial spools.
 - **Corner brackets, foam tape.** Each part sits between corner brackets and is held with foam tape. There are no straps or ties through the floor.
-- **No mount and no vent.** The user hasn't said how it hangs.
+- **No vent.** It hangs from the two winch cables; there's no other mount.
 
 ## Frame
 
-- X runs along the panel (the bulkhead at +X), Y across, Z up. z = 0 is the tray's underside.
+- X runs along the panel, Y across (+Y is up when hung), Z out of the panel. z = 0 is the tray's underside, and the deck is at negative z.
 - `*_in_place(lift)` places each lid piece in the assembly. The preview lifts them 40 mm.
 - Distances in from the outer edge (the `_e` params) set out each band:
   - screws at 3.5;
@@ -57,8 +60,8 @@ A sealed box under a salvaged 240 × 168 mm solar panel. devOnly, unprinted.
 
 ## Checked
 
-- Winch (coaxial, 2026-10-21): none of these intersect, beyond faces touching: spools, pinions, deck, tray, spacers, motors, the stack, the HC33 and the frame. Two intended overlaps: each seal grips its hub (≈24 mm³), and each bearing's press fit in its hub (≈21 mm³).
+- Rotated layout (2026-10-21): none of these intersect, beyond faces touching: spools, pinions, deck, tray, rollers, spacers, motors, the battery, plate and boards, the frame, and the N and SMA. Two intended overlaps: each seal grips its hub (≈24 mm³), and each bearing's press fit in its hub (≈21 mm³).
 
 - The pieces' rigid parts don't intersect.
 - gasket ∩ tray ≈ 606 mm³, which is the tongue's side squeeze. Re-check this if the seal changes.
-- The plate meets the posts and the boards meet the plate face to face only. The battery, boards and plate clear the tray, the frame and the bulkhead.
+- The plate meets the posts and the boards meet the plate face to face only. The battery, boards and plate clear the tray, the frame and both bulkheads.

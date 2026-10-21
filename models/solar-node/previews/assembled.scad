@@ -1,7 +1,8 @@
 include <../lib/solar-node-lib.scad>;
 $fn = 40;
-// The frame, with the panel glued in and the bezel on, lifted 40 mm off the
-// tray so the inside shows; the winch deck and spools hang under the tray.
+// Lying panel up, as modelled: the top edge (+Y) away from the viewer. The
+// frame, with the panel glued in and the bezel on, lifted 40 mm off the
+// tray so the inside shows; the winch deck behind the tray, underneath.
 lift = 40;
 color("#3d4a3a") tray();
 color("#5f7a5a") shelf_in_place();
@@ -11,7 +12,7 @@ color("#e07b39") gasket_in_place(lift);
 color("#1b2a4a") ref_panel(lift);
 color("#d9d9d9") ref_glue(lift);
 color("#e8c547") ref_battery();
-color("#7a3fb0") { ref_boards(); ref_hc33(); }
+color("#7a3fb0") ref_boards();
 color("#c9a227") { ref_bulkhead(); ref_sma(); }
 color("#4a6a8a") deck_in_place();
 color("#d0d0d0") for (k = [0, 1]) spool_in_place(k);
@@ -20,3 +21,4 @@ color("#e07b39") for (k = [0, 1]) shaft_seal_in_place(k);
 color("#708090") ref_motors();
 color("#555555") { ref_bearings(); for (k = [0, 1]) spacer_in_place(k); }
 color("#8a8f94") ref_cable();
+color("#a0522d") rollers_in_place();
