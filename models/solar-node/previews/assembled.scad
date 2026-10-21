@@ -16,9 +16,10 @@ upright() {
   color("#d9d9d9") ref_glue(lift);
   color("#e8c547") ref_battery();
   color("#7a3fb0") ref_boards();
-  color("#c9a227") { ref_bulkhead(); ref_sma(); }
+  color("#c9a227") ref_bulkhead();
   color("#222222") ref_pole();
-  color("#4a6a8a") for (k = [0, 1]) hood_in_place(k);
+  color("#4a6a8a") { for (k = [0, 1]) hood_in_place(k); for (m = [0, 1]) door_in_place(m); }
+  color("#6a8aaa") for (m = [0, 1]) horn_in_place(m);
   color("#4a6a8a") deck_in_place();
   color("#d0d0d0") for (k = [0, 1]) spool_in_place(k);
   color("#b8862e") for (k = [0, 1]) pinion_in_place(k);
