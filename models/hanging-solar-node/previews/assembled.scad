@@ -1,7 +1,6 @@
 include <../lib/hanging-solar-node-lib.scad>;
 $fn = 40;
 color("#3a4250") in_use() frame();
-color("#5a6578") in_use() cover();
 color("#e9e9e4") in_use() ref_panel();
 color("#1d3a6b") in_use() ref_panel_face();
 color("#2b2b2b") in_use() ref_holder();

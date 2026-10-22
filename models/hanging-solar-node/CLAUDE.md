@@ -11,16 +11,19 @@
   filled by adhesive). Everything in z < 0 is cut along `swept_down()`, and the ledge
   is open at the bottom, so nothing stops the panel.
 - **Two compartments.** Above the partition (`partition_y`) the main one is sealed
-  (XIAO on `tie_anchor`s). Below it the bay is open at the bottom: the user wants the
-  18650 holder, the TP4056 and the antenna "available to be removed from the bottom
-  without being disassembled" and "a separate compartment that only lets the wires
-  through"; they block the holes with construction adhesive. The SMA sits in the
-  partition, so the bulkhead is the seal and the antenna hangs down through the cover.
-  The partition's front edge meets the panel's back: sealed by a bead run from the bay.
-- **The cover** (my pick, for retention) screws up into `screw_blocks` on the back wall
-  and runs under the panel's bottom edge, so it also keeps the panel in. The blocks sit
-  behind the holder's open side (holder floor to the panel), which keeps the cell in;
-  that sets the depth: `z_in = clear + holder_h + clear + block depth`.
+  (XIAO on `tie_anchor`s). Below it the bottom is open, no cover (user via peer b9,
+  2026-10-21: "i want the bottom to be open with the 18650 there with the usbc charger
+  right there too facing down. these should be recessed into the bottom like 2-3cm").
+  The holder hangs open side down under the partition (`holder_pocket`: two strips
+  along its sides plus a blind boss over the partition for one screw through its
+  floor; `holder_screw_dx` if its hole is off-centre). The TP4056 slides up its rails
+  to the partition, USB-C down. `recess` (22) is how far the USB-C sits up inside the
+  bottom; the bay is `recess + tp.y`, which puts the holder's face 30 up. The SMA is in
+  the partition, so the bulkhead is the seal and the antenna hangs down. The partition
+  only passes wires (holes filled with construction adhesive); its front edge meets
+  the panel's back, sealed by a bead from below. Earlier the user wanted these three
+  removable from the bottom; a screwed cover did that and was dropped for this.
+- **Depth** is `z_in = 24`: the holder's 20.8 across, the XIAO's 18 standing.
 - **TP4056 rails** lip over only the middle third of the board's long edges: the pads
   (IN by the USB-C, OUT and B± at the far end) sit at the ends.
 - **Loop**: tab flush with the back (prints flat on the bed, load in-plane) plus a
