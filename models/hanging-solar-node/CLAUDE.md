@@ -25,10 +25,14 @@
     from inside through a slot in the partition (user: "the 18650 case needs to slide
     straight downwards from the inside of the solar node. So it's captive"; before
     that, "1 millimeter ledge where the positive and negative terminals are"): two
-    ledges at `face_y` catch only its `holder_end_t` end walls. `z_in = holder_w +
-    2·clear`, so the frame holds it front to back; ribs on the back wall at each end
-    locate it along X; `wire_gap` at each end of the slot carries its wires up. No
-    screw. A back-wall opening it pushed in through was the previous version.
+    ledges at `face_y` catch only its `holder_end_t` end walls, an `upstand` at each
+    ledge's outer edge locates it along X, and a `bar` on the back wall over its top
+    back edge stops it lifting (user: "there needs to be a bar like 1 or 2mm high
+    that stops the 18650 holder from moving upwards"; the ribs I had on the back wall
+    — "a retention clip inside the 18650 holder" — had to go). It goes down a little
+    proud at the front, pushes back under the bar; the panel closes it in. `z_in =
+    holder_w + 2·clear`; `wire_gap` at each end carries its wires up. No screw. A
+    back-wall opening it pushed in through was an earlier version.
   - `exploded.scad`: each part pulled out along the way it goes in.
   `floors()` is the stepped floor. The skin-cut past the bottom edge stops short of the
   column so its floor survives. Seal: bead from below wherever floors and walls meet

@@ -28,10 +28,12 @@
 //   before the panel goes in, through a slot in the partition onto two
 //   ledges that catch only its 1 mm end walls, where the terminals are, so
 //   it's captive: it can't fall out, and the cell comes out from below,
-//   between the ledges. The frame is just deep enough for it, and a rib on
-//   the back wall at each end locates it along its length. A gap at each
-//   end of the slot lets its wires go straight up; fill the gaps and the
-//   seam round its floor with adhesive.
+//   between the ledges. A low upstand at each ledge's outer edge locates it
+//   along its length. A bar along the back wall over its top back edge
+//   stops it lifting: it goes down a little proud at the front, pushes back
+//   under the bar, and the panel then closes it in. The frame is just deep
+//   enough for it. A gap at each end of the slot lets its wires go straight
+//   up; fill the gaps and the seam round its floor with adhesive.
 // The walls run on below the holder and the USB-C, so rain blowing in under
 // the node has to come up into the recess to reach them.
 // Where the main compartment's floors and walls meet the panel's back, a
@@ -121,6 +123,11 @@ col_w = 11.2;
 
 // Gap at each end of the holder's slot for its wires
 wire_gap = 4;
+
+// The upstand at each ledge's outer edge, and the bar over the holder's top
+// back edge: height, and how far it reaches over the holder
+upstand = [1, 2];
+bar = [1.5, 1.5];
 
 // Zip-tie anchors: a tunnel for the tie in a block on the back wall
 tie_tunnel = [4.6, 1.8];
@@ -228,16 +235,17 @@ module tp_guide() {
 }
 
 // The holder drops down a slot through the partition onto a ledge under each
-// end wall. The slot's left end is a wall of its own, its right end the step
-// wall; a rib on the back wall at each end locates the holder along its
-// length and leaves the rest of each end gap for its wires.
+// end wall, located along its length by an upstand at each ledge's outer
+// edge. The slot's left end is a wall of its own, its right end the step
+// wall. A bar on the back wall over its top back edge stops it lifting.
 module holder_pocket() {
     x1 = holder_x0 + holder_l;
     translate([holder_x0 - wire_gap - wall, face_y - ledge_t, 0]) cube([wall, partition_y + partition_t - face_y + ledge_t, z_in + eps]);
     for (x = [holder_x0 - wire_gap, x1 - holder_end_t])
         translate([x, face_y - ledge_t, 0]) cube([wire_gap + holder_end_t + eps, ledge_t, z_in + eps]);
-    for (x = [holder_x0 - clear - 1.5, x1 + clear])
-        translate([x, face_y - eps, z_in - 4]) cube([1.5, partition_y + partition_t - face_y + eps, 4 + eps]);
+    for (x = [holder_x0 - clear - upstand.x, x1 + clear])
+        translate([x, face_y - eps, 0]) cube([upstand.x, upstand.y + eps, z_in + eps]);
+    translate([holder_x0, holder_y0 + holder_h + clear, z_in - clear - bar.y]) cube([holder_l, bar.x, clear + bar.y + eps]);
 }
 
 module tie_anchor(p) {
