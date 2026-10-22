@@ -246,6 +246,8 @@ module frame() {
         }
         // The bay is open at the bottom: no bottom wall.
         translate([-outer.x, bottom_y - 50, front_z - 1]) cube([2 * outer.x, 50, z_out - front_z + 2]);
+        // The inside runs on past the bottom edge, so no skin is left across the opening.
+        translate([-pocket_x, bottom_y - 1, -eps]) cube([2 * pocket_x, 2, z_in + eps]);
         translate([holder_screw.x, partition_y - 1, holder_screw.y]) rotate([-90, 0, 0]) cylinder(d = pilot_d, h = 1 + partition_t + boss[1] - 1);
         translate([sma_x, partition_y - 1, sma_z]) rotate([-90, 0, 0]) cylinder(d = sma_hole, h = partition_t + 2);
         for (h = wire_holes) translate([h.x, partition_y - 1, h.y]) rotate([-90, 0, 0]) cylinder(d = wire_hole, h = partition_t + 2);

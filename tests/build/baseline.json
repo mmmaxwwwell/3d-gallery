@@ -1963,7 +1963,7 @@
       "#C9A227FF",
       "#E9E9E4FF"
     ],
-    "triangleCount": 3780,
+    "triangleCount": 3796,
     "bbox": [
       [
         -62.6,
@@ -1979,7 +1979,7 @@
   },
   "hanging-solar-node/frame.stl": {
     "format": "stl",
-    "triangleCount": 2292,
+    "triangleCount": 2308,
     "bbox": [
       [
         -62.6,
@@ -2005,7 +2005,7 @@
       "#C9A227FF",
       "#E9E9E4FF"
     ],
-    "triangleCount": 3388,
+    "triangleCount": 3404,
     "bbox": [
       [
         -62.6,
@@ -2024,7 +2024,7 @@
     "colors": [
       "#3A4250FF"
     ],
-    "triangleCount": 2292,
+    "triangleCount": 2308,
     "bbox": [
       [
         -62.6,
