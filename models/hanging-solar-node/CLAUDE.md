@@ -36,6 +36,9 @@
     holder_w + 2·clear`; `wire_gap` at each end carries its wires up. No screw. A
     back-wall opening it pushed in through was an earlier version.
   - `exploded.scad`: each part pulled out along the way it goes in.
+  Left of the holder the floor is at `face_y` too (user: bring the space beside the
+  18650 level with its face and the charging port's), and the spacing was opened up
+  to make it easier to work in (`wire_gap` 6, `tp_room` 10).
   `floors()` is the stepped floor. The skin-cut past the bottom edge stops short of the
   column so its floor survives. Seal: bead from below wherever floors and walls meet
   the panel's back.

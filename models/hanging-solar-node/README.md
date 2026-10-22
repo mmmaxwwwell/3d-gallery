@@ -27,7 +27,10 @@ slides in last.
     edge locates it along its length, and a bar along the back wall reaching 5 mm over its
     top back edge stops it lifting. The frame is just deep enough for the holder.
 
-  A 4 mm gap at each end of the holder's slot lets its wires go straight up. Fill the
+  Left of the holder the floor is level with its open face too, so the bottom reads as
+  one flat face with the cell and the USB-C in it.
+
+  A 6 mm gap at each end of the holder's slot lets its wires go straight up. Fill the
   gaps and the seam round the holder with construction adhesive once they're in.
 - **Panel screw**: an M5x10 cap screw through the panel's own hole (centred, 6 mm down
   from its top edge) into a boss in the frame. The top lip is notched round its head.

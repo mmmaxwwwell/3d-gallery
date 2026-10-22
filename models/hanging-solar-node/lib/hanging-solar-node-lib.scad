@@ -115,7 +115,7 @@ clear = 0.3;
 // it overhangs the board's end
 tp = [17.5, 28, 1.6];
 usb = [9.2, 3.4, 1];
-tp_room = 7;
+tp_room = 10;
 floor_t = 1.2;
 
 // XIAO nRF52840 on a Wio-SX1262, standing on its pins on the back wall
@@ -136,7 +136,7 @@ hex_pocket = [8 + 0.3, 2.2];
 col_w = 11.2;
 
 // Gap at each end of the holder's slot for its wires
-wire_gap = 4;
+wire_gap = 6;
 
 // The upstand at each ledge's outer edge, and the bar over the holder's top
 // back edge: height, and how far it reaches over the holder
@@ -236,11 +236,15 @@ module loop() {
     }
 }
 
-// The main compartment's floor, stepped: the partition over the holder, a
-// wall down to the floor the USB-C comes through, and a wall down to the
-// antenna column's floor at the bottom edge.
+// The main compartment's floor, stepped: level with the holder's open face
+// left of it, the partition over the holder, a wall down to the floor the
+// USB-C comes through, and a wall down to the antenna column's floor.
 module floors() {
-    translate([-pocket_x, partition_y, 0]) cube([pocket_x + step_x, partition_t, z_in + eps]);
+    left_x = holder_x0 - wire_gap - wall;
+    translate([left_x, partition_y, 0]) cube([step_x - left_x, partition_t, z_in + eps]);
+    // Left of the holder, the floor sits level with its open face, like the
+    // USB-C's.
+    translate([-pocket_x, face_y, 0]) cube([pocket_x + left_x + eps, floor_t, z_in + eps]);
     translate([step_x - wall, face_y, 0]) cube([wall, partition_y + partition_t - face_y, z_in + eps]);
     translate([step_x - wall, face_y, 0]) cube([col_x0 - step_x + eps, floor_t, z_in + eps]);
     translate([col_x0 - wall, col_y, 0]) cube([wall, face_y + floor_t - col_y, z_in + eps]);
