@@ -23,25 +23,18 @@
     the SMA, the inside nut in a hex pocket (`hex_pocket`) so it can't turn;
   - TP4056 inside the main compartment, back on the step wall at `step_x`, back edge
     in `tp_guide`, USB-C through a slot in the floor at `face_y` (`recess` up);
-  - the holder, open side down, its face level with that floor, drops straight down
-    from inside through a slot in the partition (user: "the 18650 case needs to slide
-    straight downwards from the inside of the solar node. So it's captive"; before
-    that, "1 millimeter ledge where the positive and negative terminals are"): two
-    ledges at `face_y` catch only its `holder_end_t` end walls, an `upstand` at each
-    ledge's outer edge locates it along X, and a `bar` on the back wall reaching 5 mm over its
-    top back edge stops it lifting (user: "there needs to be a bar like 1 or 2mm high
-    that stops the 18650 holder from moving upwards"; the ribs I had on the back wall
-    — "a retention clip inside the 18650 holder" — had to go). It goes down a little
-    proud at the front, pushes back under the bar; the panel closes it in. `z_in =
-    holder_w + 2·clear`; `wire_gap` at each end carries its wires up. No screw. A
-    back-wall opening it pushed in through was an earlier version.
-  - `exploded.scad`: each part pulled out along the way it goes in.
-  Left of the holder the floor is at `face_y` too (user: bring the space beside the
-  18650 level with its face and the charging port's), and the spacing was opened up
-  to make it easier to work in (`wire_gap` 6, `tp_room` 10).
-  `floors()` is the stepped floor. The skin-cut past the bottom edge stops short of the
-  column so its floor survives. Seal: bead from below wherever floors and walls meet
-  the panel's back.
+  - the holder, open side down, drops straight down from inside between two L-shaped
+    walls (`holder_pocket`), each a wall at its end with a foot under its
+    `holder_end_t` end wall (user: "should just be a L" — an earlier ledge + upstand +
+    separate wall read as a T); a notch at each wall's top passes its wires; a `bar`
+    on the back wall reaching 5 mm over its top back edge stops it lifting. It goes
+    down a little proud at the front and pushes back under the bar; the panel closes
+    it in. No partition: the holder and its walls are the main compartment's floor
+    there, sealed with adhesive. `z_in = holder_w + 2·clear`.
+  Everything below ends on one flat face at `base_y` (user: "a single flat face on the
+  bottom for everything. Minus the antenna that sticks down more"): the floors either
+  side of the holder, the L's feet, the USB-C's floor; the holder's face sits
+  `ledge_t` up on its feet. `floors()` builds it.
 - **Panel screw** (user): an M5x10 through the panel's own hole, centred, its centre
   `panel_hole_from_top` (6) down, into a boss (`m5_boss`, 4.2 pilot, face at z = 0 so the
   panel slides past it); the top lip is notched round the head.

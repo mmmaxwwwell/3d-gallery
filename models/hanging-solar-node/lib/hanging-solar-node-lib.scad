@@ -24,20 +24,20 @@
 //   down at the frame's bottom corner. The floor sits col_raise up, behind
 //   the panel where its rounded corner would otherwise show the inside;
 // - the TP4056, inside the main compartment, standing on end with its flat
-//   back to the 18650, behind a floor level with the holder's open face; its
-//   USB-C comes through a slot in that floor, facing down;
+//   back to the 18650; its USB-C comes down through a slot in the floor;
 // - the 18650 holder, open side down. It drops straight down from inside,
-//   before the panel goes in, through a slot in the partition onto two
-//   ledges that catch only its 1 mm end walls, where the terminals are, so
-//   it's captive: it can't fall out, and the cell comes out from below,
-//   between the ledges. A low upstand at each ledge's outer edge locates it
-//   along its length. A bar along the back wall over its top back edge
-//   stops it lifting: it goes down a little proud at the front, pushes back
-//   under the bar, and the panel then closes it in. The frame is just deep
-//   enough for it. A gap at each end of the slot lets its wires go straight
-//   up; fill the gaps and the seam round its floor with adhesive.
-// The walls run on below the holder and the USB-C, so rain blowing in under
-// the node has to come up into the recess to reach them.
+//   before the panel goes in, between two walls, one at each end, each an L
+//   whose foot catches only the holder's 1 mm end wall, where the terminals
+//   are, so it's captive: it can't fall out, and the cell comes out from
+//   below, between the feet. A notch at the top of each wall lets its wires
+//   through. A bar along the back wall over its top back edge stops it
+//   lifting: it goes down a little proud at the front, pushes back under the
+//   bar, and the panel then closes it in. The frame is just deep enough for
+//   it. Fill the notches and the seam round its floor with adhesive.
+// Everything ends on one flat face, recess up inside the bottom edge: the
+// floor either side of the holder, the L's feet and the USB-C's floor. Only
+// the antenna column goes lower. The walls run on below that face, so rain
+// blowing in under the node has to come up into the recess to reach it.
 // Where the main compartment's floors and walls meet the panel's back, a
 // bead run from below seals them.
 //
@@ -86,16 +86,13 @@ holder_l = 78.3;
 holder_w = 20.8;
 holder_h = 20;
 
-// The holder's end walls, which the ledges catch, and the ledges' thickness
+// The holder's end walls, which the L's feet catch, and the feet's thickness
 holder_end_t = 1;
 ledge_t = 1.5;
 
-// How far the holder's open face, and the floor the USB-C comes through, sit
-// up inside the bottom edge
+// How far the flat bottom face (the floors, the L's feet, the USB-C's floor)
+// sits up inside the bottom edge
 recess = 22;
-
-// Partition between the bay and the main compartment
-partition_t = 2.4;
 
 // Hanging loop: hole, the rim round it, and the tab's thickness off the back
 loop_hole = 10;
@@ -135,12 +132,15 @@ sma_floor = 2.4;
 hex_pocket = [8 + 0.3, 2.2];
 col_w = 11.2;
 
-// Gap at each end of the holder's slot for its wires
+// Room beyond the holder's right-hand wall, before the TP4056's
 wire_gap = 6;
 
-// The upstand at each ledge's outer edge, and the bar over the holder's top
-// back edge: height, and how far it reaches over the holder
-upstand = [1, 2];
+// The notch at the top of each of the holder's walls for its wires: width
+// (front to back), depth
+wire_notch = [4, 5];
+
+// The bar over the holder's top back edge: height, and how far it reaches
+// over the holder
 bar = [1.5, 5];
 
 // M5x10 through the panel's hole: the boss's pilot (self-tapping), the boss,
@@ -160,9 +160,9 @@ z_out = z_in + back_t;
 channel_z = -(panel_t + face_clear);
 front_z = channel_z - lip_d;
 bottom_y = -pocket_y;
-face_y = bottom_y + recess;
+base_y = bottom_y + recess;
+face_y = base_y + ledge_t;
 col_y = bottom_y + col_raise;
-partition_y = face_y + holder_h - partition_t;
 col_x0 = pocket_x - col_w;
 step_x = col_x0 - wall - tp_room;
 zc = z_in / 2;
@@ -172,13 +172,14 @@ usb_x = step_x + tp.z + usb.y / 2;
 top_y = pocket_y + wall;
 loop_y = top_y + loop_rim + loop_hole / 2;
 outer = [2 * (pocket_x + wall), loop_y + loop_hole / 2 + loop_rim - bottom_y];
-holder_x0 = step_x - wall - wire_gap - holder_l;
+holder_x0 = step_x - wall - wire_gap - wall - clear - holder_l;
+holder_top = face_y + holder_h;
 holder_z0 = clear;
 holder_y0 = face_y;
-tp_y0 = face_y + floor_t;
+tp_y0 = base_y + floor_t;
 xiao_anchor_xs = [xiao_c.x - xiao.x / 2 - anchor.x / 2 - 0.5, xiao_c.x + xiao.x / 2 + anchor.x / 2 + 0.5];
 
-assert(xiao_c.y - xiao.y / 2 > partition_y + partition_t, "the XIAO runs into the partition");
+assert(xiao_c.y - xiao.y / 2 > holder_top + bar.x, "the XIAO runs into the holder");
 assert(col_w >= hex_pocket.x / cos(30) + 1, "the antenna column is too narrow for the SMA's hex pocket");
 assert(screw_y + m5_boss / 2 <= pocket_y + eps, "the screw boss pokes through the top wall");
 assert(tp_room >= tp.z + usb.y + 1, "the TP4056 doesn't fit between the step and the antenna column");
@@ -236,18 +237,15 @@ module loop() {
     }
 }
 
-// The main compartment's floor, stepped: level with the holder's open face
-// left of it, the partition over the holder, a wall down to the floor the
-// USB-C comes through, and a wall down to the antenna column's floor.
+// The main compartment's floor: flat at base_y either side of the holder and
+// under the TP4056, the step wall the TP4056's back lies on, and a wall down
+// to the antenna column's floor.
 module floors() {
-    left_x = holder_x0 - wire_gap - wall;
-    translate([left_x, partition_y, 0]) cube([step_x - left_x, partition_t, z_in + eps]);
-    // Left of the holder, the floor sits level with its open face, like the
-    // USB-C's.
-    translate([-pocket_x, face_y, 0]) cube([pocket_x + left_x + eps, floor_t, z_in + eps]);
-    translate([step_x - wall, face_y, 0]) cube([wall, partition_y + partition_t - face_y, z_in + eps]);
-    translate([step_x - wall, face_y, 0]) cube([col_x0 - step_x + eps, floor_t, z_in + eps]);
-    translate([col_x0 - wall, col_y, 0]) cube([wall, face_y + floor_t - col_y, z_in + eps]);
+    x1 = holder_x0 + holder_l;
+    translate([-pocket_x, base_y, 0]) cube([pocket_x + holder_x0 - clear - wall + eps, floor_t, z_in + eps]);
+    translate([x1 + clear + wall - eps, base_y, 0]) cube([col_x0 - x1 - clear - wall + eps, floor_t, z_in + eps]);
+    translate([step_x - wall, base_y, 0]) cube([wall, tp_y0 + tp.y - base_y, z_in + eps]);
+    translate([col_x0 - wall, col_y, 0]) cube([wall, base_y + floor_t - col_y, z_in + eps]);
     translate([col_x0 - wall, col_y, 0]) cube([col_w + wall + eps, sma_floor + hex_pocket.y, z_in + eps]);
 }
 
@@ -261,18 +259,17 @@ module tp_guide() {
     }
 }
 
-// The holder drops down a slot through the partition onto a ledge under each
-// end wall, located along its length by an upstand at each ledge's outer
-// edge. The slot's left end is a wall of its own, its right end the step
-// wall. A bar on the back wall over its top back edge stops it lifting.
+// A wall at each end of the holder, an L whose foot reaches under the
+// holder's end wall; a bar on the back wall over its top back edge stops it
+// lifting.
 module holder_pocket() {
     x1 = holder_x0 + holder_l;
-    translate([holder_x0 - wire_gap - wall, face_y - ledge_t, 0]) cube([wall, partition_y + partition_t - face_y + ledge_t, z_in + eps]);
-    for (x = [holder_x0 - wire_gap, x1 - holder_end_t])
-        translate([x, face_y - ledge_t, 0]) cube([wire_gap + holder_end_t + eps, ledge_t, z_in + eps]);
-    for (x = [holder_x0 - clear - upstand.x, x1 + clear])
-        translate([x, face_y - eps, 0]) cube([upstand.x, upstand.y + eps, z_in + eps]);
-    translate([holder_x0, holder_y0 + holder_h + clear, z_in - clear - bar.y]) cube([holder_l, bar.x, clear + bar.y + eps]);
+    for (sd = [-1, 1]) {
+        wx = sd < 0 ? holder_x0 - clear - wall : x1 + clear;
+        translate([wx, base_y, 0]) cube([wall, holder_top - base_y, z_in + eps]);
+        translate([sd < 0 ? wx : x1 - holder_end_t, base_y, 0]) cube([wall + clear + holder_end_t, ledge_t, z_in + eps]);
+    }
+    translate([holder_x0, holder_top + clear, z_in - clear - bar.y]) cube([holder_l, bar.x, clear + bar.y + eps]);
 }
 
 module tie_anchor(p) {
@@ -308,15 +305,16 @@ module frame() {
         translate([-outer.x, bottom_y - 50, front_z - 1]) cube([2 * outer.x, 50, z_out - front_z + 2]);
         // The inside runs on past the bottom edge, so no skin is left across the opening.
         translate([-pocket_x, bottom_y - 1, -eps]) cube([2 * pocket_x, 2, z_in + eps]);
-        // The holder's slot through the partition.
-        translate([holder_x0 - wire_gap, partition_y - 1, -1]) cube([holder_l + 2 * wire_gap, partition_t + 2, z_in + 1]);
+        // The notch at the top of each of the holder's walls, for its wires.
+        for (x = [holder_x0 - clear - wall, holder_x0 + holder_l + clear])
+            translate([x - 1, holder_top - wire_notch.y, zc - wire_notch.x / 2]) cube([wall + 2, wire_notch.y + 1, wire_notch.x]);
         translate([sma.x, col_y - 1, sma.y]) rotate([-90, 0, 0]) cylinder(d = sma_hole, h = sma_floor + hex_pocket.y + 2);
         // A corner of the hex points along Z, so its top prints at 60 deg.
         translate([sma.x, col_y + sma_floor, sma.y]) rotate([-90, 0, 0]) rotate(30)
             cylinder(d = hex_pocket.x / cos(30), h = hex_pocket.y + 1, $fn = 6);
         translate([0, screw_y, -1]) cylinder(d = m5_pilot, h = 1 + m5_boss);
         translate([0, screw_y, front_z - 1]) cylinder(d = m5_head.x + 1, h = channel_z - front_z + 1);
-        translate([usb_x - usb.y / 2 - 0.25, face_y - 1, zc - usb.x / 2 - 0.25]) cube([usb.y + 0.5, floor_t + 2, usb.x + 0.5]);
+        translate([usb_x - usb.y / 2 - 0.25, base_y - 1, zc - usb.x / 2 - 0.25]) cube([usb.y + 0.5, floor_t + 2, usb.x + 0.5]);
     }
 }
 
@@ -333,7 +331,7 @@ module ref_screw() translate([0, screw_y, -panel_t]) {
     cylinder(d = 5, h = 10);
 }
 
-// The holder hangs with its floor to the partition, its open side down.
+// The holder sits open side down on its L's feet.
 module ref_holder() translate([holder_x0, holder_y0, holder_z0]) difference() {
     cube([holder_l, holder_h, holder_w]);
     translate([holder_end_t, -1, 1]) cube([holder_l - 2 * holder_end_t, holder_h, holder_w - 2]);

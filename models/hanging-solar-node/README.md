@@ -8,7 +8,7 @@ slides in last.
   panel slides up into them from the open bottom, its back on a 1.5 mm ledge and a
   45° lip over its border in front (the lip stands 3 mm proud of the face).
   Construction adhesive in the channel seals it.
-- **Main compartment** (sealed), above a partition: the XIAO nRF52840 + Wio-SX1262,
+- **Main compartment** (sealed): the XIAO nRF52840 + Wio-SX1262,
   zip-tied to two anchors on the back wall.
 - **Open bottom**, below the main compartment. What's there faces down, recessed into
   the bottom so the walls shelter it. From the right edge in:
@@ -17,21 +17,19 @@ slides in last.
     inside nut in a hex pocket so it can't turn. The floor is 5 mm up, behind the
     panel, so the panel's rounded corner doesn't show the inside. The antenna hangs
     straight down from the frame's bottom corner;
-  - the TP4056, inside the main compartment, standing on end with its flat back
-    against the wall next to the 18650. Its USB-C comes down through a slot in a floor
-    level with the holder's open face, 22 mm up inside the bottom edge;
+  - the TP4056, inside the main compartment, standing on end with its flat back to
+    the 18650. Its USB-C comes down through a slot in the floor;
   - the 18650 holder (78.3 × 20.8 × 20), open side down. It drops straight down from
-    inside, before the panel goes in, through a slot in the partition onto two ledges
-    that catch only its 1 mm end walls where the terminals are, so it's captive. The
-    cell comes out from below, between the ledges. A low upstand at each ledge's outer
-    edge locates it along its length, and a bar along the back wall reaching 5 mm over its
-    top back edge stops it lifting. The frame is just deep enough for the holder.
+    inside, before the panel goes in, between two L-shaped walls whose feet catch only
+    its 1 mm end walls where the terminals are, so it's captive. The cell comes out
+    from below, between the feet. A notch at the top of each wall lets its wires
+    through, and a bar along the back wall reaching 5 mm over its top back edge stops
+    it lifting.
 
-  Left of the holder the floor is level with its open face too, so the bottom reads as
-  one flat face with the cell and the USB-C in it.
-
-  A 6 mm gap at each end of the holder's slot lets its wires go straight up. Fill the
-  gaps and the seam round the holder with construction adhesive once they're in.
+  Everything ends on one flat face 22 mm up inside the bottom edge: the floors either
+  side of the holder, the L's feet and the USB-C's floor. Only the antenna column goes
+  lower. Fill the wire notches and the seam round the holder with construction
+  adhesive.
 - **Panel screw**: an M5x10 cap screw through the panel's own hole (centred, 6 mm down
   from its top edge) into a boss in the frame. The top lip is notched round its head.
 - **Loop**: a 6 mm tab standing up from the back above the top wall, with a 10 mm hole
@@ -47,9 +45,9 @@ its USB-C in the floor's slot; a dab of adhesive holds it and seals round the po
    in the antenna column's floor and run its pigtail up to the Wio.
 2. Put the TP4056 in: USB-C down through the floor's slot, its back on the wall, its
    back edge in the guide. Glue it and seal round the port.
-3. Drop the holder down its slot, open side down, wires up through the gaps at its
-   ends, with its front edge a little proud; push it back under the bar onto the
-   ledges (the panel closes it in). Fill the gaps and the seam round it with construction
+3. Drop the holder down between its walls, open side down, wires through the notches
+   at the top of the walls, with its front edge a little proud; push it back under the
+   bar onto the L's feet (the panel closes it in). Fill the gaps and the seam round it with construction
    adhesive.
 4. Wire the panel's leads (through the blocking diode) into the main compartment.
 5. Run adhesive along the channel and slide the panel up into it, face out. From below,
