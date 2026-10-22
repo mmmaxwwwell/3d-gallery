@@ -43,8 +43,10 @@
 // Where the main compartment's floors and walls meet the panel's back, a
 // bead run from below seals them.
 //
-// The loop is a tab standing up from the back above the top wall, with a
-// gusset down its front to the full depth of the frame.
+// The hanging tab stands up above the top wall through the frame's full
+// depth, with three holes front to back, so the cord bears either side of
+// the centre of mass and it hangs flat. Every edge is rounded, the holes'
+// too, front and back.
 //
 // Prints: the frame on its back.
 
@@ -96,10 +98,16 @@ ledge_t = 1.5;
 // sits up inside the bottom edge
 recess = 22;
 
-// Hanging loop: hole, the rim round it, and the tab's thickness off the back
-loop_hole = 10;
-loop_rim = 7;
-loop_t = 6;
+// Hanging tab: width, how far it stands above the top wall, the three holes
+// and how far apart they are, the rounding on every edge, and on the holes'
+// edges. It runs the frame's full depth, so the holes span its centre of
+// mass front to back and it hangs flat.
+loop_w = 54;
+loop_h = 18;
+loop_hole = 6;
+loop_pitch = 16;
+loop_r = 3;
+loop_hole_r = 1.5;
 
 // The panel's own hole, at the top, centred: an M5x10 screw goes through it
 // into a boss in the frame. Its centre down from the panel's top edge
@@ -181,8 +189,8 @@ sma = [(col_x0 + pocket_x) / 2, zc];
 screw_y = panel_h / 2 - panel_hole_from_top;
 usb_x = step_x + tp.z + usb.y / 2;
 top_y = pocket_y + wall;
-loop_y = top_y + loop_rim + loop_hole / 2;
-outer = [2 * (pocket_x + wall), loop_y + loop_hole / 2 + loop_rim - bottom_y];
+loop_y = top_y + loop_h / 2;
+outer = [2 * (pocket_x + wall), top_y + loop_h - bottom_y];
 holder_x0 = step_x - wall - wire_gap - wall - clear - holder_l;
 holder_top = face_y + holder_h;
 holder_z0 = clear;
@@ -236,21 +244,35 @@ module ledge() {
     }
 }
 
+// A convex block with every edge rounded loop_r: the hull of spheres at its
+// corners, inset by loop_r.
+module pillow(x0, x1, y0, y1, z0, z1) {
+    hull() for (x = [x0 + loop_r, x1 - loop_r], y = [y0 + loop_r, y1 - loop_r], z = [z0 + loop_r, z1 - loop_r])
+        translate([x, y, z]) sphere(r = loop_r);
+}
+
+// A hole along Z from z0 to z1 whose edges are rounded loop_hole_r at both
+// faces.
+module rounded_hole(d, z0, z1) {
+    f = loop_hole_r;
+    translate([0, 0, z0]) rotate_extrude() difference() {
+        translate([0, -1]) square([d / 2 + f + 1, z1 - z0 + 2]);
+        translate([d / 2, f]) square([f + 2, z1 - z0 - 2 * f]);
+        translate([d / 2 + f, f]) circle(r = f);
+        translate([d / 2 + f, z1 - z0 - f]) circle(r = f);
+    }
+}
+
 module loop() {
-    r = loop_hole / 2 + loop_rim;
+    x0 = -loop_w / 2; x1 = loop_w / 2;
     difference() {
-        union() {
-            hull() {
-                translate([0, loop_y, z_out - loop_t]) cylinder(d = 2 * r, h = loop_t);
-                translate([-r, top_y - wall, z_out - loop_t]) cube([2 * r, wall, loop_t]);
-            }
-            // Gusset: the tab's root runs the frame's full depth.
-            hull() {
-                translate([-loop_t / 2, top_y - wall, front_z]) cube([loop_t, wall, z_out - front_z]);
-                translate([-loop_t / 2, loop_y - loop_hole / 2 - 2, z_out - loop_t]) cube([loop_t, eps, loop_t]);
-            }
+        // Clipped at the inside of the top wall, so nothing reaches into the
+        // compartment or the panel's channel.
+        intersection() {
+            pillow(x0, x1, top_y - 2 * loop_r, top_y + loop_h, front_z, z_out);
+            translate([x0 - 1, pocket_y, front_z - 1]) cube([loop_w + 2, loop_h + wall + 1, z_out - front_z + 2]);
         }
-        translate([0, loop_y, front_z - 1]) cylinder(d = loop_hole, h = z_out - front_z + 2);
+        for (i = [-1, 0, 1]) translate([i * loop_pitch, loop_y, 0]) rounded_hole(loop_hole, front_z, z_out);
     }
 }
 

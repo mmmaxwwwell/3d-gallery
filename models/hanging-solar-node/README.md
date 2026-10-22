@@ -1,7 +1,7 @@
 # Hanging Solar Node
 
 A Meshtastic node in a light frame that a 122 × 160 mm solar panel slides into, hung
-from a tree by a loop on its back. Everything mounts to the frame first; the panel
+from a tree by a rounded three-hole tab on top. Everything mounts to the frame first; the panel
 slides in last.
 
 - **Panel channel.** The left, right and top walls run forward past the panel. The
@@ -35,8 +35,10 @@ slides in last.
   adhesive.
 - **Panel screw**: an M5x10 cap screw through the panel's own hole (centred, 6 mm down
   from its top edge) into a boss in the frame. The top lip is notched round its head.
-- **Loop**: a 6 mm tab standing up from the back above the top wall, with a 10 mm hole
-  and a gusset down its front through the frame's full depth.
+- **Hanging tab**: a solid tab 54 mm wide standing 18 mm above the top wall through the
+  frame's full depth, with three 6 mm holes front to back. Every edge is rounded (3 mm),
+  and both ends of each hole (1.5 mm). The cord bears either side of the node's centre
+  of mass, so it hangs flat.
 
 It keeps rain out hanging upright; it isn't sealed upside down. The cell is held by the
 holder's springs alone. The TP4056 is tied to its wall, its USB-C in the floor's slot;
@@ -61,4 +63,4 @@ a dab of adhesive seals round the port.
 
 ## Printing
 
-PETG. The frame on its back; no supports. About 65 g.
+PETG. The frame on its back; no supports. About 93 g.

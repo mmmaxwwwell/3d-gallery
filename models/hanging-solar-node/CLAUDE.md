@@ -45,8 +45,13 @@
 - **Depth** is set by the holder: `z_in = holder_w + 2·clear` (21.4).
 - **TP4056 rails** lip over only the middle third of the board's long edges: the pads
   (IN by the USB-C, OUT and B± at the far end) sit at the ends.
-- **Loop**: tab flush with the back (prints flat on the bed, load in-plane) plus a
-  gusset fin down its front through the full depth into the top wall.
+- **Hanging tab** (user: three holes, "way more reinforced", "no sharp edges on the
+  inside or outside of that hole", "like pillows", holes smaller; then "hang it so
+  that it's centered, so it hangs flat"): one `pillow()` (hull of spheres, `loop_r`)
+  through the full depth, clipped at the top wall's inside so it can't reach the
+  panel's channel; three `rounded_hole()`s front to back with `loop_hole_r` fillets.
+  Full depth because a plate at mid-depth would overhang printing on the back, and so
+  the holes span the centre of mass (≈ z 8.5 estimated; mid-depth 8.7).
 - **History the user rejected:** a cup the panel dropped into and was glued to; hanging
   through the panel's own hole; a separate card for the boards; a window for the
   panel's solder tabs ("forget about the hole and the solder").
