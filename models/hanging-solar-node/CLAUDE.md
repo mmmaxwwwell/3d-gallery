@@ -10,19 +10,22 @@
   so the frame prints on its back, meeting the panel's face at its edge (≈0.7 play,
   filled by adhesive). Everything in z < 0 is cut along `swept_down()`, and the ledge
   is open at the bottom, so nothing stops the panel.
-- **Two compartments.** Above the partition (`partition_y`) the main one is sealed
-  (XIAO on `tie_anchor`s). Below it the bottom is open, no cover (user via peer b9,
-  2026-10-21: "i want the bottom to be open with the 18650 there with the usbc charger
-  right there too facing down. these should be recessed into the bottom like 2-3cm").
-  The holder hangs open side down under the partition (`holder_pocket`: two strips
-  along its sides plus a blind boss over the partition for one screw through its
-  floor; `holder_screw_dx` if its hole is off-centre). The TP4056 slides up its rails
-  to the partition, USB-C down. `recess` (22) is how far the USB-C sits up inside the
-  bottom; the bay is `recess + tp.y`, which puts the holder's face 30 up. The SMA is in
-  the partition, so the bulkhead is the seal and the antenna hangs down. The partition
-  only passes wires (holes filled with construction adhesive); its front edge meets
-  the panel's back, sealed by a bead from below. Earlier the user wanted these three
-  removable from the bottom; a screwed cover did that and was dropped for this.
+- **Two compartments.** The main one is sealed (XIAO on `tie_anchor`s). Below it the
+  bottom is open, no cover (user, 2026-10-21: open bottom, 18650 and USB-C charger
+  facing down, recessed 2–3 cm). Layout from the right edge in (user: "the antenna
+  should be on the outer edge, at the bottom of the solar panel. the enclosure should
+  stick all the way down for the antenna, but just enough for the antenna. next to
+  the antenna the usb charging port rolls 90 degrees so the flat side is next to the
+  18650. theres a surface flat with the top of the 18650 holder and thats where the
+  usbc port is. then you have the 18650 holder"):
+  - antenna column: `col_w` inside, its floor at `bottom_y` carries the SMA;
+  - TP4056 inside the main compartment, back on the step wall at `step_x`, back edge
+    in `tp_guide`, USB-C through a slot in the floor at `face_y` (`recess` up);
+  - the holder hangs from the partition (`partition_y = face_y + holder_h`), open
+    side down, its face level with that floor.
+  `floors()` is the stepped floor. The skin-cut past the bottom edge stops short of the
+  column so its floor survives. Seal: bead from below wherever floors and walls meet
+  the panel's back.
 - **Depth** is `z_in = 24`: the holder's 20.8 across, the XIAO's 18 standing.
 - **TP4056 rails** lip over only the middle third of the board's long edges: the pads
   (IN by the USB-C, OUT and B± at the far end) sit at the ends.

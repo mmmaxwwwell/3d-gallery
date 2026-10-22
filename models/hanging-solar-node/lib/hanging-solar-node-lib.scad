@@ -14,19 +14,24 @@
 // channel seals it. Nothing reaches in front of the panel's back, so the
 // panel passes everything on its way in.
 //
-// Behind the panel are two compartments. The main one, above a partition,
-// is sealed: the XIAO nRF52840 + Wio-SX1262 is zip-tied to anchors on the
-// back wall. Below the partition the bay is open at the bottom, and what's
-// in it faces down, recessed into it: the 18650 holder hangs open side down
-// under the partition, in a pocket and on one screw up through its floor
-// into a blind boss, so the cell comes out from below; the TP4056 slides up
-// between two rails until it meets the partition, its USB-C facing down;
-// and the SMA bulkhead sits in the partition, so the antenna hangs straight
-// down. The frame's walls run on below them, so rain blowing in under the
-// node has to come up into the bay to reach them. The partition lets only
-// wires through, by holes past each end of the holder and over the TP4056,
-// to be filled with adhesive; its front edge meets the panel's back, sealed
-// by a bead run along it from the bay.
+// Behind the panel are two compartments. The main one is sealed: the XIAO
+// nRF52840 + Wio-SX1262 is zip-tied to anchors on its back wall. Below it the
+// bottom is open, and what's there faces down, recessed into it. From the
+// right edge in:
+// - the antenna: the main compartment drops to the panel's bottom edge in a
+//   column just wide enough for the SMA bulkhead, which sits in its floor so
+//   the antenna hangs straight down from the frame's bottom corner;
+// - the TP4056, inside the main compartment, standing on end with its flat
+//   back to the 18650, behind a floor level with the holder's open face; its
+//   USB-C comes through a slot in that floor, facing down;
+// - the 18650 holder, hanging open side down under the partition in a pocket
+//   and on one screw up through its floor into a blind boss, so the cell
+//   comes out from below.
+// The walls run on below the holder and the USB-C, so rain blowing in under
+// the node has to come up into the recess to reach them. The partition over
+// the holder lets only its two wires through, to be filled with adhesive.
+// Where the main compartment's floors and walls meet the panel's back, a
+// bead run from below seals them.
 //
 // The loop is a tab standing up from the back above the top wall, with a
 // gusset down its front to the full depth of the frame.
@@ -73,8 +78,8 @@ holder_l = 78.3;
 holder_w = 20.8;
 holder_h = 20;
 
-// How far the TP4056's USB-C sits up inside the open bottom; the bay is this
-// plus the TP4056 standing on end, and the holder's open face sits higher
+// How far the holder's open face, and the floor the USB-C comes through, sit
+// up inside the bottom edge
 recess = 22;
 
 // Partition between the bay and the main compartment
@@ -89,19 +94,22 @@ loop_t = 6;
 eps = 0.01;
 clear = 0.3;
 
-// TP4056 USB-C module, standing on end with its USB-C at the bottom
+// TP4056 USB-C module, standing on end with its USB-C at the bottom: width,
+// length, board thickness; the USB-C's width, height off the board, and how far
+// it overhangs the board's end
 tp = [17.5, 28, 1.6];
-tp_x = 51.5;
-usb = [9.2, 3.4];
+usb = [9.2, 3.4, 1];
+tp_room = 7;
+floor_t = 1.2;
 
 // XIAO nRF52840 on a Wio-SX1262, standing on its pins on the back wall
 xiao = [17.8, 21, 18];
 xiao_c = [12, 0];
 
-// SMA bulkhead in the partition, and where it sits
+// SMA bulkhead in the antenna column's floor; the column is this wide inside
 sma_hole = 6.6;
-sma_x = 33;
-sma_z = 12;
+sma_nut = 9.2;
+col_w = 11.2;
 
 // The holder's pocket: a strip along each long side under the partition
 pocket_strip = [1.2, 3];
@@ -124,27 +132,32 @@ z_out = z_in + back_t;
 channel_z = -(panel_t + face_clear);
 front_z = channel_z - lip_d;
 bottom_y = -pocket_y;
-bay_h = recess + tp.y;
-partition_y = bottom_y + bay_h;
+face_y = bottom_y + recess;
+partition_y = face_y + holder_h;
+col_x0 = pocket_x - col_w;
+step_x = col_x0 - wall - tp_room;
+zc = z_in / 2;
+sma = [(col_x0 + pocket_x) / 2, zc];
+usb_x = step_x + tp.z + usb.y / 2;
 top_y = pocket_y + wall;
 loop_y = top_y + loop_rim + loop_hole / 2;
 outer = [2 * (pocket_x + wall), loop_y + loop_hole / 2 + loop_rim - bottom_y];
-holder_x0 = -57;
+holder_x0 = step_x - wall - 4.5 - holder_l;
 holder_z0 = (z_in - holder_w) / 2;
 holder_y0 = partition_y - holder_h;
 holder_screw = [holder_x0 + holder_l / 2 + holder_screw_dx, z_in / 2];
-tp_y0 = partition_y - tp.y;
-tp_face_z = z_in - tp.z - clear;
+tp_y0 = face_y + floor_t;
 xiao_anchor_xs = [xiao_c.x - xiao.x / 2 - anchor.x / 2 - 0.5, xiao_c.x + xiao.x / 2 + anchor.x / 2 + 0.5];
-wire_holes = [[holder_x0 - 2, z_in / 2], [holder_x0 + holder_l + 2.5, z_in / 2], [tp_x, tp_face_z - 6]];
+wire_holes = [[holder_x0 - 2.3, zc], [holder_x0 + holder_l + 2.3, zc]];
 
 assert(holder_z0 - clear - pocket_strip[0] > 0, "the holder's pocket runs into the panel");
 assert(xiao_c.y - xiao.y / 2 > partition_y + partition_t + boss[1], "the XIAO runs into the partition");
-assert(holder_h < bay_h, "the holder doesn't fit in the bay");
-assert(holder_x0 + holder_l + 2.5 + wire_hole / 2 < sma_x - 4.6, "the holder's wire hole runs into the SMA");
-assert(tp_x - tp.x / 2 - 1.5 > sma_x + 4.6, "the TP4056's rail runs into the SMA");
-assert(tp_x + tp.x / 2 + clear <= pocket_x, "the TP4056 doesn't fit against the right wall");
-assert(holder_x0 - 2 - wire_hole / 2 > -pocket_x, "the holder's wire hole runs into the wall");
+assert(col_w >= sma_nut + 2, "the antenna column is too narrow for the SMA's nut");
+assert(tp_room >= tp.z + usb.y + 1, "the TP4056 doesn't fit between the step and the antenna column");
+assert(tp.x + 2 < z_in, "the TP4056 is wider than the frame is deep");
+assert(holder_x0 + holder_l + 2.3 + wire_hole / 2 <= step_x - wall, "the holder's wire hole runs into the step wall");
+assert(holder_x0 - 2.3 - wire_hole / 2 > -pocket_x, "the holder's wire hole runs into the wall");
+assert(tp_y0 + tp.y < xiao_c.y - xiao.y / 2, "the TP4056 runs into the XIAO");
 
 module rrect(size, r) {
     offset(r = r) square([size.x - 2 * r, size.y - 2 * r], center = true);
@@ -196,16 +209,24 @@ module loop() {
     }
 }
 
-module partition() translate([-pocket_x, partition_y, 0]) cube([2 * pocket_x, partition_t, z_in + eps]);
+// The main compartment's floor, stepped: the partition over the holder, a
+// wall down to the floor the USB-C comes through, and a wall down to the
+// antenna column's floor at the bottom edge.
+module floors() {
+    translate([-pocket_x, partition_y, 0]) cube([pocket_x + step_x, partition_t, z_in + eps]);
+    translate([step_x - wall, face_y, 0]) cube([wall, partition_y + partition_t - face_y, z_in + eps]);
+    translate([step_x - wall, face_y, 0]) cube([col_x0 - step_x + eps, floor_t, z_in + eps]);
+    translate([col_x0 - wall, bottom_y, 0]) cube([wall, face_y + floor_t - bottom_y, z_in + eps]);
+    translate([col_x0 - wall, bottom_y, 0]) cube([col_w + wall + eps, partition_t, z_in + eps]);
+}
 
-// The TP4056 slides up between two rails to the partition: a stop at each
-// long edge, and a lip over the edge's middle third, clear of the pads at
-// either end.
-module tp_rails() {
-    for (sd = [-1, 1]) {
-        edge = tp_x + sd * (tp.x + clear) / 2;
-        translate([sd < 0 ? edge - 1.5 : edge, tp_y0 - 2, tp_face_z - 1.2]) cube([1.5, partition_y - tp_y0 + 2 + eps, z_in - tp_face_z + 1.2 + eps]);
-        translate([sd < 0 ? edge - 1.5 : edge - 1, tp_y0 + tp.y / 3, tp_face_z - 1.2]) cube([2.5, tp.y / 3, 1.2]);
+// The TP4056's back lies on the step wall; a guide on the back wall holds its
+// back edge, over the middle third, clear of the pads at either end.
+module tp_guide() {
+    edge_z = zc + tp.x / 2;
+    translate([step_x, tp_y0 + tp.y / 3, edge_z - 1]) difference() {
+        cube([tp.z + clear + 1.2, tp.y / 3, z_in - edge_z + 1 + eps]);
+        translate([-1, -1, -1]) cube([tp.z + clear + 1, tp.y / 3 + 2, 1 + 1 + clear]);
     }
 }
 
@@ -238,8 +259,8 @@ module frame() {
                 }
             }
             ledge();
-            partition();
-            tp_rails();
+            floors();
+            tp_guide();
             holder_pocket();
             for (x = xiao_anchor_xs) tie_anchor([x, xiao_c.y]);
             loop();
@@ -247,9 +268,10 @@ module frame() {
         // The bay is open at the bottom: no bottom wall.
         translate([-outer.x, bottom_y - 50, front_z - 1]) cube([2 * outer.x, 50, z_out - front_z + 2]);
         // The inside runs on past the bottom edge, so no skin is left across the opening.
-        translate([-pocket_x, bottom_y - 1, -eps]) cube([2 * pocket_x, 2, z_in + eps]);
+        translate([-pocket_x, bottom_y - 1, -eps]) cube([pocket_x + col_x0 - wall, 2, z_in + eps]);
         translate([holder_screw.x, partition_y - 1, holder_screw.y]) rotate([-90, 0, 0]) cylinder(d = pilot_d, h = 1 + partition_t + boss[1] - 1);
-        translate([sma_x, partition_y - 1, sma_z]) rotate([-90, 0, 0]) cylinder(d = sma_hole, h = partition_t + 2);
+        translate([sma.x, bottom_y - 1, sma.y]) rotate([-90, 0, 0]) cylinder(d = sma_hole, h = partition_t + 2);
+        translate([usb_x - usb.y / 2 - 0.25, face_y - 1, zc - usb.x / 2 - 0.25]) cube([usb.y + 0.5, floor_t + 2, usb.x + 0.5]);
         for (h = wire_holes) translate([h.x, partition_y - 1, h.y]) rotate([-90, 0, 0]) cylinder(d = wire_hole, h = partition_t + 2);
     }
 }
@@ -266,19 +288,20 @@ module ref_holder() translate([holder_x0, holder_y0, holder_z0]) difference() {
 }
 module ref_cell() translate([holder_x0 + holder_l / 2, partition_y - 1 - 9.25, z_in / 2]) rotate([0, 90, 0]) cylinder(d = 18.5, h = 65, center = true);
 
-module ref_tp4056() translate([tp_x, tp_y0, tp_face_z + clear]) {
-    translate([-tp.x / 2, 0, 0]) cube(tp);
-    translate([-usb.x / 2, -0.5, -usb.y]) cube([usb.x, 7.5, usb.y]);
+// Standing on end, its back on the step wall, its USB-C through the floor.
+module ref_tp4056() translate([step_x, tp_y0, zc - tp.x / 2]) {
+    cube([tp.z, tp.y, tp.x]);
+    translate([tp.z, -usb.z, (tp.x - usb.x) / 2]) cube([usb.y, 7.5, usb.x]);
 }
 
 module ref_xiao() translate([xiao_c.x, xiao_c.y, z_in - xiao.z / 2]) cube(xiao, center = true);
 
-module ref_sma() translate([sma_x, partition_y, sma_z]) rotate([-90, 0, 0]) {
-    translate([0, 0, -10]) cylinder(d = 6.35, h = 10 + partition_t + 8);
-    translate([0, 0, -2]) cylinder(d = 9.2, h = 2, $fn = 6);
-    translate([0, 0, partition_t]) cylinder(d = 9.2, h = 2, $fn = 6);
+module ref_sma() translate([sma.x, bottom_y, sma.y]) rotate([-90, 0, 0]) {
+    translate([0, 0, -8]) cylinder(d = 6.35, h = 8 + partition_t + 10);
+    translate([0, 0, -2]) cylinder(d = sma_nut, h = 2, $fn = 6);
+    translate([0, 0, partition_t]) cylinder(d = sma_nut, h = 2, $fn = 6);
 }
-module ref_antenna() translate([sma_x, partition_y - 10, sma_z]) rotate([90, 0, 0]) {
+module ref_antenna() translate([sma.x, bottom_y - 8, sma.y]) rotate([90, 0, 0]) {
     cylinder(d = 10, h = 30);
     cylinder(d = 8, h = 200);
 }
