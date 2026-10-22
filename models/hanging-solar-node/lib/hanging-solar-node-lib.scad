@@ -18,9 +18,11 @@
 // nRF52840 + Wio-SX1262 is zip-tied to anchors on its back wall. Below it the
 // bottom is open, and what's there faces down, recessed into it. From the
 // right edge in:
-// - the antenna: the main compartment drops to the panel's bottom edge in a
-//   column just wide enough for the SMA bulkhead, which sits in its floor so
-//   the antenna hangs straight down from the frame's bottom corner;
+// - the antenna: the main compartment drops nearly to the panel's bottom edge
+//   in a column just wide enough for the SMA bulkhead, which sits in its
+//   floor over a hex pocket for its inside nut, so the antenna hangs straight
+//   down at the frame's bottom corner. The floor sits col_raise up, behind
+//   the panel where its rounded corner would otherwise show the inside;
 // - the TP4056, inside the main compartment, standing on end with its flat
 //   back to the 18650, behind a floor level with the holder's open face; its
 //   USB-C comes through a slot in that floor, facing down;
@@ -99,6 +101,10 @@ partition_t = 2.4;
 loop_hole = 10;
 loop_rim = 7;
 loop_t = 6;
+
+// The panel's own hole, at the top, centred: an M5x10 screw goes through it
+// into a boss in the frame. Its centre down from the panel's top edge
+panel_hole_from_top = 6;
 // END_PARAMS
 
 eps = 0.01;
@@ -116,9 +122,17 @@ floor_t = 1.2;
 xiao = [17.8, 21, 18];
 xiao_c = [12, 0];
 
+// How far the antenna column's floor sits up from the bottom edge: the panel's
+// rounded bottom corner leaves a gap in front of the column's foot
+col_raise = 5;
+
 // SMA bulkhead in the antenna column's floor; the column is this wide inside
 sma_hole = 6.6;
 sma_nut = 9.2;
+// The floor the SMA's thread passes through, and the hex pocket behind it its
+// inside nut sits in, so the bulkhead can't turn
+sma_floor = 2.4;
+hex_pocket = [8 + 0.3, 2.2];
 col_w = 11.2;
 
 // Gap at each end of the holder's slot for its wires
@@ -127,7 +141,13 @@ wire_gap = 4;
 // The upstand at each ledge's outer edge, and the bar over the holder's top
 // back edge: height, and how far it reaches over the holder
 upstand = [1, 2];
-bar = [1.5, 1.5];
+bar = [1.5, 5];
+
+// M5x10 through the panel's hole: the boss's pilot (self-tapping), the boss,
+// and the cap head the top lip is notched round
+m5_pilot = 4.2;
+m5_boss = 10;
+m5_head = [8.5, 5];
 
 // Zip-tie anchors: a tunnel for the tie in a block on the back wall
 tie_tunnel = [4.6, 1.8];
@@ -141,11 +161,13 @@ channel_z = -(panel_t + face_clear);
 front_z = channel_z - lip_d;
 bottom_y = -pocket_y;
 face_y = bottom_y + recess;
+col_y = bottom_y + col_raise;
 partition_y = face_y + holder_h - partition_t;
 col_x0 = pocket_x - col_w;
 step_x = col_x0 - wall - tp_room;
 zc = z_in / 2;
 sma = [(col_x0 + pocket_x) / 2, zc];
+screw_y = panel_h / 2 - panel_hole_from_top;
 usb_x = step_x + tp.z + usb.y / 2;
 top_y = pocket_y + wall;
 loop_y = top_y + loop_rim + loop_hole / 2;
@@ -157,7 +179,8 @@ tp_y0 = face_y + floor_t;
 xiao_anchor_xs = [xiao_c.x - xiao.x / 2 - anchor.x / 2 - 0.5, xiao_c.x + xiao.x / 2 + anchor.x / 2 + 0.5];
 
 assert(xiao_c.y - xiao.y / 2 > partition_y + partition_t, "the XIAO runs into the partition");
-assert(col_w >= sma_nut + 2, "the antenna column is too narrow for the SMA's nut");
+assert(col_w >= hex_pocket.x / cos(30) + 1, "the antenna column is too narrow for the SMA's hex pocket");
+assert(screw_y + m5_boss / 2 <= pocket_y + eps, "the screw boss pokes through the top wall");
 assert(tp_room >= tp.z + usb.y + 1, "the TP4056 doesn't fit between the step and the antenna column");
 assert(tp.x + 2 < z_in, "the TP4056 is wider than the frame is deep");
 assert(holder_x0 - wire_gap - wall > -pocket_x + lip_w + glue_gap, "the holder's slot runs into the side wall");
@@ -220,8 +243,8 @@ module floors() {
     translate([-pocket_x, partition_y, 0]) cube([pocket_x + step_x, partition_t, z_in + eps]);
     translate([step_x - wall, face_y, 0]) cube([wall, partition_y + partition_t - face_y, z_in + eps]);
     translate([step_x - wall, face_y, 0]) cube([col_x0 - step_x + eps, floor_t, z_in + eps]);
-    translate([col_x0 - wall, bottom_y, 0]) cube([wall, face_y + floor_t - bottom_y, z_in + eps]);
-    translate([col_x0 - wall, bottom_y, 0]) cube([col_w + wall + eps, partition_t, z_in + eps]);
+    translate([col_x0 - wall, col_y, 0]) cube([wall, face_y + floor_t - col_y, z_in + eps]);
+    translate([col_x0 - wall, col_y, 0]) cube([col_w + wall + eps, sma_floor + hex_pocket.y, z_in + eps]);
 }
 
 // The TP4056's back lies on the step wall; a guide on the back wall holds its
@@ -268,6 +291,9 @@ module frame() {
                 }
             }
             ledge();
+            // The boss the M5 through the panel's hole screws into.
+            translate([0, screw_y, 0]) cylinder(d = m5_boss, h = z_in + eps);
+            translate([-m5_boss / 2, screw_y, 0]) cube([m5_boss, pocket_y - screw_y + eps, z_in + eps]);
             floors();
             tp_guide();
             holder_pocket();
@@ -277,10 +303,15 @@ module frame() {
         // The bay is open at the bottom: no bottom wall.
         translate([-outer.x, bottom_y - 50, front_z - 1]) cube([2 * outer.x, 50, z_out - front_z + 2]);
         // The inside runs on past the bottom edge, so no skin is left across the opening.
-        translate([-pocket_x, bottom_y - 1, -eps]) cube([pocket_x + col_x0 - wall, 2, z_in + eps]);
+        translate([-pocket_x, bottom_y - 1, -eps]) cube([2 * pocket_x, 2, z_in + eps]);
         // The holder's slot through the partition.
         translate([holder_x0 - wire_gap, partition_y - 1, -1]) cube([holder_l + 2 * wire_gap, partition_t + 2, z_in + 1]);
-        translate([sma.x, bottom_y - 1, sma.y]) rotate([-90, 0, 0]) cylinder(d = sma_hole, h = partition_t + 2);
+        translate([sma.x, col_y - 1, sma.y]) rotate([-90, 0, 0]) cylinder(d = sma_hole, h = sma_floor + hex_pocket.y + 2);
+        // A corner of the hex points along Z, so its top prints at 60 deg.
+        translate([sma.x, col_y + sma_floor, sma.y]) rotate([-90, 0, 0]) rotate(30)
+            cylinder(d = hex_pocket.x / cos(30), h = hex_pocket.y + 1, $fn = 6);
+        translate([0, screw_y, -1]) cylinder(d = m5_pilot, h = 1 + m5_boss);
+        translate([0, screw_y, front_z - 1]) cylinder(d = m5_head.x + 1, h = channel_z - front_z + 1);
         translate([usb_x - usb.y / 2 - 0.25, face_y - 1, zc - usb.x / 2 - 0.25]) cube([usb.y + 0.5, floor_t + 2, usb.x + 0.5]);
     }
 }
@@ -288,7 +319,15 @@ module frame() {
 // --- reference hardware, for the previews ---
 
 module ref_panel_face() slab(-panel_t, -panel_t + 0.3) offset(delta = -3) panel_2d();
-module ref_panel() slab(-panel_t, 0) panel_2d();
+module ref_panel() difference() {
+    slab(-panel_t, 0) panel_2d();
+    translate([0, screw_y, -panel_t - 1]) cylinder(d = 5.5, h = panel_t + 2);
+}
+
+module ref_screw() translate([0, screw_y, -panel_t]) {
+    translate([0, 0, -m5_head.y]) cylinder(d = m5_head.x, h = m5_head.y);
+    cylinder(d = 5, h = 10);
+}
 
 // The holder hangs with its floor to the partition, its open side down.
 module ref_holder() translate([holder_x0, holder_y0, holder_z0]) difference() {
@@ -305,12 +344,12 @@ module ref_tp4056() translate([step_x, tp_y0, zc - tp.x / 2]) {
 
 module ref_xiao() translate([xiao_c.x, xiao_c.y, z_in - xiao.z / 2]) cube(xiao, center = true);
 
-module ref_sma() translate([sma.x, bottom_y, sma.y]) rotate([-90, 0, 0]) {
-    translate([0, 0, -8]) cylinder(d = 6.35, h = 8 + partition_t + 10);
+module ref_sma() translate([sma.x, col_y, sma.y]) rotate([-90, 0, 0]) {
+    translate([0, 0, -8]) cylinder(d = 6.35, h = 8 + sma_floor + hex_pocket.y + 10);
     translate([0, 0, -2]) cylinder(d = sma_nut, h = 2, $fn = 6);
-    translate([0, 0, partition_t]) cylinder(d = sma_nut, h = 2, $fn = 6);
+    translate([0, 0, sma_floor]) rotate(30) cylinder(d = sma_nut, h = 2, $fn = 6);
 }
-module ref_antenna() translate([sma.x, bottom_y - 8, sma.y]) rotate([90, 0, 0]) {
+module ref_antenna() translate([sma.x, col_y - 8, sma.y]) rotate([90, 0, 0]) {
     cylinder(d = 10, h = 30);
     cylinder(d = 8, h = 200);
 }

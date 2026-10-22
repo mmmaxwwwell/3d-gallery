@@ -9,3 +9,4 @@ color("#1f5fa8") in_use() ref_tp4056();
 color("#3c8f4a") in_use() ref_xiao();
 color("#c9a227") in_use() ref_sma();
 color("#111111") in_use() ref_antenna();
+color("#9a9a9a") in_use() ref_screw();

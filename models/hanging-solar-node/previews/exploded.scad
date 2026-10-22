@@ -9,3 +9,4 @@ color("#1f5fa8") in_use() translate([0, 0, -45]) ref_tp4056();
 color("#3c8f4a") in_use() translate([0, 0, -45]) ref_xiao();
 color("#c9a227") in_use() translate([0, -25, 0]) ref_sma();
 color("#111111") in_use() translate([0, -70, 0]) ref_antenna();
+color("#9a9a9a") in_use() translate([0, 0, -40]) ref_screw();

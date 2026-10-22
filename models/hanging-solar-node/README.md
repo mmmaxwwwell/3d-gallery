@@ -12,8 +12,10 @@ slides in last.
   zip-tied to two anchors on the back wall.
 - **Open bottom**, below the main compartment. What's there faces down, recessed into
   the bottom so the walls shelter it. From the right edge in:
-  - the antenna: the main compartment drops to the panel's bottom edge in a column just
-    wide enough for the SMA bulkhead, which sits in its floor, so the antenna hangs
+  - the antenna: the main compartment drops nearly to the panel's bottom edge in a
+    column just wide enough for the SMA bulkhead, which sits in its floor with its
+    inside nut in a hex pocket so it can't turn. The floor is 5 mm up, behind the
+    panel, so the panel's rounded corner doesn't show the inside. The antenna hangs
     straight down from the frame's bottom corner;
   - the TP4056, inside the main compartment, standing on end with its flat back
     against the wall next to the 18650. Its USB-C comes down through a slot in a floor
@@ -22,11 +24,13 @@ slides in last.
     inside, before the panel goes in, through a slot in the partition onto two ledges
     that catch only its 1 mm end walls where the terminals are, so it's captive. The
     cell comes out from below, between the ledges. A low upstand at each ledge's outer
-    edge locates it along its length, and a 1.5 mm bar along the back wall over its top
-    back edge stops it lifting. The frame is just deep enough for the holder.
+    edge locates it along its length, and a bar along the back wall reaching 5 mm over its
+    top back edge stops it lifting. The frame is just deep enough for the holder.
 
   A 4 mm gap at each end of the holder's slot lets its wires go straight up. Fill the
   gaps and the seam round the holder with construction adhesive once they're in.
+- **Panel screw**: an M5x10 cap screw through the panel's own hole (centred, 6 mm down
+  from its top edge) into a boss in the frame. The top lip is notched round its head.
 - **Loop**: a 6 mm tab standing up from the back above the top wall, with a 10 mm hole
   and a gusset down its front through the frame's full depth.
 
@@ -47,7 +51,8 @@ its USB-C in the floor's slot; a dab of adhesive holds it and seals round the po
 4. Wire the panel's leads (through the blocking diode) into the main compartment.
 5. Run adhesive along the channel and slide the panel up into it, face out. From below,
    run a bead wherever the main compartment's floors and walls meet the panel's back.
-6. Put the cell in and screw on the antenna.
+6. Screw the M5x10 through the panel's hole into the boss.
+7. Put the cell in and screw on the antenna.
 
 ## Printing
 

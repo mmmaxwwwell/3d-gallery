@@ -4925,7 +4925,7 @@
     {
       "slug": "hanging-solar-node",
       "title": "Hanging Solar Node",
-      "description": "A Meshtastic node in a light frame that a 122 × 160 mm solar panel slides into, hung from a tree by a loop on its back. Everything mounts to the frame first and the panel slides in last. The frame's left, right and top walls run forward past the panel into a channel: the panel slides up into it from the open bottom, its back running on a ledge just inside the walls and a 45° lip over its border in front, and adhesive in the channel seals it. Behind the panel, a partition splits the frame in two. Above it the main compartment is sealed, with the XIAO nRF52840 + Wio-SX1262 zip-tied to anchors on the back wall. Below it the bottom is open, and what's there faces down, recessed into it. From the right edge in: the antenna, on an SMA bulkhead in the floor of a column of the main compartment that drops to the panel's bottom edge, just wide enough for it; the TP4056 charger, inside the main compartment, standing on end with its flat back to the 18650, its USB-C coming down through a floor level with the holder's open face, 22 mm up inside the bottom edge; and the 18650 holder (78.3 × 20.8 × 20), open side down, dropped straight down from inside before the panel goes in, through a slot in the partition onto two ledges that catch only its 1 mm end walls where the terminals are, so it's captive and the cell comes out from below between the ledges; a low upstand at each ledge's outer edge locates it along its length, a bar along the back wall over its top back edge stops it lifting (it goes down a little proud at the front, pushes back under the bar, and the panel then closes it in), the frame is just deep enough for it, and a gap at each end of the slot lets its wires straight up, to be filled with construction adhesive with the seam round it. The loop is a 6 mm tab standing up from the back above the top wall, a 10 mm hole in it, with a gusset down its front through the frame's full depth. Watertight hanging upright, not upside down. 125.2 × 186 × 27.4 mm with the loop, about 65 g printed. Not yet printed.",
+      "description": "A Meshtastic node in a light frame that a 122 × 160 mm solar panel slides into, hung from a tree by a loop on its back. Everything mounts to the frame first and the panel slides in last. The frame's left, right and top walls run forward past the panel into a channel: the panel slides up into it from the open bottom, its back running on a ledge just inside the walls and a 45° lip over its border in front, and adhesive in the channel seals it. Behind the panel, a partition splits the frame in two. Above it the main compartment is sealed, with the XIAO nRF52840 + Wio-SX1262 zip-tied to anchors on the back wall. Below it the bottom is open, and what's there faces down, recessed into it. From the right edge in: the antenna, on an SMA bulkhead in the floor of a column of the main compartment that drops nearly to the panel's bottom edge, just wide enough for it, its inside nut in a hex pocket so it can't turn, the floor 5 mm up so the panel's rounded corner doesn't show the inside; the TP4056 charger, inside the main compartment, standing on end with its flat back to the 18650, its USB-C coming down through a floor level with the holder's open face, 22 mm up inside the bottom edge; and the 18650 holder (78.3 × 20.8 × 20), open side down, dropped straight down from inside before the panel goes in, through a slot in the partition onto two ledges that catch only its 1 mm end walls where the terminals are, so it's captive and the cell comes out from below between the ledges; a low upstand at each ledge's outer edge locates it along its length, a bar along the back wall reaching 5 mm over its top back edge stops it lifting (it goes down a little proud at the front, pushes back under the bar, and the panel then closes it in), the frame is just deep enough for it, and a gap at each end of the slot lets its wires straight up, to be filled with construction adhesive with the seam round it. An M5x10 screw through the panel's own hole, centred 6 mm down from its top edge, into a boss in the frame holds the panel in, the top lip notched round its head. The loop is a 6 mm tab standing up from the back above the top wall, a 10 mm hole in it, with a gusset down its front through the frame's full depth. Watertight hanging upright, not upside down. 125.2 × 186 × 27.4 mm with the loop, about 65 g printed. Not yet printed.",
       "filament": [
         { "material": "PETG", "color": "any" }
       ],
@@ -4940,7 +4940,8 @@
             { "color": "#1f5fa8", "label": "TP4056 charger (reference)" },
             { "color": "#3c8f4a", "label": "XIAO nRF52840 + Wio-SX1262 (reference)" },
             { "color": "#c9a227", "label": "SMA bulkhead (reference)" },
-            { "color": "#111111", "label": "Antenna (reference)" }
+            { "color": "#111111", "label": "Antenna (reference)" },
+            { "color": "#9a9a9a", "label": "M5x10 screw (reference)" }
           ],
           "components": [
             { "part": "frame.stl", "qty": 1 }
@@ -4966,7 +4967,8 @@
             { "color": "#1f5fa8", "label": "TP4056 charger (reference)" },
             { "color": "#3c8f4a", "label": "XIAO nRF52840 + Wio-SX1262 (reference)" },
             { "color": "#c9a227", "label": "SMA bulkhead (reference)" },
-            { "color": "#111111", "label": "Antenna (reference)" }
+            { "color": "#111111", "label": "Antenna (reference)" },
+            { "color": "#9a9a9a", "label": "M5x10 screw (reference)" }
           ] },
         { "file": "plate.3mf", "format": "3mf", "label": "Print plate: frame on its back", "plate": true, "module": "plate",
           "legend": [
@@ -4980,6 +4982,7 @@
         { "file": "frame.stl", "format": "stl", "label": "Frame — panel channel, sealed main compartment, open bottom bay and hanging loop; print on its back", "module": "frame" }
       ],
       "hardware": [
+        { "qty": 1, "label": "M5x10 SHCS — through the panel's hole into the frame's boss" },
         { "qty": 1, "label": "Zip tie, 3.6 mm wide — the XIAO to the back wall's anchors" },
         { "qty": 1, "label": "SMA bulkhead pigtail to U.FL, with antenna" },
         { "qty": 1, "label": "Construction adhesive — the panel's channel, the partition's front edge, and the wire holes" },
