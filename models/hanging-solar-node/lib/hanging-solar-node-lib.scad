@@ -271,7 +271,7 @@ module frame() {
         // The inside runs on past the bottom edge, so no skin is left across the opening.
         translate([-pocket_x, bottom_y - 1, -eps]) cube([pocket_x + col_x0 - wall, 2, z_in + eps]);
         // The holder's slot through the partition.
-        translate([holder_x0 - wire_gap, partition_y - 1, -1]) cube([holder_l + 2 * wire_gap, partition_t + 2, z_in + 2]);
+        translate([holder_x0 - wire_gap, partition_y - 1, -1]) cube([holder_l + 2 * wire_gap, partition_t + 2, z_in + 1]);
         translate([sma.x, bottom_y - 1, sma.y]) rotate([-90, 0, 0]) cylinder(d = sma_hole, h = partition_t + 2);
         translate([usb_x - usb.y / 2 - 0.25, face_y - 1, zc - usb.x / 2 - 0.25]) cube([usb.y + 0.5, floor_t + 2, usb.x + 0.5]);
     }
