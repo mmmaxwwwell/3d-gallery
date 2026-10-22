@@ -10,7 +10,11 @@
   so the frame prints on its back, meeting the panel's face at its edge (≈0.7 play,
   filled by adhesive). Everything in z < 0 is cut along `swept_down()`, and the ledge
   is open at the bottom, so nothing stops the panel.
-- **Two compartments.** The main one is sealed (XIAO on `tie_anchor`s). Below it the
+- **Two compartments.** The main one is sealed. Tie anchors everywhere (user: "make it
+  symmetrical, just put them everywhere"): `anchor_xs` × `anchor_ys` on the back wall,
+  the XIAO at the centre gap, tied through the anchors either side; `col_anchors` in
+  the antenna column for the pigtail; the TP4056 ties to the step wall through two
+  `tie_slot`s hugging its edges (only ~2 mm behind it before the back wall). Below it the
   bottom is open, no cover (user, 2026-10-21: open bottom, 18650 and USB-C charger
   facing down, recessed 2–3 cm). Layout from the right edge in (user: "the antenna
   should be on the outer edge, at the bottom of the solar panel. the enclosure should
@@ -21,8 +25,8 @@
   - antenna column: `col_w` inside, its floor `col_raise` (5) up from the bottom edge
     (user: the panel's rounded corner showed the inside at the column's foot) carries
     the SMA, the inside nut in a hex pocket (`hex_pocket`) so it can't turn;
-  - TP4056 inside the main compartment, back on the step wall at `step_x`, back edge
-    in `tp_guide`, USB-C through a slot in the floor at `face_y` (`recess` up);
+  - TP4056 inside the main compartment, back on the step wall at `step_x`, tied
+    through two `tie_slot`s, USB-C through a slot in the floor at `base_y` (`recess` up);
   - the holder, open side down, drops straight down from inside between two L-shaped
     walls (`holder_pocket`), each a wall at its end with a foot under its
     `holder_end_t` end wall (user: "should just be a L" — an earlier ledge + upstand +

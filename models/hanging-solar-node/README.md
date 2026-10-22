@@ -8,17 +8,20 @@ slides in last.
   panel slides up into them from the open bottom, its back on a 1.5 mm ledge and a
   45° lip over its border in front (the lip stands 3 mm proud of the face).
   Construction adhesive in the channel seals it.
-- **Main compartment** (sealed): the XIAO nRF52840 + Wio-SX1262,
-  zip-tied to two anchors on the back wall.
+- **Main compartment** (sealed): zip-tie anchors in a symmetric grid all over the
+  back wall, 16 mm apart across and 20 mm up. The XIAO nRF52840 + Wio-SX1262 sits at
+  the centre, tied through the anchors either side.
 - **Open bottom**, below the main compartment. What's there faces down, recessed into
   the bottom so the walls shelter it. From the right edge in:
   - the antenna: the main compartment drops nearly to the panel's bottom edge in a
     column just wide enough for the SMA bulkhead, which sits in its floor with its
-    inside nut in a hex pocket so it can't turn. The floor is 5 mm up, behind the
+    inside nut in a hex pocket so it can't turn. Two tie anchors in the column hold the
+    pigtail. The floor is 5 mm up, behind the
     panel, so the panel's rounded corner doesn't show the inside. The antenna hangs
     straight down from the frame's bottom corner;
   - the TP4056, inside the main compartment, standing on end with its flat back to
-    the 18650. Its USB-C comes down through a slot in the floor;
+    the 18650, tied to its wall through two slots. Its USB-C comes down through a slot
+    in the floor;
   - the 18650 holder (78.3 × 20.8 × 20), open side down. It drops straight down from
     inside, before the panel goes in, between two L-shaped walls whose feet catch only
     its 1 mm end walls where the terminals are, so it's captive. The cell comes out
@@ -36,15 +39,16 @@ slides in last.
   and a gusset down its front through the frame's full depth.
 
 It keeps rain out hanging upright; it isn't sealed upside down. The cell is held by the
-holder's springs alone. The TP4056 lies on the wall with its back edge in a guide and
-its USB-C in the floor's slot; a dab of adhesive holds it and seals round the port.
+holder's springs alone. The TP4056 is tied to its wall, its USB-C in the floor's slot;
+a dab of adhesive seals round the port.
 
 ## Assembly
 
-1. Tie and glue the XIAO to the anchors in the main compartment. Fit the SMA bulkhead
-   in the antenna column's floor and run its pigtail up to the Wio.
-2. Put the TP4056 in: USB-C down through the floor's slot, its back on the wall, its
-   back edge in the guide. Glue it and seal round the port.
+1. Tie and glue the XIAO to the anchors either side of it. Fit the SMA bulkhead in the
+   antenna column's floor (inside nut in the hex pocket), tie its pigtail to the
+   column's anchors and run it up to the Wio.
+2. Put the TP4056 in: USB-C down through the floor's slot, its back on the wall, a tie
+   round it through the wall's two slots. Seal round the port.
 3. Drop the holder down between its walls, open side down, wires through the notches
    at the top of the walls, with its front edge a little proud; push it back under the
    bar onto the L's feet (the panel closes it in). Fill the gaps and the seam round it with construction

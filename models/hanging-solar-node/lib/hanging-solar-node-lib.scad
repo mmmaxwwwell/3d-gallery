@@ -14,8 +14,9 @@
 // channel seals it. Nothing reaches in front of the panel's back, so the
 // panel passes everything on its way in.
 //
-// Behind the panel are two compartments. The main one is sealed: the XIAO
-// nRF52840 + Wio-SX1262 is zip-tied to anchors on its back wall. Below it the
+// Behind the panel are two compartments. The main one is sealed, with tie
+// anchors in a grid all over its back wall; the XIAO nRF52840 + Wio-SX1262
+// sits at its centre, tied through the anchors either side. Below it the
 // bottom is open, and what's there faces down, recessed into it. From the
 // right edge in:
 // - the antenna: the main compartment drops nearly to the panel's bottom edge
@@ -24,7 +25,8 @@
 //   down at the frame's bottom corner. The floor sits col_raise up, behind
 //   the panel where its rounded corner would otherwise show the inside;
 // - the TP4056, inside the main compartment, standing on end with its flat
-//   back to the 18650; its USB-C comes down through a slot in the floor;
+//   back to the 18650 on the step wall, tied to it through two slots; its
+//   USB-C comes down through a slot in the floor;
 // - the 18650 holder, open side down. It drops straight down from inside,
 //   before the panel goes in, between two walls, one at each end, each an L
 //   whose foot catches only the holder's 1 mm end wall, where the terminals
@@ -117,7 +119,7 @@ floor_t = 1.2;
 
 // XIAO nRF52840 on a Wio-SX1262, standing on its pins on the back wall
 xiao = [17.8, 21, 18];
-xiao_c = [12, 0];
+xiao_c = [0, 0];
 
 // How far the antenna column's floor sits up from the bottom edge: the panel's
 // rounded bottom corner leaves a gap in front of the column's foot
@@ -153,6 +155,15 @@ m5_head = [8.5, 5];
 tie_tunnel = [4.6, 1.8];
 anchor = [6, 8, 4];
 
+// Tie anchors everywhere in the main compartment, a symmetric grid on the
+// back wall; the XIAO sits in the gap at its centre, tied through the anchors
+// either side of it
+anchor_xs = [-48, -32, -16, 0, 16, 32, 48];
+anchor_ys = [-20, 0, 20, 40, 60];
+
+// Tie slots through the step wall, either side of the TP4056
+tie_slot = [4.4, 1.6];
+
 pocket_x = panel_w / 2 + glue_gap;
 pocket_y = panel_h / 2 + glue_gap;
 z_in = holder_w + 2 * clear;
@@ -177,9 +188,15 @@ holder_top = face_y + holder_h;
 holder_z0 = clear;
 holder_y0 = face_y;
 tp_y0 = base_y + floor_t;
-xiao_anchor_xs = [xiao_c.x - xiao.x / 2 - anchor.x / 2 - 0.5, xiao_c.x + xiao.x / 2 + anchor.x / 2 + 0.5];
+anchors = [for (x = anchor_xs, y = anchor_ys) if (abs(x - xiao_c.x) > xiao.x / 2 + anchor.x / 2 || abs(y - xiao_c.y) > xiao.y / 2 + anchor.y / 2) [x, y]];
+// Two in the antenna column, for the SMA's pigtail.
+col_anchors = [for (dy = [12, 30]) [sma.x, col_y + sma_floor + hex_pocket.y + dy]];
 
 assert(xiao_c.y - xiao.y / 2 > holder_top + bar.x, "the XIAO runs into the holder");
+assert(min(anchor_ys) - anchor.y / 2 > tp_y0 + tp.y, "a tie anchor runs into the TP4056");
+assert(max(anchor_xs) + anchor.x / 2 < pocket_x - lip_w - glue_gap, "a tie anchor runs into the ledge");
+assert(col_w >= anchor.x + 2, "the antenna column is too narrow for its tie anchors");
+assert(zc + tp.x / 2 + 0.2 + tie_slot.y < z_in, "the TP4056's back tie slot runs into the back wall");
 assert(col_w >= hex_pocket.x / cos(30) + 1, "the antenna column is too narrow for the SMA's hex pocket");
 assert(screw_y + m5_boss / 2 <= pocket_y + eps, "the screw boss pokes through the top wall");
 assert(tp_room >= tp.z + usb.y + 1, "the TP4056 doesn't fit between the step and the antenna column");
@@ -249,16 +266,6 @@ module floors() {
     translate([col_x0 - wall, col_y, 0]) cube([col_w + wall + eps, sma_floor + hex_pocket.y, z_in + eps]);
 }
 
-// The TP4056's back lies on the step wall; a guide on the back wall holds its
-// back edge, over the middle third, clear of the pads at either end.
-module tp_guide() {
-    edge_z = zc + tp.x / 2;
-    translate([step_x, tp_y0 + tp.y / 3, edge_z - 1]) difference() {
-        cube([tp.z + clear + 1.2, tp.y / 3, z_in - edge_z + 1 + eps]);
-        translate([-1, -1, -1]) cube([tp.z + clear + 1, tp.y / 3 + 2, 1 + 1 + clear]);
-    }
-}
-
 // A wall at each end of the holder, an L whose foot reaches under the
 // holder's end wall; a bar on the back wall over its top back edge stops it
 // lifting.
@@ -296,15 +303,19 @@ module frame() {
             translate([0, screw_y, 0]) cylinder(d = m5_boss, h = z_in + eps);
             translate([-m5_boss / 2, screw_y, 0]) cube([m5_boss, pocket_y - screw_y + eps, z_in + eps]);
             floors();
-            tp_guide();
             holder_pocket();
-            for (x = xiao_anchor_xs) tie_anchor([x, xiao_c.y]);
+            for (a = anchors) tie_anchor(a);
+            for (a = col_anchors) tie_anchor(a);
             loop();
         }
         // The bay is open at the bottom: no bottom wall.
         translate([-outer.x, bottom_y - 50, front_z - 1]) cube([2 * outer.x, 50, z_out - front_z + 2]);
         // The inside runs on past the bottom edge, so no skin is left across the opening.
         translate([-pocket_x, bottom_y - 1, -eps]) cube([2 * pocket_x, 2, z_in + eps]);
+        // Tie slots through the step wall either side of the TP4056, so a tie
+        // wraps round the board against the wall.
+        for (z = [zc - tp.x / 2 - 0.2 - tie_slot.y / 2, zc + tp.x / 2 + 0.2 + tie_slot.y / 2])
+            translate([step_x - wall - 1, tp_y0 + tp.y / 2 - tie_slot.x / 2, z - tie_slot.y / 2]) cube([wall + 2, tie_slot.x, tie_slot.y]);
         // The notch at the top of each of the holder's walls, for its wires.
         for (x = [holder_x0 - clear - wall, holder_x0 + holder_l + clear])
             translate([x - 1, holder_top - wire_notch.y, zc - wire_notch.x / 2]) cube([wall + 2, wire_notch.y + 1, wire_notch.x]);
