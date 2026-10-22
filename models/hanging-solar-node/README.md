@@ -18,9 +18,11 @@ slides in last.
   - the TP4056, inside the main compartment, standing on end with its flat back
     against the wall next to the 18650. Its USB-C comes down through a slot in a floor
     level with the holder's open face, 22 mm up inside the bottom edge;
-  - the 18650 holder (78.3 × 20.8 × 20), hanging open side down under the partition,
-    between two strips along its sides, on one screw up through the hole in its floor
-    into a blind boss. The cell comes out from below.
+  - the 18650 holder (78.3 × 20.8 × 20), open side down under the partition. It pushes
+    in from the back through an opening in the back wall, onto two ledges that catch
+    only its 1 mm end walls where the terminals are, up to a stop strip at the front.
+    One screw up through the hole in its floor into a blind boss holds it. The cell
+    comes out from below, between the ledges.
 
   The partition over the holder lets only its two wires through: a 4 mm hole past each
   end. Fill them with construction adhesive once the wires are in.
@@ -37,8 +39,8 @@ its USB-C in the floor's slot; a dab of adhesive holds it and seals round the po
    in the antenna column's floor and run its pigtail up to the Wio.
 2. Put the TP4056 in: USB-C down through the floor's slot, its back on the wall, its
    back edge in the guide. Glue it and seal round the port.
-3. Screw the holder up under the partition. Run its two wires up through the
-   partition's holes, then fill the holes with construction adhesive.
+3. Push the holder in from the back onto its ledges and screw it up under the
+   partition. Run its two wires up through the partition's holes, then fill the holes with construction adhesive.
 4. Wire the panel's leads (through the blocking diode) into the main compartment.
 5. Run adhesive along the channel and slide the panel up into it, face out. From below,
    run a bead wherever the main compartment's floors and walls meet the panel's back.

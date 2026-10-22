@@ -21,8 +21,14 @@
   - antenna column: `col_w` inside, its floor at `bottom_y` carries the SMA;
   - TP4056 inside the main compartment, back on the step wall at `step_x`, back edge
     in `tp_guide`, USB-C through a slot in the floor at `face_y` (`recess` up);
-  - the holder hangs from the partition (`partition_y = face_y + holder_h`), open
-    side down, its face level with that floor.
+  - the holder, open side down, its face level with that floor, pushes in from the
+    back through an opening in the back wall (user: "the 18650 holder should be
+    pushed into place from the back. And then it has like the 1 millimeter ledge
+    where the positive and negative terminals are"): two ledges at `face_y` catch
+    only its `holder_end_t` end walls, a strip under the partition stops it at the
+    front, and its back is flush with the frame's back (`holder_z0 = z_out −
+    holder_w`). One screw up through its floor into the boss holds it.
+  - `exploded.scad`: each part pulled out along the way it goes in.
   `floors()` is the stepped floor. The skin-cut past the bottom edge stops short of the
   column so its floor survives. Seal: bead from below wherever floors and walls meet
   the panel's back.

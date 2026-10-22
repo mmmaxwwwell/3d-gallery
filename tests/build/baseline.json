@@ -1963,7 +1963,7 @@
       "#C9A227FF",
       "#E9E9E4FF"
     ],
-    "triangleCount": 3668,
+    "triangleCount": 3720,
     "bbox": [
       [
         -62.6,
@@ -1977,9 +1977,36 @@
       ]
     ]
   },
+  "hanging-solar-node/exploded.3mf": {
+    "format": "3mf",
+    "colors": [
+      "#111111FF",
+      "#1D3A6BFF",
+      "#1F5FA8FF",
+      "#2B2B2BFF",
+      "#2F6FB0FF",
+      "#3A4250FF",
+      "#3C8F4AFF",
+      "#C9A227FF",
+      "#E9E9E4FF"
+    ],
+    "triangleCount": 3720,
+    "bbox": [
+      [
+        -62.6,
+        -85,
+        -358.4
+      ],
+      [
+        62.6,
+        41.75,
+        105.6
+      ]
+    ]
+  },
   "hanging-solar-node/frame.stl": {
     "format": "stl",
-    "triangleCount": 2148,
+    "triangleCount": 2196,
     "bbox": [
       [
         -62.6,
@@ -2005,7 +2032,7 @@
       "#C9A227FF",
       "#E9E9E4FF"
     ],
-    "triangleCount": 3276,
+    "triangleCount": 3328,
     "bbox": [
       [
         -62.6,
@@ -2024,7 +2051,7 @@
     "colors": [
       "#3A4250FF"
     ],
-    "triangleCount": 2180,
+    "triangleCount": 2232,
     "bbox": [
       [
         -62.6,
