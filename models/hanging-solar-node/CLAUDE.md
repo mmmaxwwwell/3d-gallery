@@ -21,18 +21,19 @@
   - antenna column: `col_w` inside, its floor at `bottom_y` carries the SMA;
   - TP4056 inside the main compartment, back on the step wall at `step_x`, back edge
     in `tp_guide`, USB-C through a slot in the floor at `face_y` (`recess` up);
-  - the holder, open side down, its face level with that floor, pushes in from the
-    back through an opening in the back wall (user: "the 18650 holder should be
-    pushed into place from the back. And then it has like the 1 millimeter ledge
-    where the positive and negative terminals are"): two ledges at `face_y` catch
-    only its `holder_end_t` end walls, a strip under the partition stops it at the
-    front, and its back is flush with the frame's back (`holder_z0 = z_out −
-    holder_w`). One screw up through its floor into the boss holds it.
+  - the holder, open side down, its face level with that floor, drops straight down
+    from inside through a slot in the partition (user: "the 18650 case needs to slide
+    straight downwards from the inside of the solar node. So it's captive"; before
+    that, "1 millimeter ledge where the positive and negative terminals are"): two
+    ledges at `face_y` catch only its `holder_end_t` end walls. `z_in = holder_w +
+    2·clear`, so the frame holds it front to back; ribs on the back wall at each end
+    locate it along X; `wire_gap` at each end of the slot carries its wires up. No
+    screw. A back-wall opening it pushed in through was the previous version.
   - `exploded.scad`: each part pulled out along the way it goes in.
   `floors()` is the stepped floor. The skin-cut past the bottom edge stops short of the
   column so its floor survives. Seal: bead from below wherever floors and walls meet
   the panel's back.
-- **Depth** is `z_in = 24`: the holder's 20.8 across, the XIAO's 18 standing.
+- **Depth** is set by the holder: `z_in = holder_w + 2·clear` (21.4).
 - **TP4056 rails** lip over only the middle third of the board's long edges: the pads
   (IN by the USB-C, OUT and B± at the far end) sit at the ends.
 - **Loop**: tab flush with the back (prints flat on the bed, load in-plane) plus a
