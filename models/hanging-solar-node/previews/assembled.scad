@@ -6,6 +6,7 @@ color("#1d3a6b") in_use() ref_panel_face();
 color("#2b2b2b") in_use() ref_holder();
 color("#2f6fb0") in_use() ref_cell();
 color("#1f5fa8") in_use() ref_tp4056();
+color("#7a3fa0") in_use() ref_sensor();
 color("#3c8f4a") in_use() ref_xiao();
 color("#c9a227") in_use() ref_sma();
 color("#111111") in_use() ref_antenna();

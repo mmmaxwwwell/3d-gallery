@@ -25,8 +25,17 @@
   - antenna column: `col_w` inside, its floor `col_raise` (5) up from the bottom edge
     (user: the panel's rounded corner showed the inside at the column's foot) carries
     the SMA, the inside nut in a hex pocket (`hex_pocket`) so it can't turn;
-  - TP4056 inside the main compartment, back on the step wall at `step_x`, tied
-    through two `tie_slot`s, USB-C through a slot in the floor at `base_y` (`recess` up);
+  - sensor chamber (user, 2026-10-22: "a little vented portion at the bottom near the
+    battery and the charger"; "the front of it is even with the bottom face"; "a
+    couple slits"; zip-tied): `sensor_chamber()`, between the holder's right L wall
+    and its own right wall in line with the column's (`ch_x0`..`ch_x1`), floor =
+    floors()' at `base_y`, cut by `vent_slit`s, ceiling at `ch_y1` kept under the
+    holder's right wire notch (that notch is cut only through the wall, so it opens
+    into the main compartment above the ceiling, never into the chamber). The board
+    (`sensor`, sized for the biggest breakout, 15.2 × 12; one size for all, user's
+    pick) stands flat on an anchor block on the right wall, tunnel front to back,
+    45° underside; wires up through `sensor_wire_hole`. Straight pin headers don't
+    fit: wires soldered on;
   - the holder, open side down, drops straight down from inside between two L-shaped
     walls (`holder_pocket`), each a wall at its end with a foot under its
     `holder_end_t` end wall (user: "should just be a L" — an earlier ledge + upstand +
@@ -35,9 +44,14 @@
     down a little proud at the front and pushes back under the bar; the panel closes
     it in. No partition: the holder and its walls are the main compartment's floor
     there, sealed with adhesive. `z_in = holder_w + 2·clear`.
+  - TP4056 against the left wall (user, 2026-10-22: "move the charging port all the
+    way to the opposite side away from the antenna, and then move the battery next to
+    the charging port"), inside the main compartment, back on the step wall's left
+    face at `step_x` (`tp_room` from the left wall), USB-C toward the wall, tied
+    through two `tie_slot`s, USB-C through a slot in the floor at `base_y`;
   Everything below ends on one flat face at `base_y` (user: "a single flat face on the
   bottom for everything. Minus the antenna that sticks down more"): the floors either
-  side of the holder, the L's feet, the USB-C's floor; the holder's face sits
+  side of the holder, the L's feet, the USB-C's floor, the sensor chamber's; the holder's face sits
   `ledge_t` up on its feet. `floors()` builds it.
 - **Panel screw** (user): an M5x10 through the panel's own hole, centred, its centre
   `panel_hole_from_top` (6) down, into a boss (`m5_boss`, 4.2 pilot, face at z = 0 so the

@@ -24,9 +24,11 @@
 //   floor over a hex pocket for its inside nut, so the antenna hangs straight
 //   down at the frame's bottom corner. The floor sits col_raise up, behind
 //   the panel where its rounded corner would otherwise show the inside;
-// - the TP4056, inside the main compartment, standing on end with its flat
-//   back to the 18650 on the step wall, tied to it through two slots; its
-//   USB-C comes down through a slot in the floor;
+// - the sensor chamber: a small box walled off from the main compartment,
+//   its floor flush with the flat bottom face and slit so air and humidity
+//   pass. A temperature/humidity board (AHT20, BME280, ...) is tied flat to
+//   an anchor on its right wall; its wires go up through a hole in the
+//   chamber's ceiling, sealed with adhesive;
 // - the 18650 holder, open side down. It drops straight down from inside,
 //   before the panel goes in, between two walls, one at each end, each an L
 //   whose foot catches only the holder's 1 mm end wall, where the terminals
@@ -36,8 +38,12 @@
 //   lifting: it goes down a little proud at the front, pushes back under the
 //   bar, and the panel then closes it in. The frame is just deep enough for
 //   it. Fill the notches and the seam round its floor with adhesive.
+// - the TP4056 against the left wall, inside the main compartment, standing
+//   on end with its flat back to the 18650 on the step wall, tied to it
+//   through two slots; its USB-C comes down through a slot in the floor.
 // Everything ends on one flat face, recess up inside the bottom edge: the
-// floor either side of the holder, the L's feet and the USB-C's floor. Only
+// floor either side of the holder, the L's feet, the USB-C's floor and the
+// sensor chamber's. Only
 // the antenna column goes lower. The walls run on below that face, so rain
 // blowing in under the node has to come up into the recess to reach it.
 // Where the main compartment's floors and walls meet the panel's back, a
@@ -142,8 +148,17 @@ sma_floor = 2.4;
 hex_pocket = [8 + 0.3, 2.2];
 col_w = 11.2;
 
-// Room beyond the holder's right-hand wall, before the TP4056's
+// Room beyond the holder's left-hand wall, before the TP4056's step wall
 wire_gap = 6;
+
+// The sensor board, the biggest of the AHT20 / BME280 / BMP280 breakouts
+// (the 6-pin GY-BME/PMP280 is 15.2 x 12); wires soldered straight on, no
+// header. It stands on the chamber's right wall, its long side front to back.
+sensor = [15.5, 12.5];
+// Slits in the chamber's floor: width, and how far apart
+vent_slit = [1.6, 3.5];
+// The hole the sensor's wires go up through into the main compartment
+sensor_wire_hole = 4;
 
 // The notch at the top of each of the holder's walls for its wires: width
 // (front to back), depth
@@ -183,19 +198,32 @@ base_y = bottom_y + recess;
 face_y = base_y + ledge_t;
 col_y = bottom_y + col_raise;
 col_x0 = pocket_x - col_w;
-step_x = col_x0 - wall - tp_room;
+// The step wall's left face; the TP4056 lies against it, the USB-C toward
+// the left wall.
+step_x = -pocket_x + tp_room;
 zc = z_in / 2;
 sma = [(col_x0 + pocket_x) / 2, zc];
 screw_y = panel_h / 2 - panel_hole_from_top;
-usb_x = step_x + tp.z + usb.y / 2;
+usb_x = step_x - tp.z - usb.y / 2;
 top_y = pocket_y + wall;
 loop_y = top_y + loop_h / 2;
 outer = [2 * (pocket_x + wall), top_y + loop_h - bottom_y];
-holder_x0 = step_x - wall - wire_gap - wall - clear - holder_l;
+holder_x0 = step_x + wall + wire_gap + wall + clear;
 holder_top = face_y + holder_h;
 holder_z0 = clear;
 holder_y0 = face_y;
 tp_y0 = base_y + floor_t;
+// The sensor chamber, inside: from the holder's right wall to its own right
+// wall, in line with the antenna column's; its ceiling stays under the
+// holder's wire notch, so the notch opens into the main compartment.
+ch_x0 = holder_x0 + holder_l + clear + wall;
+ch_x1 = col_x0 - wall;
+ch_y0 = base_y + floor_t;
+ch_y1 = holder_top - wire_notch.y - 0.4;
+ch_yc = (ch_y0 + ch_y1) / 2;
+// The board's face, on the anchor block standing anchor.z off the right wall
+sensor_x = ch_x1 - anchor.z;
+vent_xs = [for (i = [0 : 1]) ch_x0 + 2 + vent_slit.x / 2 + i * vent_slit.y];
 anchors = [for (x = anchor_xs, y = anchor_ys) if (abs(x - xiao_c.x) > xiao.x / 2 + anchor.x / 2 || abs(y - xiao_c.y) > xiao.y / 2 + anchor.y / 2) [x, y]];
 // Two in the antenna column, for the SMA's pigtail.
 col_anchors = [for (dy = [12, 30]) [sma.x, col_y + sma_floor + hex_pocket.y + dy]];
@@ -209,7 +237,10 @@ assert(col_w >= hex_pocket.x / cos(30) + 1, "the antenna column is too narrow fo
 assert(screw_y + m5_boss / 2 <= pocket_y + eps, "the screw boss pokes through the top wall");
 assert(tp_room >= tp.z + usb.y + 1, "the TP4056 doesn't fit between the step and the antenna column");
 assert(tp.x + 2 < z_in, "the TP4056 is wider than the frame is deep");
-assert(holder_x0 - wire_gap - wall > -pocket_x + lip_w + glue_gap, "the holder's slot runs into the side wall");
+assert(ch_x1 - ch_x0 >= anchor.z + 1.6 + 4, "the sensor chamber is too narrow for its board");
+assert(ch_y1 - ch_y0 >= sensor.y + 2, "the sensor chamber is too low for its board");
+assert(sensor.x + 2 < z_in, "the sensor board is wider than the frame is deep");
+assert(max(vent_xs) + vent_slit.x / 2 < sensor_x, "a vent slit runs under the sensor's anchor");
 assert(tp_y0 + tp.y < xiao_c.y - xiao.y / 2, "the TP4056 runs into the XIAO");
 
 module rrect(size, r) {
@@ -283,7 +314,7 @@ module floors() {
     x1 = holder_x0 + holder_l;
     translate([-pocket_x, base_y, 0]) cube([pocket_x + holder_x0 - clear - wall + eps, floor_t, z_in + eps]);
     translate([x1 + clear + wall - eps, base_y, 0]) cube([col_x0 - x1 - clear - wall + eps, floor_t, z_in + eps]);
-    translate([step_x - wall, base_y, 0]) cube([wall, tp_y0 + tp.y - base_y, z_in + eps]);
+    translate([step_x, base_y, 0]) cube([wall, tp_y0 + tp.y - base_y, z_in + eps]);
     translate([col_x0 - wall, col_y, 0]) cube([wall, base_y + floor_t - col_y, z_in + eps]);
     translate([col_x0 - wall, col_y, 0]) cube([col_w + wall + eps, sma_floor + hex_pocket.y, z_in + eps]);
 }
@@ -299,6 +330,22 @@ module holder_pocket() {
         translate([sd < 0 ? wx : x1 - holder_end_t, base_y, 0]) cube([wall + clear + holder_end_t, ledge_t, z_in + eps]);
     }
     translate([holder_x0, holder_top + clear, z_in - clear - bar.y]) cube([holder_l, bar.x, clear + bar.y + eps]);
+}
+
+// The sensor chamber's right wall and ceiling (its left wall is the holder's,
+// its floor is floors()'), and the anchor block on the right wall the board
+// is tied flat to. The block's underside, toward the back wall, is 45 deg so
+// it prints without support; the tie's tunnel runs front to back through it.
+module sensor_chamber() {
+    translate([ch_x1, base_y, 0]) cube([wall, ch_y1 + floor_t - base_y, z_in + eps]);
+    translate([ch_x0 - wall - eps, ch_y1, 0]) cube([ch_x1 - ch_x0 + 2 * wall + 2 * eps, floor_t, z_in + eps]);
+    difference() {
+        hull() {
+            translate([sensor_x, ch_yc - anchor.y / 2, zc - anchor.x / 2]) cube([anchor.z + eps, anchor.y, anchor.x]);
+            translate([ch_x1 - eps, ch_yc - anchor.y / 2, zc - anchor.x / 2]) cube([eps, anchor.y, anchor.x / 2 + anchor.z + eps]);
+        }
+        translate([sensor_x + 1.2, ch_yc - tie_tunnel.x / 2, zc - anchor.x]) cube([tie_tunnel.y, tie_tunnel.x, 2 * anchor.x + anchor.z]);
+    }
 }
 
 module tie_anchor(p) {
@@ -326,6 +373,7 @@ module frame() {
             translate([-m5_boss / 2, screw_y, 0]) cube([m5_boss, pocket_y - screw_y + eps, z_in + eps]);
             floors();
             holder_pocket();
+            sensor_chamber();
             for (a = anchors) tie_anchor(a);
             for (a = col_anchors) tie_anchor(a);
             loop();
@@ -337,10 +385,12 @@ module frame() {
         // Tie slots through the step wall either side of the TP4056, so a tie
         // wraps round the board against the wall.
         for (z = [zc - tp.x / 2 - 0.2 - tie_slot.y / 2, zc + tp.x / 2 + 0.2 + tie_slot.y / 2])
-            translate([step_x - wall - 1, tp_y0 + tp.y / 2 - tie_slot.x / 2, z - tie_slot.y / 2]) cube([wall + 2, tie_slot.x, tie_slot.y]);
+            translate([step_x - 1, tp_y0 + tp.y / 2 - tie_slot.x / 2, z - tie_slot.y / 2]) cube([wall + 2, tie_slot.x, tie_slot.y]);
         // The notch at the top of each of the holder's walls, for its wires.
+        // The right one stops at the wall's far face, over the sensor chamber's
+        // ceiling, so it opens into the main compartment, not the chamber.
         for (x = [holder_x0 - clear - wall, holder_x0 + holder_l + clear])
-            translate([x - 1, holder_top - wire_notch.y, zc - wire_notch.x / 2]) cube([wall + 2, wire_notch.y + 1, wire_notch.x]);
+            translate([x - 1, holder_top - wire_notch.y, zc - wire_notch.x / 2]) cube([wall + (x < 0 ? 2 : 1), wire_notch.y + 1, wire_notch.x]);
         translate([sma.x, col_y - 1, sma.y]) rotate([-90, 0, 0]) cylinder(d = sma_hole, h = sma_floor + hex_pocket.y + 2);
         // A corner of the hex points along Z, so its top prints at 60 deg.
         translate([sma.x, col_y + sma_floor, sma.y]) rotate([-90, 0, 0]) rotate(30)
@@ -348,6 +398,10 @@ module frame() {
         translate([0, screw_y, -1]) cylinder(d = m5_pilot, h = 1 + m5_boss);
         translate([0, screw_y, front_z - 1]) cylinder(d = m5_head.x + 1, h = channel_z - front_z + 1);
         translate([usb_x - usb.y / 2 - 0.25, base_y - 1, zc - usb.x / 2 - 0.25]) cube([usb.y + 0.5, floor_t + 2, usb.x + 0.5]);
+        // The sensor chamber's vent slits, front to back, and the hole its
+        // wires go up through.
+        for (x = vent_xs) translate([x - vent_slit.x / 2, base_y - 1, 3]) cube([vent_slit.x, floor_t + 2, z_in - 6]);
+        translate([sensor_x - 3, ch_y1 - 1, zc]) rotate([-90, 0, 0]) cylinder(d = sensor_wire_hole, h = floor_t + 2);
     }
 }
 
@@ -372,9 +426,15 @@ module ref_holder() translate([holder_x0, holder_y0, holder_z0]) difference() {
 module ref_cell() translate([holder_x0 + holder_l / 2, holder_y0 + holder_h - 1 - 9.25, holder_z0 + holder_w / 2]) rotate([0, 90, 0]) cylinder(d = 18.5, h = 65, center = true);
 
 // Standing on end, its back on the step wall, its USB-C through the floor.
-module ref_tp4056() translate([step_x, tp_y0, zc - tp.x / 2]) {
+module ref_tp4056() translate([step_x - tp.z, tp_y0, zc - tp.x / 2]) {
     cube([tp.z, tp.y, tp.x]);
-    translate([tp.z, -usb.z, (tp.x - usb.x) / 2]) cube([usb.y, 7.5, usb.x]);
+    translate([-usb.y, -usb.z, (tp.x - usb.x) / 2]) cube([usb.y, 7.5, usb.x]);
+}
+
+// Flat on its anchor, components toward the holder.
+module ref_sensor() translate([sensor_x - 1.6, ch_yc - sensor.y / 2, zc - sensor.x / 2]) {
+    cube([1.6, sensor.y, sensor.x]);
+    translate([-1, sensor.y / 2 - 1.5, sensor.x / 2 - 1.5]) cube([1, 3, 3]);
 }
 
 module ref_xiao() translate([xiao_c.x, xiao_c.y, z_in - xiao.z / 2]) cube(xiao, center = true);

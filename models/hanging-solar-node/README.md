@@ -19,18 +19,24 @@ slides in last.
     pigtail. The floor is 5 mm up, behind the
     panel, so the panel's rounded corner doesn't show the inside. The antenna hangs
     straight down from the frame's bottom corner;
-  - the TP4056, inside the main compartment, standing on end with its flat back to
-    the 18650, tied to its wall through two slots. Its USB-C comes down through a slot
-    in the floor;
+  - the sensor chamber: a small box walled off from the main compartment, its floor
+    flush with the flat bottom face and slit twice so air and humidity get in and out.
+    A temperature/humidity board (AHT20, BME280, or the 15.2 × 12 GY-BME/PMP280 if it
+    really carries a BME280) is tied flat to an anchor on its right wall. Solder its
+    wires straight on, not to the pin header: straight pins don't fit. The wires go up
+    through a hole in the chamber's ceiling;
   - the 18650 holder (78.3 × 20.8 × 20), open side down. It drops straight down from
     inside, before the panel goes in, between two L-shaped walls whose feet catch only
     its 1 mm end walls where the terminals are, so it's captive. The cell comes out
     from below, between the feet. A notch at the top of each wall lets its wires
     through, and a bar along the back wall reaching 5 mm over its top back edge stops
-    it lifting.
+    it lifting;
+  - the TP4056 against the left wall, inside the main compartment, standing on end with
+    its flat back to the 18650, tied to its wall through two slots. Its USB-C comes
+    down through a slot in the floor.
 
   Everything ends on one flat face 22 mm up inside the bottom edge: the floors either
-  side of the holder, the L's feet and the USB-C's floor. Only the antenna column goes
+  side of the holder, the L's feet, the USB-C's floor and the sensor chamber's. Only the antenna column goes
   lower. Fill the wire notches and the seam round the holder with construction
   adhesive.
 - **Panel screw**: an M5x10 cap screw through the panel's own hole (centred, 6 mm down
@@ -49,17 +55,19 @@ a dab of adhesive seals round the port.
 1. Tie and glue the XIAO to the anchors either side of it. Fit the SMA bulkhead in the
    antenna column's floor (inside nut in the hex pocket), tie its pigtail to the
    column's anchors and run it up to the Wio.
-2. Put the TP4056 in: USB-C down through the floor's slot, its back on the wall, a tie
+2. Tie the sensor board flat to the anchor in the sensor chamber, components out, its
+   wires up through the hole in the chamber's ceiling. Seal the hole round them.
+3. Put the TP4056 in: USB-C down through the floor's slot, its back on the wall, a tie
    round it through the wall's two slots. Seal round the port.
-3. Drop the holder down between its walls, open side down, wires through the notches
+4. Drop the holder down between its walls, open side down, wires through the notches
    at the top of the walls, with its front edge a little proud; push it back under the
    bar onto the L's feet (the panel closes it in). Fill the gaps and the seam round it with construction
    adhesive.
-4. Wire the panel's leads (through the blocking diode) into the main compartment.
-5. Run adhesive along the channel and slide the panel up into it, face out. From below,
+5. Wire the panel's leads (through the blocking diode) into the main compartment.
+6. Run adhesive along the channel and slide the panel up into it, face out. From below,
    run a bead wherever the main compartment's floors and walls meet the panel's back.
-6. Screw the M5x10 through the panel's hole into the boss.
-7. Put the cell in and screw on the antenna.
+7. Screw the M5x10 through the panel's hole into the boss.
+8. Put the cell in and screw on the antenna.
 
 ## Printing
 
